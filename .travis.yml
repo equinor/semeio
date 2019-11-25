@@ -1,0 +1,58 @@
+language: python
+
+python:
+  - "3.6"
+  - "3.7"
+
+virtualenv:
+  system_site_packages: false
+
+compiler:
+  - gcc
+
+os:
+  - linux
+
+sudo: false
+dist: xenial
+
+env:
+  global:
+    - ERT_SHOW_BACKTRACE=1
+    - INSTALL_DIR="$(pwd)/install"
+    - LD_LIBRARY_PATH="${INSTALL_DIR}/lib:${INSTALL_DIR}/lib64"
+    - DYLD_LIBRARY_PATH="${INSTALL_DIR}/lib:${INSTALL_DIR}/lib64"
+
+
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+      - george-edison55-precise-backports
+    packages:
+      - liblapack-dev
+      - valgrind
+      - cmake
+      - cmake-data
+      - gcc
+
+install:
+    - git clone --branch master --depth 1 https://github.com/equinor/ert
+    - pushd ert
+    - pip install --upgrade -r requirements.txt
+    - source .libres_version
+    - git clone --branch $LIBRES_VERSION --depth 1 https://github.com/equinor/libres
+    - pushd libres
+    - source .libecl_version
+    - popd
+    - git clone --branch $LIBECL_VERSION --depth 1 https://github.com/equinor/libecl
+    - bash .build_install.sh libecl
+    - bash .build_install.sh libres
+    - export PYTHONPATH=$INSTALL_DIR/lib/python$TRAVIS_PYTHON_VERSION/dist-packages:$PYTHONPATH
+    - export PYTHONPATH=$INSTALL_DIR/lib/python$TRAVIS_PYTHON_VERSION/site-packages:$PYTHONPATH
+    - PATH=$INSTALL_DIR/bin:$PATH
+    - pip install . --prefix=$INSTALL_DIR
+    - popd
+
+script:
+  - python setup.py test
