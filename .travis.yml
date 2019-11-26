@@ -44,6 +44,7 @@ install:
     - git clone --branch $LIBRES_VERSION --depth 1 https://github.com/equinor/libres
     - pushd libres
     - source .libecl_version
+    - export LIBRES_TEST_DATA_DIR="$(pwd)/test-data"
     - popd
     - git clone --branch $LIBECL_VERSION --depth 1 https://github.com/equinor/libecl
     - bash .build_install.sh libecl
@@ -55,4 +56,4 @@ install:
     - popd
 
 script:
-  - python setup.py test
+  - python setup.py pytest
