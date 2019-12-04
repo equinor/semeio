@@ -23,8 +23,6 @@ env:
     - INSTALL_DIR="$(pwd)/install"
     - LD_LIBRARY_PATH="${INSTALL_DIR}/lib:${INSTALL_DIR}/lib64"
     - DYLD_LIBRARY_PATH="${INSTALL_DIR}/lib:${INSTALL_DIR}/lib64"
-    - secure: hYALJVOFdfNfbWnhA/S+4iyxmlUGThJPtsDZRNGdabzGpls1WRGhbvIoCdDmkvBdYdfJq0596Kg21Hmkh0QVmemgYhZMiiyG6FsuOOt66mKv+TFSLT6BNiYz3WTFvqqE94TkeRU5j7EDmIn7e5C2f1V+TUUr8Da9BVhal9qKj5/V0+oQ7hPhmupdz01yet2WCWZZ1IRahpjISHjJ1wj6Dw0Sf3F9/mP+lWDbda+vpZfMr6/QXqS1m9BtFn7f9UreLK3d+sRtHJ89kxmYhChBJKwZCIyPqfjaf7fhSkL2yLE3taxwQY3BBoe/Jaek9xO4mM0MqhPn7FAFXpm8t/iEBh5COXuR73K9+AP+vGyPqMMU23qfqRvhq0qUD2U2r6JE7dZyrMj5H86ECeUnWTBjblRnQfEvZzKbi8E8kC/XbYqp0rzIi2QeGobJHxW0C3epWhLK8ywhnIZepAYNrgKTGkExHdV+A2UDDUxio4RhtTI3u9UXerR6xpzH4oSm+Y48oeeK1ip47Dx4jha9IlmH8i0Ug4IqKAo78Ek6zViEsBXRSTPO+tFz4lGT750kjAZNytFmX4hOu+cCMFE99dXCLnGz+4IU6tSyIciYIn09iArmPqVZS+jXyDw49Y7pXnZ7te9F+ZArzBxXAem98JPRY0s4P4xmQWLlW5Mf8MWvdGw=  # variable PYPI_PWD
-
 
 addons:
   apt:
@@ -59,3 +57,14 @@ install:
 
 script:
   - python setup.py test
+
+deploy:
+  - provider: pypi
+    user: statoil-travis
+    distributions: bdist_wheel sdist
+    skip_existing: true
+    password:
+      secure: hYALJVOFdfNfbWnhA/S+4iyxmlUGThJPtsDZRNGdabzGpls1WRGhbvIoCdDmkvBdYdfJq0596Kg21Hmkh0QVmemgYhZMiiyG6FsuOOt66mKv+TFSLT6BNiYz3WTFvqqE94TkeRU5j7EDmIn7e5C2f1V+TUUr8Da9BVhal9qKj5/V0+oQ7hPhmupdz01yet2WCWZZ1IRahpjISHjJ1wj6Dw0Sf3F9/mP+lWDbda+vpZfMr6/QXqS1m9BtFn7f9UreLK3d+sRtHJ89kxmYhChBJKwZCIyPqfjaf7fhSkL2yLE3taxwQY3BBoe/Jaek9xO4mM0MqhPn7FAFXpm8t/iEBh5COXuR73K9+AP+vGyPqMMU23qfqRvhq0qUD2U2r6JE7dZyrMj5H86ECeUnWTBjblRnQfEvZzKbi8E8kC/XbYqp0rzIi2QeGobJHxW0C3epWhLK8ywhnIZepAYNrgKTGkExHdV+A2UDDUxio4RhtTI3u9UXerR6xpzH4oSm+Y48oeeK1ip47Dx4jha9IlmH8i0Ug4IqKAo78Ek6zViEsBXRSTPO+tFz4lGT750kjAZNytFmX4hOu+cCMFE99dXCLnGz+4IU6tSyIciYIn09iArmPqVZS+jXyDw49Y7pXnZ7te9F+ZArzBxXAem98JPRY0s4P4xmQWLlW5Mf8MWvdGw=  # variable PYPI_PWD
+    on:
+      tags: true
+      branch: master
