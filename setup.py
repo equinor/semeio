@@ -5,13 +5,13 @@ from setuptools import setup
 
 def package_files(directory):
     paths = []
-    for (path, directories, filenames) in os.walk(directory):
+    for (path, _, filenames) in os.walk(directory):
         for filename in filenames:
             paths.append(os.path.join('..', path, filename))
     return paths
 
 
-job_configs = package_files('semeio/job_configurations/')
+job_files = package_files("semeio/jobs/configs") + package_files("semeio/jobs/scripts")
 
 setup(
     name="semeio",

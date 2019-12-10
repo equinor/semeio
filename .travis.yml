@@ -3,6 +3,7 @@ language: python
 python:
   - "3.6"
   - "3.7"
+  - "2.7"
 
 virtualenv:
   system_site_packages: false
@@ -42,18 +43,19 @@ install:
     - pushd ert
     - pip install --upgrade -r requirements.txt
     - source .libres_version
+    - popd
     - git clone --branch $LIBRES_VERSION --depth 1 https://github.com/equinor/libres
     - pushd libres
     - source .libecl_version
+    - export LIBRES_TEST_DATA_DIR="$(pwd)/test-data"
     - popd
     - git clone --branch $LIBECL_VERSION --depth 1 https://github.com/equinor/libecl
-    - bash .build_install.sh libecl
-    - bash .build_install.sh libres
+    - bash ert/.build_install.sh libecl
+    - bash ert/.build_install.sh libres
     - export PYTHONPATH=$INSTALL_DIR/lib/python$TRAVIS_PYTHON_VERSION/dist-packages:$PYTHONPATH
     - export PYTHONPATH=$INSTALL_DIR/lib/python$TRAVIS_PYTHON_VERSION/site-packages:$PYTHONPATH
     - PATH=$INSTALL_DIR/bin:$PATH
-    - pip install . --prefix=$INSTALL_DIR
-    - popd
+    - pip install ert/ --prefix=$INSTALL_DIR
 
 script:
   - python setup.py test
