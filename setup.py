@@ -21,14 +21,22 @@ setup(
     packages=[
         "semeio",
         "semeio.hook_implementations",
+        "semeio.jobs.correlated_observations_scaling",
     ],
     entry_points={
         "ert": [
             "semeio_jobs = semeio.hook_implementations.jobs",
         ]
     },
-    install_requires=[],
+    install_requires=[
+        "configsuite",
+        "numpy",
+        "pandas",
+        "six",
+    ],
+    setup_requires=["pytest-runner"],
+    tests_require=["pytest", "mock"],
     test_suite="tests",
-    package_data={"semeio": job_configs},
+    package_data={"": job_files},
     include_package_data=True,
 )
