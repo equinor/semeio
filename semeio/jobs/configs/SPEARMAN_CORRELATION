@@ -1,0 +1,2 @@
+INTERNAL    True
+SCRIPT      ../scripts/spearman_correlation.py
