@@ -49,6 +49,7 @@ setup(
         "numpy",
         "pandas",
         "six",
+        "scipy",
     ],
     setup_requires=["pytest-runner", "setuptools_scm"],
     tests_require=["pytest", "mock"],
