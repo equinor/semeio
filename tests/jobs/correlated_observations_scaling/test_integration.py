@@ -108,10 +108,7 @@ def test_installed_python_version_of_enkf_scaling_job(setup_ert, monkeypatch):
     job.run(ert, ["job_config.yml"])
 
     assert_obs_vector(
-        obs_vector,
-        np.sqrt(4.0 / 2.0),
-        index_list=[0, 1, 2],
-        val_2=np.sqrt(3.0 / 2.0),
+        obs_vector, np.sqrt(4.0 / 2.0), index_list=[0, 1, 2], val_2=np.sqrt(3.0 / 2.0),
     )
 
 
@@ -171,17 +168,12 @@ def test_main_entry_point_gen_data():
     obs = ert.getObservations()
     obs_vector = obs["WPR_DIFF_1"]
 
-    assert_obs_vector(
-        obs_vector, 1.0, [0, 1], np.sqrt(4 / 2)
-    )
+    assert_obs_vector(obs_vector, 1.0, [0, 1], np.sqrt(4 / 2))
 
     arguments["CALCULATE_KEYS"]["keys"][0].update({"index": [400, 800, 1200]})
     scaling_job.scaling_job(facade, arguments)
     assert_obs_vector(
-        obs_vector,
-        1.0,
-        [0, 1],
-        np.sqrt(3.0 / 2.0),
+        obs_vector, 1.0, [0, 1], np.sqrt(3.0 / 2.0),
     )
 
 

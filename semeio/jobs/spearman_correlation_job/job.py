@@ -66,7 +66,9 @@ def _run_scaling(facade, job_configs):
 
 def _cluster_data(data):
     groups = {}
-    for (nr, key), cluster_group in itertools.groupby(sorted(data), key=lambda x: (x[0], x[1])):
+    for (nr, key), cluster_group in itertools.groupby(
+        sorted(data), key=lambda x: (x[0], x[1])
+    ):
         if nr not in groups:
             groups[nr] = {}
         groups[nr].update({key: [index for _, _, index in cluster_group]})

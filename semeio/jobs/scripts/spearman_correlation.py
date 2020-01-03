@@ -23,7 +23,8 @@ def spearman_job_parser():
     """
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument(
-        "-t", "--threshold",
+        "-t",
+        "--threshold",
         required=False,
         default=1.15,
         type=float,
@@ -40,7 +41,8 @@ def spearman_job_parser():
         help="Name of the outputfile. The format will be yaml.",
     )
     parser.add_argument(
-        "-n", "--dry-run",
+        "-n",
+        "--dry-run",
         required=False,
         help="Dry run, no scaling will be performed",
         action="store_true",

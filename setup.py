@@ -7,7 +7,7 @@ def package_files(directory):
     paths = []
     for (path, _, filenames) in os.walk(directory):
         for filename in filenames:
-            paths.append(os.path.join('..', path, filename))
+            paths.append(os.path.join("..", path, filename))
     return paths
 
 
@@ -25,11 +25,7 @@ setup(
         "semeio.hook_implementations",
         "semeio.jobs.correlated_observations_scaling",
     ],
-    entry_points={
-        "ert": [
-            "semeio_jobs = semeio.hook_implementations.jobs",
-        ]
-    },
+    entry_points={"ert": ["semeio_jobs = semeio.hook_implementations.jobs",]},
     license="GPL-3.0",
     platforms="any",
     classifiers=[
@@ -44,13 +40,7 @@ setup(
         "Topic :: Scientific/Engineering",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
-    install_requires=[
-        "configsuite",
-        "numpy",
-        "pandas",
-        "six",
-        "scipy",
-    ],
+    install_requires=["configsuite", "numpy", "pandas", "six", "scipy",],
     setup_requires=["pytest-runner", "setuptools_scm"],
     tests_require=["pytest", "mock"],
     test_suite="tests",
