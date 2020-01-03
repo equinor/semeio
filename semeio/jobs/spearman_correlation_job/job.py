@@ -22,6 +22,7 @@ def _spearman_correlation(facade, obs_keys, threshold, dry_run):
     measured_data = MeasuredData(facade, obs_keys)
     measured_data.remove_failed_realizations()
     measured_data.remove_inactive_observations()
+    measured_data.filter_ensemble_std(1.0e-6)
 
     simulated_data = measured_data.get_simulated_data()
 
