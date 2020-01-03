@@ -42,7 +42,7 @@ setup(
     ],
     install_requires=["configsuite", "numpy", "pandas", "six", "scipy",],
     setup_requires=["pytest-runner", "setuptools_scm"],
-    tests_require=["pytest", "mock"],
+    tests_require=["pytest", "mock", 'black; python_version>="3.6"'],
     test_suite="tests",
     package_data={"": job_files},
     include_package_data=True,
