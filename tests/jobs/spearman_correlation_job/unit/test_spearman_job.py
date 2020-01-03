@@ -9,6 +9,7 @@ if sys.version_info >= (3, 3):
 else:
     from mock import Mock
 
+
 @pytest.mark.parametrize(
     "test_input",
     [
@@ -47,7 +48,7 @@ def test_run_scaling(test_input, monkeypatch):
 @pytest.mark.parametrize(
     "test_input,expected_result",
     [
-        ([(1, "KEY_1", 1)], {1:{"KEY_1": [1]}}),
+        ([(1, "KEY_1", 1)], {1: {"KEY_1": [1]}}),
         ([(1, "KEY_1", 1), (1, "KEY_1", 2)], {1: {"KEY_1": [1, 2]}}),
         ([(1, "KEY_1", 1), (2, "KEY_2", 2)], {1: {"KEY_1": [1]}, 2: {"KEY_2": [2]}}),
     ],
