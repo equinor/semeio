@@ -1,0 +1,12 @@
+STDERR DESIGN_KW.stderr
+STDOUT DESIGN_KW.stdout
+
+TARGET_FILE DESIGN_KW.OK
+
+PORTABLE_EXE ../scripts/design_kw.py
+ARGLIST      <template_file> <result_file>
+
+MIN_ARG    2
+MAX_ARG    2
+ARG_TYPE 0 STRING
+ARG_TYPE 1 STRING
