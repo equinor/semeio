@@ -2,6 +2,7 @@
 *.so
 *.pyc
 *~
+.vscode
 .idea
 .DS_Store
 out/*
@@ -19,3 +20,5 @@ core.*
 /dist
 /build
 semeio/version.py
+__pycache__/
+.pytest_cache/
