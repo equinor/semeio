@@ -86,7 +86,10 @@ def _config_creation(clusters):
 
 
 def _calculate_correlation_matrix(data):
-    return data.corr(method="spearman")
+    # Spearman correlation is quite slow, but will be improved in a future version
+    # of pandas (https://github.com/pandas-dev/pandas/pull/28151), for now this is
+    # equivalent:
+    return data.rank().corr(method="pearson")
 
 
 def _cluster_analysis(correlation_matrix, threshold):
