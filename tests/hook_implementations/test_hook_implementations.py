@@ -14,6 +14,7 @@ def test_hook_implementations():
         "DESIGN_KW": "semeio/jobs/config_jobs/DESIGN_KW",
         "DESIGN2PARAMS": "semeio/jobs/config_jobs/DESIGN2PARAMS",
         "STEA": "semeio/jobs/config_jobs/STEA",
+        "GENDATA_RFT": "semeio/jobs/config_jobs/GENDATA_RFT",
     }
     installable_jobs = pm.get_installable_jobs()
     for wf_name, wf_location in expected_jobs.items():
