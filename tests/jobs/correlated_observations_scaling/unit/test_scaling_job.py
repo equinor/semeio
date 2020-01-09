@@ -89,30 +89,27 @@ def test_min_value(test_input, expected_result):
     assert job_config._min_value(test_input).__bool__() == expected_result
 
 
-def test_expand_input():
+def test_expand_input_no_modification():
 
     expected_result = {
         "UPDATE_KEYS": {"keys": [{"key": "key_4"}, {"key": "key_5"}, {"key": "key_6"}]},
         "CALCULATE_KEYS": {
-            "keys": [{"key": "key_1"}, {"key": "key_2"}, {"key": "key_3"}]
+            "keys": [{"key": "key_1"}, {"key": "key_2"}, {"key": "key_3"}],
+            "threshold": 1.0,
         },
     }
-
-    valid_config = deepcopy(expected_result)
 
     assert job_config._expand_input(deepcopy(expected_result)) == expected_result
 
-    copy_of_valid_config = deepcopy(valid_config)
-    copy_of_valid_config.pop("UPDATE_KEYS")
 
-    expected_result = {
-        "UPDATE_KEYS": {"keys": [{"key": "key_1"}, {"key": "key_2"}, {"key": "key_3"}]},
-        "CALCULATE_KEYS": {
-            "keys": [{"key": "key_1"}, {"key": "key_2"}, {"key": "key_3"}]
-        },
-    }
+def test_expand_input_modification():
+    keys = [{"key": "key_1"}, {"key": "key_2"}, {"key": "key_3"}]
+    test_input = {"CALCULATE_KEYS": {"keys": keys, "threshold": 1.0}}
 
-    assert job_config._expand_input(copy_of_valid_config) == expected_result
+    expected_results = deepcopy(test_input)
+    expected_results["UPDATE_KEYS"] = {"keys": keys}
+
+    assert job_config._expand_input(test_input) == expected_results
 
 
 def test_config_setup():
