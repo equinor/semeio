@@ -72,7 +72,9 @@ _num_convert_msg = "Create UPDATE_KEYS from CALCULATE_KEYS as it was not specifi
 def _expand_input(input_value):
     expanded_values = deepcopy(input_value)
     if "CALCULATE_KEYS" in expanded_values and "UPDATE_KEYS" not in expanded_values:
-        expanded_values.update({"UPDATE_KEYS": expanded_values["CALCULATE_KEYS"]})
+        expanded_values.update(
+            {"UPDATE_KEYS": {"keys": expanded_values["CALCULATE_KEYS"]["keys"]}}
+        )
     return expanded_values
 
 
