@@ -1,0 +1,14 @@
+STDERR DESIGN2PARAMS.stderr
+STDOUT DESIGN2PARAMS.stdout
+
+TARGET_FILE DESIGN2PARAMS.OK
+
+PORTABLE_EXE ../scripts/design2params.py
+ARGLIST      <IENS> <xls_filename> <designsheet> <defaultssheet> 
+
+MIN_ARG    3
+MAX_ARG    4
+ARG_TYPE 0 INT
+ARG_TYPE 1 STRING
+ARG_TYPE 2 STRING
+ARG_TYPE 3 STRING
