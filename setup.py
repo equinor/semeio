@@ -11,7 +11,11 @@ def package_files(directory):
     return paths
 
 
-job_files = package_files("semeio/jobs/configs") + package_files("semeio/jobs/scripts")
+job_files = (
+    package_files("semeio/jobs/config_jobs")
+    + package_files("semeio/jobs/config_workflow_jobs")
+    + package_files("semeio/jobs/scripts")
+)
 
 setup(
     name="semeio",

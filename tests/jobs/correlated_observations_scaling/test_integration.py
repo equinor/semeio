@@ -55,7 +55,7 @@ def get_job_dir():
     from semeio import jobs
 
     head, _ = os.path.split(os.path.abspath(jobs.__file__))
-    return os.path.join(head, "configs")
+    return os.path.join(head, "config_workflow_jobs")
 
 
 @pytest.mark.skipif(TEST_DATA_DIR is None, reason="no libres test-data")
