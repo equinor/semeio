@@ -3,7 +3,7 @@ import logging
 import os
 import sys
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 std_out_handler = logging.StreamHandler(sys.stdout)
 std_out_handler.setFormatter(formatter)
