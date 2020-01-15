@@ -17,6 +17,7 @@ def _get_jobs_from_directory(directory):
     return {os.path.basename(path): path for path in all_files}
 
 
+# pylint: disable=no-value-for-parameter
 @hook_implementation
 @plugin_response(plugin_name="semeio")  # pylint: disable=no-value-for-parameter
 def installable_jobs():
@@ -57,6 +58,8 @@ def job_documentation(job_name):
 
     if job_name == "STEA" or job_name == "PYSCAL":
         module_name = "semeio.jobs.scripts.fm_{}".format(job_name.lower())
+    elif job_name == "OTS":
+        module_name = "semeio.jobs.scripts.overburden_timeshift"
     else:
         module_name = "semeio.jobs.scripts.{}".format(job_name.lower())
 
