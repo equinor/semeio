@@ -59,6 +59,7 @@ setup(
         "stea",
         "pyscal>=0.4.0",
         "fmu-ensemble",
+        "segyio",
     ],
     setup_requires=["setuptools_scm"],
     package_data={"": job_files},
