@@ -30,6 +30,7 @@ def test_hook_implementations():
         "PYSCAL": "semeio/jobs/config_jobs/PYSCAL",
         "INSERT_NOSIM": "semeio/jobs/config_jobs/INSERT_NOSIM",
         "REMOVE_NOSIM": "semeio/jobs/config_jobs/REMOVE_NOSIM",
+        "OTS": "semeio/jobs/config_jobs/OTS",
     }
     installable_jobs = pm.get_installable_jobs()
     for wf_name, wf_location in expected_jobs.items():
