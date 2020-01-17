@@ -29,6 +29,7 @@ _sheet = "DesignSheet01"
 _default_sheet = "DefaultSheet01"
 _parametersfilename = "parameters.txt"
 _log_level = "DEBUG"
+_default_log_level = "WARNING"
 
 
 @pytest.mark.skipif(sys.version_info.major < 3, reason="requires python3")
@@ -78,9 +79,31 @@ def test_argparse_with_optionals(input_data):
 
 
 @pytest.mark.skipif(sys.version_info.major < 3, reason="requires python3")
-def test_argparse_file_not_exists():
+def test_argparse_xls_file_not_exists():
     with pytest.raises(SystemExit):
         design2params.main([str(_realization), "not_a_file", _sheet])
+
+
+@pytest.mark.skipif(sys.version_info.major < 3, reason="requires python3")
+def test_argparse_parameters_file_not_exists(input_data):
+    not_existing_parameters_txt = "not_a_file.txt"
+
+    args = [
+        str(_realization),
+        _xls,
+        _sheet,
+        "-p",
+        not_existing_parameters_txt,
+    ]
+    parser = design2params.create_parser()
+    res = parser.parse_args(args)
+    assert res
+    assert res.realization == _realization
+    assert res.xlsfilename == _xls
+    assert res.designsheetname == _sheet
+    assert res.defaultssheetname == None
+    assert res.parametersfilename == not_existing_parameters_txt
+    assert res.log_level == logging.getLevelName(_default_log_level)
 
 
 @pytest.mark.skipif(sys.version_info.major < 3, reason="requires python3")
