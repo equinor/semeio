@@ -1,0 +1,10 @@
+STDOUT nexus.stdout
+STDERR nexus.stderr
+
+EXECUTABLE ../scripts/ert_nexus.py
+
+ARGLIST <NEXUSFILE> <ECLBASE>  <REFCASE>  <HISTORY>
+
+MIN_ARG 1
+MAX_ARG 1
+ARG_TYPE 0 STRING
