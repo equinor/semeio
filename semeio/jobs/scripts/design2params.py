@@ -51,7 +51,7 @@ def create_parser():
         "-p",
         required=False,
         default=design2params._PARAMETERS_TXT,
-        type=valid_file,
+        type=str,
     )
 
     parser.add_argument(

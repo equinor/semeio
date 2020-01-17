@@ -51,6 +51,32 @@ def test_run(test_file, expected_file):
 @pytest.mark.parametrize(
     "test_file, expected_file",
     [
+        ("new_parameters.txt", "refparameters_when_missing.txt"),
+        (design2params._DESIGN_MATRIX_TXT, "refdesignmatrix.txt"),
+        (design2params._DESIGN_PARAMETERS_TXT, "refparameters_when_missing.txt"),
+    ],
+)
+def test_run_with_no_parameters_txt(test_file, expected_file):
+    design2params.run(
+        1,
+        "design_matrix.xlsx",
+        "DesignSheet01",
+        "DefaultValues",
+        "new_parameters.txt",
+        log_level=logging.DEBUG,
+    )
+
+    assert filecmp.cmp(test_file, expected_file)
+
+    with open(design2params._TARGET_FILE_TXT, "r") as status_file:
+        status = status_file.read()
+        assert status == "OK\n"
+
+
+@pytest.mark.usefixtures("input_data")
+@pytest.mark.parametrize(
+    "test_file, expected_file",
+    [
         (design2params._PARAMETERS_TXT, "refparameters_w_default.txt"),
         (design2params._DESIGN_MATRIX_TXT, "refdesignmatrix.txt"),
         (design2params._DESIGN_PARAMETERS_TXT, "refdesignparameters_w_default.txt"),
