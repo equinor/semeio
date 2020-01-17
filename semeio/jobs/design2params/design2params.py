@@ -40,7 +40,13 @@ def run(
 
     default_sheet.rename(columns={0: "keys", 1: "defaults"}, inplace=True)
 
-    parameters = pd.read_csv(parametersfilename, delimiter=" ", header=None)
+    try:
+        parameters = pd.read_csv(parametersfilename, delimiter=" ", header=None)
+    except IOError:
+        logger.info(
+            "No {} exists, creating a new, empty one.".format(parametersfilename)
+        )
+        parameters = pd.DataFrame(columns=[0, 1])
     parameters.rename(columns={0: "keys", 1: "parameters"}, inplace=True)
 
     _complete_parameters_file(
