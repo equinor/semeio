@@ -21,4 +21,5 @@ echo "Using semeio version $EV"
 git checkout $EV
 rm -rf !("tests"|"$ENV")
 echo "running pytest"
-python -m pytest 
+python -m pytest \
+    --ignore="tests/test_formatting.py"
