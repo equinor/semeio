@@ -1,5 +1,7 @@
 import logging
+import shlex
 import re
+
 
 _STATUS_FILE_NAME = "DESIGN_KW.OK"
 
@@ -82,7 +84,8 @@ def extract_key_value(parameters):
     """Parses a list of strings, looking for key-value pairs pr. line
     separated by whitespace, into a dictionary.
 
-    Spaces in either key or in value are not supported.
+    Spaces in keys and/or values are supported if quoted. Quotes
+    in keys/values are not supported.
 
     Args:
         parameters (list of str)
@@ -96,7 +99,7 @@ def extract_key_value(parameters):
     res = {}
     errors = []
     for line in parameters:
-        line_parts = line.split()
+        line_parts = shlex.split(line)
         if not line_parts:
             continue
         if len(line_parts) == 1:
@@ -111,12 +114,5 @@ def extract_key_value(parameters):
             continue
         res[key] = value
     if errors:
-        # Gather errors, and add warnings that should only be
-        # given once (and not for every occurence)
-        error_str = "\n".join(errors)
-        if '"' in error_str:
-            error_str += "\nQuotes are not supported."
-        if "Too many values" in error_str:
-            error_str += "\nSpaces in values are not supported."
-        raise ValueError(error_str)
+        raise ValueError("\n".join(errors))
     return res
