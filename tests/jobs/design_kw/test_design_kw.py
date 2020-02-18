@@ -21,7 +21,11 @@ def input_data(tmpdir):
 
 
 def test_extract_key_value_ok():
-    data = ["key1 14", "key2 24", "key3 34"]
+    data = [
+        "key1 14",
+        "key2 24",
+        "key3 34",
+    ]
     assert design_kw.extract_key_value(data) == {
         "key1": "14",
         "key2": "24",
@@ -29,19 +33,36 @@ def test_extract_key_value_ok():
     }
 
 
-def test_extract_key_value_whitespace_error():
+def test_extract_value_with_space():
+    data = [
+        'key4 "foo bar com"',
+        'key5 "conserve   spaces"',
+    ]
+    assert design_kw.extract_key_value(data) == {
+        "key4": "foo bar com",
+        "key5": "conserve   spaces",
+    }
+
+
+def test_extract_key_with_space():
+    data = ['"key x" "value with space"']
+    assert design_kw.extract_key_value(data) == {"key x": "value with space"}
+
+
+def test_extract_too_many_values():
     """Test that user friendly error message is displayed
     when an error occurs"""
-    data = ['"FOO BAR COM " 2']
-    with pytest.raises(ValueError, match="FOO BAR COM"):
-        design_kw.extract_key_value(data)
-    with pytest.raises(ValueError, match="Quotes"):
-        design_kw.extract_key_value(data)
 
     data = ["SENTENCE this is a string"]
     with pytest.raises(ValueError, match="SENTENCE"):
         design_kw.extract_key_value(data)
-    with pytest.raises(ValueError, match="Spaces in values are not supported"):
+    with pytest.raises(ValueError, match="Too many values found"):
+        design_kw.extract_key_value(data)
+
+
+def test_unsupported_quoting():
+    data = ['Unclosed " quote']
+    with pytest.raises(ValueError, match="No closing quotation"):
         design_kw.extract_key_value(data)
 
 
@@ -94,10 +115,17 @@ def test_is_perl():
     assert not design_kw.is_perl(file_name, template)
 
 
-def test_run(input_data):
-    reference_filename = "template.yml.reference"
-    template_filename = "template.yml.tmpl"
-    result_filename = "template.yml"
+@pytest.mark.parametrize(
+    "filenames",
+    (
+        ["template.yml.reference", "template.yml.tmpl", "template.yml"],
+        ["schfile.inc.reference", "schfile.inc.tmpl", "schfile.inc"],
+    ),
+)
+def test_run(input_data, filenames):
+    reference_filename = filenames[0]
+    template_filename = filenames[1]
+    result_filename = filenames[2]
 
     design_kw.run(template_filename, result_filename, log_level=logging.DEBUG)
 
