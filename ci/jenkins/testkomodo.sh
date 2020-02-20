@@ -1,6 +1,7 @@
 #!/bin/bash
 set -xe
 shopt -s extglob
+PROJECT=semeio
 source $KOMODO_ROOT/$RELEASE_NAME/enable
 
 echo "create virtualenv"
@@ -11,15 +12,17 @@ python -m virtualenv --system-site-packages $ENV
 source $ENV/bin/activate
 python -m pip install -r test_requirements.txt
 
-# find and check out the code that was used to build libres for this komodo relase
-echo "checkout tag from komodo"
-EV=$(cat $KOMODO_ROOT/$RELEASE_NAME/$RELEASE_NAME | grep "semeio:" -A2 | grep "version:")
-EV=($EV)    # split the string "version: vX.X.X"
-EV=${EV[1]} # extract the version
+if [[ -z "${sha1// }" ]]; then
+    EV=$(cat ${RELEASE_PATH}/${RELEASE_NAME} | grep "${PROJECT}:" -A2 | grep "version:")
+    EV=($EV)    # split the string "version: vX.X.X"
+    EV=${EV[1]} # extract the version
+    EV=${EV%"+py3"}
+    echo "Using ${PROJECT} version ${EV}"
+    $GIT checkout $EV
 
-echo "Using semeio version $EV"
-git checkout $EV
-rm -rf !("tests"|"$ENV")
+    rm -rf !("tests"|"$ENV")
+fi
+
 echo "running pytest"
 python -m pytest \
     --ignore="tests/test_formatting.py"
