@@ -3,6 +3,7 @@ set -xe
 shopt -s extglob
 PROJECT=semeio
 RELEASE_PATH=${KOMODO_ROOT}/${RELEASE_NAME}
+GIT=${SDPSOFT}/bin/git
 source $KOMODO_ROOT/$RELEASE_NAME/enable
 
 echo "create virtualenv"
