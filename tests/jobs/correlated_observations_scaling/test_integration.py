@@ -204,23 +204,7 @@ def test_main_entry_point_summary_data_calc():
     scaling_job.scaling_job(facade, arguments)
 
     for index, node in enumerate(obs_vector):
-        assert node.getStdScaling(index) == np.sqrt((2.0 * 6.0) / 2.0)
-
-    arguments["CALCULATE_KEYS"]["keys"][0].update({"index": [1, 2, 3]})
-    arguments["CALCULATE_KEYS"]["keys"][1].update({"index": [1, 2, 3]})
-
-    with pytest.raises(ValueError):  # Will give an empty data set
-        scaling_job.scaling_job(facade, arguments)
-
-    arguments["CALCULATE_KEYS"]["keys"][0].update({"index": [8, 35, 71]})
-    arguments["CALCULATE_KEYS"]["keys"][1].update({"index": [8, 35, 71]})
-    scaling_job.scaling_job(facade, arguments)
-
-    for index, node in enumerate(obs_vector):
-        if index in arguments["CALCULATE_KEYS"]["keys"][0]["index"]:
-            assert node.getStdScaling(index) == np.sqrt((2.0 * 6.0) / 1.0)
-        else:
-            assert node.getStdScaling(index) == np.sqrt((2.0 * 6.0) / 2.0)
+        assert node.getStdScaling(index) == np.sqrt(1.0)
 
 
 @pytest.mark.skipif(TEST_DATA_DIR is None, reason="no libres test-data")
