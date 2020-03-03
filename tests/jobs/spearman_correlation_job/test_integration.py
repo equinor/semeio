@@ -52,4 +52,6 @@ def test_main_entry_point_gen_data(monkeypatch):
 
     spearman.spearman_job(facade, 1.0, False)
 
-    assert scal_job.call_count == 71
+    # each call represent a scaling job on a cluster, we expect the snake_oil
+    # observations to generate 66 of them
+    assert scal_job.call_count == 66, "wrong number of clusters"
