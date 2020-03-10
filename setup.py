@@ -56,6 +56,7 @@ setup(
         "xlrd",
         "stea",
         "pyscal>=0.4.0",
+        "fmu-ensemble",
     ],
     setup_requires=["setuptools_scm"],
     package_data={"": job_files},
