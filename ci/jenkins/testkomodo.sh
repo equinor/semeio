@@ -6,6 +6,9 @@ RELEASE_PATH=${KOMODO_ROOT}/${RELEASE_NAME}
 GIT=${SDPSOFT}/bin/git
 source $KOMODO_ROOT/$RELEASE_NAME/enable
 
+echo "fetch libres test data"
+$GIT clone https://github.com/equinor/libres.git
+
 echo "create virtualenv"
 ENV=testenv
 rm -rf $ENV
@@ -26,5 +29,5 @@ if [[ -z "${sha1// }" ]]; then
 fi
 
 echo "running pytest"
-python -m pytest \
+LIBRES_TEST_DATA_DIR=$(pwd)/libres/test-data python -m pytest \
     --ignore="tests/test_formatting.py"
