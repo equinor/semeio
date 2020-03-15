@@ -1,6 +1,7 @@
-import numpy as np
-
 from copy import deepcopy
+
+import numpy as np
+from semeio.jobs.correlated_observations_scaling.exceptions import EmptyDatasetException
 
 
 class DataMatrix(object):
@@ -12,7 +13,7 @@ class DataMatrix(object):
         """
         self.data = input_data
         if input_data.shape[1] == 0:
-            raise ValueError("Empty dataset, all data has been filtered out")
+            raise EmptyDatasetException("Empty dataset")
 
     def get_data_matrix(self):
         """
