@@ -4,6 +4,7 @@ import itertools
 from ert_data.measured import MeasuredData
 from scipy.cluster.hierarchy import linkage, fcluster
 from semeio.jobs.correlated_observations_scaling.job import scaling_job
+from semeio.jobs.correlated_observations_scaling.exceptions import EmptyDatasetException
 
 
 def spearman_job(facade, threshold, dry_run):
@@ -61,7 +62,10 @@ def _output_clusters(clustered_data):
 
 def _run_scaling(facade, job_configs):
     for job in job_configs:
-        scaling_job(facade, job)
+        try:
+            scaling_job(facade, job)
+        except EmptyDatasetException:
+            pass
 
 
 def _cluster_data(data):

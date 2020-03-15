@@ -4,9 +4,9 @@ import sys
 
 import pandas as pd
 import pytest
-from res.enkf import EnKFMain, ResConfig
-
 from ert_shared.libres_facade import LibresFacade
+from res.enkf import EnKFMain, ResConfig
+from semeio.jobs.correlated_observations_scaling.exceptions import EmptyDatasetException
 from semeio.jobs.spearman_correlation_job import job as spearman
 from tests.jobs.correlated_observations_scaling.conftest import TEST_DATA_DIR
 
@@ -53,5 +53,31 @@ def test_main_entry_point_gen_data(monkeypatch):
     spearman.spearman_job(facade, 1.0, False)
 
     # each call represent a scaling job on a cluster, we expect the snake_oil
-    # observations to generate 66 of them
-    assert scal_job.call_count == 66, "wrong number of clusters"
+    # observations to generate this amount of them
+    assert scal_job.call_count == 47, "wrong number of clusters"
+
+
+@pytest.mark.skipif(TEST_DATA_DIR is None, reason="no libres test-data")
+@pytest.mark.usefixtures("setup_tmpdir")
+def test_skip_clusters_yielding_empty_data_matrixes(monkeypatch):
+    def raising_scaling_job(_, data):
+        if data == {"CALCULATE_KEYS": {"keys": [{"index": [88, 89], "key": "FOPR"}]}}:
+            raise EmptyDatasetException("foo")
+
+    scaling_mock = Mock(side_effect=raising_scaling_job)
+    monkeypatch.setattr(spearman, "scaling_job", scaling_mock)
+
+    test_data_dir = os.path.join(TEST_DATA_DIR, "local", "snake_oil")
+
+    shutil.copytree(test_data_dir, "test_data")
+    os.chdir(os.path.join("test_data"))
+
+    res_config = ResConfig("snake_oil.ert")
+
+    ert = EnKFMain(res_config)
+    facade = LibresFacade(ert)
+
+    try:
+        spearman.spearman_job(facade, 1.0, False)
+    except EmptyDatasetException:
+        pytest.fail("EmptyDatasetException was not handled by SC job")
