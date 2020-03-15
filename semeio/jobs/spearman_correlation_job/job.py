@@ -45,7 +45,7 @@ def _spearman_correlation(facade, obs_keys, threshold, dry_run):
         )
     )
 
-    clustered_data = _cluster_data(data)
+    clustered_data = _remove_singular_obs(_cluster_data(data))
 
     job_configs = _config_creation(clustered_data)
 
@@ -77,6 +77,19 @@ def _cluster_data(data):
             groups[nr] = {}
         groups[nr].update({key: [index for _, _, index in cluster_group]})
     return groups
+
+
+def _remove_singular_obs(clusters):
+    """Removes clusters with a singular observation."""
+    new_cluster_index = 0
+    multiobs_clusters = {}
+    for _, cluster in clusters.items():
+        if sum(map(len, cluster.values())) > 1:
+            multiobs_clusters[new_cluster_index] = cluster
+            new_cluster_index += 1
+        else:
+            print("Removed cluster with singular observation: {}".format(cluster))
+    return multiobs_clusters
 
 
 def _config_creation(clusters):

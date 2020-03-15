@@ -61,6 +61,23 @@ def test_make_clusters(test_input, expected_result):
 @pytest.mark.parametrize(
     "test_input,expected_result",
     [
+        ({}, {}),
+        ({1: {"KEY_1": [1]}}, {}),
+        ({1: {"KEY_1": [1, 2]}}, {0: {"KEY_1": [1, 2]}}),
+        (
+            {1: {"KEY_1": [1], "KEY_2": [2]}, 2: {"KEY_2": [2]}},
+            {0: {"KEY_1": [1], "KEY_2": [2]}},
+        ),
+    ],
+)
+def test_single_obs_clusters(test_input, expected_result):
+    result = spearman._remove_singular_obs(test_input)
+    assert result == expected_result, "bad removal of singular obs clusters"
+
+
+@pytest.mark.parametrize(
+    "test_input,expected_result",
+    [
         (
             {1: {"KEY_1": [1]}},
             [{"CALCULATE_KEYS": {"keys": [{"key": "KEY_1", "index": [1]}]}}],
