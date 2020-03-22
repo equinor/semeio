@@ -1,26 +1,14 @@
 # -*- coding: utf-8 -*-
 import itertools
 
-from ert_data.measured import MeasuredData
-from scipy.cluster.hierarchy import linkage, fcluster
-from semeio.jobs.correlated_observations_scaling.job import scaling_job
-from semeio.jobs.correlated_observations_scaling.exceptions import EmptyDatasetException
+from scipy.cluster.hierarchy import fcluster, linkage
 
 
-def spearman_job(facade, threshold, dry_run):
-
-    observation_keys = [
-        facade.get_observation_key(nr) for nr, _ in enumerate(facade.get_observations())
-    ]
-
-    _spearman_correlation(facade, observation_keys, threshold, dry_run)
-
-
-def _spearman_correlation(facade, obs_keys, threshold, dry_run):
+def spearman_job(measured_data, threshold):
     """
-    Collects data, performs scaling and applies scaling, assumes validated input.
+    Given measured_data and threshold, it returns configurations that describe
+    scaling of these data.
     """
-    measured_data = MeasuredData(facade, obs_keys)
     measured_data.remove_failed_realizations()
     measured_data.remove_inactive_observations()
     measured_data.filter_ensemble_std(1.0e-6)
@@ -49,23 +37,10 @@ def _spearman_correlation(facade, obs_keys, threshold, dry_run):
 
     job_configs = _config_creation(clustered_data)
 
-    _output_clusters(clustered_data)
-
-    if not dry_run:
-        _run_scaling(facade, job_configs)
-
-
-def _output_clusters(clustered_data):
     for cluster, val in clustered_data.items():
         print("Cluster nr: {}, clustered data: {}".format(cluster, val))
 
-
-def _run_scaling(facade, job_configs):
-    for job in job_configs:
-        try:
-            scaling_job(facade, job)
-        except EmptyDatasetException:
-            pass
+    return job_configs
 
 
 def _cluster_data(data):

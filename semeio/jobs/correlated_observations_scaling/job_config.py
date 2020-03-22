@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
-import configsuite
-import six
-
+import os
 from copy import deepcopy
 
+import six
+
+import configsuite
 from configsuite import MetaKeys as MK
 from configsuite import types
 
