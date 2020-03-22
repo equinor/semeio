@@ -1,6 +1,7 @@
 from copy import deepcopy
 
 import numpy as np
+
 from semeio.jobs.correlated_observations_scaling.exceptions import EmptyDatasetException
 
 
@@ -46,15 +47,14 @@ class DataMatrix(object):
         primary components and the number of observations.
         """
         data_matrix = self.get_data_matrix()
-        nr_components = self._get_nr_primary_components(
+        nr_components, singular_values = self._get_nr_primary_components(
             data_matrix, threshold=events.threshold
         )
-        scaling_factor = self._calculate_scaling_factor(
-            data_matrix.shape[1], nr_components
-        )
+        nr_observations = data_matrix.shape[1]
 
         print("Scaling factor calculated from {}".format(events.keys))
-        return scaling_factor
+
+        return self._calculate_scaling_factor(nr_observations, nr_components)
 
     def _get_data(self):
         return self.data[~self.data.index.isin(["OBS", "STD"])]
@@ -78,10 +78,12 @@ class DataMatrix(object):
           } else
              break;
         }
+
+        Also returns an array of singular values.
         """
         _, s, _ = np.linalg.svd(data_matrix.astype(np.float), full_matrices=False)
         variance_ratio = np.cumsum(s ** 2) / np.sum(s ** 2)
-        return len([1 for i in variance_ratio[:-1] if i < threshold]) + 1
+        return len([1 for i in variance_ratio[:-1] if i < threshold]) + 1, s
 
     @staticmethod
     def _calculate_scaling_factor(nr_observations, nr_components):

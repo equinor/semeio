@@ -1,16 +1,13 @@
 import os
 import shutil
 
-import configsuite
 import numpy as np
 import pytest
 import yaml
+
 from res.enkf import EnKFMain, ResConfig
-from ert_shared.libres_facade import LibresFacade
-from semeio.jobs.correlated_observations_scaling import (
-    job as scaling_job,
-    job_config,
-    validator,
+from semeio.jobs.scripts.correlated_observations_scaling import (
+    CorrelatedObservationsScalingJob,
 )
 from tests.jobs.correlated_observations_scaling.conftest import TEST_DATA_DIR
 
@@ -26,31 +23,6 @@ def assert_obs_vector(vector, val_1, index_list=None, val_2=None):
                 assert node.getStdScaling(index) == val_1
 
 
-@pytest.mark.skipif(TEST_DATA_DIR is None, reason="no libres test-data")
-@pytest.fixture()
-def setup_tmpdir(tmpdir):
-    cwd = os.getcwd()
-    tmpdir.chdir()
-    yield
-    os.chdir(cwd)
-
-
-def get_config(index_list_calc=None, index_list_update=None):
-    schema = job_config.build_schema()
-    default_values = job_config.get_default_values()
-    config = {
-        "UPDATE_KEYS": {"keys": [{"key": "POLY_OBS"}]},
-        "CALCULATE_KEYS": {"keys": [{"key": "POLY_OBS"}]},
-    }
-
-    if index_list_update:
-        config["UPDATE_KEYS"]["keys"][0].update({"index": index_list_update})
-    if index_list_calc:
-        config["CALCULATE_KEYS"]["keys"][0].update({"index": index_list_calc})
-
-    return configsuite.ConfigSuite(config, schema, layers=(default_values,)).snapshot
-
-
 def get_job_dir():
     from semeio import jobs
 
@@ -61,7 +33,6 @@ def get_job_dir():
 @pytest.mark.skipif(TEST_DATA_DIR is None, reason="no libres test-data")
 @pytest.mark.usefixtures("setup_ert")
 def test_old_enkf_scaling_job(setup_ert):
-
     res_config = setup_ert
     ert = EnKFMain(res_config)
 
@@ -115,8 +86,7 @@ def test_installed_python_version_of_enkf_scaling_job(setup_ert, monkeypatch):
 @pytest.mark.skipif(TEST_DATA_DIR is None, reason="no libres test-data")
 @pytest.mark.usefixtures("setup_tmpdir")
 def test_compare_different_jobs():
-
-    arguments = {"CALCULATE_KEYS": {"keys": [{"key": "WPR_DIFF_1"}]}}
+    cos_config = {"CALCULATE_KEYS": {"keys": [{"key": "WPR_DIFF_1"}]}}
 
     test_data_dir = os.path.join(TEST_DATA_DIR, "local", "snake_oil")
 
@@ -126,7 +96,6 @@ def test_compare_different_jobs():
     res_config = ResConfig("snake_oil.ert")
 
     ert = EnKFMain(res_config)
-    facade = LibresFacade(ert)
     obs = ert.getObservations()
     obs_vector = obs["WPR_DIFF_1"]
 
@@ -138,7 +107,7 @@ def test_compare_different_jobs():
     # Result of old job:
     assert_obs_vector(obs_vector, np.sqrt(4 / 2))
 
-    scaling_job.scaling_job(facade, arguments)
+    CorrelatedObservationsScalingJob(ert).run(cos_config)
 
     # Result of new job with no sub-indexing:
     assert_obs_vector(obs_vector, np.sqrt(4 / 2))
@@ -147,8 +116,7 @@ def test_compare_different_jobs():
 @pytest.mark.skipif(TEST_DATA_DIR is None, reason="no libres test-data")
 @pytest.mark.usefixtures("setup_tmpdir")
 def test_main_entry_point_gen_data():
-
-    arguments = {
+    cos_config = {
         "CALCULATE_KEYS": {"keys": [{"key": "WPR_DIFF_1"}]},
         "UPDATE_KEYS": {"keys": [{"key": "WPR_DIFF_1", "index": [400, 800]}]},
     }
@@ -161,17 +129,17 @@ def test_main_entry_point_gen_data():
     res_config = ResConfig("snake_oil.ert")
 
     ert = EnKFMain(res_config)
-    facade = LibresFacade(ert)
 
-    scaling_job.scaling_job(facade, arguments)
+    CorrelatedObservationsScalingJob(ert).run(cos_config)
 
     obs = ert.getObservations()
     obs_vector = obs["WPR_DIFF_1"]
 
     assert_obs_vector(obs_vector, 1.0, [0, 1], np.sqrt(4 / 2))
 
-    arguments["CALCULATE_KEYS"]["keys"][0].update({"index": [400, 800, 1200]})
-    scaling_job.scaling_job(facade, arguments)
+    cos_config["CALCULATE_KEYS"]["keys"][0].update({"index": [400, 800, 1200]})
+
+    CorrelatedObservationsScalingJob(ert).run(cos_config)
     assert_obs_vector(
         obs_vector, 1.0, [0, 1], np.sqrt(3.0 / 2.0),
     )
@@ -180,8 +148,7 @@ def test_main_entry_point_gen_data():
 @pytest.mark.skipif(TEST_DATA_DIR is None, reason="no libres test-data")
 @pytest.mark.usefixtures("setup_tmpdir")
 def test_main_entry_point_summary_data_calc():
-
-    arguments = {
+    cos_config = {
         "CALCULATE_KEYS": {"keys": [{"key": "WOPR_OP1_108"}, {"key": "WOPR_OP1_144"}]}
     }
 
@@ -193,7 +160,6 @@ def test_main_entry_point_summary_data_calc():
     res_config = ResConfig("snake_oil.ert")
 
     ert = EnKFMain(res_config)
-    facade = LibresFacade(ert)
     obs = ert.getObservations()
 
     obs_vector = obs["WOPR_OP1_108"]
@@ -201,7 +167,7 @@ def test_main_entry_point_summary_data_calc():
     for index, node in enumerate(obs_vector):
         assert node.getStdScaling(index) == 1.0
 
-    scaling_job.scaling_job(facade, arguments)
+    CorrelatedObservationsScalingJob(ert).run(cos_config)
 
     for index, node in enumerate(obs_vector):
         assert node.getStdScaling(index) == np.sqrt(1.0)
@@ -211,7 +177,7 @@ def test_main_entry_point_summary_data_calc():
 @pytest.mark.equinor_test
 @pytest.mark.usefixtures("setup_tmpdir")
 def test_main_entry_point_summary_data_update():
-    arguments = {
+    cos_config = {
         "CALCULATE_KEYS": {"keys": [{"key": "WWCT:OP_1"}, {"key": "WWCT:OP_2"}]},
         "UPDATE_KEYS": {"keys": [{"key": "WWCT:OP_2", "index": [1, 2, 3, 4, 5]}]},
     }
@@ -223,21 +189,20 @@ def test_main_entry_point_summary_data_update():
 
     res_config = ResConfig("config")
     ert = EnKFMain(res_config)
-    facade = LibresFacade(ert)
     obs = ert.getObservations()
     obs_vector = obs["WWCT:OP_2"]
 
-    scaling_job.scaling_job(facade, arguments)
+    CorrelatedObservationsScalingJob(ert).run(cos_config)
 
     for index, node in enumerate(obs_vector):
-        if index in arguments["UPDATE_KEYS"]["keys"][0]["index"]:
+        if index in cos_config["UPDATE_KEYS"]["keys"][0]["index"]:
             assert node.getStdScaling(index) == np.sqrt(61.0 * 2.0)
         else:
             assert node.getStdScaling(index) == 1.0
 
     obs_vector = obs["WWCT:OP_1"]
 
-    scaling_job.scaling_job(facade, arguments)
+    CorrelatedObservationsScalingJob(ert).run(cos_config)
 
     for index, node in enumerate(obs_vector):
         assert node.getStdScaling(index) == 1.0
@@ -247,7 +212,7 @@ def test_main_entry_point_summary_data_update():
 @pytest.mark.equinor_test
 @pytest.mark.usefixtures("setup_tmpdir")
 def test_main_entry_point_block_data_calc():
-    arguments = {"CALCULATE_KEYS": {"keys": [{"key": "RFT3"}]}}
+    cos_config = {"CALCULATE_KEYS": {"keys": [{"key": "RFT3"}]}}
 
     test_data_dir = os.path.join(TEST_DATA_DIR, "Equinor", "config", "with_RFT")
 
@@ -256,7 +221,6 @@ def test_main_entry_point_block_data_calc():
 
     res_config = ResConfig("config")
     ert = EnKFMain(res_config)
-    facade = LibresFacade(ert)
     obs = ert.getObservations()
 
     obs_vector = obs["RFT3"]
@@ -264,7 +228,7 @@ def test_main_entry_point_block_data_calc():
     for index, node in enumerate(obs_vector):
         assert node.getStdScaling(index) == 1.0
 
-    scaling_job.scaling_job(facade, arguments)
+    CorrelatedObservationsScalingJob(ert).run(cos_config)
 
     for index, node in enumerate(obs_vector):
         assert node.getStdScaling(index) == 2.0
@@ -274,7 +238,7 @@ def test_main_entry_point_block_data_calc():
 @pytest.mark.equinor_test
 @pytest.mark.usefixtures("setup_tmpdir")
 def test_main_entry_point_block_and_summary_data_calc():
-    arguments = {"CALCULATE_KEYS": {"keys": [{"key": "FOPT"}, {"key": "RFT3"}]}}
+    cos_config = {"CALCULATE_KEYS": {"keys": [{"key": "FOPT"}, {"key": "RFT3"}]}}
 
     test_data_dir = os.path.join(TEST_DATA_DIR, "Equinor", "config", "with_RFT")
 
@@ -283,7 +247,6 @@ def test_main_entry_point_block_and_summary_data_calc():
 
     res_config = ResConfig("config")
     ert = EnKFMain(res_config)
-    facade = LibresFacade(ert)
     obs = ert.getObservations()
 
     obs_vector = obs["RFT3"]
@@ -291,20 +254,7 @@ def test_main_entry_point_block_and_summary_data_calc():
     for index, node in enumerate(obs_vector):
         assert node.getStdScaling(index) == 1.0
 
-    scaling_job.scaling_job(facade, arguments)
+    CorrelatedObservationsScalingJob(ert).run(cos_config)
 
     for index, node in enumerate(obs_vector):
         assert node.getStdScaling(index) == np.sqrt(64)
-
-
-def test_valid_configuration():
-
-    valid_config_data = {
-        "CALCULATE_KEYS": {"keys": [{"key": "POLY_OBS"}]},
-        "UPDATE_KEYS": {"keys": [{"key": "POLY_OBS"}]},
-    }
-
-    schema = job_config.build_schema()
-    config = configsuite.ConfigSuite(valid_config_data, schema)
-
-    assert validator.valid_configuration(config)

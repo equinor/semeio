@@ -28,3 +28,11 @@ def setup_ert(tmpdir):
     yield res_config
 
     os.chdir(cwd)
+
+
+@pytest.fixture()
+def setup_tmpdir(tmpdir):
+    cwd = os.getcwd()
+    tmpdir.chdir()
+    yield
+    os.chdir(cwd)

@@ -2,12 +2,11 @@ import os
 import shutil
 import sys
 
-import pandas as pd
 import pytest
-from ert_shared.libres_facade import LibresFacade
+
+import semeio.jobs.scripts.spearman_correlation as sc
 from res.enkf import EnKFMain, ResConfig
 from semeio.jobs.correlated_observations_scaling.exceptions import EmptyDatasetException
-from semeio.jobs.spearman_correlation_job import job as spearman
 from tests.jobs.correlated_observations_scaling.conftest import TEST_DATA_DIR
 
 if sys.version_info >= (3, 3):
@@ -16,29 +15,12 @@ else:
     from mock import Mock
 
 
-def test_spearman_correlation(monkeypatch):
-    df = pd.DataFrame(data=[[7, 8, 9], [10, 11, 12]], index=[1, 2], columns=[0, 1, 2])
-    tuples = list(zip(*[df.columns.to_list(), df.columns.to_list()]))
-    df.columns = pd.MultiIndex.from_tuples(tuples, names=["key_index", "data_index"])
-
-    facade = Mock()
-    mock_data = Mock()
-    mock_data.get_simulated_data.return_value = df
-    measured_data = Mock(return_value=mock_data)
-    scal_job = Mock()
-    monkeypatch.setattr(spearman, "scaling_job", scal_job)
-    monkeypatch.setattr(spearman, "MeasuredData", measured_data)
-    spearman._spearman_correlation(facade, ["A_KEY"], 0.1, False)
-
-    assert measured_data.called_once_with(facade, ["A_KEY"])
-    assert scal_job.called_once()
-
-
 @pytest.mark.skipif(TEST_DATA_DIR is None, reason="no libres test-data")
 @pytest.mark.usefixtures("setup_tmpdir")
 def test_main_entry_point_gen_data(monkeypatch):
-    scal_job = Mock()
-    monkeypatch.setattr(spearman, "scaling_job", scal_job)
+    run_mock = Mock()
+    scal_job = Mock(return_value=Mock(run=run_mock))
+    monkeypatch.setattr(sc, "CorrelatedObservationsScalingJob", scal_job)
 
     test_data_dir = os.path.join(TEST_DATA_DIR, "local", "snake_oil")
 
@@ -46,26 +28,45 @@ def test_main_entry_point_gen_data(monkeypatch):
     os.chdir(os.path.join("test_data"))
 
     res_config = ResConfig("snake_oil.ert")
-
     ert = EnKFMain(res_config)
-    facade = LibresFacade(ert)
+    sc.SpearmanCorrelationJob(ert).run(*["-t", "1.0"])
 
-    spearman.spearman_job(facade, 1.0, False)
-
-    # each call represent a scaling job on a cluster, we expect the snake_oil
+    # call_args represents the clusters, we expect the snake_oil
     # observations to generate this amount of them
-    assert scal_job.call_count == 47, "wrong number of clusters"
+    # call_args is a call object, which itself is a tuple of args and kwargs.
+    # In this case, we want args, and the first element of the arguments, which
+    # again is a tuple containing the configuration which is a list of configs.
+    assert len(run_mock.call_args[0][0]) == 47, "wrong number of clusters"
+
+
+@pytest.mark.skipif(TEST_DATA_DIR is None, reason="no libres test-data")
+@pytest.mark.usefixtures("setup_tmpdir")
+def test_scaling():
+    test_data_dir = os.path.join(TEST_DATA_DIR, "local", "snake_oil")
+
+    shutil.copytree(test_data_dir, "test_data")
+    os.chdir(os.path.join("test_data"))
+
+    res_config = ResConfig("snake_oil.ert")
+    ert = EnKFMain(res_config)
+
+    sc.SpearmanCorrelationJob(ert).run(*["-t", "1.0"])
+
+    # assert that this arbitrarily chosen cluster gets scaled as expected
+    obs = ert.getObservations()["FOPR"]
+    for index in [13, 14, 15, 16, 17, 18, 19, 20]:
+        assert obs.getNode(index).getStdScaling() == 2.8284271247461903
 
 
 @pytest.mark.skipif(TEST_DATA_DIR is None, reason="no libres test-data")
 @pytest.mark.usefixtures("setup_tmpdir")
 def test_skip_clusters_yielding_empty_data_matrixes(monkeypatch):
-    def raising_scaling_job(_, data):
+    def raising_scaling_job(data):
         if data == {"CALCULATE_KEYS": {"keys": [{"index": [88, 89], "key": "FOPR"}]}}:
             raise EmptyDatasetException("foo")
 
-    scaling_mock = Mock(side_effect=raising_scaling_job)
-    monkeypatch.setattr(spearman, "scaling_job", scaling_mock)
+    scaling_mock = Mock(return_value=Mock(**{"run.side_effect": raising_scaling_job}))
+    monkeypatch.setattr(sc, "CorrelatedObservationsScalingJob", scaling_mock)
 
     test_data_dir = os.path.join(TEST_DATA_DIR, "local", "snake_oil")
 
@@ -73,11 +74,10 @@ def test_skip_clusters_yielding_empty_data_matrixes(monkeypatch):
     os.chdir(os.path.join("test_data"))
 
     res_config = ResConfig("snake_oil.ert")
-
     ert = EnKFMain(res_config)
-    facade = LibresFacade(ert)
+    job = sc.SpearmanCorrelationJob(ert)
 
     try:
-        spearman.spearman_job(facade, 1.0, False)
+        job.run(*["-t", "1.0"])
     except EmptyDatasetException:
         pytest.fail("EmptyDatasetException was not handled by SC job")
