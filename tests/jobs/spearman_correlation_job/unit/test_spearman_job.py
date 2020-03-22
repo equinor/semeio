@@ -1,48 +1,7 @@
 # -*- coding: utf-8 -*-
-import sys
-
 import pytest
+
 from semeio.jobs.spearman_correlation_job import job as spearman
-
-if sys.version_info >= (3, 3):
-    from unittest.mock import Mock
-else:
-    from mock import Mock
-
-
-@pytest.mark.parametrize(
-    "test_input",
-    [
-        ([{"CALCULATE_KEYS": {"keys": [{"key": "KEY_1", "index": [1]}]}}]),
-        ([{"CALCULATE_KEYS": {"keys": [{"key": "KEY_1", "index": [1, 2]}]}}]),
-        (
-            [
-                {
-                    "CALCULATE_KEYS": {
-                        "keys": [
-                            {"key": "KEY_1", "index": [1, 2]},
-                            {"key": "KEY_2", "index": [1, 2]},
-                        ]
-                    }
-                }
-            ]
-        ),
-        (
-            [
-                {"CALCULATE_KEYS": {"keys": [{"key": "KEY_1", "index": [1, 2]}]}},
-                {"CALCULATE_KEYS": {"keys": [{"key": "KEY_2", "index": [5, 6]}]}},
-            ]
-        ),
-    ],
-)
-def test_run_scaling(test_input, monkeypatch):
-    facade = Mock()
-    scal_job = Mock()
-    monkeypatch.setattr(spearman, "scaling_job", scal_job)
-    spearman._run_scaling(facade, test_input)
-    for input_config in test_input:
-        assert scal_job.any_call(input_config)
-    assert scal_job.call_count == len(test_input)
 
 
 @pytest.mark.parametrize(

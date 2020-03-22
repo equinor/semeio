@@ -1,4 +1,5 @@
 import sys
+
 import pytest
 
 from semeio.jobs.correlated_observations_scaling import validator
@@ -21,7 +22,7 @@ else:
 def test_has_keys(test_input, expected_result):
     obs = ["POLY_OBS"]
     msg = "fail_message"
-    assert len(validator._has_keys(obs, test_input, msg)) == expected_result
+    assert len(validator.has_keys(obs, test_input, msg)) == expected_result
 
 
 @pytest.mark.parametrize(
@@ -30,7 +31,7 @@ def test_has_keys(test_input, expected_result):
 def test_is_subset_valid(input_list, result_list):
     example_list = ["a", "b", "c"]
 
-    assert validator._is_subset(example_list, input_list) == result_list
+    assert validator.is_subset(example_list, input_list) == result_list
 
 
 @pytest.mark.parametrize(
@@ -39,31 +40,4 @@ def test_is_subset_valid(input_list, result_list):
 def test_is_subset_invalid(input_list, list_length):
     example_list = ["a", "b", "c"]
 
-    assert len(validator._is_subset(example_list, input_list)) == list_length
-
-
-@pytest.mark.parametrize(
-    "calc_key,app_key,obs_list,data_list,expected_result",
-    [
-        ("KEY_1", "KEY_1", ["KEY_1"], ["KEY_1"], True),
-        ("KEY_1", "KEY_1", ["KEY_1", "KEY_2"], ["KEY_1"], True),
-        ("KEY_1", "KEY_1", ["KEY_1", "KEY_2"], ["KEY_2"], False),
-        ("not_in_list", "KEY_1", ["KEY_1"], ["KEY_1"], False),
-        ("KEY_1", "not_in_list", ["KEY_1"], ["KEY_1"], False),
-        ("KEY_1", "KEY_1", [], ["KEY_1"], False),
-        ("KEY_1", "KEY_1", ["KEY_1"], [], False),
-    ],
-)
-def test_valid_job(calc_key, app_key, obs_list, data_list, expected_result):
-
-    mock_entry_1 = Mock()
-    mock_entry_1.key = calc_key
-
-    mock_entry_2 = Mock()
-    mock_entry_2.key = app_key
-
-    user_config = Mock()
-    user_config.snapshot.CALCULATE_KEYS.keys = [mock_entry_1]
-    user_config.snapshot.UPDATE_KEYS.keys = [mock_entry_2]
-
-    assert validator.valid_job(user_config, obs_list, data_list) is expected_result
+    assert len(validator.is_subset(example_list, input_list)) == list_length

@@ -1,0 +1,172 @@
+import os
+import shutil
+
+import pytest
+
+import configsuite
+from res.enkf import EnKFMain, ResConfig
+from semeio.jobs.correlated_observations_scaling import job_config
+from semeio.jobs.correlated_observations_scaling.obs_utils import (
+    _wildcard_to_dict_list,
+    create_active_lists,
+    find_and_expand_wildcards,
+    keys_with_data,
+)
+from tests.jobs.correlated_observations_scaling.conftest import TEST_DATA_DIR
+
+
+@pytest.mark.parametrize(
+    "matching_keys,entry,expected_result",
+    [
+        (["a_key"], {"key": "a_*"}, [{"key": "a_key"}]),
+        (["a_key", "b_key"], {"key": "*key"}, [{"key": "a_key"}, {"key": "b_key"}]),
+        (
+            ["a_key"],
+            {"key": "a_*", "index": [1, 2]},
+            [{"key": "a_key", "index": [1, 2]}],
+        ),
+    ],
+)
+def test_wildcard_to_dict_list(matching_keys, entry, expected_result):
+    assert _wildcard_to_dict_list(matching_keys, entry) == expected_result
+
+
+def test_find_and_expand_wildcards():
+    expected_dict = {
+        "ANOTHER_KEY": "something",
+        "CALCULATE_KEYS": {
+            "keys": [
+                {"key": "WOPR_OP1_108"},
+                {"key": "WOPR_OP1_144"},
+                {"key": "WOPR_OP1_190"},
+                {"key": "WOPR_OP1_9"},
+                {"key": "WOPR_OP1_36"},
+                {"key": "WOPR_OP1_72"},
+                {"key": "FOPR"},
+            ]
+        },
+        "UPDATE_KEYS": {
+            "keys": [
+                {"key": "WOPR_OP1_108"},
+                {"key": "WOPR_OP1_144"},
+                {"key": "WOPR_OP1_190"},
+                {"key": "FOPR"},
+            ]
+        },
+    }
+
+    user_config = {
+        "ANOTHER_KEY": "something",
+        "CALCULATE_KEYS": {"keys": [{"key": "WOPR_*"}, {"key": "FOPR"}]},
+        "UPDATE_KEYS": {"keys": [{"key": "WOPR_OP1_1*"}, {"key": "FOPR"}]},
+    }
+
+    observation_list = [
+        "WOPR_OP1_108",
+        "WOPR_OP1_144",
+        "WOPR_OP1_190",
+        "WOPR_OP1_9",
+        "WOPR_OP1_36",
+        "WOPR_OP1_72",
+        "FOPR",
+    ]
+
+    result_dict = find_and_expand_wildcards(observation_list, user_config)
+
+    assert result_dict == expected_dict
+
+
+@pytest.mark.skipif(TEST_DATA_DIR is None, reason="no libres test-data")
+@pytest.mark.usefixtures("setup_ert")
+def test_create_observation_vectors(setup_ert):
+
+    valid_config_data = {
+        "CALCULATE_KEYS": {"keys": [{"key": "WPR_DIFF_1"}]},
+        "UPDATE_KEYS": {"keys": [{"key": "WPR_DIFF_1"}]},
+    }
+    config = configsuite.ConfigSuite(valid_config_data, job_config.build_schema())
+
+    res_config = setup_ert
+    ert = EnKFMain(res_config)
+    obs = ert.getObservations()
+
+    new_events = create_active_lists(obs, config.snapshot.UPDATE_KEYS.keys)
+
+    keys = [event.key for event in new_events]
+
+    assert "WPR_DIFF_1" in keys
+    assert "SNAKE_OIL_WPR_DIFF" not in keys
+
+
+@pytest.mark.skipif(TEST_DATA_DIR is None, reason="no libres test-data")
+@pytest.mark.usefixtures("setup_tmpdir")
+def test_add_observation_vectors():
+
+    valid_config_data = {"UPDATE_KEYS": {"keys": [{"key": "WOPR_OP1_108"}]}}
+
+    schema = job_config.build_schema()
+    config = configsuite.ConfigSuite(valid_config_data, schema)
+
+    test_data_dir = os.path.join(TEST_DATA_DIR, "local", "snake_oil_field")
+
+    shutil.copytree(test_data_dir, "test_data")
+    os.chdir(os.path.join("test_data"))
+
+    res_config = ResConfig("snake_oil.ert")
+
+    ert = EnKFMain(res_config)
+
+    obs = ert.getObservations()
+
+    new_events = create_active_lists(obs, config.snapshot.UPDATE_KEYS.keys)
+
+    keys = [event.key for event in new_events]
+
+    assert "WOPR_OP1_108" in keys
+    assert "WOPR_OP1_144" not in keys
+
+
+@pytest.mark.skipif(TEST_DATA_DIR is None, reason="no libres test-data")
+@pytest.mark.usefixtures("setup_tmpdir")
+def test_validate_failed_realizations():
+    """
+    Config has several failed realisations
+    """
+    test_data_dir = os.path.join(TEST_DATA_DIR, "local", "custom_kw")
+    shutil.copytree(test_data_dir, "test_data")
+    os.chdir(os.path.join("test_data"))
+
+    res_config = ResConfig("mini_fail_config")
+    ert = EnKFMain(res_config)
+    observations = ert.getObservations()
+
+    result = keys_with_data(
+        observations,
+        ["GEN_PERLIN_1"],
+        ert.getEnsembleSize(),
+        ert.getEnkfFsManager().getCurrentFileSystem(),
+    )
+    assert result == ["GEN_PERLIN_1"]
+
+
+@pytest.mark.skipif(TEST_DATA_DIR is None, reason="no libres test-data")
+@pytest.mark.usefixtures("setup_tmpdir")
+def test_validate_no_realizations():
+    """
+    Ensamble has not run
+    """
+    test_data_dir = os.path.join(TEST_DATA_DIR, "local", "poly_normal")
+    shutil.copytree(test_data_dir, "test_data")
+    os.chdir(os.path.join("test_data"))
+
+    res_config = ResConfig("poly.ert")
+    ert = EnKFMain(res_config)
+    observations = ert.getObservations()
+
+    result = keys_with_data(
+        observations,
+        ["POLY_OBS"],
+        ert.getEnsembleSize(),
+        ert.getEnkfFsManager().getCurrentFileSystem(),
+    )
+    assert result == []
