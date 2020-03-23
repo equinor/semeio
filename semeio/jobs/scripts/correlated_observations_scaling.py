@@ -1,5 +1,5 @@
 import collections
-
+import argparse
 import yaml
 
 from ert_data.measured import MeasuredData
@@ -11,9 +11,17 @@ from semeio.jobs.correlated_observations_scaling.obs_utils import keys_with_data
 
 
 class CorrelatedObservationsScalingJob(ErtScript):
-    def run(self, job_config):
+    def run(self, *args):
         facade = LibresFacade(self.ert())
-        user_config = load_yaml(job_config)
+
+        try:
+            parser = scaling_job_parser()
+            parsed_args = parser.parse_args(args)
+            config = parsed_args.config
+        except (KeyError, TypeError):
+            config = args[0]
+
+        user_config = load_yaml(config)
         user_config = _insert_default_group(user_config)
 
         obs = facade.get_observations()
@@ -50,3 +58,27 @@ def _insert_default_group(value):
     if isinstance(value, collections.Mapping):
         return [value]
     return value
+
+
+def scaling_job_parser():
+    description = """
+    correlated_observation_scaling is an ERT workflow job that does Principal
+    Component Analysis (PCA) scaling of observations in ERT. The job accepts a
+    configuration as the only argument.
+    """
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument(
+        "config",
+        type=str,
+        help="""Obtains a job configuration from this value. A valid job
+        configuration is a YAML file in one of three formats: a CALCULATE_KEYS
+        and UPDATE_KEYS pair; a list of such pairs; or a singular
+        CALCULATE_KEYS directive. Each directive accepts a list of keys that
+        each are a key and index hash. Keys can contain wildcards, and indices
+        can represent ranges like "1-10,11,12". No index value implies all
+        values. CALCULATE_KEYS can be configured using threshold which sets the
+        threshold for PCA scaling [default: 0.95]; std_cutoff, the cutoff for
+        standard deviation filtering [default: 1e-6]; and alpha for filtering
+        between ensemble mean and observations [default: 3].""",
+    )
+    return parser
