@@ -1,11 +1,12 @@
 import os
+import re
 import shutil
 
-import pytest
-
 import configsuite
+import pytest
 from res.enkf import EnKFMain, ResConfig
 from semeio.jobs.correlated_observations_scaling import job_config
+from semeio.jobs.correlated_observations_scaling.exceptions import ValidationError
 from semeio.jobs.correlated_observations_scaling.obs_utils import (
     _wildcard_to_dict_list,
     create_active_lists,
@@ -74,6 +75,53 @@ def test_find_and_expand_wildcards():
     result_dict = find_and_expand_wildcards(observation_list, user_config)
 
     assert result_dict == expected_dict
+
+
+@pytest.mark.parametrize(
+    "config_dict,obs_list,expected_fails,err_msg",
+    [
+        ({"CALCULATE_KEYS": {"keys": [{"key": "FOP*"}]}}, ["FOPR"], False, None,),
+        (
+            {"CALCULATE_KEYS": {"keys": [{"key": "TYPO*"}, {"key": "FOP*"}]}},
+            ["FOPR"],
+            True,
+            "Invalid CALCULATE_KEYS TYPO* had no match",
+        ),
+        (
+            {"CALCULATE_KEYS": {"keys": [{"key": "TYPO*"}]}},
+            ["FOPR"],
+            True,
+            "Invalid CALCULATE_KEYS TYPO* had no match",
+        ),
+        (
+            {
+                "CALCULATE_KEYS": {"keys": [{"key": "FOPR*"}]},
+                "UPDATE_KEYS": {"keys": [{"key": "TYPO*"}]},
+            },
+            ["FOPR"],
+            True,
+            "Invalid UPDATE_KEYS TYPO* had no match",
+        ),
+        (
+            {"CALCULATE_KEYS": {"keys": [{"key": "TYPO*"}, {"key": "FOPR"}]}},
+            ["FOPR"],
+            True,
+            "Invalid CALCULATE_KEYS TYPO* had no match",
+        ),
+    ],
+)
+def test_failed_wildcard_expansion(config_dict, obs_list, expected_fails, err_msg):
+    if expected_fails:
+        with pytest.raises(ValidationError) as excinfo:
+            find_and_expand_wildcards(obs_list, config_dict)
+        # ignore tabs, newlines
+        exc_msg = re.sub("\\s+", " ", str(excinfo.value))
+        assert exc_msg == err_msg
+    else:
+        try:
+            find_and_expand_wildcards(obs_list, config_dict)
+        except ValueError:
+            pytest.fail("unexpectedly raised with config: {}".format(config_dict))
 
 
 @pytest.mark.skipif(TEST_DATA_DIR is None, reason="no libres test-data")

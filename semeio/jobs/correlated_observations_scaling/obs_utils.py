@@ -4,6 +4,7 @@ from copy import deepcopy
 
 from ecl.util.util import BoolVector
 from res.enkf import ActiveList, LocalObsdata, RealizationStateEnum
+from semeio.jobs.correlated_observations_scaling.exceptions import ValidationError
 
 
 def _wildcard_to_dict_list(matching_keys, entry):
@@ -34,14 +35,23 @@ def find_and_expand_wildcards(obs_list, user_dict):
     new_dict = deepcopy(user_dict)
     for main_key, value in user_dict.items():
         new_entries = []
+        non_matching_wildcards = []
         if main_key in ("UPDATE_KEYS", "CALCULATE_KEYS"):
             for val in value["keys"]:
                 if "*" in val["key"]:
-                    new_entries.extend(_expand_wildcard(obs_list, val, val["key"]))
+                    expanded = _expand_wildcard(obs_list, val, val["key"])
+                    if len(expanded) == 0:
+                        non_matching_wildcards.append(val["key"])
+                    new_entries.extend(expanded)
                 else:
                     new_entries.append(val)
             new_dict[main_key]["keys"] = new_entries
 
+            if len(non_matching_wildcards) > 0:
+                raise ValidationError(
+                    "Invalid {}".format(main_key),
+                    ["{} had no match".format(wc) for wc in non_matching_wildcards],
+                )
     return new_dict
 
 
