@@ -4,8 +4,8 @@ import shutil
 import numpy as np
 import pytest
 import yaml
-
 from res.enkf import EnKFMain, ResConfig
+
 from semeio.jobs.scripts.correlated_observations_scaling import (
     CorrelatedObservationsScalingJob,
 )

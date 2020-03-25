@@ -5,7 +5,6 @@ import yaml
 from ert_data.measured import MeasuredData
 from ert_shared.libres_facade import LibresFacade
 from res.enkf import ErtScript
-from semeio.jobs.correlated_observations_scaling.exceptions import ValidationError
 from semeio.jobs.correlated_observations_scaling.job import ScalingJob
 from semeio.jobs.correlated_observations_scaling.obs_utils import keys_with_data
 
@@ -23,14 +22,7 @@ class CorrelatedObservationsScalingJob(ErtScript):
         )
 
         for config in user_config:
-            try:
-                job = ScalingJob(obs_keys, obs, obs_with_data, config)
-            except ValidationError as validation_error:
-                print(str(validation_error))
-                for error in validation_error.errors:
-                    print("\t{}".format(error))
-                continue
-
+            job = ScalingJob(obs_keys, obs, obs_with_data, config)
             measured_data = MeasuredData(
                 facade, job.get_calc_keys(), job.get_index_lists()
             )
