@@ -29,6 +29,7 @@ setup(
         "semeio.hook_implementations",
         "semeio.jobs.correlated_observations_scaling",
         "semeio.jobs.design2params",
+        "semeio.jobs.csv_export1",
     ],
     entry_points={"ert": ["semeio_jobs = semeio.hook_implementations.jobs"]},
     license="GPL-3.0",
