@@ -57,15 +57,7 @@ setup(
         "stea",
         "pyscal>=0.4.0",
     ],
-    setup_requires=["pytest-runner", "setuptools_scm"],
-    tests_require=[
-        "pytest",
-        "mock",
-        'openpyxl<=2.6.4; python_version<="2.7"',
-        'openpyxl; python_version>="3.6"',
-        'black; python_version>="3.6"',
-    ],
-    test_suite="tests",
+    setup_requires=["setuptools_scm"],
     package_data={"": job_files},
     include_package_data=True,
 )
