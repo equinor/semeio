@@ -1,11 +1,5 @@
 language: python
 
-virtualenv:
-  system_site_packages: false
-
-compiler:
-  - gcc
-
 matrix:
   include:
     - python: 2.7
@@ -27,7 +21,6 @@ dist: xenial
 
 env:
   global:
-    - ERT_SHOW_BACKTRACE=1
     - INSTALL_DIR="$(pwd)/install"
     - LD_LIBRARY_PATH="${INSTALL_DIR}/lib:${INSTALL_DIR}/lib64"
     - DYLD_LIBRARY_PATH="${INSTALL_DIR}/lib:${INSTALL_DIR}/lib64"
@@ -36,13 +29,8 @@ addons:
   apt:
     sources:
       - ubuntu-toolchain-r-test
-      - george-edison55-precise-backports
     packages:
       - liblapack-dev
-      - valgrind
-      - cmake
-      - cmake-data
-      - gcc
 
 install:
     - git clone --branch master --depth 1 https://github.com/equinor/ert
