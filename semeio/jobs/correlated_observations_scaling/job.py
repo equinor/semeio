@@ -8,12 +8,14 @@ from semeio.jobs.correlated_observations_scaling.obs_utils import (
 )
 from semeio.jobs.correlated_observations_scaling.scaled_matrix import DataMatrix
 from semeio.jobs.correlated_observations_scaling.validator import has_keys, is_subset
+from semeio.reporter import Reporter
 
 
 class ScalingJob(object):
-    def __init__(self, obs_keys, obs, obs_with_data, user_config_dict):
+    def __init__(self, obs_keys, obs, obs_with_data, user_config_dict, reporter):
         """Creates a ScalingJob instance with the given obs_keys, obs,
         obs_with_data and user_config_dict."""
+        self._reporter = reporter
         self._obs = obs
         self._obs_with_data = obs_with_data
         self._obs_keys = obs_keys
@@ -31,7 +33,7 @@ class ScalingJob(object):
         measured_data.filter_ensemble_mean_obs(config.CALCULATE_KEYS.alpha)
         measured_data.filter_ensemble_std(config.CALCULATE_KEYS.std_cutoff)
 
-        matrix = DataMatrix(measured_data.data)
+        matrix = DataMatrix(input_data=measured_data.data, reporter=self._reporter)
         matrix.std_normalization(inplace=True)
 
         scale_factor = matrix.get_scaling_factor(config.CALCULATE_KEYS)
@@ -92,8 +94,8 @@ class ScalingJob(object):
                         obs_node.set_std_scaling(scale_factor)
                 elif obs_vector.getImplementationType().name != "SUMMARY_OBS":
                     obs_node.updateStdScaling(scale_factor, event.active_list)
-        print(
-            "Keys: {} scaled with scaling factor: {}".format(
+        self._reporter.report(
+            value="Keys: {} scaled with scaling factor: {}".format(
                 [event.key for event in events], scale_factor
             )
         )

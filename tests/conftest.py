@@ -6,5 +6,7 @@ import pytest
 def setup_tmpdir(tmpdir):
     cwd = os.getcwd()
     tmpdir.chdir()
-    yield
-    os.chdir(cwd)
+    try:
+        yield
+    finally:
+        os.chdir(cwd)

@@ -5,6 +5,7 @@ import pandas as pd
 import pytest
 
 from semeio.jobs.correlated_observations_scaling.scaled_matrix import DataMatrix
+from semeio.reporter import Reporter
 
 
 def test_get_scaling_factor():
@@ -13,7 +14,8 @@ def test_get_scaling_factor():
     np.random.seed(123)
     input_matrix = np.random.rand(10, 10)
 
-    matrix = DataMatrix(pd.DataFrame(data=input_matrix))
+    reporter = Reporter("dummy")
+    matrix = DataMatrix(pd.DataFrame(data=input_matrix), reporter)
 
     assert matrix.get_scaling_factor(event) == np.sqrt(10 / 4.0)
 
@@ -33,6 +35,8 @@ def test_std_normalization():
     input_matrix.loc["OBS"] = np.ones(3)
     input_matrix.loc["STD"] = np.ones(3) * 0.1
     expected_matrix = [[10.0, 10.0, 10.0], [10.0, 10.0, 10.0], [10.0, 10.0, 10.0]]
-    matrix = DataMatrix(pd.concat({"A_KEY": input_matrix}, axis=1))
+
+    reporter = Reporter("dummy")
+    matrix = DataMatrix(pd.concat({"A_KEY": input_matrix}, axis=1), reporter)
     result = matrix.std_normalization(["A_KEY"])
     assert (result.loc[[0, 1, 2]].values == expected_matrix).all()

@@ -3,6 +3,10 @@ import itertools
 
 from scipy.cluster.hierarchy import fcluster, linkage
 
+from semeio.reporter import Reporter
+
+_reporter = Reporter("SpearmanCorrelation")
+
 
 def spearman_job(measured_data, threshold):
     """
@@ -38,7 +42,9 @@ def spearman_job(measured_data, threshold):
     job_configs = _config_creation(clustered_data)
 
     for cluster, val in clustered_data.items():
-        print("Cluster nr: {}, clustered data: {}".format(cluster, val))
+        _reporter.report(
+            key=None, value="Cluster nr: {}, clustered data: {}".format(cluster, val)
+        )
 
     return job_configs
 
@@ -63,7 +69,10 @@ def _remove_singular_obs(clusters):
             multiobs_clusters[new_cluster_index] = cluster
             new_cluster_index += 1
         else:
-            print("Removed cluster with singular observation: {}".format(cluster))
+            _reporter.report(
+                key=None,
+                value="Removed cluster with singular observation: {}".format(cluster),
+            )
     return multiobs_clusters
 
 

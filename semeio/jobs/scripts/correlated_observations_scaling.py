@@ -5,12 +5,16 @@ import yaml
 from ert_data.measured import MeasuredData
 from ert_shared.libres_facade import LibresFacade
 from res.enkf import ErtScript
+from semeio.reporter import Reporter
 from semeio.jobs.correlated_observations_scaling.job import ScalingJob
 from semeio.jobs.correlated_observations_scaling.obs_utils import keys_with_data
+
+_reporter = Reporter("CorrelationObservationScaling")
 
 
 class CorrelatedObservationsScalingJob(ErtScript):
     def run(self, job_config):
+
         facade = LibresFacade(self.ert())
         user_config = load_yaml(job_config)
         user_config = _insert_default_group(user_config)
@@ -22,7 +26,7 @@ class CorrelatedObservationsScalingJob(ErtScript):
         )
 
         for config in user_config:
-            job = ScalingJob(obs_keys, obs, obs_with_data, config)
+            job = ScalingJob(obs_keys, obs, obs_with_data, config, _reporter)
             measured_data = MeasuredData(
                 facade, job.get_calc_keys(), job.get_index_lists()
             )

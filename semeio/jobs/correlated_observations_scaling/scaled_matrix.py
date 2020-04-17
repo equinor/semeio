@@ -3,15 +3,17 @@ from copy import deepcopy
 import numpy as np
 
 from semeio.jobs.correlated_observations_scaling.exceptions import EmptyDatasetException
+from semeio.reporter import Reporter
 
 
 class DataMatrix(object):
-    def __init__(self, input_data):
+    def __init__(self, input_data, reporter):
         """
             Takes input data in the form of a Pandas multi index dataframe with observations,
         standard deviation and simulated values. Assumes observations are
         prepended with _OBS and standard deviation with _STD.
         """
+        self.reporter = reporter
         self.data = input_data
         if input_data.shape[1] == 0:
             raise EmptyDatasetException("Empty dataset")
@@ -52,9 +54,13 @@ class DataMatrix(object):
         )
         nr_observations = data_matrix.shape[1]
 
-        print("Scaling factor calculated from {}".format(events.keys))
+        self.reporter.report(
+            value="Scaling factor calculated from {}".format(events.keys)
+        )
 
-        return self._calculate_scaling_factor(nr_observations, nr_components)
+        return self._calculate_scaling_factor(
+            nr_observations, nr_components, self.reporter
+        )
 
     def _get_data(self):
         return self.data[~self.data.index.isin(["OBS", "STD"])]
@@ -86,7 +92,7 @@ class DataMatrix(object):
         return len([1 for i in variance_ratio[:-1] if i < threshold]) + 1, s
 
     @staticmethod
-    def _calculate_scaling_factor(nr_observations, nr_components):
+    def _calculate_scaling_factor(nr_observations, nr_components, reporter):
         """
         Calculates a observation scaling factor which is:
             sqrt(nr_obs / pc)
@@ -95,8 +101,8 @@ class DataMatrix(object):
             pc is the number of primary components from PCA analysis
                 below a user threshold
         """
-        print(
-            "Calculation scaling factor, nr of primary components: {:d}, number of observations: {:d}".format(
+        reporter.report(
+            value="Calculation scaling factor, nr of primary components: {:d}, number of observations: {:d}".format(
                 nr_components, nr_observations
             )
         )
