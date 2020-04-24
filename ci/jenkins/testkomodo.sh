@@ -31,5 +31,4 @@ if [[ -z "${sha1// }" ]]; then
 fi
 
 echo "running pytest"
-LIBRES_TEST_DATA_DIR=$ROOT_DIR/libres/test-data python -m pytest \
-    --ignore="tests/test_formatting.py"
+LIBRES_TEST_DATA_DIR=$ROOT_DIR/libres/test-data python -m pytest tests
