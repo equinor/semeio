@@ -1,1 +1,1 @@
-from .reporter import report
+from semeio.reporter.reporter import report
