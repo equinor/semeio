@@ -33,6 +33,9 @@ addons:
       - liblapack-dev
 
 install:
+    # Install a fake libecl pip-package so that pip will recognise it
+    - pip install git+https://github.com/equinor/libecl.git@pip-hack
+    
     - git clone --branch master --depth 1 https://github.com/equinor/ert
     - pushd ert
     - source .libres_version
