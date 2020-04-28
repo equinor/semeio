@@ -1,9 +1,11 @@
 import os
 from distutils.dir_util import copy_tree
 import numpy
+import pandas as pd
+
 import pytest
 
-from semeio.jobs.scripts.gendata_rft import main_entry_point
+from semeio.jobs.scripts.gendata_rft import main_entry_point, _build_parser
 
 ECL_BASE = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "data/norne/NORNE_ATW2013"
@@ -66,6 +68,53 @@ def input_data(tmpdir):
 
     finally:
         os.chdir(cwd)
+
+
+def test_gendata_rft_csv(tmpdir, input_data):
+    csv_filename = "gendata_rft.csv"
+    arguments = [
+        "-e",
+        ECL_BASE,
+        "-w",
+        "well_and_time.txt",
+        "-t",
+        tmpdir.strpath,
+        "-z",
+        "zonemap.txt",
+        "-c",
+        csv_filename,
+    ]
+
+    main_entry_point(arguments)
+    assert os.path.exists(csv_filename)
+    dframe = pd.read_csv(csv_filename)
+    assert not dframe.empty
+
+    required_columns = {
+        "utm_x",
+        "utm_y",
+        "measured_depth",
+        "true_vertical_depth",
+        "zone",
+        "i",
+        "j",
+        "k",
+        "pressure",
+        "valid_zone",
+        "is_active",
+        "inactive_info",
+        "well",
+        "time",
+    }
+    assert required_columns.issubset(set(dframe.columns))
+    assert len(dframe["well"].unique()) == len(MOCK_DATA_CONTENT)
+
+    # i-j-k always non-null together:
+    assert (dframe["i"].isnull() == dframe["j"].isnull()).all()
+    assert (dframe["i"].isnull() == dframe["k"].isnull()).all()
+
+    # inactive_info must be non-null when active = False
+    assert (~dframe[~dframe["is_active"]]["inactive_info"].isnull()).all()
 
 
 def test_gendata_rft_entry_point(tmpdir, input_data):
@@ -219,3 +268,26 @@ def test_gendata_inactive_info_zone_missing_value(tmpdir, input_data):
     with open("RFT_B-1AH_0_inactive_info") as fh:
         result = fh.read()
         assert result.startswith("ZONEMAP_MISSING_VALUE (utm_x=")
+
+
+def test_csv_defaults():
+    """Default filename for CSV export is/can be handled at multiple layers.
+    ERT users infer the default from the JOB_DESCRIPTION file, while command line
+    users (or Everest/ERT3?) might get the default from the argparse setup.
+
+    To avoid confusion, these should be in sync, enforced by this test"""
+
+    # Navigate to the JOB_DESCRIPTION in the source code tree:
+    job_description_file = os.path.join(
+        os.path.dirname(__file__), "../../../semeio/jobs/config_jobs/GENDATA_RFT"
+    )
+
+    # Crude parsing of the file
+    job_default = ""
+    for line in open(job_description_file).readlines():
+        if line.startswith("DEFAULT"):
+            if line.split()[0:2] == ["DEFAULT", "CSVFILE"]:
+                job_default = line.split()[2]
+
+    # And compare with argparse:
+    assert job_default == _build_parser().get_default("csvfile")
