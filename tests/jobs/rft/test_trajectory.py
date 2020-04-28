@@ -1,5 +1,8 @@
 import itertools
 import argparse
+
+import pandas as pd
+
 import pytest
 
 from semeio.jobs.rft.trajectory import TrajectoryPoint, Trajectory
@@ -84,6 +87,7 @@ def initdir(tmpdir):
 0 1 2.2 3
 4 5 6 7 zone
 """
+    # (utm_x utm_y md tvd zone_name)
     tmpdir.join("valid_trajectories.txt").write(valid_data)
     comment = "-- this is a comment"
     valid_data = comment + "\n" + valid_data + comment
@@ -101,6 +105,142 @@ def test_load(initdir, fname):
         expected_utmxs, trajectory.trajectory_points
     ):
         assert trajectorypoint.utm_x == expected_utmx
+
+
+@pytest.mark.parametrize(
+    "fname", ["valid_trajectories.txt", "valid_trajectories_with_comments.txt"]
+)
+def test_dframe_trajectory(initdir, fname):
+    """Test dataframe representation of a trajectory not having
+    any attached Eclipse simulation results"""
+    dframe = Trajectory.load_from_file(fname).to_dataframe()
+
+    assert isinstance(dframe, pd.DataFrame)
+
+    # Dataframe lengths should be the same as number of non-empty lines
+    # in txt input:
+    assert len(dframe) == len(
+        [
+            line
+            for line in open(fname).readlines()
+            if line.strip() and not line.strip().startswith("--")
+        ],
+    )
+
+    # Check that we have the input columns which defines the trajectory:
+    assert {"utm_x", "utm_y", "measured_depth", "true_vertical_depth", "zone"}.issubset(
+        set(dframe.columns)
+    )
+
+    # grid_ijk is a temp column, never to be present in output
+    assert "grid_ijk" not in dframe
+    # and since there is no Eclipse results attached, we can't have these either:
+    assert "i" not in dframe
+    assert "j" not in dframe
+    assert "k" not in dframe
+
+    # Check casing for column names, ensuring consistency in this particular
+    # dataframe:
+    assert list(dframe.columns) == [colname.lower() for colname in dframe.columns]
+
+    # pressure should not be there when there is no data for it
+    # (no Eclipse simulation results attached in this particular test function)
+    assert "pressure" not in dframe
+
+    # These columns should be in place, to signify there is not data for them.
+    # (Eclipse simulation results would be needed for any of these to be True)
+    assert set(dframe["valid_zone"]) == {False}
+    assert set(dframe["is_active"]) == {False}
+
+    # Check dataframe sorting:
+    assert (
+        dframe.sort_values("measured_depth")["measured_depth"]
+        == dframe["measured_depth"]
+    ).all()
+
+
+@pytest.mark.parametrize(
+    "dframe, tuplecolumn, components",
+    [
+        (pd.DataFrame(columns=["grid_ik"], data=[[(1, 2)]]), "grid_ik", ["I", "J"]),
+        (pd.DataFrame(columns=["grid_i"], data=[[(1,)]]), "grid_i", ["I"]),
+        (
+            pd.DataFrame(columns=["grid_i"], data=[[[1, 2, 3]]]),
+            "grid_i",
+            ["I", "J", "K"],
+        ),
+        (
+            pd.DataFrame(columns=["grid_i"], data=[[(1, 2)], [(3, 4)]]),
+            "grid_i",
+            ["I", "J"],
+        ),
+        (
+            pd.DataFrame(columns=["grid_i"], data=[[(1, 2)], [(3, 4)]]),
+            "grid_i",
+            ["I", "J"],
+        ),
+        (
+            pd.DataFrame(
+                columns=["grid_i", "extra"], data=[[(1, 2), "foo"], [(3, 4), "bar"]]
+            ),
+            "grid_i",
+            ["I", "J"],
+        ),
+    ],
+)
+def test_tuple_column_splitter(dframe, tuplecolumn, components):
+    splitdf = Trajectory.split_tuple_column(
+        dframe, tuplecolumn=tuplecolumn, components=components
+    )
+
+    assert tuplecolumn in dframe  # Ensure we have not touched the input
+    assert tuplecolumn not in splitdf
+    assert len(dframe) == len(splitdf)
+    assert {val for tup in dframe[tuplecolumn] for val in tup} == {
+        val for tup in splitdf[components].values for val in tup
+    }
+    for comp in components:
+        assert comp in splitdf
+    assert len(splitdf.columns) == len(dframe.columns) - 1 + len(components)
+
+
+@pytest.mark.parametrize(
+    "raises, dframe, tuplecolumn, components",
+    [
+        (
+            ValueError,
+            pd.DataFrame(columns=["grid_ik"], data=[[(1, 2)]]),
+            "grid_ik",
+            ["I", "J", "K"],
+        ),
+        (
+            ValueError,
+            pd.DataFrame(columns=["grid_ik"], data=[[(1, 2)], [(1, 2, 3)]]),
+            "grid_ik",
+            ["I", "J", "K"],
+        ),
+        (
+            ValueError,
+            pd.DataFrame(columns=["grid_ik"], data=[[(1, 2)], [(1, 2, 3)]]),
+            "grid_ik",
+            ["I", "J"],
+        ),
+    ],
+)
+def test_tuple_column_splitter_errors(raises, dframe, tuplecolumn, components):
+    with pytest.raises(raises):
+        Trajectory.split_tuple_column(
+            dframe, tuplecolumn=tuplecolumn, components=components
+        )
+
+
+def test_tuple_column_splitter_explicit():
+    # Checks that None-rows are handled, and default parameters for split_tuple_column()
+    dframe = Trajectory.split_tuple_column(
+        pd.DataFrame(columns=["grid_ijk"], data=[[None], [(1, 2, 3)]])
+    )
+    assert len(dframe) == 2
+    assert {"i", "j", "k"}.issubset(set(dframe.columns))
 
 
 def test_non_existing_file():

@@ -5,10 +5,24 @@ from semeio.jobs.rft.utility import strip_comments
 
 
 class ZoneMap:
+    """A zonemap is a map from simulation grid
+    k layers to a list of strings representing the
+    possible zones (in a stratigraphical hiearchy of zones)
+    that the k-layers belongs to.
+
+
+    Args
+        zones_at_k_value (dict): A dictionary from each
+            k layer (as integer key larger than 0) to a list
+            of strings with zone names.
+    """
+
     def __init__(self, zones_at_k_value=None):
         self._zones_at_k_value = zones_at_k_value or {}
         self._k_values_at_zone = {}
 
+        # Construct a reverse dictionary for the reverse
+        # lookup _k_values_at_zone
         for k_value, zone_names in self._zones_at_k_value.items():
             for zone_name in zone_names:
                 if zone_name not in self._k_values_at_zone:

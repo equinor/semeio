@@ -85,6 +85,18 @@ inactive value to 0
 """,
     )
     parser.add_argument(
+        "-c",
+        "--csvfile",
+        required=False,
+        type=str,
+        default="gendata_rft.csv",
+        help="""
+Path to a file to which a CSV output is dumped. The CSV will contain all the
+information of the wellspaths, times, pressures and zone information, and whether
+a specific pressure point is valid
+""",
+    )
+    parser.add_argument(
         "--log-level",
         "-l",
         required=False,
@@ -118,6 +130,7 @@ def main_entry_point(args=None):
         ecl_grid=options.eclbase[0],
         ecl_rft=options.eclbase[1],
         zonemap=options.zonemap,
+        csvfile=options.csvfile,
     )
 
     logger.info("Completed!")
