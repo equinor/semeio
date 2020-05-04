@@ -57,6 +57,11 @@ class TrajectoryPoint:
             if rftcell:
                 self.pressure = rftcell.pressure
 
+    def __str__(self):
+        return "(utm_x={utm_x}, utm_y={utm_y}, measured_depth={measured_depth})".format(
+            utm_x=self.utm_x, utm_y=self.utm_y, measured_depth=self.measured_depth
+        )
+
 
 class Trajectory:
     def __init__(self, points):
