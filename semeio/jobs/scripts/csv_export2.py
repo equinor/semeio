@@ -1,9 +1,6 @@
 import argparse
-import os
 import sys
 
-import pandas as pd
-from fmu import ensemble
 from res.enkf import ErtScript
 from semeio.jobs.csv_export2 import csv_export2
 

@@ -1,13 +1,11 @@
-import logging
-import sys
-
 import numpy as np
 import pandas as pd
 
 import logging
 
 
-# Filenames created/modified by this script. Don't change unless you understand the consequences.
+# Filenames created/modified by this script.
+# Don't change unless you understand the consequences.
 _TARGET_FILE_TXT = "DESIGN2PARAMS.OK"
 _DESIGN_MATRIX_TXT = "designmatrix.txt"
 _DESIGN_PARAMETERS_TXT = "designparameters.txt"
@@ -92,7 +90,8 @@ def _complete_parameters_file(
         how="outer",
     )
 
-    # add new column with a combined parameters / data from the realization in design matrix
+    # add new column with a combined parameters / data
+    # from the realization in design matrix
     merged["parameters_realization"] = merged["parameters"].combine_first(
         merged["realization"]
     )
@@ -163,9 +162,9 @@ def _read_excel(file_name, sheet_name, header=0):
         raise SystemExit("File {} not found".format(file_name))
     except Exception as err:
         raise SystemExit(
-            "File {} is probably not of correct type. Failed with exception '{}'".format(
-                file_name, str(err)
-            )
+            (
+                "File {} is probably not of correct type. Failed with exception '{}'"
+            ).format(file_name, str(err))
         )
 
 

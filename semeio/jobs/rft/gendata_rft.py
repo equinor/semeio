@@ -26,9 +26,10 @@ def _populate_trajectory_points(
         rft = ecl_rft.get(well, date)
     except KeyError:
         logger.error(
-            "Forward model script gendata_rft.py: No RFT data written for well ({}) and date ({})".format(
-                well, date
-            )
+            (
+                "Forward model script gendata_rft.py: "
+                "No RFT data written for well ({}) and date ({})"
+            ).format(well, date)
         )
         return []
 

@@ -53,7 +53,7 @@ def test_argparse_no_default(input_data):
     assert res.realization == _realization
     assert res.xlsfilename == _xls
     assert res.designsheetname == _sheet
-    assert res.defaultssheetname == None
+    assert res.defaultssheetname is None
 
 
 @pytest.mark.skipif(sys.version_info.major < 3, reason="requires python3")
@@ -73,7 +73,7 @@ def test_argparse_with_optionals(input_data):
     assert res.realization == _realization
     assert res.xlsfilename == _xls
     assert res.designsheetname == _sheet
-    assert res.defaultssheetname == None
+    assert res.defaultssheetname is None
     assert res.parametersfilename == _parametersfilename
     assert res.log_level == logging.getLevelName(_log_level)
 
@@ -101,7 +101,7 @@ def test_argparse_parameters_file_not_exists(input_data):
     assert res.realization == _realization
     assert res.xlsfilename == _xls
     assert res.designsheetname == _sheet
-    assert res.defaultssheetname == None
+    assert res.defaultssheetname is None
     assert res.parametersfilename == not_existing_parameters_txt
     assert res.log_level == logging.getLevelName(_default_log_level)
 

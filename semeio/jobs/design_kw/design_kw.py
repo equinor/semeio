@@ -1,9 +1,5 @@
-import json
 import logging
-import os
 import re
-import string
-import sys
 
 _STATUS_FILE_NAME = "DESIGN_KW.OK"
 
@@ -54,9 +50,9 @@ def all_matched(line, template_file_name, template):
     for unmatched in unmatched_templates(line):
         if is_perl(template_file_name, template):
             _logger.warn(
-                "{} not found in design matrix, but this is probably a Perl file".format(
-                    unmatched
-                )
+                (
+                    "{} not found in design matrix, but this is probably a Perl file"
+                ).format(unmatched)
             )
         else:
             _logger.error("{} not found in design matrix".format(unmatched))

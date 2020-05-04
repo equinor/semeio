@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import os
 from copy import deepcopy
 
 import six
@@ -40,7 +39,8 @@ def _realize_list(input_string):
     i.e.  7 or 14. A range is a lower and upper element of the range separated by a
     single '-'. When provided with a string we will either return a list containing the
     union of all the singeltons and the ranges, or raise a TypeError or ValueError if
-    it fails in the process. _realize_list('1,2,4-7,14-15') -> [1, 2, 4, 5, 6, 7, 14, 15]
+    it fails in the process. _realize_list('1,2,4-7,14-15') ->
+    [1, 2, 4, 5, 6, 7, 14, 15]
     """
     real_list = []
     for elem in input_string.split(","):

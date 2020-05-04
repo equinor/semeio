@@ -11,7 +11,7 @@ class ZoneMap:
 
         for k_value, zone_names in self._zones_at_k_value.items():
             for zone_name in zone_names:
-                if not zone_name in self._k_values_at_zone:
+                if zone_name not in self._k_values_at_zone:
                     self._k_values_at_zone[zone_name] = []
 
                 self._k_values_at_zone[zone_name].append(k_value)
@@ -38,7 +38,10 @@ class ZoneMap:
         zonemap_lines = [
             (strip_comments(l), i + 1) for i, l in enumerate(zonemap_lines)
         ]
-        basic_err_msg = "Line {line_number} in ZoneMap file {filename} not on proper format: 'k zonename <zonename> ...'. "
+        basic_err_msg = (
+            "Line {line_number} in ZoneMap file {filename} "
+            "not on proper format: 'k zonename <zonename> ...'. "
+        )
         for line, line_number in zonemap_lines:
             zonemap_line = line.split()
 
