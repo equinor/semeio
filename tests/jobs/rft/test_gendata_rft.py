@@ -128,7 +128,9 @@ def test_gendata_inactive_info_point_not_in_grid(tmpdir, input_data):
 
     with open("RFT_B-1AH_0_inactive_info") as fh:
         result = fh.read()
-        assert result.startswith("TRAJECTORY_POINT_NOT_IN_GRID")
+        assert result.startswith(
+            "TRAJECTORY_POINT_NOT_IN_GRID (utm_x=0.0, utm_y=1.0, measured_depth=2.0)"
+        )
 
 
 def test_gendata_inactive_info_zone_mismatch(tmpdir, input_data):
@@ -159,7 +161,7 @@ def test_gendata_inactive_info_zone_mismatch(tmpdir, input_data):
 
     with open("RFT_B-1AH_0_inactive_info") as fh:
         result = fh.read()
-        assert result.startswith("ZONE_MISMATCH")
+        assert result.startswith("ZONE_MISMATCH (utm_x=")
 
 
 def test_gendata_inactive_info_not_in_rft(tmpdir, input_data):
@@ -190,7 +192,7 @@ def test_gendata_inactive_info_not_in_rft(tmpdir, input_data):
 
     with open("RFT_B-1AH_0_inactive_info") as fh:
         result = fh.read()
-        assert result.startswith("TRAJECTORY_POINT_NOT_IN_RFT")
+        assert result.startswith("TRAJECTORY_POINT_NOT_IN_RFT (utm_x=")
 
 
 def test_gendata_inactive_info_zone_missing_value(tmpdir, input_data):
@@ -216,4 +218,4 @@ def test_gendata_inactive_info_zone_missing_value(tmpdir, input_data):
 
     with open("RFT_B-1AH_0_inactive_info") as fh:
         result = fh.read()
-        assert result.startswith("ZONEMAP_MISSING_VALUE")
+        assert result.startswith("ZONEMAP_MISSING_VALUE (utm_x=")
