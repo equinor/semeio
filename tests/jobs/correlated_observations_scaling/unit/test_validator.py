@@ -7,7 +7,7 @@ from semeio.jobs.correlated_observations_scaling import validator
 if sys.version_info >= (3, 3):
     from unittest.mock import Mock
 else:
-    from mock import Mock
+    from mock import Mock  # noqa
 
 
 @pytest.mark.parametrize(

@@ -3,7 +3,7 @@ import pytest
 from semeio.jobs.scripts.fm_stea import main_entry_point
 import shutil
 import os
-from stea import SteaResult, SteaKeys, SteaInput
+from stea import SteaResult, SteaKeys
 
 import sys
 
