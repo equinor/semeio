@@ -7,7 +7,7 @@ from semeio.jobs.rft.zonemap import ZoneMap
 
 
 @pytest.mark.parametrize(
-    "line, expected_zone", [("0 1 2.2 3", None), ("0 1 2.2 3 zone", "zone"),]
+    "line, expected_zone", [("0 1 2.2 3", None), ("0 1 2.2 3 zone", "zone")]
 )
 def test_load_from_line(line, expected_zone):
     point = TrajectoryPoint(*Trajectory.parse_trajectory_line(line))

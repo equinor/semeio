@@ -8,9 +8,9 @@ from semeio.jobs.correlated_observations_scaling.exceptions import EmptyDatasetE
 class DataMatrix(object):
     def __init__(self, input_data):
         """
-            Takes input data in the form of a Pandas multi index dataframe with observations,
-        standard deviation and simulated values. Assumes observations are
-        prepended with _OBS and standard deviation with _STD.
+        Takes input data in the form of a Pandas multi index dataframe with
+        observations, standard deviation and simulated values. Assumes observations
+        are prepended with _OBS and standard deviation with _STD.
         """
         self.data = input_data
         if input_data.shape[1] == 0:
@@ -97,8 +97,9 @@ class DataMatrix(object):
                 below a user threshold
         """
         print(
-            "Calculation scaling factor, nr of primary components: {:d}, number of observations: {:d}".format(
-                nr_components, nr_observations
-            )
+            (
+                "Calculation scaling factor, nr of primary components: "
+                "{:d}, number of observations: {:d}"
+            ).format(nr_components, nr_observations)
         )
         return np.sqrt(nr_observations / float(nr_components))

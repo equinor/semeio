@@ -100,7 +100,8 @@ def _active_list_from_index_list(index_list):
     Creates an ActiveList from a list of indexes
     :param index_list: list of index
     :type index_list:  list
-    :return: Active list, a c-object with mode (ALL-ACTIVE, PARTIALLY-ACTIVE, INACTIVE) and list of indices
+    :return: Active list, a c-object with mode (ALL-ACTIVE, PARTIALLY-ACTIVE, INACTIVE)
+        and list of indices
     :rtype: active_list
     """
     active_list = ActiveList()

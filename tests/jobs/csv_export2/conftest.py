@@ -2,7 +2,6 @@ import os
 import shutil
 
 import pytest
-from res.enkf import ResConfig
 
 TEST_DATA_DIR = os.environ.get("ERT_TESTDATA_ROOT")
 TEST_DATA_DIR_BERGEN = "/d/proj/bg/enkf/ErtTestData"

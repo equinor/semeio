@@ -75,9 +75,9 @@ class ScalingJob(object):
 
     def _update_scaling(self, obs, scale_factor, events):
         """
-        Applies the scaling factor to the user specified index, SUMMARY_OBS needs to be treated differently
-        as it only has one data point per node, compared with other observation types which have multiple
-        data points per node.
+        Applies the scaling factor to the user specified index, SUMMARY_OBS needs to be
+        treated differently as it only has one data point per node, compared with other
+        observation types which have multiple data points per node.
         """
         for event in events:
             obs_vector = obs[event.key]

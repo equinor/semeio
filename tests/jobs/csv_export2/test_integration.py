@@ -1,5 +1,3 @@
-import sys
-
 import pytest
 from semeio.jobs.csv_export2 import csv_export2
 

@@ -25,7 +25,7 @@ def test_hook_implementations():
     assert set(installable_jobs.keys()) == set(expected_jobs.keys())
 
     expected_workflow_jobs = {
-        "CORRELATED_OBSERVATIONS_SCALING": "semeio/jobs/config_workflow_jobs/CORRELATED_OBSERVATIONS_SCALING",
+        "CORRELATED_OBSERVATIONS_SCALING": "semeio/jobs/config_workflow_jobs/CORRELATED_OBSERVATIONS_SCALING",  # noqa
         "SPEARMAN_CORRELATION": "semeio/jobs/config_workflow_jobs/SPEARMAN_CORRELATION",
         "CSV_EXPORT2": "semeio/jobs/config_workflow_jobs/CSV_EXPORT2",
     }

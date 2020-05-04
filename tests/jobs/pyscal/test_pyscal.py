@@ -136,7 +136,7 @@ def test_fm_pyscal_argparse(tmpdir):
             # Reading a file that does not exist
             (ValueError, SystemExit),
             None,
-            ["not-existing.csv", "relperm.inc", "", "__NONE__", "__NONE__", "sgof", 1,],
+            ["not-existing.csv", "relperm.inc", "", "__NONE__", "__NONE__", "sgof", 1],
         ),
         (
             # Specifying a sheet that does not exist
@@ -145,7 +145,7 @@ def test_fm_pyscal_argparse(tmpdir):
             # error messages upfront. The exact exception might improve, so just assert
             # anything is thrown:
             EXAMPLE_STATIC_DFRAME,
-            ["file.xlsx", "rel.inc", "foo_sheet", "__NONE__", "__NONE__", "sgof", 1,],
+            ["file.xlsx", "rel.inc", "foo_sheet", "__NONE__", "__NONE__", "sgof", 1],
         ),
         (
             # GasOil-interpolation without WaterOil, this is not supported:

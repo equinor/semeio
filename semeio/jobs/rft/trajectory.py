@@ -78,7 +78,10 @@ class Trajectory:
         point = line.split()
         if len(point) < 4 or len(point) > 5:
             raise argparse.ArgumentTypeError(
-                "Trajectory data file not on correct format: 'utm_x utm_y md tvd <zone>' - zone is optional"
+                (
+                    "Trajectory data file not on correct format: "
+                    "'utm_x utm_y md tvd <zone>' - zone is optional"
+                )
             )
 
         try:

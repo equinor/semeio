@@ -83,9 +83,9 @@ def load_and_parse_well_time_file(filename):
             time = datetime.date(year, month, day)
 
         except ValueError:
-            err_msg = (
-                base_error_msg
-                + "Unable to parse date, expected day month year got: {day} {month} {year}"
+            err_msg = base_error_msg + (
+                "Unable to parse date, expected day month year got: "
+                "{day} {month} {year}"
             )
             raise argparse.ArgumentTypeError(
                 err_msg.format(
@@ -128,9 +128,11 @@ def valid_eclbase(file_path):
         ecl_rft = EclRFTFile(rft_filepath)
     except (IOError, OSError) as err:
         raise argparse.ArgumentTypeError(
-            "Could not load eclipse RFT from file: {fname}\nWith the following error:\n{ecl_err}".format(
-                fname=rft_filepath, ecl_err=err
-            )
+            (
+                "Could not load eclipse RFT from file: {fname}\n"
+                "With the following error:"
+                "\n{ecl_err}"
+            ).format(fname=rft_filepath, ecl_err=err)
         )
 
     grid_filepath = file_path + ".EGRID"
@@ -143,9 +145,11 @@ def valid_eclbase(file_path):
         ecl_grid = EclGrid(grid_filepath)
     except (IOError, OSError) as err:
         raise argparse.ArgumentTypeError(
-            "Could not load eclipse Grid from file: {fname}\nWith the following error:\n{ecl_err}".format(
-                fname=grid_filepath, ecl_err=err
-            )
+            (
+                "Could not load eclipse Grid from file: {fname}\n"
+                "With the following error:\n"
+                "{ecl_err}"
+            ).format(fname=grid_filepath, ecl_err=err)
         )
 
     return ecl_grid, ecl_rft

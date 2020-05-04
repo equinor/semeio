@@ -12,6 +12,8 @@ matrix:
       env: TOXENV=py38
     - python: 3.7
       env: TOXENV=formatting
+    - python: 3.7
+      env: TOXENV=flake8
 
 os:
   - linux
