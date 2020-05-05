@@ -14,12 +14,12 @@ def test_get_scaling_factor():
     input_matrix = np.random.rand(10, 10)
 
     matrix = DataMatrix(pd.DataFrame(data=input_matrix))
-
-    assert matrix.get_scaling_factor(event) == np.sqrt(10 / 4.0)
+    print ('SCALE FACTOR: ', matrix.get_scaling_factor(event))
+    assert matrix.get_scaling_factor(event) == np.sqrt(10 / 6.0)
 
 
 @pytest.mark.parametrize(
-    "threshold,expected_result", [(0.0, 1), (0.83, 2), (0.90, 3), (0.95, 4), (0.99, 6)]
+    "threshold,expected_result", [(0.0, 1), (0.83, 4), (0.90, 5), (0.95, 6), (0.99, 7)]
 )
 def test_get_nr_primary_components(threshold, expected_result):
     np.random.seed(123)
