@@ -14,7 +14,6 @@ def test_get_scaling_factor():
     input_matrix = np.random.rand(10, 10)
 
     matrix = DataMatrix(pd.DataFrame(data=input_matrix))
-    print ('SCALE FACTOR: ', matrix.get_scaling_factor(event))
     assert matrix.get_scaling_factor(event) == np.sqrt(10 / 6.0)
 
 
