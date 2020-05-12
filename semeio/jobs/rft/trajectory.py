@@ -110,7 +110,7 @@ class Trajectory:
         with open(filename, "r") as f:
             trajectory_lines = f.readlines()
 
-        trajectory_lines = [strip_comments(l) for l in trajectory_lines]
+        trajectory_lines = [strip_comments(line) for line in trajectory_lines]
 
         for line in trajectory_lines:
             if not line:
