@@ -50,28 +50,20 @@ class ZoneMap:
 
             if len(zonemap_line) < 2:
                 raise argparse.ArgumentTypeError(
-                    basic_err_msg
-                    + "Number of zonenames must be 1 or more".format(
-                        line_number=line_number, filename=filename
-                    )
+                    basic_err_msg.format(line_number=line_number, filename=filename)
+                    + "Number of zonenames must be 1 or more",
                 )
-
             try:
                 raw_k = int(zonemap_line[0])
             except ValueError:
                 raise argparse.ArgumentTypeError(
-                    basic_err_msg
-                    + "k must be integer, was {k}".format(
-                        line_number=line_number, filename=filename, k=zonemap_line[0]
-                    )
+                    basic_err_msg.format(line_number=line_number, filename=filename)
+                    + "k must be integer, was {k}".format(k=zonemap_line[0])
                 )
-
             if raw_k == 0:
                 raise argparse.ArgumentTypeError(
-                    basic_err_msg
-                    + "k values cannot be 0, must start at 1. ".format(
-                        line_number=line_number, filename=filename
-                    )
+                    basic_err_msg.format(line_number=line_number, filename=filename)
+                    + "k values cannot be 0, must start at 1. "
                 )
 
             k_value = raw_k - 1
