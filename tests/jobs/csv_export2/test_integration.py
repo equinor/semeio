@@ -108,7 +108,7 @@ def verifyExportedFile(exported_file_name, result_header, result_iter_rel):
     with open(exported_file_name, "r") as exported_file:
         lines = exported_file.readlines()
 
-        assert lines[0] == result_header
+        assert sorted(lines[0]) == sorted(result_header)
 
         iter_rel_no = set()
 
