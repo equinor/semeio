@@ -5,7 +5,7 @@ from res.enkf import ErtScript
 from semeio.jobs.csv_export2 import csv_export2
 
 
-class CsvExport2Job(ErtScript):
+class CsvExport2Job(ErtScript):  # pylint: disable=too-few-public-methods
     def run(self, *args):
         main(args)
 

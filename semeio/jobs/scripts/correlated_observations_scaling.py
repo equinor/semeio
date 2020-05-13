@@ -9,7 +9,9 @@ from semeio.jobs.correlated_observations_scaling.job import ScalingJob
 from semeio.jobs.correlated_observations_scaling.obs_utils import keys_with_data
 
 
-class CorrelatedObservationsScalingJob(ErtScript):
+class CorrelatedObservationsScalingJob(
+    ErtScript
+):  # pylint: disable=too-few-public-methods
     def run(self, job_config):
         facade = LibresFacade(self.ert())
         user_config = load_yaml(job_config)
