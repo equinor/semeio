@@ -29,9 +29,31 @@ def test_extract_key_value_ok():
     }
 
 
+def test_extract_key_value_whitespace_error():
+    """Test that user friendly error message is displayed
+    when an error occurs"""
+    data = ['"FOO BAR COM " 2']
+    with pytest.raises(ValueError, match="FOO BAR COM"):
+        design_kw.extract_key_value(data)
+    with pytest.raises(ValueError, match="Quotes"):
+        design_kw.extract_key_value(data)
+
+    data = ["SENTENCE this is a string"]
+    with pytest.raises(ValueError, match="SENTENCE"):
+        design_kw.extract_key_value(data)
+    with pytest.raises(ValueError, match="Spaces in values are not supported"):
+        design_kw.extract_key_value(data)
+
+
+def test_extract_missing_value():
+    data = ["key1"]
+    with pytest.raises(ValueError, match="No value found"):
+        design_kw.extract_key_value(data)
+
+
 def test_extract_key_value_dup_key():
     data = ["key1 14", "key2 24", "key1 34"]
-    with pytest.raises(SystemExit):
+    with pytest.raises(ValueError, match="multiple times"):
         design_kw.extract_key_value(data)
 
 
@@ -108,7 +130,7 @@ def test_run_unmatched(input_data):
 def test_run_duplicate_keys(input_data):
     template_filename = "template.yml.tmpl"
     result_filename = "template.yml"
-    with pytest.raises(SystemExit):
+    with pytest.raises(ValueError, match="multiple"):
         design_kw.run(
             template_file_name=template_filename,
             result_file_name=result_filename,
