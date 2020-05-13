@@ -10,7 +10,7 @@ from semeio.jobs.scripts.correlated_observations_scaling import (
 from semeio.jobs.spearman_correlation_job.job import spearman_job
 
 
-class SpearmanCorrelationJob(ErtScript):
+class SpearmanCorrelationJob(ErtScript):  # pylint: disable=too-few-public-methods
     def run(self, *args):
         facade = LibresFacade(self.ert())
 
