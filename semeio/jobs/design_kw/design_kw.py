@@ -79,15 +79,44 @@ def is_comment(line):
 
 
 def extract_key_value(parameters):
-    # Extract all key, value pairs from parameters file
-    # If key already exists, raise Exception
+    """Parses a list of strings, looking for key-value pairs pr. line
+    separated by whitespace, into a dictionary.
 
+    Spaces in either key or in value are not supported.
+
+    Args:
+        parameters (list of str)
+
+    Returns:
+        dict, with the keys and values parsed.
+
+    Raises:
+        ValueError, with error messages and all unparseable lines.
+    """
     res = {}
+    errors = []
     for line in parameters:
-        key, value = line.split()
+        line_parts = line.split()
+        if not line_parts:
+            continue
+        if len(line_parts) == 1:
+            errors += ["No value found in line {}".format(line)]
+            continue
+        if len(line_parts) > 2:
+            errors += ["Too many values found in line {}".format(line)]
+            continue
+        key, value = line_parts
         if key in res:
-            raise SystemExit(
-                "{} is defined multiple times in parameters file".format(key)
-            )
+            errors += ["{} is defined multiple times".format(key)]
+            continue
         res[key] = value
+    if errors:
+        # Gather errors, and add warnings that should only be
+        # given once (and not for every occurence)
+        error_str = "\n".join(errors)
+        if '"' in error_str:
+            error_str += "\nQuotes are not supported."
+        if "Too many values" in error_str:
+            error_str += "\nSpaces in values are not supported."
+        raise ValueError(error_str)
     return res
