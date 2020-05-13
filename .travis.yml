@@ -12,10 +12,13 @@ matrix:
       env: TOXENV=py38
     - python: 3.7
       env: TOXENV=formatting
+      install: true
     - python: 3.7
       env: TOXENV=flake8
+      install: true
     - python: 3.7
       env: TOXENV=pylint
+      install: true
 
 os:
   - linux
@@ -54,9 +57,9 @@ install:
     - export PYTHONPATH=$INSTALL_DIR/lib/python$TRAVIS_PYTHON_VERSION/site-packages:$PYTHONPATH
     - PATH=$INSTALL_DIR/bin:$PATH
     - pip install ert/ --prefix=$INSTALL_DIR
-    - pip install tox
 
 script:
+  - pip install tox
   - tox
 
 deploy:
