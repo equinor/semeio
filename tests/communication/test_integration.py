@@ -44,6 +44,6 @@ def test_semeio_script_integration(tmpdir):
         log = f.readlines()
     assert len(log) == 1
     expected_log_msg = (
-        "I finished without any problems - " "hence I'm not a failure after all!"
+        "I finished without any problems - hence I'm not a failure after all!"
     )
     assert expected_log_msg in log[0]
