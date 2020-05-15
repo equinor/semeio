@@ -10,8 +10,10 @@ extension-pkg-whitelist=
 ignore=CVS
 
 # Add files or directories matching the regex patterns to the blacklist. The
-# regex matches against base names, not paths.
-ignore-patterns=tests
+# regex matches against base names, not paths. Note that pre-commit runs
+# pylint on individual files, so if some patters should be ignored, put that
+# in .pre-commit-config.yaml
+ignore-patterns=
 
 # Python code to execute, usually for sys.path manipulation such as
 # pygtk.require().
@@ -79,6 +81,7 @@ disable=
     consider-merging-isinstance,
     consider-using-in,
     deprecated-method,
+    method-hidden,
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option
