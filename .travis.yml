@@ -11,13 +11,7 @@ matrix:
     - python: 3.8
       env: TOXENV=py38
     - python: 3.7
-      env: TOXENV=formatting
-      install: true
-    - python: 3.7
-      env: TOXENV=flake8
-      install: true
-    - python: 3.7
-      env: TOXENV=pylint
+      env: TOXENV=style
       install: true
 
 os:
