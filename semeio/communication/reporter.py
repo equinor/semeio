@@ -31,7 +31,7 @@ class FileReporter(object):
             raise ValueError(msg.format(self._output_dir))
 
         if os.path.sep in namespace:
-            err_msg = "Namespace contains path separators ({}) "
+            err_msg = "Namespace contains path separators ({})"
             raise ValueError(err_msg.format(namespace))
 
         return os.path.join(self._output_dir, namespace)
