@@ -39,3 +39,29 @@ this requires that the test dependencies from `test_requirements.txt` are instal
 # Install test requirements
 pip install -r test_requirements.txt
 ```
+
+[pre-commit](https://pre-commit.com/) is used to comply with the formatting standards.
+The complete formatting tests can be run with:
+
+```sh
+pip install tox
+tox -e style
+```
+
+[pre-commit](https://pre-commit.com/) can also provide git hooks to run on every commit
+to avoid commiting with formatting errors. This will only run on the diff so is quite fast.
+To configure this, run:
+
+```sh
+pip install -r test_requirements.txt
+pip install pre-commit
+pre-commit install
+```
+
+After this the hook will run on every commit.
+
+If you would like to remove the hooks, run:
+
+```sh
+pre-commit uninstall
+```
