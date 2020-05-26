@@ -1,0 +1,70 @@
+import os
+import shutil
+import subprocess
+import pytest
+import sys
+
+from ert_shared.plugins.plugin_manager import ErtPluginContext
+import semeio.hook_implementations.jobs
+import ert_shared.hook_implementations
+
+
+@pytest.mark.parametrize(
+    "nosim_command,data_input,data_expected",
+    [
+        ("INSERT_NOSIM", "RUNSPEC\n", "RUNSPEC\nNOSIM\n",),
+        (
+            "INSERT_NOSIM",
+            "RUNSPEC -- some comment about RUNSPEC and whatnot\n-- and more RUNSPEC\n",
+            "RUNSPEC\nNOSIM\n-- and more RUNSPEC\n",
+        ),
+        (
+            "INSERT_NOSIM",
+            "RUNSPEC some comment about RUNSPEC and whatnot\n-- and more RUNSPEC\n",
+            "RUNSPEC\nNOSIM\n-- and more RUNSPEC\n",
+        ),
+        ("REMOVE_NOSIM", "RUNSPEC\nNOSIM\n", "RUNSPEC\n",),
+        (
+            "REMOVE_NOSIM",
+            "RUNSPEC\nNOSIM\n-- and more RUNSPEC\n",
+            "RUNSPEC\n-- and more RUNSPEC\n",
+        ),
+        (
+            "REMOVE_NOSIM",
+            (
+                "RUNSPEC for some reason valid -- some comment RUNSPEC\n"
+                "-- more\n"
+                "NOSIM   more valid comment because it is after 8 chars"
+                " -- and now a valid comment\n"
+                "-- and a comment about NOSIM as well, not to be touched\n"
+            ),
+            (
+                "RUNSPEC for some reason valid -- some comment RUNSPEC\n"
+                "-- more\n-- and a comment about NOSIM as well, not to be touched\n"
+            ),
+        ),
+    ],
+)
+@pytest.mark.skipif(sys.version_info.major < 3, reason="requires python3")
+def test_nosim(setup_tmpdir, nosim_command, data_input, data_expected):
+    shutil.copy(os.path.join(os.path.dirname(__file__), "data", "nosim.ert"), ".")
+
+    with open("nosim.ert", "a") as fh:
+        fh.writelines(["FORWARD_MODEL {}".format(nosim_command)])
+
+    with open("TEST.DATA", "w") as fh:
+        fh.write(data_input)
+
+    with ErtPluginContext(
+        plugins=[semeio.hook_implementations.jobs, ert_shared.hook_implementations]
+    ):
+        p = subprocess.Popen(
+            ["ert", "test_run", "nosim.ert", "--verbose"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            env=os.environ.copy(),
+        )
+        p.wait()
+
+    with open("nosim/real_0/iter_0/TEST.DATA") as fh:
+        assert fh.read() == data_expected
