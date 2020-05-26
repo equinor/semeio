@@ -16,6 +16,8 @@ def test_hook_implementations():
         "STEA": "semeio/jobs/config_jobs/STEA",
         "GENDATA_RFT": "semeio/jobs/config_jobs/GENDATA_RFT",
         "PYSCAL": "semeio/jobs/config_jobs/PYSCAL",
+        "INSERT_NOSIM": "semeio/jobs/config_jobs/INSERT_NOSIM",
+        "REMOVE_NOSIM": "semeio/jobs/config_jobs/REMOVE_NOSIM",
     }
     installable_jobs = pm.get_installable_jobs()
     for wf_name, wf_location in expected_jobs.items():
