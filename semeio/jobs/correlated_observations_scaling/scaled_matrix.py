@@ -1,3 +1,4 @@
+import logging
 from copy import deepcopy
 
 import numpy as np
@@ -22,12 +23,18 @@ class DataMatrix(object):
         """
         return self.data[~self.data.index.isin(["OBS", "STD"])].values
 
-    def std_normalization(self, inplace=False):
+    def normalize_by_std(self):
+        """
+        Normalize the matrix in place.
+        """
+        self.data = self.get_normalized_by_std()
+
+    def get_normalized_by_std(self):
         """
         Duplicates the behavior of obs_data_scale, and scales the simulated data
         by 1 / (observation standard deviation), per observation key, i.e. each
         simulation data point is scaled by its corresponding std deviation
-        from observations.
+        from observations and returns a copy.
         """
         output_data = deepcopy(self.data)
         data_matrix = self._get_data()
@@ -36,8 +43,6 @@ class DataMatrix(object):
             1.0 / std_vector
         )
 
-        if inplace:
-            self.data = output_data
         return output_data
 
     def get_scaling_factor(self, events):
@@ -45,22 +50,33 @@ class DataMatrix(object):
         Performs PCA, calculates the number of primary components based on
         a threshold and returns a scaling factor based on the number of
         primary components and the number of observations.
+
+        Calculates a observation scaling factor which is:
+            sqrt(nr_obs / pc)
+        where:
+            nr_obs is the number of observations
+            pc is the number of primary components from PCA analysis
+                below a user threshold
         """
         data_matrix = self.get_data_matrix()
-        nr_components, singular_values = self._get_nr_primary_components(
-            data_matrix, threshold=events.threshold
+        nr_components, singular_values = self.get_nr_primary_components(
+            threshold=events.threshold
         )
         nr_observations = data_matrix.shape[1]
 
-        print("Scaling factor calculated from {}".format(events.keys))
-
-        return self._calculate_scaling_factor(nr_observations, nr_components)
+        logging.info("Scaling factor calculated from {}".format(events.keys))
+        logging.info(
+            (
+                "Calculation scaling factor, nr of primary components: "
+                "{:d}, number of observations: {:d}"
+            ).format(nr_components, nr_observations)
+        )
+        return np.sqrt(nr_observations / float(nr_components))
 
     def _get_data(self):
         return self.data[~self.data.index.isin(["OBS", "STD"])]
 
-    @staticmethod
-    def _get_nr_primary_components(data_matrix, threshold):
+    def get_nr_primary_components(self, threshold):
         """
         Takes a matrix, does PCA and calculates the cumulative variance ratio
         and returns an int which is the number of primary components where
@@ -81,25 +97,8 @@ class DataMatrix(object):
 
         Also returns an array of singular values.
         """
+        data_matrix = self.get_data_matrix()
         data_matrix = data_matrix - data_matrix.mean(axis=0)
         _, s, _ = np.linalg.svd(data_matrix.astype(np.float), full_matrices=False)
         variance_ratio = np.cumsum(s ** 2) / np.sum(s ** 2)
         return len([1 for i in variance_ratio[:-1] if i < threshold]) + 1, s
-
-    @staticmethod
-    def _calculate_scaling_factor(nr_observations, nr_components):
-        """
-        Calculates a observation scaling factor which is:
-            sqrt(nr_obs / pc)
-        where:
-            nr_obs is the number of observations
-            pc is the number of primary components from PCA analysis
-                below a user threshold
-        """
-        print(
-            (
-                "Calculation scaling factor, nr of primary components: "
-                "{:d}, number of observations: {:d}"
-            ).format(nr_components, nr_observations)
-        )
-        return np.sqrt(nr_observations / float(nr_components))

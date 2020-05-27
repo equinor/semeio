@@ -1,6 +1,6 @@
 import os
 import shutil
-
+import json
 import numpy as np
 import pytest
 import yaml
@@ -143,6 +143,24 @@ def test_main_entry_point_gen_data():
     assert_obs_vector(
         obs_vector, 1.0, [0, 1], np.sqrt(3.0 / 2.0),
     )
+
+    svd_file = (
+        "storage/snake_oil/ensemble/reports/CorrelatedObservationsScalingJob/svd.json"
+    )
+    # Assert that data was published correctly
+    with open(svd_file) as f:
+        reported_svd = json.load(f)
+        assert reported_svd == pytest.approx(
+            (6.531760256452532, 2.0045135017540487, 1.1768827000026516,), 0.1
+        )
+
+    scale_file = (
+        "storage/snake_oil/ensemble/reports/"
+        "CorrelatedObservationsScalingJob/scale_factor.json"
+    )
+    with open(scale_file) as f:
+        reported_scalefactor = json.load(f)
+        assert reported_scalefactor == pytest.approx(1.224744871391589, 0.1)
 
 
 @pytest.mark.skipif(TEST_DATA_DIR is None, reason="no libres test-data")

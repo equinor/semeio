@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
+import logging
 import configsuite
+import numpy as np
 from semeio.jobs.correlated_observations_scaling import job_config
 from semeio.jobs.correlated_observations_scaling.exceptions import ValidationError
 from semeio.jobs.correlated_observations_scaling.obs_utils import (
@@ -11,7 +13,7 @@ from semeio.jobs.correlated_observations_scaling.validator import has_keys, is_s
 
 
 class ScalingJob(object):
-    def __init__(self, obs_keys, obs, obs_with_data, user_config_dict):
+    def __init__(self, obs_keys, obs, obs_with_data, user_config_dict, reporter):
         """Creates a ScalingJob instance with the given obs_keys, obs,
         obs_with_data and user_config_dict."""
         self._obs = obs
@@ -19,6 +21,7 @@ class ScalingJob(object):
         self._obs_keys = obs_keys
         self._config = self._setup_configuration(user_config_dict)
         self._validate()
+        self._reporter = reporter
 
     def scale(self, measured_data):
         """
@@ -32,9 +35,21 @@ class ScalingJob(object):
         measured_data.filter_ensemble_std(config.CALCULATE_KEYS.std_cutoff)
 
         matrix = DataMatrix(measured_data.data)
-        matrix.std_normalization(inplace=True)
+        matrix.normalize_by_std()
 
         scale_factor = matrix.get_scaling_factor(config.CALCULATE_KEYS)
+        events = config.CALCULATE_KEYS
+        data_matrix = matrix.get_data_matrix()
+        nr_components, singular_values = matrix.get_nr_primary_components(
+            threshold=events.threshold
+        )
+        self._reporter.publish("svd", list(singular_values))
+        nr_observations = data_matrix.shape[1]
+
+        logging.info("Scaling factor calculated from {}".format(events.keys))
+
+        scale_factor = np.sqrt(nr_observations / float(nr_components))
+        self._reporter.publish("scale_factor", scale_factor)
 
         update_data = create_active_lists(self._obs, config.UPDATE_KEYS.keys)
         self._update_scaling(self._obs, scale_factor, update_data)
@@ -73,7 +88,8 @@ class ScalingJob(object):
         config = configsuite.ConfigSuite(config_dict, schema, layers=(default_layer,))
         return config
 
-    def _update_scaling(self, obs, scale_factor, events):
+    @staticmethod
+    def _update_scaling(obs, scale_factor, events):
         """
         Applies the scaling factor to the user specified index, SUMMARY_OBS needs to be
         treated differently as it only has one data point per node, compared with other
@@ -92,7 +108,7 @@ class ScalingJob(object):
                         obs_node.set_std_scaling(scale_factor)
                 elif obs_vector.getImplementationType().name != "SUMMARY_OBS":
                     obs_node.updateStdScaling(scale_factor, event.active_list)
-        print(
+        logging.info(
             "Keys: {} scaled with scaling factor: {}".format(
                 [event.key for event in events], scale_factor
             )
