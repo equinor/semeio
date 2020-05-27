@@ -6,6 +6,8 @@ from types import MethodType
 from res.enkf import ErtScript
 from semeio.communication.reporter import FileReporter
 
+SEMEIOSCRIPT_LOG_FILE = "workflow-log.txt"
+
 
 class _LogHandlerContext(object):
     def __init__(self, log, handler):
@@ -23,7 +25,7 @@ class _ReportHandler(BufferingHandler):
     def __init__(self, output_dir):
         super(_ReportHandler, self).__init__(1)
         self._reporter = FileReporter(output_dir)
-        self._namespace = "log.txt"
+        self._namespace = SEMEIOSCRIPT_LOG_FILE
 
     def flush(self):
         for log_record in self.buffer:
@@ -58,11 +60,11 @@ class SemeioScript(ErtScript):  # pylint: disable=too-few-public-methods
         # pylint: disable=access-member-before-definition
         self._real_run = self.run
 
-        def run_with_handler(self, *args):
+        def run_with_handler(self, *args, **kwargs):
             log = logging.getLogger("")
             report_handler = _ReportHandler(self._output_dir)
             with _LogHandlerContext(log, report_handler):
-                self._real_run(args)
+                self._real_run(*args, **kwargs)
 
         self.run = MethodType(run_with_handler, self)
 

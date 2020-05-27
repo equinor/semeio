@@ -5,6 +5,7 @@ import pytest
 import shutil
 import subprocess
 import sys
+from semeio.communication import SEMEIOSCRIPT_LOG_FILE
 
 if sys.version_info >= (3, 3):
     which = shutil.which
@@ -40,7 +41,8 @@ def test_semeio_script_integration(tmpdir):
     assert list(range(10)) == reported_data
 
     # Assert that logs were forwarded correctly
-    with open("storage/reports/TestWorkflowJob/log.txt") as f:
+    log_file = os.path.join("storage/reports/TestWorkflowJob/", SEMEIOSCRIPT_LOG_FILE)
+    with open(log_file) as f:
         log = f.readlines()
     assert len(log) == 1
     expected_log_msg = (

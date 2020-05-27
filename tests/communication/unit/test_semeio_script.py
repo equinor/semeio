@@ -4,7 +4,7 @@ import os
 import pytest
 import sys
 
-from semeio.communication import SemeioScript
+from semeio.communication import SemeioScript, SEMEIOSCRIPT_LOG_FILE
 
 if sys.version_info >= (3, 3):
     from unittest.mock import Mock
@@ -60,7 +60,7 @@ def test_semeio_script_logging(tmpdir):
     my_super_script.run()
 
     expected_logfile = os.path.join(
-        enspath, "reports", MySuperScript.__name__, "log.txt"
+        enspath, "reports", MySuperScript.__name__, SEMEIOSCRIPT_LOG_FILE
     )
 
     with open(expected_logfile) as f:
@@ -106,7 +106,7 @@ def test_semeio_script_multiple_logging(messages, tmpdir):
                 assert_log(posted_messages, expected_logfile)
 
     expected_logfile = os.path.join(
-        enspath, "reports", MySuperScript.__name__, "log.txt"
+        enspath, "reports", MySuperScript.__name__, SEMEIOSCRIPT_LOG_FILE
     )
 
     my_super_script = MySuperScript(ert)
@@ -134,7 +134,7 @@ def test_semeio_script_post_logging(tmpdir):
     logging.error("A second message - not from MySuperScript")
 
     expected_logfile = os.path.join(
-        enspath, "reports", MySuperScript.__name__, "log.txt"
+        enspath, "reports", MySuperScript.__name__, SEMEIOSCRIPT_LOG_FILE
     )
 
     with open(expected_logfile) as f:
@@ -163,7 +163,7 @@ def test_semeio_script_pre_logging(tmpdir):
     my_super_script.run()
 
     expected_logfile = os.path.join(
-        enspath, "reports", MySuperScript.__name__, "log.txt"
+        enspath, "reports", MySuperScript.__name__, SEMEIOSCRIPT_LOG_FILE
     )
 
     with open(expected_logfile) as f:
@@ -195,10 +195,37 @@ def test_semeio_script_post_logging_exception(tmpdir):
     logging.error("A second message - not from MySuperScript")
 
     expected_logfile = os.path.join(
-        enspath, "reports", MySuperScript.__name__, "log.txt"
+        enspath, "reports", MySuperScript.__name__, SEMEIOSCRIPT_LOG_FILE
     )
 
     with open(expected_logfile) as f:
         loaded_log = f.readlines()
 
     assert len(loaded_log) == 1
+
+
+def test_semeio_script_keyword_args(tmpdir):
+    tmpdir.chdir()
+    enspath = "enspath"
+    ert = Mock(
+        resConfig=Mock(
+            return_value=Mock(model_config=Mock(getEnspath=Mock(return_value=enspath)))
+        )
+    )
+
+    class MySuperScript(SemeioScript):
+        def run(self, param_A, param_B):
+            self.reporter.publish_msg(SEMEIOSCRIPT_LOG_FILE, param_A)
+            self.reporter.publish_msg(SEMEIOSCRIPT_LOG_FILE, param_B)
+
+    my_super_script = MySuperScript(ert)
+    my_super_script.run(param_B="param_B", param_A="param_A")
+
+    expected_outputfile = os.path.join(
+        enspath, "reports", MySuperScript.__name__, SEMEIOSCRIPT_LOG_FILE
+    )
+
+    with open(expected_outputfile) as f:
+        published_msgs = f.readlines()
+    assert published_msgs[0] == "param_A\n"
+    assert published_msgs[1] == "param_B\n"
