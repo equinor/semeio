@@ -1,10 +1,11 @@
 import numpy as np
 import pandas as pd
 import pytest
-
+import os
 from ert_data import measured
 from semeio.jobs.correlated_observations_scaling.job import ScalingJob
 from semeio.jobs.correlated_observations_scaling.exceptions import ValidationError
+from semeio.communication.reporter import FileReporter
 
 
 def test_filter_on_column_index():
@@ -64,12 +65,14 @@ def test_valid_job(calc_key, app_key, obs_keys, obs_with_data, expect_valid, err
         "CALCULATE_KEYS": {"keys": [{"key": calc_key}]},
         "UPDATE_KEYS": {"keys": [{"key": app_key}]},
     }
+
+    reporter = FileReporter(os.path.realpath(os.getcwd()))
     if expect_valid:
         try:
-            ScalingJob(obs_keys, [], obs_with_data, user_config_dict)
+            ScalingJob(obs_keys, [], obs_with_data, user_config_dict, reporter)
         except ValidationError as e:
             pytest.fail("unexpectedly raised ValidationError: {}".format(e))
     else:
         with pytest.raises(ValidationError) as exc_info:
-            ScalingJob(obs_keys, [], obs_with_data, user_config_dict)
+            ScalingJob(obs_keys, [], obs_with_data, user_config_dict, reporter)
         assert exc_info.value.errors == errors
