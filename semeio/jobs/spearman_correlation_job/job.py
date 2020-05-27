@@ -4,7 +4,14 @@ import itertools
 from scipy.cluster.hierarchy import fcluster, linkage
 
 
-def spearman_job(measured_data, threshold):
+def spearman_job(
+    measured_data,
+    threshold,
+    criterion="inconsistent",
+    depth=2,
+    method="single",
+    metric="euclidean",
+):
     """
     Given measured_data and threshold, it returns configurations that describe
     scaling of these data.
@@ -17,7 +24,9 @@ def spearman_job(measured_data, threshold):
 
     correlation_matrix = _calculate_correlation_matrix(simulated_data)
 
-    clusters = _cluster_analysis(correlation_matrix, threshold)
+    clusters = _cluster_analysis(
+        correlation_matrix, threshold, criterion, depth, method, metric
+    )
 
     columns = correlation_matrix.columns
 
@@ -87,6 +96,6 @@ def _calculate_correlation_matrix(data):
     return data.rank().corr(method="pearson")
 
 
-def _cluster_analysis(correlation_matrix, threshold):
-    a = linkage(correlation_matrix, "single")
-    return fcluster(a, threshold)
+def _cluster_analysis(correlation_matrix, threshold, criterion, depth, method, metric):
+    a = linkage(correlation_matrix, method, metric)
+    return fcluster(a, threshold, criterion=criterion, depth=depth)
