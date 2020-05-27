@@ -2,8 +2,13 @@ import numpy as np
 import pandas as pd
 import pytest
 import random
-
+import sys
 from semeio.jobs import misfit_preprocessor
+
+if sys.version_info >= (3, 3):
+    from unittest.mock import Mock
+else:
+    from mock import Mock
 
 
 class MockedMeasuredData(object):
@@ -147,7 +152,8 @@ def test_misfit_preprocessor_n_polynomials(num_polynomials):
     measured_data = MockedMeasuredData(observations, simulated)
 
     config = {}
-    configs = misfit_preprocessor.run(config, measured_data)
+    reporter_mock = Mock()
+    configs = misfit_preprocessor.run(config, measured_data, reporter_mock)
     assert_homogen_clusters(configs)
     assert num_polynomials == len(configs), configs
 
@@ -165,7 +171,8 @@ def test_misfit_preprocessor_state_size(state_size):
     measured_data = MockedMeasuredData(observations, simulated)
 
     config = {}
-    configs = misfit_preprocessor.run(config, measured_data)
+    reporter_mock = Mock()
+    configs = misfit_preprocessor.run(config, measured_data, reporter_mock)
     assert_homogen_clusters(configs)
     assert num_polynomials == len(configs), configs
 
@@ -189,7 +196,8 @@ def test_misfit_preprocessor_state_uneven_size(state_size):
             }
         }
     }
-    configs = misfit_preprocessor.run(config, measured_data)
+    reporter_mock = Mock()
+    configs = misfit_preprocessor.run(config, measured_data, reporter_mock)
     assert num_polynomials == len(configs), configs
     assert_homogen_clusters(configs)
 
@@ -202,9 +210,9 @@ def test_misfit_preprocessor_configuration_errors():
         "unknown_key": [],
         "clustering": {"spearman_correlation": {"fcluster": {"threshold": 1.0}}},
     }
-
+    reporter_mock = Mock()
     with pytest.raises(misfit_preprocessor.ValidationError) as ve:
-        misfit_preprocessor.run(config, measured_data)
+        misfit_preprocessor.run(config, measured_data, reporter_mock)
 
     expected_err_msg = (
         "Invalid configuration of misfit preprocessor\n"
