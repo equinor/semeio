@@ -28,6 +28,7 @@ def test_hook_implementations():
         "CORRELATED_OBSERVATIONS_SCALING": "semeio/jobs/config_workflow_jobs/CORRELATED_OBSERVATIONS_SCALING",  # noqa
         "SPEARMAN_CORRELATION": "semeio/jobs/config_workflow_jobs/SPEARMAN_CORRELATION",
         "CSV_EXPORT2": "semeio/jobs/config_workflow_jobs/CSV_EXPORT2",
+        "MISFIT_PREPROCESSOR": "semeio/jobs/config_workflow_jobs/MISFIT_PREPROCESSOR",
     }
     installable_workflow_jobs = pm.get_installable_workflow_jobs()
     for wf_name, wf_location in expected_workflow_jobs.items():
