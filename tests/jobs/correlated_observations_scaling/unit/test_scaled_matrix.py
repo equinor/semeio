@@ -23,7 +23,8 @@ def test_get_scaling_factor():
 def test_get_nr_primary_components(threshold, expected_result):
     np.random.seed(123)
     input_matrix = np.random.rand(10, 10)
-    components, _ = DataMatrix._get_nr_primary_components(input_matrix, threshold)
+    matrix = DataMatrix(pd.DataFrame(data=input_matrix))
+    components, _ = matrix.get_nr_primary_components(threshold)
     assert components == expected_result
 
 
@@ -33,5 +34,5 @@ def test_std_normalization():
     input_matrix.loc["STD"] = np.ones(3) * 0.1
     expected_matrix = [[10.0, 10.0, 10.0], [10.0, 10.0, 10.0], [10.0, 10.0, 10.0]]
     matrix = DataMatrix(pd.concat({"A_KEY": input_matrix}, axis=1))
-    result = matrix.std_normalization(["A_KEY"])
+    result = matrix.get_normalized_by_std()
     assert (result.loc[[0, 1, 2]].values == expected_matrix).all()
