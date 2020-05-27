@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 import itertools
-
+import logging
 from scipy.cluster.hierarchy import fcluster, linkage
 
 
 def spearman_job(
     measured_data,
     threshold,
+    reporter,
     criterion="inconsistent",
     depth=2,
     method="single",
@@ -23,6 +24,7 @@ def spearman_job(
     simulated_data = measured_data.get_simulated_data()
 
     correlation_matrix = _calculate_correlation_matrix(simulated_data)
+    reporter.publish_csv("correlation_matrix", correlation_matrix)
 
     clusters = _cluster_analysis(
         correlation_matrix, threshold, criterion, depth, method, metric
@@ -43,11 +45,11 @@ def spearman_job(
     )
 
     clustered_data = _remove_singular_obs(_cluster_data(data))
-
+    reporter.publish("clusters", clustered_data)
     job_configs = _config_creation(clustered_data)
 
     for cluster, val in clustered_data.items():
-        print("Cluster nr: {}, clustered data: {}".format(cluster, val))
+        logging.info("Cluster nr: {}, clustered data: {}".format(cluster, val))
 
     return job_configs
 
@@ -72,7 +74,9 @@ def _remove_singular_obs(clusters):
             multiobs_clusters[new_cluster_index] = cluster
             new_cluster_index += 1
         else:
-            print("Removed cluster with singular observation: {}".format(cluster))
+            logging.info(
+                "Removed cluster with singular observation: {}".format(cluster)
+            )
     return multiobs_clusters
 
 

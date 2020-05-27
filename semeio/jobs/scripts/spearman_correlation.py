@@ -2,7 +2,7 @@ import argparse
 
 from ert_data.measured import MeasuredData
 from ert_shared.libres_facade import LibresFacade
-from res.enkf import ErtScript
+from semeio.communication import SemeioScript
 from semeio.jobs.correlated_observations_scaling.exceptions import EmptyDatasetException
 from semeio.jobs.scripts.correlated_observations_scaling import (
     CorrelatedObservationsScalingJob,
@@ -10,7 +10,7 @@ from semeio.jobs.scripts.correlated_observations_scaling import (
 from semeio.jobs.spearman_correlation_job.job import spearman_job
 
 
-class SpearmanCorrelationJob(ErtScript):  # pylint: disable=too-few-public-methods
+class SpearmanCorrelationJob(SemeioScript):  # pylint: disable=too-few-public-methods
     def run(self, *args):
         facade = LibresFacade(self.ert())
 
@@ -18,12 +18,13 @@ class SpearmanCorrelationJob(ErtScript):  # pylint: disable=too-few-public-metho
             facade.get_observation_key(nr)
             for nr, _ in enumerate(facade.get_observations())
         ]
+
         measured_data = MeasuredData(facade, obs_keys)
 
         parser = spearman_job_parser()
         args = parser.parse_args(args)
 
-        scaling_configs = spearman_job(measured_data, args.threshold)
+        scaling_configs = spearman_job(measured_data, args.threshold, self.reporter)
 
         if not args.dry_run:
             try:

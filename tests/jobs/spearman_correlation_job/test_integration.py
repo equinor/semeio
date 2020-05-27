@@ -1,10 +1,11 @@
 import os
 import shutil
 import sys
-
+import json
 import pytest
-
+import pandas as pd
 import semeio.jobs.scripts.spearman_correlation as sc
+from scipy import stats
 from res.enkf import EnKFMain, ResConfig
 from semeio.jobs.correlated_observations_scaling.exceptions import EmptyDatasetException
 from tests.jobs.correlated_observations_scaling.conftest import TEST_DATA_DIR
@@ -37,6 +38,20 @@ def test_main_entry_point_gen_data(monkeypatch):
     # In this case, we want args, and the first element of the arguments, which
     # again is a tuple containing the configuration which is a list of configs.
     assert len(run_mock.call_args[0][0]) == 47, "wrong number of clusters"
+
+    cor_matrix_file = (
+        "storage/snake_oil/ensemble/reports/"
+        "SpearmanCorrelationJob/correlation_matrix.csv"
+    )
+
+    pd.read_csv(cor_matrix_file, index_col=[0, 1], header=[0, 1])
+
+    clusters_file = (
+        "storage/snake_oil/ensemble/reports/SpearmanCorrelationJob/clusters.json"
+    )
+    with open(clusters_file) as f:
+        clusters = json.load(f)
+        assert len(clusters.keys()) == 47
 
 
 @pytest.mark.skipif(TEST_DATA_DIR is None, reason="no libres test-data")
@@ -81,3 +96,68 @@ def test_skip_clusters_yielding_empty_data_matrixes(monkeypatch):
         job.run(*["-t", "1.0"])
     except EmptyDatasetException:
         pytest.fail("EmptyDatasetException was not handled by SC job")
+
+
+@pytest.fixture()
+def facade():
+    facade = Mock()
+    facade.get_observations.return_value = []
+    return facade
+
+
+@pytest.fixture()
+def measured_data():
+    r1 = [1, 5, 3]
+    r2 = [2, 90, 2]
+    r3 = [3, 2, 1]
+    measured_data = Mock()
+    columns = [("obs_name", n) for n in range(3)]
+    data = pd.DataFrame(
+        [r1, r2, r3],
+        columns=pd.MultiIndex.from_tuples(columns, names=["key_index", "data_index"]),
+    )
+    measured_data.get_simulated_data.return_value = data
+    return measured_data
+
+
+@pytest.mark.usefixtures("setup_tmpdir")
+def test_main_entry_point_syn_data(monkeypatch, facade, measured_data):
+    run_mock = Mock()
+    scal_job = Mock(return_value=Mock(run=run_mock))
+    monkeypatch.setattr(sc, "CorrelatedObservationsScalingJob", scal_job)
+
+    facade_mock = Mock()
+    facade_mock.return_value = facade
+    md_mock = Mock()
+    md_mock.return_value = measured_data
+
+    monkeypatch.setattr(sc, "LibresFacade", facade_mock)
+    monkeypatch.setattr(sc, "MeasuredData", md_mock)
+
+    rc_mock = Mock()
+    rc_mock.model_config.getEnspath.return_value = "."
+    ert_mock = Mock()
+    ert_mock.resConfig.return_value = rc_mock
+
+    sc.SpearmanCorrelationJob(ert_mock).run(*["-t", "1.0"])
+
+    cor_matrix_file = "reports/SpearmanCorrelationJob/correlation_matrix.csv"
+
+    r1 = [1, 5, 3]
+    r2 = [2, 90, 2]
+    r3 = [3, 2, 1]
+    expected_corr_matrix = []
+    for a in zip(r1, r2, r3):
+        row = []
+        for b in zip(r1, r2, r3):
+            expected_corr = stats.spearmanr(a, b)
+            row.append(expected_corr[0])
+        expected_corr_matrix.append(row)
+
+    corr_matrix = pd.read_csv(cor_matrix_file, index_col=[0, 1], header=[0, 1])
+
+    assert (expected_corr_matrix == corr_matrix.values).all()
+    clusters_file = "reports/SpearmanCorrelationJob/clusters.json"
+    with open(clusters_file) as f:
+        clusters = json.load(f)
+        assert len(clusters.keys()) == 1

@@ -2,7 +2,7 @@ import yaml
 
 from ert_data.measured import MeasuredData
 from ert_shared.libres_facade import LibresFacade
-from res.enkf import ErtScript
+from semeio.communication import SemeioScript
 
 from semeio.jobs import misfit_preprocessor
 from semeio.jobs.scripts.correlated_observations_scaling import (
@@ -11,7 +11,7 @@ from semeio.jobs.scripts.correlated_observations_scaling import (
 from semeio.jobs.correlated_observations_scaling.exceptions import EmptyDatasetException
 
 
-class MisfitPreprocessorJob(ErtScript):  # pylint: disable=too-few-public-methods
+class MisfitPreprocessorJob(SemeioScript):  # pylint: disable=too-few-public-methods
     def run(self, *args):
         config_record = _fetch_config_record(args)
         measured_record = _load_measured_record(self.ert())
@@ -19,6 +19,7 @@ class MisfitPreprocessorJob(ErtScript):  # pylint: disable=too-few-public-method
             **{
                 "misfit_preprocessor_config": config_record,
                 "measured_data": measured_record,
+                "reporter": self.reporter,
             }
         )
 
