@@ -10,9 +10,12 @@ class FileReporter(object):
             err_fmt = "Expected output_dir to be an absolute path, received '{}'"
             raise ValueError(err_fmt.format(output_dir))
 
+    def publish_csv(self, namespace, data):
+        output_file = self._prepare_output_file(namespace) + ".csv"
+        data.to_csv(output_file)
+
     def publish(self, namespace, data):
         output_file = self._prepare_output_file(namespace) + ".json"
-
         with open(output_file, "w") as f:
             json.dump(data, f)
 

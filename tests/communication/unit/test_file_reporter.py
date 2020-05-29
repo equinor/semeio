@@ -2,7 +2,7 @@ import itertools
 import json
 import os
 import pytest
-
+import pandas as pd
 from semeio.communication import FileReporter
 
 
@@ -237,3 +237,29 @@ def test_file_reporter_relative_output_dir(output_dir, tmpdir):
         FileReporter(output_dir)
 
     assert "Expected output_dir to be an absolute path" in str(err_info.value)
+
+
+@pytest.mark.parametrize(
+    "data", (pd.DataFrame([[1, 2, 3], [2, 3, 5]]),),
+)
+def test_file_reporter_publish_valid_csv(data, tmpdir):
+    tmpdir.chdir()
+    namespace = "data"
+
+    reporter = FileReporter(os.getcwd())
+    reporter.publish_csv(namespace, data)
+
+    loaded_data = pd.read_csv(namespace + ".csv", index_col=0, header=0)
+
+    assert (loaded_data.values == data.values).all()
+
+
+def test_file_reporter_publish_invalid_csv(tmpdir):
+    tmpdir.chdir()
+    namespace = "data"
+    data = "not a dataframe"
+
+    reporter = FileReporter(os.getcwd())
+
+    with pytest.raises(AttributeError):
+        reporter.publish_csv(namespace, data)
