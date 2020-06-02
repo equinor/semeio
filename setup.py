@@ -48,7 +48,7 @@ setup(
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
     install_requires=[
-        "configsuite",
+        "configsuite<0.6",
         "numpy",
         "pandas",
         "six>=1.12.0",
