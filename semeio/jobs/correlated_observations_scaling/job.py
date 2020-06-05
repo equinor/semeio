@@ -76,7 +76,10 @@ class ScalingJob(object):
         return [event.key for event in self._config.snapshot.CALCULATE_KEYS.keys]
 
     def get_index_lists(self):
-        return [event.index for event in self._config.snapshot.CALCULATE_KEYS.keys]
+        return [
+            event.index if len(event.index) > 0 else None
+            for event in self._config.snapshot.CALCULATE_KEYS.keys
+        ]
 
     def _setup_configuration(self, config_data):
         """
@@ -84,7 +87,7 @@ class ScalingJob(object):
         """
         schema = job_config.build_schema()
         config_dict = find_and_expand_wildcards(self._obs_keys, config_data)
-        config = configsuite.ConfigSuite(config_dict, schema)
+        config = configsuite.ConfigSuite(config_dict, schema, deduce_required=True,)
         return config
 
     @staticmethod
