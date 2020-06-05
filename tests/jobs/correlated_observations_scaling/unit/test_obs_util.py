@@ -132,7 +132,9 @@ def test_create_observation_vectors(setup_ert):
         "CALCULATE_KEYS": {"keys": [{"key": "WPR_DIFF_1"}]},
         "UPDATE_KEYS": {"keys": [{"key": "WPR_DIFF_1"}]},
     }
-    config = configsuite.ConfigSuite(valid_config_data, job_config.build_schema())
+    config = configsuite.ConfigSuite(
+        valid_config_data, job_config.build_schema(), deduce_required=True
+    )
 
     res_config = setup_ert
     ert = EnKFMain(res_config)
@@ -153,7 +155,7 @@ def test_add_observation_vectors():
     valid_config_data = {"UPDATE_KEYS": {"keys": [{"key": "WOPR_OP1_108"}]}}
 
     schema = job_config.build_schema()
-    config = configsuite.ConfigSuite(valid_config_data, schema)
+    config = configsuite.ConfigSuite(valid_config_data, schema, deduce_required=True)
 
     test_data_dir = os.path.join(TEST_DATA_DIR, "local", "snake_oil_field")
 

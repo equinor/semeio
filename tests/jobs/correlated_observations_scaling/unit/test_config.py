@@ -64,7 +64,7 @@ def test_valid_config_setup():
     }
 
     schema = build_schema()
-    config = configsuite.ConfigSuite(valid_config_data, schema)
+    config = configsuite.ConfigSuite(valid_config_data, schema, deduce_required=True,)
     assert config.valid
 
     valid_config_data = {
@@ -73,7 +73,7 @@ def test_valid_config_setup():
     }
 
     schema = build_schema()
-    config = configsuite.ConfigSuite(valid_config_data, schema)
+    config = configsuite.ConfigSuite(valid_config_data, schema, deduce_required=True,)
     assert config.valid
 
 
@@ -82,7 +82,7 @@ def test_valid_config_setup():
     [
         pytest.param(
             {"UPDATE_KEYS": {"keys": [{"index": "1", "key": "a_key"}]}},
-            ["Missing key: CALCULATE_KEYS"],
+            ["keys must be provided for CALCULATE_KEYS is false on input '()'"],
             id="invalid_missing_required_CALCULATE_KEYS",
         ),
         pytest.param(
@@ -108,7 +108,7 @@ def test_valid_config_setup():
 )
 def test_invalid_config_setup(test_input, expected_errors):
     schema = build_schema()
-    config = configsuite.ConfigSuite(test_input, schema)
+    config = configsuite.ConfigSuite(test_input, schema, deduce_required=True,)
     assert not config.valid
 
     msgs = [e.msg for e in config.errors]
@@ -123,6 +123,6 @@ def test_valid_configuration():
     }
 
     schema = build_schema()
-    config = configsuite.ConfigSuite(valid_config_data, schema)
+    config = configsuite.ConfigSuite(valid_config_data, schema, deduce_required=True,)
 
     assert config.valid

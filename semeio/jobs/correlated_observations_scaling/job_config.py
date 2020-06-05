@@ -87,6 +87,11 @@ def _min_max_value(value):
     return 0.0 < value < 1.0
 
 
+@configsuite.validator_msg("keys must be provided for CALCULATE_KEYS")
+def _CALCULATE_KEYS_key_not_empty_list(content):
+    return len(content) > 0
+
+
 _CALCULATE_KEYS_DESCRIPTION = """
 The keys that will be used for calculating a scaling factor and update all
 data points within said keys. Include the indexes under "index" in order to
@@ -130,21 +135,19 @@ on "FOPR", but only update the scaling on indices "50-100".
 """
 
 _KEYS_SCHEMA = {
-    MK.Required: True,
+    MK.ElementValidators: (_CALCULATE_KEYS_key_not_empty_list,),
     MK.Type: types.List,
     MK.Content: {
         MK.Item: {
             MK.Type: types.NamedDict,
             MK.Content: {
                 "key": {
-                    MK.Required: True,
                     MK.Type: types.String,
                     MK.Description: "Name of the key. An asterisk is accepted"
                     " as a suffix to expand all matching keywords (e.g."
                     " WOPR* will include WOPR:OP1)",
                 },
                 "index": {
-                    MK.Required: False,
                     MK.Type: types.List,
                     MK.LayerTransformation: _to_int_list,
                     MK.Description: "Indexes matching the data points relevant"
@@ -170,13 +173,11 @@ def build_schema():
         MK.LayerTransformation: _expand_input,
         MK.Content: {
             "CALCULATE_KEYS": {
-                MK.Required: True,
                 MK.Type: types.NamedDict,
                 MK.Description: _CALCULATE_KEYS_DESCRIPTION,
                 MK.Content: {
                     "keys": _KEYS_SCHEMA,
                     "threshold": {
-                        MK.Required: False,
                         MK.Type: types.Number,
                         MK.ElementValidators: (_min_max_value,),
                         MK.Description: "Threshold used when computing primary"
@@ -184,7 +185,6 @@ def build_schema():
                         MK.Default: 0.95,
                     },
                     "std_cutoff": {
-                        MK.Required: False,
                         MK.Type: types.Number,
                         MK.Description: "A lower bound on the ensemble standard"
                         " deviation. All data points with insufficient variation"
@@ -192,7 +192,6 @@ def build_schema():
                         MK.Default: 0.000001,
                     },
                     "alpha": {
-                        MK.Required: False,
                         MK.Type: types.Number,
                         MK.Description: "Scalar controlling the allowed distance"
                         " between ensemble mean and observation. In particular,"
@@ -204,7 +203,6 @@ def build_schema():
                 },
             },
             "UPDATE_KEYS": {
-                MK.Required: False,
                 MK.Type: types.NamedDict,
                 MK.Description: _UPDATE_KEYS_DESCRIPTION,
                 MK.Content: {"keys": _KEYS_SCHEMA},
