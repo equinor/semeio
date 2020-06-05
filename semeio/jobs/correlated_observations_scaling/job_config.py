@@ -84,6 +84,82 @@ def _min_max_value(value):
     return 0.0 < value < 1.0
 
 
+_CALCULATE_KEYS_DESCRIPTION = """
+The keys that will be used for calculating a scaling factor and update all
+data points within said keys. Include the indexes under "index" in order to
+update selected data points. Use UPDATE_KEYS if you would like the scaling
+to be applied to other keys than the ones listed under CALCULATE_KEYS.
+The configuration accepts a list of CALCULATE_KEYS, facilitating update on
+multiple groups for a single run, instead of having to run multiple times.
+
+NB: Between runs on clusters, "threshold", "std_cutoff" and "std_cutoff" are
+reset.
+
+Example:
+CALCULATE_KEYS:
+    keys:
+        -
+            key: FOPR
+            index: 1-10,50-100
+
+This will calculate the scaling factor from indices 1-10 and 50-100, as
+well as update these indices.
+"""
+
+_UPDATE_KEYS_DESCRIPTION = """
+Unless provided, the keys to be updated are the same as the ones in
+CALCULATE_KEYS. UPDATE_KEYS can be used to specify different indexes and or
+keys to apply the scaling factor.
+
+    CALCULATE_KEYS:
+        keys:
+            -
+                key: FOPR
+                index: 1-10,50-100
+    UPDATE_KEYS:
+        keys:
+            -
+                key: FOPR
+                index: 50-100
+
+This configuration will calculate a scaling factor from indices 1-10,50-100
+on "FOPR", but only update the scaling on indices "50-100".
+"""
+
+_KEYS_SCHEMA = {
+    MK.Required: True,
+    MK.Type: types.List,
+    MK.Content: {
+        MK.Item: {
+            MK.Type: types.NamedDict,
+            MK.Content: {
+                "key": {
+                    MK.Required: True,
+                    MK.Type: types.String,
+                    MK.Description: "Name of the key. An asterisk is accepted"
+                    " as a suffix to expand all matching keywords (e.g."
+                    " WOPR* will include WOPR:OP1)",
+                },
+                "index": {
+                    MK.Required: False,
+                    MK.Type: types.List,
+                    MK.LayerTransformation: _to_int_list,
+                    MK.Description: "Indexes matching the data points relevant"
+                    " for update. Accepts single integer and ranges e.g."
+                    " (1,2,4-6,14-15) ->[1, 2, 4, 5, 6, 14, 15]",
+                    MK.Content: {
+                        MK.Item: {
+                            MK.Type: types.Integer,
+                            MK.ElementValidators: (_min_value,),
+                        }
+                    },
+                },
+            },
+        }
+    },
+}
+
+
 def build_schema():
     return {
         MK.Type: types.NamedDict,
@@ -93,67 +169,39 @@ def build_schema():
             "CALCULATE_KEYS": {
                 MK.Required: True,
                 MK.Type: types.NamedDict,
+                MK.Description: _CALCULATE_KEYS_DESCRIPTION,
                 MK.Content: {
-                    "keys": {
-                        MK.Required: True,
-                        MK.Type: types.List,
-                        MK.Content: {
-                            MK.Item: {
-                                MK.Type: types.NamedDict,
-                                MK.Content: {
-                                    "key": {MK.Required: True, MK.Type: types.String},
-                                    "index": {
-                                        MK.Required: False,
-                                        MK.Type: types.List,
-                                        MK.LayerTransformation: _to_int_list,
-                                        MK.Content: {
-                                            MK.Item: {
-                                                MK.Type: types.Integer,
-                                                MK.ElementValidators: (_min_value,),
-                                            }
-                                        },
-                                    },
-                                },
-                            }
-                        },
-                    },
+                    "keys": _KEYS_SCHEMA,
                     "threshold": {
                         MK.Required: False,
                         MK.Type: types.Number,
                         MK.ElementValidators: (_min_max_value,),
+                        MK.Description: "Threshold used when computing primary"
+                        "components of the clusters.",
                     },
-                    "std_cutoff": {MK.Required: False, MK.Type: types.Number},
-                    "alpha": {MK.Required: False, MK.Type: types.Number},
+                    "std_cutoff": {
+                        MK.Required: False,
+                        MK.Type: types.Number,
+                        MK.Description: "A lower bound on the ensemble standard"
+                        " deviation. All data points with insufficient variation"
+                        " will be dropped.",
+                    },
+                    "alpha": {
+                        MK.Required: False,
+                        MK.Type: types.Number,
+                        MK.Description: "Scalar controlling the allowed distance"
+                        " between ensemble mean and observation. In particular,"
+                        " if: `abs(observed_value - ensemble_mean) >"
+                        " alpha * (ensenmble_std + observed_std)` the data point"
+                        " will be dropped.",
+                    },
                 },
             },
             "UPDATE_KEYS": {
                 MK.Required: False,
                 MK.Type: types.NamedDict,
-                MK.Content: {
-                    "keys": {
-                        MK.Required: False,
-                        MK.Type: types.List,
-                        MK.Content: {
-                            MK.Item: {
-                                MK.Type: types.NamedDict,
-                                MK.Content: {
-                                    "key": {MK.Required: True, MK.Type: types.String},
-                                    "index": {
-                                        MK.Required: False,
-                                        MK.Type: types.List,
-                                        MK.LayerTransformation: _to_int_list,
-                                        MK.Content: {
-                                            MK.Item: {
-                                                MK.Type: types.Integer,
-                                                MK.ElementValidators: (_min_value,),
-                                            }
-                                        },
-                                    },
-                                },
-                            }
-                        },
-                    }
-                },
+                MK.Description: _UPDATE_KEYS_DESCRIPTION,
+                MK.Content: {"keys": _KEYS_SCHEMA},
             },
         },
     }
