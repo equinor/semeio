@@ -57,7 +57,7 @@ def test_expand_input_modification():
     assert _expand_input(test_input) == expected_results
 
 
-def test_config_setup():
+def test_valid_config_setup():
 
     valid_config_data = {
         "CALCULATE_KEYS": {"keys": [{"key": "first_key"}, {"key": "second_key"}]}
@@ -76,29 +76,44 @@ def test_config_setup():
     config = configsuite.ConfigSuite(valid_config_data, schema)
     assert config.valid
 
-    invalid_too_short_index_list = {
-        "UPDATE_KEYS": {"keys": [{"index": "1", "key": ["a_key"]}]}
-    }
 
-    config = configsuite.ConfigSuite(invalid_too_short_index_list, schema)
-    assert not config.valid
-
-    invalid_missing_required_keyword = {
-        "CALCULATE_KEYS": {"keys": [{"key": "a_key"}]},
-        "UPDATE_KEYS": {"index": "1-5"},
-    }
-
-    config = configsuite.ConfigSuite(invalid_missing_required_keyword, schema)
-    assert not config.valid
-
-    invalid_negative_index = {
-        "CALCULATE_KEYS": {"keys": [{"key": "first_key"}, {"key": "second_key"}]},
-        "UPDATE_KEYS": {"keys": [{"index": [-1, 2, 3], "key": "first_key"}]},
-    }
-
+@pytest.mark.parametrize(
+    "test_input,expected_errors",
+    [
+        pytest.param(
+            {"UPDATE_KEYS": {"keys": [{"index": "1", "key": "a_key"}]}},
+            ["Missing key: CALCULATE_KEYS"],
+            id="invalid_missing_required_CALCULATE_KEYS",
+        ),
+        pytest.param(
+            {"CALCULATE_KEYS": {"keys": [{"index": "1"}]}},
+            # The error msg is applied to both CALCULATE_KEYS and UPDATE_KEYS
+            ["Missing key: key", "Missing key: key"],
+            id="invalid_missing_required_CALCULATE_KEYS_keys",
+        ),
+        pytest.param(
+            {
+                "CALCULATE_KEYS": {
+                    "keys": [{"key": "first_key"}, {"key": "second_key"}]
+                },
+                "UPDATE_KEYS": {"keys": [{"index": [-1, 2, 3], "key": "first_key"}]},
+            },
+            [
+                "Elements can not be negative",
+                "Minimum value of index must be >= 0 is false on input '-1'",
+            ],
+            id="invalid_negative_index",
+        ),
+    ],
+)
+def test_invalid_config_setup(test_input, expected_errors):
     schema = build_schema()
-    config = configsuite.ConfigSuite(invalid_negative_index, schema)
+    config = configsuite.ConfigSuite(test_input, schema)
     assert not config.valid
+
+    msgs = [e.msg for e in config.errors]
+    assert len(expected_errors) == len(msgs)
+    assert all([any(exp in msg for msg in msgs) for exp in expected_errors])
 
 
 def test_valid_configuration():
