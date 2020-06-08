@@ -44,10 +44,13 @@ def _realize_list(input_string):
     """
     real_list = []
     for elem in input_string.split(","):
+        if elem.startswith("-"):
+            raise ValueError(
+                "Elements can not be negative, neither singletons nor in range,"
+                " got: {}".format(elem)
+            )
         bounds = elem.split("-")
         if len(bounds) == 1:
-            if "-" in elem:
-                raise ValueError("Did not expect '-' in singleton")
             real_list.append(int(elem))
         elif len(bounds) == 2:
             if elem.count("-") != 1:
