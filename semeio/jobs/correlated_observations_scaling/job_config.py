@@ -181,6 +181,7 @@ def build_schema():
                         MK.ElementValidators: (_min_max_value,),
                         MK.Description: "Threshold used when computing primary"
                         "components of the clusters.",
+                        MK.Default: 0.95,
                     },
                     "std_cutoff": {
                         MK.Required: False,
@@ -188,6 +189,7 @@ def build_schema():
                         MK.Description: "A lower bound on the ensemble standard"
                         " deviation. All data points with insufficient variation"
                         " will be dropped.",
+                        MK.Default: 0.000001,
                     },
                     "alpha": {
                         MK.Required: False,
@@ -197,6 +199,7 @@ def build_schema():
                         " if: `abs(observed_value - ensemble_mean) >"
                         " alpha * (ensenmble_std + observed_std)` the data point"
                         " will be dropped.",
+                        MK.Default: 3,
                     },
                 },
             },
@@ -208,11 +211,3 @@ def build_schema():
             },
         },
     }
-
-
-def get_default_values():
-    default_values = {
-        "CALCULATE_KEYS": {"threshold": 0.95, "std_cutoff": 1e-6, "alpha": 3.0},
-        "UPDATE_KEYS": {},
-    }
-    return default_values

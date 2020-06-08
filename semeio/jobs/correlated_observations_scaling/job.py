@@ -84,8 +84,7 @@ class ScalingJob(object):
         """
         schema = job_config.build_schema()
         config_dict = find_and_expand_wildcards(self._obs_keys, config_data)
-        default_layer = job_config.get_default_values()
-        config = configsuite.ConfigSuite(config_dict, schema, layers=(default_layer,))
+        config = configsuite.ConfigSuite(config_dict, schema)
         return config
 
     @staticmethod
