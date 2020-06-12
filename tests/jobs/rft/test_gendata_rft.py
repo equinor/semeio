@@ -282,6 +282,10 @@ def test_csv_defaults():
         os.path.dirname(__file__), "../../../semeio/jobs/config_jobs/GENDATA_RFT"
     )
 
+    # In case test code paths are changed, we cannot perform this test.
+    if not os.path.exists(job_description_file):
+        pytest.skip()
+
     # Crude parsing of the file
     job_default = ""
     for line in open(job_description_file).readlines():
