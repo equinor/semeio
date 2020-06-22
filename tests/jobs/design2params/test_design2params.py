@@ -100,6 +100,32 @@ def test_run_with_default(test_file, expected_file):
 
 
 @pytest.mark.usefixtures("input_data")
+@pytest.mark.parametrize(
+    "test_file, expected_file",
+    [
+        (design2params._PARAMETERS_TXT, "refparameters_w_spaces.txt"),
+        (design2params._DESIGN_MATRIX_TXT, "refdesignmatrix_w_spaces.txt"),
+        (design2params._DESIGN_PARAMETERS_TXT, "refdesignparameters_w_spaces.txt"),
+    ],
+)
+def test_run_with_spaces_in_cells(test_file, expected_file):
+    design2params.run(
+        1,
+        "design_matrix_cells_with_spaces.xlsx",
+        "DesignSheet01",
+        "DefaultValues",
+        design2params._PARAMETERS_TXT,
+        log_level=logging.DEBUG,
+    )
+
+    assert filecmp.cmp(test_file, expected_file)
+
+    with open(design2params._TARGET_FILE_TXT, "r") as status_file:
+        status = status_file.read()
+        assert status == "OK\n"
+
+
+@pytest.mark.usefixtures("input_data")
 @pytest.mark.parametrize("realization_id", [(0), (1), (15), (24)])
 def test_runs_different_reals_all_ok(realization_id):
     design2params.run(
