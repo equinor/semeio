@@ -1,3 +1,4 @@
+import importlib
 import os
 from pkg_resources import resource_filename
 
@@ -26,3 +27,57 @@ def installable_jobs():
 @plugin_response(plugin_name="semeio")
 def installable_workflow_jobs():
     return _get_jobs_from_directory("jobs/config_workflow_jobs")
+
+
+def _get_module_variable_if_exists(module_name, variable_name, default=""):
+    try:
+        script_module = importlib.import_module(module_name)
+    except ImportError:
+        return default
+
+    return getattr(script_module, variable_name, default)
+
+
+@hook_implementation
+@plugin_response(plugin_name="semeio")
+def job_documentation(job_name):
+    semeio_jobs = set(installable_jobs().data.keys())
+    if job_name not in semeio_jobs:
+        return None
+
+    if job_name.endswith("NOSIM"):
+        verb = job_name.split("_")[0].lower()
+        insert = verb == "insert"
+        return {
+            "description": (
+                "{} NOSIM {} the ECLIPSE data file. "
+                "This will {} simulation in ECLIPSE."
+            ).format(
+                verb.capitalize(),
+                "into" if insert else "from",
+                "disable" if insert else "enable",
+            ),
+            "examples": "",
+            "category": "utility.eclipse",
+        }
+
+    if job_name == "STEA" or job_name == "PYSCAL":
+        module_name = "semeio.jobs.scripts.fm_{}".format(job_name.lower())
+    else:
+        module_name = "semeio.jobs.scripts.{}".format(job_name.lower())
+
+    description = _get_module_variable_if_exists(
+        module_name=module_name, variable_name="description"
+    )
+    examples = _get_module_variable_if_exists(
+        module_name=module_name, variable_name="examples"
+    )
+    category = _get_module_variable_if_exists(
+        module_name=module_name, variable_name="category", default="other"
+    )
+
+    return {
+        "description": description,
+        "examples": examples,
+        "category": category,
+    }

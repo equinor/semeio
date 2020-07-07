@@ -14,10 +14,13 @@ This is designed for using in conjunction with a "Design matrix", but
 this particular script only requires key-values to exist in parameters.txt
 Therefore, you should run the designmatrix-to-parameters job ahead of the
 DESIGN_KW jobs (FORWARD_MODELs).
+
 Fails hard if resultFile contains unmatched template directives after substitutions
 on non-comment lines (assuming comments start with "--" or "#", at beginning of
 line only)
 """
+
+category = "utility.templating"
 
 
 def create_parser():
