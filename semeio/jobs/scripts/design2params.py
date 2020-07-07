@@ -14,12 +14,15 @@ Reads a design matrix in XLSX-format and:
    key-value pairs to parameters.txt
  * Creates designparameters.txt which only contains variables taken from the design
    matrix, this can be given to CUSTOM_KW
+
 Requires a matrix with column header as strings in topmost row in Excel.
 Row 2 in Excel must then correspond with the data you want for 'realization 0'
 Column 1 in Excel should contain the realization number, and will be ignored
 by this script.  You must run this script as a FORWARD_MODEL from your ERT config,
 before you run DESIGN_KW.
 """
+
+category = "utility.templating"
 
 
 def create_parser():

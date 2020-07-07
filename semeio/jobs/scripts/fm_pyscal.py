@@ -47,15 +47,20 @@ def main_entry_point(args=None):
     )
 
 
+description = (
+    "ERT forward model wrapping around the pyscal command line client. "
+    "In the forward model context, this gives access to interpolation "
+    "parameters in parameters.txt which the command line client is "
+    "not aware of. For other uses, head to the pyscal client from "
+    "the pyscal package."
+)
+
+category = "modeling.reservoir"
+
+
 def _get_args_parser():
     """Construct an argparse parser for fm_pyscal"""
-    description = (
-        "ERT forward model wrapping around the pyscal command line client. "
-        "In the forward model context, this gives access interpolation "
-        "parameters in parameters.txt which the command line client is "
-        "not aware of. For other uses, head to the pyscal client from "
-        "the pyscal package."
-    )
+
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument(
         "relperm_parameters_file",

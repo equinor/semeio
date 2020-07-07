@@ -16,9 +16,7 @@ from semeio.jobs.rft.zonemap import ZoneMap
 
 logger = logging.getLogger(__name__)
 
-
-def _build_parser():
-    description = """
+description = """
 The gendata_rft application is used to retrieve rft data from an eclipse output
 (or equivalent data format), given a file containing relevant well names and
 their corresponding dates. It is also possible to specify a zonemap that validates
@@ -28,12 +26,17 @@ be formatted for the individual arguments.
 The user will be prompted with a warning and the applications stops if there is
 no RFT available for the well at the date.
 
-The pressure is set to -1 and the inactive value to 0 if any of the following
-applies:
- - There is not RFT cell related to the trajectory point
- - The trajectory point can not be found in the grid
- - The zone mapping is invalid.
+The pressure is set to -1 and the inactive value to 0 if any of the following applies:
+ * There is not RFT cell related to the trajectory point
+ * The trajectory point can not be found in the grid
+ * The zone mapping is invalid.
+
 """
+
+category = "utility.transformation"
+
+
+def _build_parser():
     parser = argparse.ArgumentParser(description=description)
 
     parser.add_argument(

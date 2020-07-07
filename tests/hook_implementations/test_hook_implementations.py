@@ -38,3 +38,18 @@ def test_hook_implementations():
         assert installable_workflow_jobs[wf_name].endswith(wf_location)
 
     assert set(installable_workflow_jobs.keys()) == set(expected_workflow_jobs.keys())
+
+
+@pytest.mark.skipif(sys.version_info.major < 3, reason="requires python3")
+def test_hook_implementations_job_docs():
+    pm = ErtPluginManager(plugins=[semeio.hook_implementations.jobs])
+
+    installable_jobs = pm.get_installable_jobs()
+
+    docs = pm.get_documentation_for_jobs()
+
+    assert set(docs.keys()) == set(installable_jobs.keys())
+
+    for job_name in installable_jobs.keys():
+        assert docs[job_name]["description"] != ""
+        assert docs[job_name]["category"] != "other"
