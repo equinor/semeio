@@ -27,9 +27,10 @@ The user will be prompted with a warning and the applications stops if there is
 no RFT available for the well at the date.
 
 The pressure is set to -1 and the inactive value to 0 if any of the following applies:
- * There is not RFT cell related to the trajectory point
- * The trajectory point can not be found in the grid
- * The zone mapping is invalid.
+
+* There is no RFT cell related to the trajectory point
+* The trajectory point can not be found in the grid
+* The zone mapping is invalid.
 
 """
 

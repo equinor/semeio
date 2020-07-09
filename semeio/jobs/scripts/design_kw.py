@@ -8,16 +8,14 @@ from semeio import valid_file
 from semeio.jobs.design_kw import design_kw
 
 description = """
-Performs text->value substitutions (similar to GEN_KW in ERT)
-in template files, picking values from parameters.txt.
-This is designed for using in conjunction with a "Design matrix", but
-this particular script only requires key-values to exist in parameters.txt
-Therefore, you should run the designmatrix-to-parameters job ahead of the
-DESIGN_KW jobs (FORWARD_MODELs).
+Performs text->value substitutions (similar to GEN_KW) in templatefile, picking
+values from parameters.txt.  This is designed for using in conjunction with a
+"Design matrix", but this particular script only requires key-values to exist in
+parameters.txt.  Normally, DESIGN2PARAMS is run before DESIGN_KW.
 
-Fails hard if resultFile contains unmatched template directives after substitutions
-on non-comment lines (assuming comments start with "--" or "#", at beginning of
-line only)
+Fails hard if resultfile contains unmatched template directives after
+substitutions on non-comment lines (assuming comments start with "--" or "#", at
+beginning of line only)
 """
 
 category = "utility.templating"
