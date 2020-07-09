@@ -8,16 +8,17 @@ from semeio import valid_file
 from semeio.jobs.design2params import design2params
 
 description = """
-Reads a design matrix in XLSX-format and:
- * Converts specified worksheet to txt-format and puts designmatrix.txt in RUNPATH
- * Fetches values belonging to given ERT realization and *appends*
-   key-value pairs to parameters.txt
- * Creates designparameters.txt which only contains variables taken from the design
-   matrix, this can be given to CUSTOM_KW
+Reads a design matrix in XLSX-format and
 
-Requires a matrix with column header as strings in topmost row in Excel.
-Row 2 in Excel must then correspond with the data you want for 'realization 0'
-Column 1 in Excel should contain the realization number, and will be ignored
+* Fetches values belonging to given ERT realization and *appends*
+  key-value pairs to parameters.txt
+* Converts specified worksheet to txt-format and puts designmatrix.txt in RUNPATH
+* Creates designparameters.txt which only contains variables taken from the design
+  matrix, this can be given to CUSTOM_KW
+
+Requires a matrix with column header as strings in topmost row in xls-file.
+Row 2 in xls-file must then correspond with the data you want for realization-0
+Column 1 in xls-file should contain the realization number, and will be ignored
 by this script.  You must run this script as a FORWARD_MODEL from your ERT config,
 before you run DESIGN_KW.
 """
