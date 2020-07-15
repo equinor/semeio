@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import os
-from setuptools import setup
+from setuptools import setup, find_packages
 
 
 def package_files(directory):
@@ -24,12 +24,7 @@ setup(
     author_email="fg_gpl@statoil.com",
     url="https://github.com/equinor/semeio",
     description="Jobs and workflow jobs for Ert.",
-    packages=[
-        "semeio",
-        "semeio.hook_implementations",
-        "semeio.jobs.correlated_observations_scaling",
-        "semeio.jobs.design2params",
-    ],
+    packages=find_packages(include=["semeio*"]),
     entry_points={"ert": ["semeio_jobs = semeio.hook_implementations.jobs"]},
     license="GPL-3.0",
     platforms="any",
