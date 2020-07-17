@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import os
+from glob import glob
 from setuptools import setup, find_packages
 
 
@@ -11,11 +12,10 @@ def package_files(directory):
     return paths
 
 
-job_files = (
-    package_files("semeio/jobs/config_jobs")
-    + package_files("semeio/jobs/config_workflow_jobs")
-    + package_files("semeio/jobs/scripts")
+job_files = package_files("semeio/jobs/config_jobs") + package_files(
+    "semeio/jobs/config_workflow_jobs"
 )
+scripts = glob("semeio/jobs/scripts/[!__]*.py")
 
 setup(
     name="semeio",
@@ -24,7 +24,7 @@ setup(
     author_email="fg_gpl@statoil.com",
     url="https://github.com/equinor/semeio",
     description="Jobs and workflow jobs for Ert.",
-    packages=find_packages(include=["semeio*"]),
+    packages=find_packages(include=["semeio*"], exclude=["semeio.jobs.scripts"]),
     entry_points={"ert": ["semeio_jobs = semeio.hook_implementations.jobs"]},
     license="GPL-3.0",
     platforms="any",
@@ -55,5 +55,6 @@ setup(
     ],
     setup_requires=["setuptools_scm"],
     package_data={"": job_files},
+    scripts=scripts,
     include_package_data=True,
 )
