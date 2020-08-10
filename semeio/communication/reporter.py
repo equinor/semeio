@@ -16,8 +16,16 @@ class FileReporter(object):
 
     def publish(self, namespace, data):
         output_file = self._prepare_output_file(namespace) + ".json"
+
+        if os.path.exists(output_file):
+            with open(output_file) as f:
+                all_data = json.load(f)
+        else:
+            all_data = []
+
+        all_data.append(data)
         with open(output_file, "w") as f:
-            json.dump(data, f)
+            json.dump(all_data, f)
 
     def publish_msg(self, namespace, msg):
         fmt = "{}\n"

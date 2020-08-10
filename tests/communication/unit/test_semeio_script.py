@@ -38,7 +38,7 @@ def test_semeio_script_publish(tmpdir):
     with open(expected_outputfile) as f:
         published_data = json.load(f)
 
-    assert data == published_data
+    assert [data] == published_data
 
 
 def test_semeio_script_logging(tmpdir):
