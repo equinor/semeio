@@ -38,7 +38,7 @@ def test_semeio_script_integration(tmpdir):
     # Assert that data was published correctly
     with open("storage/reports/TestWorkflowJob/test_data.json") as f:
         reported_data = json.load(f)
-    assert list(range(10)) == reported_data
+    assert [list(range(10))] == reported_data
 
     # Assert that logs were forwarded correctly
     log_file = os.path.join("storage/reports/TestWorkflowJob/", SEMEIOSCRIPT_LOG_FILE)
