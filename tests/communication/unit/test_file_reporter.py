@@ -129,7 +129,7 @@ def test_file_reporter_publish_valid_json(data, tmpdir):
     with open(namespace + ".json") as f:
         loaded_data = json.load(f)
 
-    assert loaded_data == data
+    assert loaded_data == [data]
 
 
 def test_file_reporter_publish_invalid_json(tmpdir):
@@ -148,13 +148,14 @@ def test_file_reporter_publish_multiple_json(tmpdir):
     namespace = "some_data"
     reporter = FileReporter(os.getcwd())
 
-    for data in [0, [0, 12], "Dear JSON"]:
-        reporter.publish(namespace, data)
+    data = [0, [0, 12], "Dear JSON"]
+    for idx, data_elem in enumerate(data):
+        reporter.publish(namespace, data_elem)
 
         with open(namespace + ".json") as f:
             loaded_data = json.load(f)
 
-        assert loaded_data == data
+        assert loaded_data == data[: idx + 1]
 
 
 def test_file_reporter_publish_multiple_namespaces(tmpdir):
@@ -172,11 +173,11 @@ def test_file_reporter_publish_multiple_namespaces(tmpdir):
 
     with open(namespace1 + ".json") as f:
         loaded_data1 = json.load(f)
-    assert loaded_data1 == data1
+    assert loaded_data1 == [data1]
 
     with open(namespace2 + ".json") as f:
         loaded_data2 = json.load(f)
-    assert loaded_data2 == data2
+    assert loaded_data2 == [data2]
 
 
 @pytest.mark.parametrize(
@@ -187,7 +188,7 @@ def test_file_reporter_publish_multiple_namespaces(tmpdir):
         )
     ),
 )
-def test_file_reporter_publisg_output_location(folder, namespace, tmpdir):
+def test_file_reporter_publish_output_location(folder, namespace, tmpdir):
     tmpdir.chdir()
     reporter = FileReporter(os.path.join(os.getcwd(), folder))
 
@@ -198,7 +199,7 @@ def test_file_reporter_publisg_output_location(folder, namespace, tmpdir):
 
     with open(expected_output_file) as f:
         loaded_data = json.load(f)
-    assert data == loaded_data
+    assert [data] == loaded_data
 
 
 @pytest.mark.parametrize(

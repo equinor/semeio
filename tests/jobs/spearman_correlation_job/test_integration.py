@@ -50,7 +50,10 @@ def test_main_entry_point_gen_data(monkeypatch):
         "storage/snake_oil/ensemble/reports/SpearmanCorrelationJob/clusters.json"
     )
     with open(clusters_file) as f:
-        clusters = json.load(f)
+        cluster_reports = json.load(f)
+        assert len(cluster_reports) == 1
+
+        clusters = cluster_reports[0]
         assert len(clusters.keys()) == 47
 
 
@@ -159,5 +162,8 @@ def test_main_entry_point_syn_data(monkeypatch, facade, measured_data):
     assert (expected_corr_matrix == corr_matrix.values).all()
     clusters_file = "reports/SpearmanCorrelationJob/clusters.json"
     with open(clusters_file) as f:
-        clusters = json.load(f)
+        cluster_reports = json.load(f)
+        assert len(cluster_reports) == 1
+
+        clusters = cluster_reports[0]
         assert len(clusters.keys()) == 1

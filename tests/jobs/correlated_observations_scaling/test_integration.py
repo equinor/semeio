@@ -149,7 +149,10 @@ def test_main_entry_point_gen_data():
     )
     # Assert that data was published correctly
     with open(svd_file) as f:
-        reported_svd = json.load(f)
+        svd_reports = json.load(f)
+        assert len(svd_reports) == 2
+
+        reported_svd = svd_reports[1]
         assert reported_svd == pytest.approx(
             (6.531760256452532, 2.0045135017540487, 1.1768827000026516,), 0.1
         )
@@ -159,7 +162,10 @@ def test_main_entry_point_gen_data():
         "CorrelatedObservationsScalingJob/scale_factor.json"
     )
     with open(scale_file) as f:
-        reported_scalefactor = json.load(f)
+        scalefactor_reports = json.load(f)
+        assert len(scalefactor_reports) == 2
+
+        reported_scalefactor = scalefactor_reports[1]
         assert reported_scalefactor == pytest.approx(1.224744871391589, 0.1)
 
 
