@@ -188,8 +188,9 @@ def build_schema():
                         MK.Type: types.Number,
                         MK.Description: "A lower bound on the ensemble standard"
                         " deviation. All data points with insufficient variation"
-                        " will be dropped.",
-                        MK.Default: 0.000001,
+                        " will be dropped. The value is defaulted to the value used"
+                        " in the ert run, but if a value is given in the config, "
+                        " that value will be used",
                     },
                     "alpha": {
                         MK.Type: types.Number,
@@ -197,8 +198,9 @@ def build_schema():
                         " between ensemble mean and observation. In particular,"
                         " if: `abs(observed_value - ensemble_mean) >"
                         " alpha * (ensenmble_std + observed_std)` the data point"
-                        " will be dropped.",
-                        MK.Default: 3,
+                        " will be dropped. The value is defaulted to the value used"
+                        " in the ert run, but if a value is given in the config, "
+                        " that value will be used",
                     },
                 },
             },

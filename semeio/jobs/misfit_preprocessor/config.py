@@ -60,7 +60,7 @@ _OBSERVATIONS = "observations"
 
 
 _DEFAULT_VALUES = {
-    _SCALING: {_THRESHOLD: 0.95, _STD_CUTOFF: 1e-6, _ALPHA: 3.0},
+    _SCALING: {_THRESHOLD: 0.95},
     _OBSERVATIONS: (),
     _CLUSTERING: {
         _METHOD: SPEARMAN_CORRELATION,
@@ -279,6 +279,8 @@ _SCALING_SCHEMA = {
                 "A lower bound on the ensemble standard deviation. All data "
                 "points with insufficient variation will be dropped."
             ),
+            cs.MetaKeys.AllowNone: True,
+            cs.MetaKeys.Required: False,
         },
         _ALPHA: {
             cs.MetaKeys.Type: cs.types.Number,
@@ -289,6 +291,8 @@ _SCALING_SCHEMA = {
                 "> alpha * (ensenmble_std + observed_std)` "
                 "the data point will be dropped."
             ),
+            cs.MetaKeys.AllowNone: True,
+            cs.MetaKeys.Required: False,
         },
     },
 }

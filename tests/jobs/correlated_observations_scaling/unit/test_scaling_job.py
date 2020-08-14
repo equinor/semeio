@@ -53,11 +53,40 @@ def test_valid_job(
         "CALCULATE_KEYS": {"keys": [{"key": calc_key}]},
         "UPDATE_KEYS": {"keys": [{"key": app_key}]},
     }
-
+    default_vals = {
+        "CALCULATE_KEYS": {"std_cutoff": 1.0e-6, "alpha": 3},
+        "UPDATE_KEYS": {},
+    }
     reporter = FileReporter(os.path.realpath(os.getcwd()))
-    job = ScalingJob(obs_keys, [], obs_with_data, user_config_dict, reporter)
+    job = ScalingJob(
+        obs_keys, [], obs_with_data, user_config_dict, reporter, default_vals
+    )
     assert job.get_index_lists() == scaling_job_content["get_index_lists"]
     assert job.get_calc_keys() == scaling_job_content["get_calc_keys"]
+
+
+@pytest.mark.parametrize("input_key", ["alpha", "std_cutoff"])
+def test_config_value_overwrites_default(input_key):
+    user_config_dict = {
+        "CALCULATE_KEYS": {"keys": [{"key": "a_key"}], "alpha": 2, "std_cutoff": 0.01},
+    }
+    default_vals = {
+        "CALCULATE_KEYS": {"std_cutoff": 1.0e-6, "alpha": 3},
+        "UPDATE_KEYS": {},
+    }
+    reporter = FileReporter(os.path.realpath(os.getcwd()))
+    job = ScalingJob(["a_key"], [], ["a_key"], user_config_dict, reporter, default_vals)
+
+    # Check that the value equals the config value
+    assert (
+        getattr(job._config.snapshot.CALCULATE_KEYS, input_key)
+        == user_config_dict["CALCULATE_KEYS"][input_key]
+    )
+    # Check that different from default value
+    assert (
+        getattr(job._config.snapshot.CALCULATE_KEYS, input_key)
+        != default_vals["CALCULATE_KEYS"][input_key]
+    )
 
 
 @pytest.mark.parametrize(
@@ -107,7 +136,11 @@ def test_invalid_job(
     errors,
 ):
     user_config_dict = {
-        "CALCULATE_KEYS": {"keys": [{"key": calc_key}]},
+        "CALCULATE_KEYS": {
+            "keys": [{"key": calc_key}],
+            "alpha": 3,
+            "std_cutoff": 0.001,
+        },
         "UPDATE_KEYS": {"keys": [{"key": app_key}]},
     }
 
