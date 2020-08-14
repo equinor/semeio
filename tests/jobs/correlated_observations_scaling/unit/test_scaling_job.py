@@ -89,6 +89,7 @@ def test_config_value_overwrites_default(input_key):
     )
 
 
+@pytest.mark.parametrize("alpha", [True, False])
 @pytest.mark.parametrize(
     "calc_key,app_key,obs_keys,obs_with_data,errors",
     [
@@ -134,18 +135,24 @@ def test_invalid_job(
     obs_keys,
     obs_with_data,
     errors,
+    alpha,
 ):
     user_config_dict = {
-        "CALCULATE_KEYS": {
-            "keys": [{"key": calc_key}],
-            "alpha": 3,
-            "std_cutoff": 0.001,
-        },
+        "CALCULATE_KEYS": {"keys": [{"key": calc_key}], "std_cutoff": 0.001},
         "UPDATE_KEYS": {"keys": [{"key": app_key}]},
     }
+
+    if alpha:
+        user_config_dict["CALCULATE_KEYS"]["alpha"] = 3
+    else:
+        errors.insert(
+            0,
+            "MissingKeyError(msg=Missing key: alpha, "
+            "key_path=('CALCULATE_KEYS',), layer=None)",
+        )
 
     reporter = FileReporter(os.path.realpath(os.getcwd()))
 
     with pytest.raises(ValidationError) as exc_info:
         ScalingJob(obs_keys, [], obs_with_data, user_config_dict, reporter)
-    assert exc_info.value.errors == errors
+    assert [str(elem) for elem in exc_info.value.errors] == errors
