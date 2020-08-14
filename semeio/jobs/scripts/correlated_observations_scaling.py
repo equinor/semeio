@@ -25,9 +25,13 @@ class CorrelatedObservationsScalingJob(
             facade.get_ensemble_size(),
             facade.get_current_fs(),
         )
-
+        default_values = _get_default_values(
+            facade.get_alpha(), facade.get_std_cutoff()
+        )
         for config in user_config:
-            job = ScalingJob(obs_keys, obs, obs_with_data, config, self.reporter)
+            job = ScalingJob(
+                obs_keys, obs, obs_with_data, config, self.reporter, default_values
+            )
             measured_data = MeasuredData(
                 facade, job.get_calc_keys(), job.get_index_lists()
             )
@@ -47,3 +51,10 @@ def _insert_default_group(value):
     if isinstance(value, collections.Mapping):
         return [value]
     return value
+
+
+def _get_default_values(alpha, std_cutoff):
+    return {
+        "CALCULATE_KEYS": {"std_cutoff": std_cutoff, "alpha": alpha},
+        "UPDATE_KEYS": {},
+    }

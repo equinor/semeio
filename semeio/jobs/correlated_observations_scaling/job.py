@@ -13,13 +13,23 @@ from semeio.jobs.correlated_observations_scaling.validator import has_keys, is_s
 
 
 class ScalingJob(object):
-    def __init__(self, obs_keys, obs, obs_with_data, user_config_dict, reporter):
+    def __init__(
+        self,
+        obs_keys,
+        obs,
+        obs_with_data,
+        user_config_dict,
+        reporter,
+        default_values=None,
+    ):
         """Creates a ScalingJob instance with the given obs_keys, obs,
         obs_with_data and user_config_dict."""
+        if default_values is None:
+            default_values = {}
         self._obs = obs
         self._obs_with_data = obs_with_data
         self._obs_keys = obs_keys
-        self._config = self._setup_configuration(user_config_dict)
+        self._config = self._setup_configuration(user_config_dict, default_values)
         self._validate()
         self._reporter = reporter
 
@@ -81,7 +91,7 @@ class ScalingJob(object):
             for event in self._config.snapshot.CALCULATE_KEYS.keys
         ]
 
-    def _setup_configuration(self, config_data):
+    def _setup_configuration(self, config_data, default_values):
         """
         Creates a ConfigSuite instance and inserts default values
         """
@@ -91,6 +101,7 @@ class ScalingJob(object):
             config_dict,
             schema,
             deduce_required=True,
+            layers = (default_values,),
         )
         return config
 

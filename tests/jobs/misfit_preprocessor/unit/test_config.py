@@ -44,7 +44,7 @@ def test_default_scaling_threshold():
 
 
 @pytest.mark.parametrize(
-    "std_cutoff, expected_valid", [(1, True), (2, True), (None, False)]
+    "std_cutoff, expected_valid", [(1, True), (2, True), (None, True)]
 )
 def test_scaling_std_cutoff(std_cutoff, expected_valid):
     config_data = {
@@ -62,19 +62,7 @@ def test_scaling_std_cutoff(std_cutoff, expected_valid):
         assert ("scaling", "std_cutoff") == config.errors[0].key_path
 
 
-def test_default_scaling_std_cutoff():
-    config_data = {
-        "scaling": {"alpha": 3},
-    }
-    config = misfit_preprocessor.config.MisfitPreprocessorConfig(
-        config_data, ("some_observation",)
-    )
-
-    assert config.valid, config.errors
-    assert 1e-6 == config.snapshot.scaling.std_cutoff
-
-
-@pytest.mark.parametrize("alpha, expected_valid", [(1, True), (2, True), (None, False)])
+@pytest.mark.parametrize("alpha, expected_valid", [(1, True), (2, True)])
 def test_scaling_alpha(alpha, expected_valid):
     config_data = {
         "scaling": {"alpha": alpha},
@@ -89,16 +77,6 @@ def test_scaling_alpha(alpha, expected_valid):
         assert not config.valid
         assert 1 == len(config.errors)
         assert ("scaling", "alpha") == config.errors[0].key_path
-
-
-def test_default_scaling_alpha():
-    config_data = {}
-    config = misfit_preprocessor.config.MisfitPreprocessorConfig(
-        config_data, ("some_observation",)
-    )
-
-    assert config.valid, config.errors
-    assert 3 == config.snapshot.scaling.alpha
 
 
 @pytest.mark.parametrize(

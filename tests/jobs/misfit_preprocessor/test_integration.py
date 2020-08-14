@@ -79,8 +79,6 @@ def test_misfit_preprocessor_passing_scaling_parameters(monkeypatch):
 
     for scaling_config in run_mock.call_args[0][0]:
         assert 0.5 == scaling_config["CALCULATE_KEYS"]["threshold"]
-        assert 2 == scaling_config["CALCULATE_KEYS"]["std_cutoff"]
-        assert 3 == scaling_config["CALCULATE_KEYS"]["alpha"]
 
 
 @pytest.mark.skipif(TEST_DATA_DIR is None, reason="no libres test-data")

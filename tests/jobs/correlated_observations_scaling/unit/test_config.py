@@ -57,31 +57,30 @@ def test_expand_input_modification():
     assert _expand_input(test_input) == expected_results
 
 
-def test_valid_config_setup():
-
-    valid_config_data = {
-        "CALCULATE_KEYS": {"keys": [{"key": "first_key"}, {"key": "second_key"}]}
-    }
+@pytest.mark.parametrize(
+    "valid_config",
+    [
+        {
+            "CALCULATE_KEYS": {
+                "keys": [{"key": "first_key"}, {"key": "second_key"}],
+                "alpha": 3,
+                "std_cutoff": 0.0001,
+            }
+        },
+        {
+            "CALCULATE_KEYS": {
+                "keys": [{"key": "first_key"}, {"key": "second_key"}],
+                "alpha": 3,
+                "std_cutoff": 0.0001,
+            },
+            "UPDATE_KEYS": {"keys": [{"index": [1, 2, 3], "key": "first_key"}]},
+        },
+    ],
+)
+def test_valid_config_setup(valid_config):
 
     schema = build_schema()
-    config = configsuite.ConfigSuite(
-        valid_config_data,
-        schema,
-        deduce_required=True,
-    )
-    assert config.valid
-
-    valid_config_data = {
-        "CALCULATE_KEYS": {"keys": [{"key": "first_key"}, {"key": "second_key"}]},
-        "UPDATE_KEYS": {"keys": [{"index": [1, 2, 3], "key": "first_key"}]},
-    }
-
-    schema = build_schema()
-    config = configsuite.ConfigSuite(
-        valid_config_data,
-        schema,
-        deduce_required=True,
-    )
+    config = configsuite.ConfigSuite(valid_config, schema, deduce_required=True,)
     assert config.valid
 
 
@@ -90,11 +89,21 @@ def test_valid_config_setup():
     [
         pytest.param(
             {"UPDATE_KEYS": {"keys": [{"index": "1", "key": "a_key"}]}},
-            ["keys must be provided for CALCULATE_KEYS is false on input '()'"],
+            [
+                "keys must be provided for CALCULATE_KEYS is false on input '()'",
+                "Missing key: std_cutoff",
+                "Missing key: alpha",
+            ],
             id="invalid_missing_required_CALCULATE_KEYS",
         ),
         pytest.param(
-            {"CALCULATE_KEYS": {"keys": [{"index": "1"}]}},
+            {
+                "CALCULATE_KEYS": {
+                    "keys": [{"index": "1"}],
+                    "alpha": 3,
+                    "std_cutoff": 0.001,
+                },
+            },
             # The error msg is applied to both CALCULATE_KEYS and UPDATE_KEYS
             ["Missing key: key", "Missing key: key"],
             id="invalid_missing_required_CALCULATE_KEYS_keys",
@@ -102,7 +111,9 @@ def test_valid_config_setup():
         pytest.param(
             {
                 "CALCULATE_KEYS": {
-                    "keys": [{"key": "first_key"}, {"key": "second_key"}]
+                    "keys": [{"key": "first_key"}, {"key": "second_key"}],
+                    "alpha": 3,
+                    "std_cutoff": 0.001,
                 },
                 "UPDATE_KEYS": {"keys": [{"index": [-1, 2, 3], "key": "first_key"}]},
             },
@@ -111,6 +122,18 @@ def test_valid_config_setup():
                 "Minimum value of index must be >= 0 is false on input '-1'",
             ],
             id="invalid_negative_index",
+        ),
+        pytest.param(
+            {"CALCULATE_KEYS": {"keys": [{"key": "1"}], "std_cutoff": 0.001}},
+            # The error msg is applied to both CALCULATE_KEYS and UPDATE_KEYS
+            ["Missing key: alpha"],
+            id="invalid_missing_required_CALCULATE_KEYS_keys",
+        ),
+        pytest.param(
+            {"CALCULATE_KEYS": {"keys": [{"key": "1"}], "alpha": 3}},
+            # The error msg is applied to both CALCULATE_KEYS and UPDATE_KEYS
+            ["Missing key: std_cutoff"],
+            id="invalid_missing_required_CALCULATE_KEYS_keys",
         ),
     ],
 )
@@ -130,7 +153,11 @@ def test_invalid_config_setup(test_input, expected_errors):
 
 def test_valid_configuration():
     valid_config_data = {
-        "CALCULATE_KEYS": {"keys": [{"key": "POLY_OBS"}]},
+        "CALCULATE_KEYS": {
+            "keys": [{"key": "POLY_OBS"}],
+            "alpha": 3,
+            "std_cutoff": 0.0001,
+        },
         "UPDATE_KEYS": {"keys": [{"key": "POLY_OBS"}]},
     }
 
