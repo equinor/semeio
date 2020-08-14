@@ -68,12 +68,11 @@ class ScalingJob(object):
         """
         Validates the job. If invalid, raises an ValidationError.
         """
-        errors = [] if self._config.valid else self._config.errors
+        errors = [] if self._config.valid else list(self._config.errors)
         calc_keys = self.get_calc_keys()
         application_keys = [
             entry.key for entry in self._config.snapshot.UPDATE_KEYS.keys
         ]
-
         errors.extend(is_subset(calc_keys, application_keys))
         errors.extend(
             has_keys(self._obs_keys, calc_keys, "Key: {} has no observations")
