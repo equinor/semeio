@@ -49,8 +49,6 @@ def _fetch_scaling_parameters(config_record, measured_data):
     scale_conf = config.snapshot.scaling
     return {
         "threshold": scale_conf.threshold,
-        "std_cutoff": scale_conf.std_cutoff,
-        "alpha": scale_conf.alpha,
     }
 
 
