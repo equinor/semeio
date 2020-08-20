@@ -104,11 +104,14 @@ NB: Between runs on clusters, "threshold", "std_cutoff" and "std_cutoff" are
 reset.
 
 Example:
-CALCULATE_KEYS:
-    keys:
-        -
-            key: FOPR
-            index: 1-10,50-100
+
+.. code-block:: yaml
+
+    CALCULATE_KEYS:
+        keys:
+            -
+                key: FOPR
+             index: 1-10,50-100
 
 This will calculate the scaling factor from indices 1-10 and 50-100, as
 well as update these indices.
@@ -118,6 +121,8 @@ _UPDATE_KEYS_DESCRIPTION = """
 Unless provided, the keys to be updated are the same as the ones in
 CALCULATE_KEYS. UPDATE_KEYS can be used to specify different indexes and or
 keys to apply the scaling factor.
+
+.. code-block:: yaml
 
     CALCULATE_KEYS:
         keys:
@@ -143,16 +148,16 @@ _KEYS_SCHEMA = {
             MK.Content: {
                 "key": {
                     MK.Type: types.String,
-                    MK.Description: "Name of the key. An asterisk is accepted"
-                    " as a suffix to expand all matching keywords (e.g."
-                    " WOPR* will include WOPR:OP1)",
+                    MK.Description: "Name of the key. An asterisk is accepted "
+                    "as a suffix to expand all matching keywords (e.g. "
+                    "WOPR* will include WOPR:OP1)",
                 },
                 "index": {
                     MK.Type: types.List,
                     MK.LayerTransformation: _to_int_list,
-                    MK.Description: "Indexes matching the data points relevant"
-                    " for update. Accepts single integer and ranges e.g."
-                    " (1,2,4-6,14-15) ->[1, 2, 4, 5, 6, 14, 15]",
+                    MK.Description: "Indexes matching the data points relevant "
+                    "for update. Accepts single integer and ranges e.g. "
+                    "(1,2,4-6,14-15) ->[1, 2, 4, 5, 6, 14, 15]",
                     MK.Content: {
                         MK.Item: {
                             MK.Type: types.Integer,
@@ -195,12 +200,12 @@ def build_schema():
                     "alpha": {
                         MK.Type: types.Number,
                         MK.Description: "Scalar controlling the allowed distance"
-                        " between ensemble mean and observation. In particular,"
-                        " if: `abs(observed_value - ensemble_mean) >"
-                        " alpha * (ensenmble_std + observed_std)` the data point"
-                        " will be dropped. The value is defaulted to the value used"
-                        " in the ert run, but if a value is given in the config, "
-                        " that value will be used",
+                        "between ensemble mean and observation. In particular, "
+                        "if: `abs(observed_value - ensemble_mean) > "
+                        "alpha * (ensenmble_std + observed_std)` the data point "
+                        "will be dropped. The value is defaulted to the value used "
+                        "in the ert run, but if a value is given in the config, "
+                        "that value will be used",
                     },
                 },
             },

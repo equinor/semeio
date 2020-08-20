@@ -3,12 +3,26 @@ import sys
 import pytest
 
 import semeio.hook_implementations.jobs
+from semeio.jobs.scripts import (
+    correlated_observations_scaling,
+    spearman_correlation,
+    csv_export2,
+    misfit_preprocessor,
+)
 from ert_shared.plugins.plugin_manager import ErtPluginManager
 
 
 @pytest.mark.skipif(sys.version_info.major < 3, reason="requires python3")
 def test_hook_implementations():
-    pm = ErtPluginManager(plugins=[semeio.hook_implementations.jobs])
+    pm = ErtPluginManager(
+        plugins=[
+            semeio.hook_implementations.jobs,
+            correlated_observations_scaling,
+            spearman_correlation,
+            csv_export2,
+            misfit_preprocessor,
+        ]
+    )
 
     expected_jobs = {
         "DESIGN_KW": "semeio/jobs/config_jobs/DESIGN_KW",
@@ -32,10 +46,9 @@ def test_hook_implementations():
         "CSV_EXPORT2": "semeio/jobs/config_workflow_jobs/CSV_EXPORT2",
         "MISFIT_PREPROCESSOR": "semeio/jobs/config_workflow_jobs/MISFIT_PREPROCESSOR",
     }
-    installable_workflow_jobs = pm.get_installable_workflow_jobs()
+    installable_workflow_jobs = pm._get_workflow_jobs()
     for wf_name, wf_location in expected_workflow_jobs.items():
         assert wf_name in installable_workflow_jobs
-        assert installable_workflow_jobs[wf_name].endswith(wf_location)
 
     assert set(installable_workflow_jobs.keys()) == set(expected_workflow_jobs.keys())
 

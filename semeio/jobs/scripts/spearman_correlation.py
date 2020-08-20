@@ -2,6 +2,7 @@ import argparse
 
 from ert_data.measured import MeasuredData
 from ert_shared.libres_facade import LibresFacade
+from ert_shared.plugins.plugin_manager import hook_implementation
 from semeio.communication import SemeioScript
 from semeio.jobs.correlated_observations_scaling.exceptions import EmptyDatasetException
 from semeio.jobs.scripts.correlated_observations_scaling import (
@@ -65,3 +66,9 @@ def spearman_job_parser():
         action="store_true",
     )
     return parser
+
+
+@hook_implementation
+def legacy_ertscript_workflow(config):
+    workflow = config.add_workflow(SpearmanCorrelationJob, "SPEARMAN_CORRELATION")
+    workflow.parser = spearman_job_parser

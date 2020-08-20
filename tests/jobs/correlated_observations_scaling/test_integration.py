@@ -6,10 +6,12 @@ import pytest
 import yaml
 from res.enkf import EnKFMain, ResConfig
 
+from semeio.jobs.scripts import correlated_observations_scaling
 from semeio.jobs.scripts.correlated_observations_scaling import (
     CorrelatedObservationsScalingJob,
 )
 from tests.jobs.correlated_observations_scaling.conftest import TEST_DATA_DIR
+from ert_shared.plugins.plugin_manager import ErtPluginManager
 
 
 def assert_obs_vector(vector, val_1, index_list=None, val_2=None):
@@ -21,13 +23,6 @@ def assert_obs_vector(vector, val_1, index_list=None, val_2=None):
                 assert node.getStdScaling(index) == val_2
             else:
                 assert node.getStdScaling(index) == val_1
-
-
-def get_job_dir():
-    from semeio import jobs
-
-    head, _ = os.path.split(os.path.abspath(jobs.__file__))
-    return os.path.join(head, "config_workflow_jobs")
 
 
 @pytest.mark.skipif(TEST_DATA_DIR is None, reason="no libres test-data")
@@ -50,6 +45,14 @@ def test_old_enkf_scaling_job(setup_ert):
 @pytest.mark.skipif(TEST_DATA_DIR is None, reason="no libres test-data")
 @pytest.mark.usefixtures("setup_ert")
 def test_installed_python_version_of_enkf_scaling_job(setup_ert, monkeypatch):
+
+    pm = ErtPluginManager(
+        plugins=[
+            correlated_observations_scaling,
+        ]
+    )
+    installable_workflow_jobs = pm._get_workflow_jobs()
+
     res_config = setup_ert
     ert = EnKFMain(res_config)
 
@@ -65,7 +68,7 @@ def test_installed_python_version_of_enkf_scaling_job(setup_ert, monkeypatch):
 
     ert.getWorkflowList().addJob(
         "CORRELATE_OBSERVATIONS_SCALING",
-        os.path.join(get_job_dir(), "CORRELATED_OBSERVATIONS_SCALING"),
+        installable_workflow_jobs["CORRELATED_OBSERVATIONS_SCALING"],
     )
 
     job = ert.getWorkflowList().getJob("CORRELATE_OBSERVATIONS_SCALING")

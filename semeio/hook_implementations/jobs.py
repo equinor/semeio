@@ -17,18 +17,6 @@ def _get_jobs_from_directory(directory):
     return {os.path.basename(path): path for path in all_files}
 
 
-@hook_implementation
-@plugin_response(plugin_name="semeio")
-def installable_jobs():
-    return _get_jobs_from_directory("jobs/config_jobs")
-
-
-@hook_implementation
-@plugin_response(plugin_name="semeio")
-def installable_workflow_jobs():
-    return _get_jobs_from_directory("jobs/config_workflow_jobs")
-
-
 def _get_module_variable_if_exists(module_name, variable_name, default=""):
     try:
         script_module = importlib.import_module(module_name)
@@ -39,7 +27,13 @@ def _get_module_variable_if_exists(module_name, variable_name, default=""):
 
 
 @hook_implementation
-@plugin_response(plugin_name="semeio")
+@plugin_response(plugin_name="semeio")  # pylint: disable=no-value-for-parameter
+def installable_jobs():
+    return _get_jobs_from_directory("jobs/config_jobs")
+
+
+@hook_implementation
+@plugin_response(plugin_name="semeio")  # pylint: disable=no-value-for-parameter
 def job_documentation(job_name):
     semeio_jobs = set(installable_jobs().data.keys())
     if job_name not in semeio_jobs:
