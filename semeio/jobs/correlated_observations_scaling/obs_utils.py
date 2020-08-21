@@ -110,18 +110,6 @@ def _active_list_from_index_list(index_list):
     return active_list
 
 
-def _set_active_lists(observation_data, key_list, active_lists):
-    """
-    Will make a backup of the existing active list on the observation node
-    before setting the user supplied index list.
-    """
-    exisiting_active_lists = []
-    for key, active_list in zip(key_list, active_lists):
-        exisiting_active_lists.append(observation_data.copy_active_list(key))
-        observation_data.setActiveList(key, active_list)
-    return observation_data, exisiting_active_lists
-
-
 def keys_with_data(observations, keys, ensamble_size, storage):
     """
     Checks that all keys have data and returns a list of error messages
