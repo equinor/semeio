@@ -1,82 +1,26 @@
 import sys
 import os
-from distutils.dir_util import copy_tree
-import numpy
+
 import pandas as pd
+import numpy
 
 import pytest
 
 from semeio.jobs.scripts.gendata_rft import main_entry_point, _build_parser
+from tests.jobs.rft import conftest
 
-ECL_BASE = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), "data/norne/NORNE_ATW2013"
-)
-EXPECTED_RESULTS_PATH = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), "data/norne/expected_result"
-)
-
-MOCK_DATA_CONTENT = {
-    "RFT_B-1AH_0_active": [1] * 5,
-    "RFT_B-4AH_0_active": [1] * 7 + [0] * 1 + [1] * 21,
-    "RFT_B-4H_0_active": [1] * 20,
-    "RFT_C-1H_0_active": [1] * 21,
-    "RFT_C-3H_0_active": [1] * 21,
-    "RFT_C-4AH_0_active": [1] * 15,
-}
+ECL_BASE_NORNE = conftest.get_ecl_base_norne()
+ECL_BASE_REEK = conftest.get_ecl_base_reek()
+MOCK_DATA_CONTENT_NORNE = conftest.get_mock_data_content_norne()
+EXPECTED_RESULTS_PATH_NORNE = conftest.get_expected_results_path_norne()
 
 
-def _assert_almost_equal_line_by_line(file1, file2):
-    with open(file1) as fh:
-        file1_content = fh.readlines()
-
-    with open(file2) as fh:
-        file2_content = fh.readlines()
-
-    assert len(file1_content) == len(file2_content)
-
-    for line1, line2 in zip(file1_content, file2_content):
-        try:
-            line1, line2 = float(line1), float(line2)
-        except ValueError:
-            continue
-        numpy.testing.assert_almost_equal(line1, line2, decimal=7)
-
-
-def _generate_mock_data(write_directory):
-    for fname, content in MOCK_DATA_CONTENT.items():
-        with open(os.path.join(write_directory, fname), "w+") as fh:
-            fh.write("\n".join([str(c) for c in content]))
-
-
-@pytest.fixture
-def input_data(tmpdir):
-    data_dir = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), "data/norne/gendata_rft_input_files"
-    )
-    copy_tree(data_dir, tmpdir.strpath)
-
-    cwd = os.getcwd()
-    tmpdir.chdir()
-
-    expected_results_dir = os.path.join(tmpdir.strpath, "expected_results")
-    os.mkdir(expected_results_dir)
-
-    copy_tree(EXPECTED_RESULTS_PATH, expected_results_dir)
-    _generate_mock_data(expected_results_dir)
-
-    try:
-        yield
-
-    finally:
-        os.chdir(cwd)
-
-
-def test_gendata_rft_csv(tmpdir, input_data, monkeypatch):
+def test_gendata_rft_csv(tmpdir, norne_data, monkeypatch):
     csv_filename = "gendata_rft.csv"
     arguments = [
         "script_name",
         "-e",
-        ECL_BASE,
+        ECL_BASE_NORNE,
         "-w",
         "well_and_time.txt",
         "-t",
@@ -109,7 +53,7 @@ def test_gendata_rft_csv(tmpdir, input_data, monkeypatch):
         "time",
     }
     assert required_columns.issubset(set(dframe.columns))
-    assert len(dframe["well"].unique()) == len(MOCK_DATA_CONTENT)
+    assert len(dframe["well"].unique()) == len(MOCK_DATA_CONTENT_NORNE)
 
     # i-j-k always non-null together:
     assert (dframe["i"].isnull() == dframe["j"].isnull()).all()
@@ -119,13 +63,36 @@ def test_gendata_rft_csv(tmpdir, input_data, monkeypatch):
     assert (~dframe[~dframe["is_active"]]["inactive_info"].isnull()).all()
 
 
-def test_gendata_rft_directory(tmpdir, input_data, monkeypatch):
+def test_gendata_rft_csv_reek(tmpdir, reek_data, monkeypatch):
+    csv_filename = "gendata_rft.csv"
+    arguments = [
+        "script_name",
+        "-e",
+        ECL_BASE_REEK,
+        "-w",
+        "well_and_time.txt",
+        "-t",
+        tmpdir.strpath,
+    ]
+    monkeypatch.setattr(sys, "argv", arguments)
+    main_entry_point()
+    assert os.path.exists(csv_filename)
+    dframe = pd.read_csv(csv_filename)
+    assert not dframe.empty
+    assert {"pressure", "swat", "sgas"}.issubset(set(dframe.columns))
+    assert numpy.isclose(dframe["pressure"].values[0], 304.37)
+    assert numpy.isclose(dframe["swat"].values[0], 0.151044)
+    assert numpy.isclose(dframe["soil"].values[0], 1 - 0.151044)
+    assert numpy.isclose(dframe["sgas"].values[0], 0.0)
+
+
+def test_gendata_rft_directory(tmpdir, norne_data, monkeypatch):
     outputdirectory = "rft_output_dir"
     tmpdir.mkdir(outputdirectory)
     arguments = [
         "script_name",
         "-e",
-        ECL_BASE,
+        ECL_BASE_NORNE,
         "-w",
         "well_and_time.txt",
         "-t",
@@ -145,12 +112,12 @@ def test_gendata_rft_directory(tmpdir, input_data, monkeypatch):
     assert os.path.exists("csvfile.csv")  # Should be independent of --outputdirectory
 
 
-def test_gendata_rft_entry_point(tmpdir, input_data, monkeypatch):
+def test_gendata_rft_entry_point(tmpdir, norne_data, monkeypatch):
 
     arguments = [
         "script_name",
         "-e",
-        ECL_BASE,
+        ECL_BASE_NORNE,
         "-w",
         "well_and_time.txt",
         "-t",
@@ -163,8 +130,8 @@ def test_gendata_rft_entry_point(tmpdir, input_data, monkeypatch):
     expected_results_dir = os.path.join(tmpdir.strpath, "expected_results")
 
     expected_files = [
-        os.path.join(EXPECTED_RESULTS_PATH, fname)
-        for fname in os.listdir(EXPECTED_RESULTS_PATH)
+        os.path.join(EXPECTED_RESULTS_PATH_NORNE, fname)
+        for fname in os.listdir(EXPECTED_RESULTS_PATH_NORNE)
     ]
 
     expected_files.extend(
@@ -181,10 +148,10 @@ def test_gendata_rft_entry_point(tmpdir, input_data, monkeypatch):
         if not filename.endswith("inactive_info"):
             result_file = os.path.join(tmpdir.strpath, filename)
 
-            _assert_almost_equal_line_by_line(expected_file, result_file)
+            conftest._assert_almost_equal_line_by_line(expected_file, result_file)
 
 
-def test_gendata_inactive_info_point_not_in_grid(tmpdir, input_data, monkeypatch):
+def test_gendata_inactive_info_point_not_in_grid(tmpdir, norne_data, monkeypatch):
 
     with open("B-1AH.txt", "a+") as fh:
         fh.write("0 1 2 3\n")
@@ -195,7 +162,7 @@ def test_gendata_inactive_info_point_not_in_grid(tmpdir, input_data, monkeypatch
     arguments = [
         "script_name",
         "-e",
-        ECL_BASE,
+        ECL_BASE_NORNE,
         "-w",
         "well_and_time.txt",
         "-t",
@@ -213,7 +180,7 @@ def test_gendata_inactive_info_point_not_in_grid(tmpdir, input_data, monkeypatch
         )
 
 
-def test_gendata_inactive_info_zone_mismatch(tmpdir, input_data, monkeypatch):
+def test_gendata_inactive_info_zone_mismatch(tmpdir, norne_data, monkeypatch):
 
     with open("well_and_time.txt", "w+") as fh:
         fh.write("B-1AH 1 12 2005 0\n")
@@ -230,7 +197,7 @@ def test_gendata_inactive_info_zone_mismatch(tmpdir, input_data, monkeypatch):
     arguments = [
         "script_name",
         "-e",
-        ECL_BASE,
+        ECL_BASE_NORNE,
         "-w",
         "well_and_time.txt",
         "-t",
@@ -246,7 +213,7 @@ def test_gendata_inactive_info_zone_mismatch(tmpdir, input_data, monkeypatch):
         assert result.startswith("ZONE_MISMATCH (utm_x=")
 
 
-def test_gendata_inactive_info_not_in_rft(tmpdir, input_data, monkeypatch):
+def test_gendata_inactive_info_not_in_rft(tmpdir, norne_data, monkeypatch):
 
     with open("well_and_time.txt", "w+") as fh:
         fh.write("B-1AH 1 12 2005 0\n")
@@ -263,7 +230,7 @@ def test_gendata_inactive_info_not_in_rft(tmpdir, input_data, monkeypatch):
     arguments = [
         "script_name",
         "-e",
-        ECL_BASE,
+        ECL_BASE_NORNE,
         "-w",
         "well_and_time.txt",
         "-t",
@@ -279,7 +246,7 @@ def test_gendata_inactive_info_not_in_rft(tmpdir, input_data, monkeypatch):
         assert result.startswith("TRAJECTORY_POINT_NOT_IN_RFT (utm_x=")
 
 
-def test_gendata_inactive_info_zone_missing_value(tmpdir, input_data, monkeypatch):
+def test_gendata_inactive_info_zone_missing_value(tmpdir, norne_data, monkeypatch):
 
     with open("well_and_time.txt", "w+") as fh:
         fh.write("B-1AH 1 12 2005 0\n")
@@ -290,7 +257,7 @@ def test_gendata_inactive_info_zone_missing_value(tmpdir, input_data, monkeypatc
     arguments = [
         "script_name",
         "-e",
-        ECL_BASE,
+        ECL_BASE_NORNE,
         "-w",
         "well_and_time.txt",
         "-t",
@@ -306,7 +273,7 @@ def test_gendata_inactive_info_zone_missing_value(tmpdir, input_data, monkeypatc
         assert result.startswith("ZONEMAP_MISSING_VALUE (utm_x=")
 
 
-def test_gendata_partial_rft_file(tmpdir, input_data, monkeypatch):
+def test_partial_rft_file(tmpdir, norne_data, monkeypatch, caplog):
     """Test how the code behaves when some report steps are missing, e.g.
     a Eclipse simulation that has crashed midway.
 
@@ -317,15 +284,15 @@ def test_gendata_partial_rft_file(tmpdir, input_data, monkeypatch):
     but the CSV file can contain results of data up until the Eclipse crash.
     """
 
+    # Append an extra non-existing date to the well_and_time.txt test-file
     with open("well_and_time.txt", "a") as file_h:
-        # Binary example file does not go as far as 2045:
         file_h.write("B-1AH 1 12 2045 0")
 
     csv_filename = "gendata_rft.csv"
     arguments = [
         "script_name",
         "-e",
-        ECL_BASE,
+        ECL_BASE_NORNE,
         "-w",
         "well_and_time.txt",
         "-t",
@@ -336,14 +303,45 @@ def test_gendata_partial_rft_file(tmpdir, input_data, monkeypatch):
         csv_filename,
     ]
     monkeypatch.setattr(sys, "argv", arguments)
-    main_entry_point()
+    with pytest.raises(SystemExit):
+        main_entry_point()
+
+    assert "Failed to extract all requested RFT data" in caplog.text
 
     assert os.path.exists(csv_filename)
     assert not pd.read_csv(csv_filename).empty
     assert not os.path.exists("GENDATA_RFT.OK")
 
 
-def test_gendata_rft_empty_well_and_time(tmpdir, input_data, monkeypatch):
+def test_one_wrong_date(tmpdir, norne_data, monkeypatch, caplog):
+    with open("well_wrongtime.txt", "w") as file_h:
+        file_h.write("B-1AH 1 12 2045 0")
+
+    csv_filename = "gendata_rft.csv"
+    arguments = [
+        "script_name",
+        "-e",
+        ECL_BASE_NORNE,
+        "-w",
+        "well_wrongtime.txt",
+        "-t",
+        tmpdir.strpath,
+        "-z",
+        "zonemap.txt",
+        "-c",
+        csv_filename,
+    ]
+    monkeypatch.setattr(sys, "argv", arguments)
+    with pytest.raises(SystemExit):
+        main_entry_point()
+
+    assert "Failed to extract all requested RFT data" in caplog.text
+
+    assert not os.path.exists(csv_filename)
+    assert not os.path.exists("GENDATA_RFT.OK")
+
+
+def test_empty_well_and_time(tmpdir, norne_data, monkeypatch, caplog):
     def file_count_cwd():
         return len(list(os.walk("."))[0][2])
 
@@ -353,7 +351,7 @@ def test_gendata_rft_empty_well_and_time(tmpdir, input_data, monkeypatch):
     arguments = [
         "script_name",
         "-e",
-        ECL_BASE,
+        ECL_BASE_NORNE,
         "-w",
         "empty.txt",
         "-t",
@@ -366,7 +364,9 @@ def test_gendata_rft_empty_well_and_time(tmpdir, input_data, monkeypatch):
 
     pre_file_count = file_count_cwd()
     monkeypatch.setattr(sys, "argv", arguments)
-    main_entry_point()
+    with pytest.raises(SystemExit):
+        main_entry_point()
+    assert "No RFT data requested" in caplog.text
 
     # Empty file is seen as an error, we should not write the OK file, and
     # there should be no CSV file.

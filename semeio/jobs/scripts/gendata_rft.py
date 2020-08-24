@@ -1,6 +1,7 @@
+import os
+import sys
 import argparse
 import logging
-import os
 
 from semeio.jobs.rft.utility import (
     load_and_parse_well_time_file,
@@ -14,23 +15,68 @@ from semeio.jobs.rft.zonemap import ZoneMap
 logger = logging.getLogger(__name__)
 
 description = """
-The gendata_rft application is used to retrieve rft data from an eclipse output
-(or equivalent data format), given a file containing relevant well names and
-their corresponding dates. It is also possible to specify a zonemap that validates
-each zone specified in the trajectory files. See details of how each file should
-be formatted for the individual arguments.
+The gendata_rft application is used to extract RFT data (pressure and
+saturation) for specific points in the reservoir (typically along well
+trajectories) from an Eclipse output (or equivalent data format), given a file
+containing relevant well names and their corresponding dates. It is also
+possible to specify a zonemap that validates each zone specified in the
+trajectory files.
 
-The user will be prompted with a warning and the applications stops if there is
-no RFT available for the well at the date.
+Pressure data is ouputted to files like ``RFT_A-1_0`` in the selected
+directory, this would correspond to well A-1 at report step 0. Saturation data
+if available would be exported to ``RFT_A-1_SWAT_0``, and similarly for SGAS
+and SOIL.
 
-The pressure is set to -1 and the inactive value to 0 if any of the following applies:
+The user will be error messages and the applications stops if there is no RFT
+available for the well(s) at the date(s).
 
-* There is no RFT cell related to the trajectory point
-* The trajectory point can not be found in the grid
+A CSV file is prepared with all extracted data. This can be further used for
+visualization in Webviz. In order to merge this CSV with observed values, see
+merge_rft_ertobs from subscript.
+
+The pressure or saturation data is set to -1 and the inactive value to 0 if any
+of the following applies:
+
+* The trajectory point can not be mapped to a cell in the grid
+* There is no RFT data for the cell
 * The zone mapping is invalid.
 
 """
 
+examples = """
+Setup a file with well-names and associated date of RFT data in a file called
+e.g. ``well_date_rft.txt``::
+
+    -- well DD MM YYYY report_step
+    A-1     01 02 2000 0
+
+A directory with trajectory files must be prepared, which must contain one
+file for each well mentioned in the file above. A file in this directory
+could look like::
+
+    -- utmx    utmy      depth_MD depth_TVD  zone
+    462608.57 5934210.96 1674.44  1624.38    Upper -- cell 29 28 2
+
+(add more lines for more points).
+
+A zonemap-file is a text-file with k-index and zone-name pr line, e.g a file
+named ``layer_zone_table.txt``::
+
+    1 Upper
+    2 Upper
+    3 Lower
+    4 Lower
+
+In the ert config, after running the Eclipse (or similiar) forward model, add::
+
+    DEFINE RFT_INPUT <CONFIG_PATH>/../input/observations/rft
+    FORWARD_MODEL GENDATA_RFT(<PATH_TO_TRAJECTORY_FILES>=<RFT_INPUT>/rft/, <WELL_AND_TIME_FILE>=<RFT_INPUT>/well_date_rft.txt, <ZONEMAP>=<RFT_INPUT>/layer_zone_table.txt)
+
+For assisted history matching, add ``GEN_DATA`` statements to the ert config::
+
+    GEN_DATA A-1 RESULT_FILE:RFT_A-1_%d INPUT_FORMAT:ASCII REPORT_STEPS:0
+
+"""  # noqa
 category = "utility.transformation"
 
 
@@ -152,4 +198,5 @@ def main_entry_point():
             fh.write("GENDATA RFT completed OK")
         logger.info("Completed!")
     except ValueError as exception:
-        logger.error("Failed with error message: {}".format(exception))
+        logger.error(str(exception))
+        sys.exit(1)
