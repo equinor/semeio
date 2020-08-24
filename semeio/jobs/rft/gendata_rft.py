@@ -133,6 +133,10 @@ def run(
     csvfile=None,
 ):
     dframes = []
+
+    if not well_times:
+        raise ValueError("No RFT data requested")
+
     for well, time, report_step in well_times:
         logger.debug(
             "Collecting RFT for well: {} at date: {}, report step: {}".format(
@@ -161,5 +165,5 @@ def run(
     if csvfile is not None:
         pd.concat(dframes, ignore_index=True, sort=False).to_csv(csvfile, index=None)
 
-    with open("GENDATA_RFT.OK", "w") as fh:
-        fh.write("GENDATA RFT completed OK")
+    if len(dframes) < len(well_times):
+        raise ValueError("Failed to extract requested RFT data")
