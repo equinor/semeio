@@ -191,3 +191,27 @@ def test_misfit_preprocessor_invalid_config():
         "  - Unknown key: threshold (clustering.spearman_correlation.fcluster)\n"
     )
     assert expected_err_msg == str(ve.value)
+
+
+@pytest.mark.skipif(TEST_DATA_DIR is None, reason="no libres test-data")
+@pytest.mark.usefixtures("setup_tmpdir")
+def test_misfit_preprocessor_with_auto_cluster():
+    test_data_dir = os.path.join(TEST_DATA_DIR, "local", "snake_oil")
+
+    shutil.copytree(test_data_dir, "test_data")
+    os.chdir(os.path.join("test_data"))
+
+    res_config = ResConfig("snake_oil.ert")
+    ert = EnKFMain(res_config)
+
+    config = {"clustering": {"auto_cluster": {"fcluster": {"t": 1.0}}}}
+    config_file = "my_config_file.yaml"
+    with open(config_file, "w") as f:
+        yaml.dump(config, f)
+
+    misfit_preprocessor.MisfitPreprocessorJob(ert).run(config_file)
+
+    # assert that this arbitrarily chosen cluster gets scaled as expected
+    obs = ert.getObservations()["FOPR"]
+    for index in [13, 14, 15, 16, 17, 18, 19, 20]:
+        assert obs.getNode(index).getStdScaling() == 2.8284271247461903

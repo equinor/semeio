@@ -33,6 +33,38 @@ class ScalingJob(object):
         self._validate()
         self._reporter = reporter
 
+    @staticmethod
+    def get_scaling_factor(measured_data, scale_config, reporter):
+        """
+        Collects data and computes singular values 
+        returns tuple: scaling factor, the number of primary components
+        and singular values
+        """
+        measured_data.remove_failed_realizations()
+        measured_data.remove_inactive_observations()
+        measured_data.filter_ensemble_mean_obs(scale_config.CALCULATE_KEYS.alpha)
+        measured_data.filter_ensemble_std(scale_config.CALCULATE_KEYS.std_cutoff)
+
+        matrix = DataMatrix(measured_data.data)
+        matrix.normalize_by_std()
+
+        scale_factor = matrix.get_scaling_factor(scale_config.CALCULATE_KEYS)
+        events = scale_config.CALCULATE_KEYS
+        data_matrix = matrix.get_data_matrix()
+        nr_components, singular_values = matrix.get_nr_primary_components(
+            threshold=events.threshold
+        )
+
+        reporter.publish("svd", list(singular_values))
+        nr_observations = data_matrix.shape[1]
+
+        logging.info("Scaling factor calculated from {}".format(events.keys))
+
+        scale_factor = np.sqrt(nr_observations / float(nr_components))
+        reporter.publish("scale_factor", scale_factor)
+
+        return (scale_factor, nr_components, singular_values)
+
     def scale(self, measured_data):
         """
         Collects data, performs scaling and applies scaling, assumes validated input.
@@ -61,6 +93,7 @@ class ScalingJob(object):
         scale_factor = np.sqrt(nr_observations / float(nr_components))
         self._reporter.publish("scale_factor", scale_factor)
 
+        # this should go away
         update_data = create_active_lists(self._obs, config.UPDATE_KEYS.keys)
         self._update_scaling(self._obs, scale_factor, update_data)
 

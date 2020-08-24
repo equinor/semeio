@@ -11,6 +11,7 @@ _ALPHA = "alpha"
 _CLUSTERING = "clustering"
 _METHOD = "method"
 SPEARMAN_CORRELATION = "spearman_correlation"
+AUTO_CLUSTER = "auto_cluster"
 _FCLUSTER = "fcluster"
 _SPEARMAN_THRESHOLD = "t"
 _CRITERION = "criterion"
@@ -22,14 +23,7 @@ _MAXCLUST_MONOCRIT = "maxclust_monocrit"
 _DEPTH = "depth"
 _LINKAGE = "linkage"
 _SINGLE = "single"
-_METHODS = (
-    _SINGLE,
-    "complete",
-    "average",
-    "weighted",
-    "centroid",
-    "ward",
-)
+_METHODS = (_SINGLE, "complete", "average", "weighted", "centroid", "ward")
 _METRIC = "metric"
 _EUCLIDEAN = "euclidean"
 _METRICS = (
@@ -68,6 +62,10 @@ _DEFAULT_VALUES = {
             _FCLUSTER: {_CRITERION: _INCONSISTENT, _DEPTH: 2},
             _LINKAGE: {_METHOD: _SINGLE, _METRIC: _EUCLIDEAN},
         },
+        AUTO_CLUSTER: {
+            _FCLUSTER: {_CRITERION: _INCONSISTENT, _DEPTH: 2},
+            _LINKAGE: {_METHOD: _SINGLE, _METRIC: _EUCLIDEAN},
+        },
     },
 }
 
@@ -76,18 +74,8 @@ def _bounds_validator(
     lower=None, lower_inclusive=True, upper=None, upper_inclusive=True
 ):
     msg = "Value must be within the interval {}, {}".format(
-        "<"
-        if lower is None
-        else "{}{}".format(
-            "[" if lower_inclusive else "(",
-            lower,
-        ),
-        ">"
-        if upper is None
-        else "{}{}".format(
-            upper,
-            "]" if upper_inclusive else ")",
-        ),
+        "<" if lower is None else "{}{}".format("[" if lower_inclusive else "(", lower),
+        ">" if upper is None else "{}{}".format(upper, "]" if upper_inclusive else ")"),
     )
 
     @cs.validator_msg(msg)
@@ -233,7 +221,6 @@ SPEARMAN_CORRELATION_SCHEMA = {
     },
 }
 
-
 _CLUSTERING_SCHEMA = {
     cs.MetaKeys.Type: cs.types.NamedDict,
     cs.MetaKeys.Description: (
@@ -247,9 +234,12 @@ _CLUSTERING_SCHEMA = {
                 "Currently the workflow only supports clustering by "
                 "{spearman}.".format(spearman=SPEARMAN_CORRELATION)
             ),
-            cs.MetaKeys.ElementValidators: (_one_of(SPEARMAN_CORRELATION),),
+            cs.MetaKeys.ElementValidators: (
+                _one_of(SPEARMAN_CORRELATION, AUTO_CLUSTER),
+            ),
         },
         SPEARMAN_CORRELATION: SPEARMAN_CORRELATION_SCHEMA,
+        AUTO_CLUSTER: SPEARMAN_CORRELATION_SCHEMA,
     },
 }
 
@@ -266,10 +256,7 @@ _SCALING_SCHEMA = {
             ).format(default=_DEFAULT_VALUES[_SCALING][_THRESHOLD]),
             cs.MetaKeys.ElementValidators: (
                 _bounds_validator(
-                    lower=0,
-                    lower_inclusive=False,
-                    upper=1,
-                    upper_inclusive=False,
+                    lower=0, lower_inclusive=False, upper=1, upper_inclusive=False
                 ),
             ),
         },
@@ -322,14 +309,10 @@ class _BooleanWithMessage:
 @cs.transformation_msg("Ensures that all requested observations are indeed present")
 def _observations_present(observation_key, context):
     if observation_key in context.observation_keys:
-        return _BooleanWithMessage(
-            True,
-            "Observation {} found".format(observation_key),
-        )
+        return _BooleanWithMessage(True, "Observation {} found".format(observation_key))
     else:
         return _BooleanWithMessage(
-            False,
-            "Found no match for observation {}".format(observation_key),
+            False, "Found no match for observation {}".format(observation_key)
         )
 
 

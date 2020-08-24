@@ -37,6 +37,19 @@ class CorrelatedObservationsScalingJob(
             )
             job.scale(measured_data)
 
+    @staticmethod
+    def get_nr_primary_components(measured_data, job_config, reporter):
+        user_config = load_yaml(job_config)
+        user_config = _insert_default_group(user_config)
+
+        nr_component_list = []
+        for config in user_config:
+            _, nr_components, _ = ScalingJob.get_scaling_factor(
+                measured_data, config.snapshot, reporter
+            )
+            nr_component_list.append(nr_components)
+        return nr_component_list
+
 
 def load_yaml(job_config):
     # Allow job_config to be both list and dict.

@@ -9,12 +9,20 @@ from semeio.jobs.scripts.correlated_observations_scaling import (
     CorrelatedObservationsScalingJob,
 )
 from semeio.jobs.correlated_observations_scaling.exceptions import EmptyDatasetException
+from semeio.jobs.misfit_preprocessor.exceptions import ValidationError
+from semeio.jobs.misfit_preprocessor.config import (
+    SPEARMAN_CORRELATION,
+    AUTO_CLUSTER,
+    assemble_config,
+)
+from semeio.jobs.spearman_correlation_job.job import spearman_job
 
 
 class MisfitPreprocessorJob(SemeioScript):  # pylint: disable=too-few-public-methods
     def run(self, *args):
         config_record = _fetch_config_record(args)
         measured_record = _load_measured_record(self.ert())
+
         scaling_configs = misfit_preprocessor.run(
             **{
                 "misfit_preprocessor_config": config_record,
@@ -23,9 +31,6 @@ class MisfitPreprocessorJob(SemeioScript):  # pylint: disable=too-few-public-met
             }
         )
 
-        # The execution of COS should be moved into
-        # misfit_preprocessor.run when COS no longer depend on self.ert
-        # to run.
         scaling_params = _fetch_scaling_parameters(config_record, measured_record)
         for scaling_config in scaling_configs:
             scaling_config["CALCULATE_KEYS"].update(scaling_params)
@@ -37,19 +42,14 @@ class MisfitPreprocessorJob(SemeioScript):  # pylint: disable=too-few-public-met
 
 
 def _fetch_scaling_parameters(config_record, measured_data):
-    config = misfit_preprocessor.assemble_config(
-        config_record,
-        measured_data,
-    )
+    config = misfit_preprocessor.assemble_config(config_record, measured_data)
     if not config.valid:
         # The config is loaded by misfit_preprocessor.run first. The
         # second time should never fail!
         raise ValueError("Misfit preprocessor config not valid on second load")
 
     scale_conf = config.snapshot.scaling
-    return {
-        "threshold": scale_conf.threshold,
-    }
+    return {"threshold": scale_conf.threshold}
 
 
 def _fetch_config_record(args):
@@ -67,9 +67,11 @@ def _fetch_config_record(args):
         )
 
 
-def _load_measured_record(enkf_main):
+def _load_measured_record(enkf_main, obs_keys=None, index_lists=None):
     facade = LibresFacade(enkf_main)
-    obs_keys = [
-        facade.get_observation_key(nr) for nr, _ in enumerate(facade.get_observations())
-    ]
-    return MeasuredData(facade, obs_keys)
+    if obs_keys is None:
+        obs_keys = [
+            facade.get_observation_key(nr)
+            for nr, _ in enumerate(facade.get_observations())
+        ]
+    return MeasuredData(facade, obs_keys, index_lists)
