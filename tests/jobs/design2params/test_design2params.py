@@ -3,6 +3,7 @@ import logging
 import os
 from distutils.dir_util import copy_tree
 
+import pandas as pd
 import pytest
 
 from semeio.jobs.design2params import design2params
@@ -142,6 +143,67 @@ def test_runs_different_reals_all_ok(realization_id):
         assert status == "OK\n"
 
 
+def test_empty_defaults(tmpdir):
+    # pylint: disable=abstract-class-instantiated
+    tmpdir.chdir()
+    designsheet_df = pd.DataFrame()
+    defaultssheet_df = pd.DataFrame()
+    writer = pd.ExcelWriter("design_matrix.xlsx")
+    designsheet_df.to_excel(writer, sheet_name="DesignSheet01", index=False)
+    defaultssheet_df.to_excel(
+        writer, sheet_name="DefaultValues", index=False, header=None
+    )
+    writer.save()
+
+    parsed_defaults = design2params._read_defaultssheet(
+        "design_matrix.xlsx", "DefaultValues"
+    )
+    assert parsed_defaults.empty
+    assert (parsed_defaults.columns == ["keys", "defaults"]).all()
+
+
+def test_one_column_defaults(tmpdir):
+    # pylint: disable=abstract-class-instantiated
+    tmpdir.chdir()
+    designsheet_df = pd.DataFrame()
+    defaultssheet_df = pd.DataFrame(data=[["foo"]])
+    writer = pd.ExcelWriter("design_matrix.xlsx")
+    designsheet_df.to_excel(
+        writer, sheet_name="DesignSheet01", index=False,
+    )
+    defaultssheet_df.to_excel(
+        writer, sheet_name="DefaultValues", index=False, header=None
+    )
+    writer.save()
+
+    with pytest.raises(SystemExit):
+        design2params._read_defaultssheet("design_matrix.xlsx", "DefaultValues")
+
+
+def test_three_column_defaults(tmpdir):
+    """
+    A deprecation warning will be emitted in this test.
+
+    Change this test later to assert the code will fail hard.
+    """
+    # pylint: disable=abstract-class-instantiated
+    tmpdir.chdir()
+    designsheet_df = pd.DataFrame()
+    defaultssheet_df = pd.DataFrame(data=[["foo", "bar", "com"]])
+    writer = pd.ExcelWriter("design_matrix.xlsx")
+    designsheet_df.to_excel(writer, sheet_name="DesignSheet01", index=False)
+    defaultssheet_df.to_excel(
+        writer, sheet_name="DefaultValues", index=False, header=None
+    )
+    writer.save()
+
+    parsed_defaults = design2params._read_defaultssheet(
+        "design_matrix.xlsx", "DefaultValues"
+    )
+    assert len(parsed_defaults) == 1
+    assert (parsed_defaults.columns == ["keys", "defaults"]).all()
+
+
 def test_run_realization_not_exist(input_data):
     with pytest.raises(SystemExit):
         design2params.run(
@@ -177,6 +239,18 @@ def test_open_excel_file_header_missing(input_data):
 
 
 def test_open_excel_file_value_missing(input_data):
+    with pytest.raises(SystemExit):
+        design2params.run(
+            1,
+            "design_matrix_missing_value.xlsx",
+            "DesignSheet01",
+            "DefaultValues",
+            design2params._PARAMETERS_TXT,
+            log_level=logging.DEBUG,
+        )
+
+
+def test_open_excel_file_wrong_defaults(input_data):
     with pytest.raises(SystemExit):
         design2params.run(
             1,
