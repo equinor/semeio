@@ -128,16 +128,20 @@ def main_entry_point(args=None):
 
     logger.info("All files loaded\nRetrieving RFT data...")
 
-    gendata_rft.run(
-        well_times=options.well_and_time_file,
-        trajectories=trajectories,
-        ecl_grid=options.eclbase[0],
-        ecl_rft=options.eclbase[1],
-        zonemap=options.zonemap,
-        csvfile=options.csvfile,
-    )
-
-    logger.info("Completed!")
+    try:
+        gendata_rft.run(
+            well_times=options.well_and_time_file,
+            trajectories=trajectories,
+            ecl_grid=options.eclbase[0],
+            ecl_rft=options.eclbase[1],
+            zonemap=options.zonemap,
+            csvfile=options.csvfile,
+        )
+        with open("GENDATA_RFT.OK", "w") as fh:
+            fh.write("GENDATA RFT completed OK")
+        logger.info("Completed!")
+    except ValueError as exception:
+        logger.error("Failed with error message: {}".format(exception))
 
 
 if __name__ == "__main__":
