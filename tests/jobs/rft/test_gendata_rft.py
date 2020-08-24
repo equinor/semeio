@@ -270,6 +270,73 @@ def test_gendata_inactive_info_zone_missing_value(tmpdir, input_data):
         assert result.startswith("ZONEMAP_MISSING_VALUE (utm_x=")
 
 
+def test_gendata_partial_rft_file(tmpdir, input_data):
+    """Test how the code behaves when some report steps are missing, e.g.
+    a Eclipse simulation that has crashed midway.
+
+    We emulate this situation by asking for well-times that are not in the
+    binary RFT output in the test dataset.
+
+    In such a situation, we do not want the OK file to written,
+    but the CSV file can contain results of data up until the Eclipse crash.
+    """
+
+    with open("well_and_time.txt", "a") as file_h:
+        # Binary example file does not go as far as 2045:
+        file_h.write("B-1AH 1 12 2045 0")
+
+    csv_filename = "gendata_rft.csv"
+    arguments = [
+        "-e",
+        ECL_BASE,
+        "-w",
+        "well_and_time.txt",
+        "-t",
+        tmpdir.strpath,
+        "-z",
+        "zonemap.txt",
+        "-c",
+        csv_filename,
+    ]
+
+    main_entry_point(arguments)
+
+    assert os.path.exists(csv_filename)
+    assert not pd.read_csv(csv_filename).empty
+    assert not os.path.exists("GENDATA_RFT.OK")
+
+
+def test_gendata_rft_empty_well_and_time(tmpdir, input_data):
+    def file_count_cwd():
+        return len(list(os.walk("."))[0][2])
+
+    with open("empty.txt", "w") as file_h:
+        file_h.write("")
+
+    arguments = [
+        "-e",
+        ECL_BASE,
+        "-w",
+        "empty.txt",
+        "-t",
+        tmpdir.strpath,
+        "-z",
+        "zonemap.txt",
+        "-c",
+        "notwritten.csv",
+    ]
+
+    pre_file_count = file_count_cwd()
+    main_entry_point(arguments)
+
+    # Empty file is seen as an error, we should not write the OK file, and
+    # there should be no CSV file.
+
+    assert not os.path.exists("notwritten.csv")
+    assert not os.path.exists("GENDATA_RFT.OK")
+    assert file_count_cwd() == pre_file_count
+
+
 def test_csv_defaults():
     """Default filename for CSV export is/can be handled at multiple layers.
     ERT users infer the default from the JOB_DESCRIPTION file, while command line
