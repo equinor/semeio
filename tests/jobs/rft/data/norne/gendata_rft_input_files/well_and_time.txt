@@ -1,4 +1,4 @@
--- name   YY  MM  DD  report
+-- name DD MM YYYY report
 B-1AH 1 12 2005 0
 B-4AH 6 6 2001 0
 B-4H 29 3 1998 0

@@ -6,17 +6,24 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 
-def _write_gen_data_files(trajectory_df, fname):
+def _write_gen_data_files(trajectory_df, directory, well, report_step):
     """Generate three files with the information GEN_DATA needs
     from the trajectory dataframe.
 
     See https://github.com/equinor/ert/blob/0dc96c49ca8eafee54a06227530b5a47b094e2bc/docs/tips.txt#L87
 
-    One main file (fname) will be produced with pressure values, and two
-    auxiliary files will be produced with the suffixes "_active" and
-    "_inactive_info". The _active file tells ERT if some of the values
-    in the base file should be ignored, and _inactive_info will give
-    an explanation for why it should be ignored.
+    One main file (fname) will be always be produced with pressure values, and
+    two auxiliary files will be produced with the suffixes "_active" and
+    "_inactive_info". The _active file tells ERT if some of the values in the
+    base file should be ignored, and _inactive_info will give an explanation
+    for why it should be ignored.
+
+    The pressure file will always be written. If there is no pressure
+    data, a file with -1 values will be written for each point pr. line.
+
+    If there is saturation data in the dataframe (in the columns swat,
+    sgas and/or soil), these will be written to separate files, with e.g. the
+    string SWAT injected in the emitted filename.
 
     Args:
         trajectory_df (pd.DataFrame): The column "order" should contain
@@ -24,24 +31,42 @@ def _write_gen_data_files(trajectory_df, fname):
             hold pressure data, but will be defaulted if not present. "is_active"
             should be a boolean column, and "inactive_info" should contain
             strings with information on why points are inactive.
-        fname (str): Filename to hold the values for the GEN_DATA keyword,
-            which are pressure values in this case, and used as a basename
-            for the two auxiliary files.
+        datanames (list): Which datanames to dump. Must be among pressure, swat,
+            sgas and soil.
+        directory (str): Directory name, for where to dump files.
+        well (str): Name of well, to be used to construct filenames.
+        report_step (int): The RFT report step, used to construct filenames
     """  # noqa
-    _write_pressure(fname, trajectory_df)
-    _write_active(fname + "_active", trajectory_df)
-    _write_inactive_info(fname + "_inactive_info", trajectory_df)
+    data2fname = {"pressure": "", "swat": "SWAT_", "sgas": "SGAS_", "soil": "SOIL_"}
+    for dataname in {"pressure"}.union(set(trajectory_df).intersection(data2fname)):
+        _write_simdata(
+            os.path.join(
+                directory,
+                "RFT_{}{}_{}".format(data2fname[dataname], well, report_step),
+            ),
+            dataname,
+            trajectory_df,
+        )
+    _write_active(
+        os.path.join(directory, "RFT_{}_{}".format(well, report_step)) + "_active",
+        trajectory_df,
+    )
+    _write_inactive_info(
+        os.path.join(directory, "RFT_{}_{}".format(well, report_step))
+        + "_inactive_info",
+        trajectory_df,
+    )
 
 
-def _write_pressure(fname, trajectory_df):
+def _write_simdata(fname, dataname, trajectory_df):
     """Write pressure value, one pr line for all points, -1 is used where
     there is no pressure information.
     """
     with open(fname + "", "w+") as fh:
-        if "pressure" in trajectory_df:
+        if dataname in trajectory_df:
             fh.write(
                 "\n".join(
-                    trajectory_df.sort_values("order")["pressure"]
+                    trajectory_df.sort_values("order")[dataname]
                     .fillna(value=-1)
                     .astype(str)
                     .values
@@ -111,7 +136,7 @@ def _populate_trajectory_points(
         logger.error(
             (
                 "Forward model script gendata_rft.py: "
-                "No RFT data written for well ({}) and date ({})"
+                "No RFT data found for well {} at date {}"
             ).format(well, date)
         )
         return []
@@ -120,7 +145,7 @@ def _populate_trajectory_points(
         point.set_ijk(
             ecl_grid.find_cell(point.utm_x, point.utm_y, point.true_vertical_depth)
         )
-        point.update_pressure_from_rft(rft)
+        point.update_simdata_from_rft(rft)
         point.validate_zone(zonemap)
 
     return trajectory_points
@@ -158,18 +183,19 @@ def run(
                 well=well, time=time
             )
 
-            # Write trajectory and associated data to three  files,
-            # individual pr. well and time, this is for GEN_DATA to pick up.
-            _write_gen_data_files(
-                trajectory_df,
-                os.path.join(outputdirectory, "RFT_{}_{}".format(well, report_step)),
-            )
+            # Write trajectory and associated data to ASCII files, one file pr.
+            # datatype, well and time, this is for GEN_DATA to pick up.
+            _write_gen_data_files(trajectory_df, outputdirectory, well, report_step)
 
             # Aggregate dataframe for all wells and report steps.
             dframes.append(trajectory_df)
+        else:
+            logger.error(
+                "No trajectory points for well {} at date: {} found".format(well, time)
+            )
 
-    if csvfile is not None:
+    if csvfile is not None and dframes:
         pd.concat(dframes, ignore_index=True, sort=False).to_csv(csvfile, index=None)
 
     if len(dframes) < len(well_times):
-        raise ValueError("Failed to extract requested RFT data")
+        raise ValueError("Failed to extract all requested RFT data")
