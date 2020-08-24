@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 
+import warnings
 import logging
 
 
@@ -30,13 +31,7 @@ def run(
     design_matrix_sheet = _read_excel(xlsfilename, designsheetname)
     _validate_design_matrix(design_matrix_sheet)
 
-    if defaultssheetname:
-        default_sheet = _read_excel(xlsfilename, defaultssheetname, header=None)
-    else:
-        logger.info("No defaultssheet provided, using empty dataframe")
-        default_sheet = pd.DataFrame(columns=[0, 1])
-
-    default_sheet.rename(columns={0: "keys", 1: "defaults"}, inplace=True)
+    default_df = _read_defaultssheet(xlsfilename, defaultssheetname)
 
     try:
         parameters = pd.read_csv(parametersfilename, delimiter=" ", header=None)
@@ -48,7 +43,7 @@ def run(
     parameters.rename(columns={0: "keys", 1: "parameters"}, inplace=True)
 
     _complete_parameters_file(
-        realization, parameters, parametersfilename, design_matrix_sheet, default_sheet
+        realization, parameters, parametersfilename, design_matrix_sheet, default_df
     )
 
 
@@ -170,7 +165,7 @@ def _read_excel(file_name, sheet_name, header=0):
 
 def _validate_design_matrix(design_matrix):
     """
-    Validate used design matrix
+    Validate user inputted design matrix
     :raises: SystemExit if design matrix contains empty headers
     :raises: SystemExit design matrix contains empty cells
     """
@@ -189,3 +184,40 @@ def _validate_design_matrix(design_matrix):
     ]
     if len(empties) > 0:
         raise SystemExit("Design matrix contains empty cells {}".format(empties))
+
+
+def _read_defaultssheet(xlsfilename, defaultssheetname):
+    """
+    Reads a XLSX file and tries to return a dataframe
+    with defaults for design matrix parameters.
+
+    A dataframe is always returned, possibly empty.
+    Columns are always exactly named "keys" and "defaults"
+
+    :raises: SystemExit if defaults sheet is non-empty but non-parsable
+    """
+    if defaultssheetname:
+        default_df = _read_excel(xlsfilename, defaultssheetname, header=None)
+        if default_df.empty:
+            logger.info("Empty defaultssheet provided")
+            default_df = pd.DataFrame(columns=[0, 1])
+        if len(default_df.columns) < 2:
+            raise SystemExit(
+                "Defaults sheet must have exactly two columns, only one found"
+            )
+        if len(default_df.columns) > 2:
+            warnings.warn(
+                (
+                    "DEPRECATION: You supplied more than two columns for "
+                    "the default values. This is not supported and will stop "
+                    "working in the future."
+                ),
+                UserWarning,
+            )
+            default_df = default_df[[0, 1]]  # Slicing columns
+    else:
+        logger.info("No defaultssheet provided, using empty dataframe")
+        default_df = pd.DataFrame(columns=[0, 1])
+
+    default_df.rename(columns={0: "keys", 1: "defaults"}, inplace=True)
+    return default_df
