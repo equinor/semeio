@@ -288,7 +288,7 @@ def test_csv_defaults():
     job_default = ""
     for line in open(job_description_file).readlines():
         if line.startswith("DEFAULT"):
-            if line.split()[0:2] == ["DEFAULT", "CSVFILE"]:
+            if line.split()[0:2] == ["DEFAULT", "<CSVFILE>"]:
                 job_default = line.split()[2]
 
     # And compare with argparse:
