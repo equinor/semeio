@@ -1,4 +1,7 @@
+import pathlib
+
 import pandas as pd
+
 from fmu import ensemble
 
 
@@ -13,4 +16,5 @@ def csv_exporter(runpathfile, time_index, outputfile, column_keys=None):
     summary = ensemble_set.load_smry(time_index=time_index, column_keys=column_keys)
     parameters = ensemble_set.parameters
     summary_parameters = pd.merge(summary, parameters)
+    pathlib.Path(outputfile).parent.mkdir(parents=True, exist_ok=True)
     summary_parameters.to_csv(outputfile, index=False)

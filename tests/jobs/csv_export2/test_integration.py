@@ -43,6 +43,22 @@ def test_one_iteration(ert_statoil_test_data):
         export_file, test_header, {("iter-1", 0), ("iter-1", 1), ("iter-1", 2)}
     )
 
+@pytest.mark.skipif(
+    conftest.find_available_test_data() is None, reason="no ert-statoil test-data"
+)
+@pytest.mark.usefixtures("ert_statoil_test_data")
+def test_deep_output_file(ert_statoil_test_data):
+    path_file = "pathfile.txt"
+    export_file = "foo/bar/com/export.txt"
+    csv_export2.csv_exporter(
+        runpathfile=path_file,
+        time_index="monthly",
+        outputfile=export_file,
+        column_keys="FOPR",
+    )
+    verifyExportedFile(
+        export_file, test_header, {("iter-1", 0), ("iter-1", 1), ("iter-1", 2)}
+    )
 
 @pytest.mark.skipif(
     conftest.find_available_test_data() is None, reason="no ert-statoil test-data"
