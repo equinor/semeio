@@ -43,7 +43,11 @@ def test_filter_on_column_index():
 )
 @pytest.mark.usefixtures("setup_tmpdir")
 def test_valid_job(
-    calc_key, app_key, obs_keys, obs_with_data, scaling_job_content,
+    calc_key,
+    app_key,
+    obs_keys,
+    obs_with_data,
+    scaling_job_content,
 ):
     user_config_dict = {
         "CALCULATE_KEYS": {"keys": [{"key": calc_key}]},
@@ -59,7 +63,13 @@ def test_valid_job(
 @pytest.mark.parametrize(
     "calc_key,app_key,obs_keys,obs_with_data,errors",
     [
-        ("KEY_1", "KEY_1", ["KEY_1", "KEY_2"], ["KEY_2"], ["Key: KEY_1 has no data"],),
+        (
+            "KEY_1",
+            "KEY_1",
+            ["KEY_1", "KEY_2"],
+            ["KEY_2"],
+            ["Key: KEY_1 has no data"],
+        ),
         (
             "not_in_list",
             "KEY_1",
@@ -78,13 +88,23 @@ def test_valid_job(
             ["KEY_1"],
             ["Update key: not_in_list missing from calculate keys: ['KEY_1']"],
         ),
-        ("KEY_1", "KEY_1", [], ["KEY_1"], ["Key: KEY_1 has no observations"],),
+        (
+            "KEY_1",
+            "KEY_1",
+            [],
+            ["KEY_1"],
+            ["Key: KEY_1 has no observations"],
+        ),
         ("KEY_1", "KEY_1", ["KEY_1"], [], ["Key: KEY_1 has no data"]),
     ],
 )
 @pytest.mark.usefixtures("setup_tmpdir")
 def test_invalid_job(
-    calc_key, app_key, obs_keys, obs_with_data, errors,
+    calc_key,
+    app_key,
+    obs_keys,
+    obs_with_data,
+    errors,
 ):
     user_config_dict = {
         "CALCULATE_KEYS": {"keys": [{"key": calc_key}]},

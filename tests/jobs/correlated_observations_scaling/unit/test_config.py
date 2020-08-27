@@ -64,7 +64,11 @@ def test_valid_config_setup():
     }
 
     schema = build_schema()
-    config = configsuite.ConfigSuite(valid_config_data, schema, deduce_required=True,)
+    config = configsuite.ConfigSuite(
+        valid_config_data,
+        schema,
+        deduce_required=True,
+    )
     assert config.valid
 
     valid_config_data = {
@@ -73,7 +77,11 @@ def test_valid_config_setup():
     }
 
     schema = build_schema()
-    config = configsuite.ConfigSuite(valid_config_data, schema, deduce_required=True,)
+    config = configsuite.ConfigSuite(
+        valid_config_data,
+        schema,
+        deduce_required=True,
+    )
     assert config.valid
 
 
@@ -108,7 +116,11 @@ def test_valid_config_setup():
 )
 def test_invalid_config_setup(test_input, expected_errors):
     schema = build_schema()
-    config = configsuite.ConfigSuite(test_input, schema, deduce_required=True,)
+    config = configsuite.ConfigSuite(
+        test_input,
+        schema,
+        deduce_required=True,
+    )
     assert not config.valid
 
     msgs = [e.msg for e in config.errors]
@@ -123,6 +135,10 @@ def test_valid_configuration():
     }
 
     schema = build_schema()
-    config = configsuite.ConfigSuite(valid_config_data, schema, deduce_required=True,)
+    config = configsuite.ConfigSuite(
+        valid_config_data,
+        schema,
+        deduce_required=True,
+    )
 
     assert config.valid

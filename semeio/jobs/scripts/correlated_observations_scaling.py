@@ -20,7 +20,10 @@ class CorrelatedObservationsScalingJob(
         obs = facade.get_observations()
         obs_keys = [facade.get_observation_key(nr) for nr, _ in enumerate(obs)]
         obs_with_data = keys_with_data(
-            obs, obs_keys, facade.get_ensemble_size(), facade.get_current_fs(),
+            obs,
+            obs_keys,
+            facade.get_ensemble_size(),
+            facade.get_current_fs(),
         )
 
         for config in user_config:

@@ -125,7 +125,12 @@ def _populate_trajectory_points(
 
 
 def run(
-    well_times, trajectories, ecl_grid, ecl_rft, zonemap=None, csvfile=None,
+    well_times,
+    trajectories,
+    ecl_grid,
+    ecl_rft,
+    zonemap=None,
+    csvfile=None,
 ):
     dframes = []
     for well, time, report_step in well_times:

@@ -30,15 +30,21 @@ def create_parser():
     parser = argparse.ArgumentParser(description=description)
 
     parser.add_argument(
-        "realization", type=int, help="Which realization",
+        "realization",
+        type=int,
+        help="Which realization",
     )
 
     parser.add_argument(
-        "xlsfilename", type=valid_file, help="Path to design-matrix (xlsx file)",
+        "xlsfilename",
+        type=valid_file,
+        help="Path to design-matrix (xlsx file)",
     )
 
     parser.add_argument(
-        "designsheetname", type=str, help="Design sheet name",
+        "designsheetname",
+        type=str,
+        help="Design sheet name",
     )
 
     parser.add_argument(

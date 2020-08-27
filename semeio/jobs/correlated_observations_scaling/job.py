@@ -87,7 +87,11 @@ class ScalingJob(object):
         """
         schema = job_config.build_schema()
         config_dict = find_and_expand_wildcards(self._obs_keys, config_data)
-        config = configsuite.ConfigSuite(config_dict, schema, deduce_required=True,)
+        config = configsuite.ConfigSuite(
+            config_dict,
+            schema,
+            deduce_required=True,
+        )
         return config
 
     @staticmethod

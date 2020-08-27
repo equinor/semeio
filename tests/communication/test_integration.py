@@ -32,7 +32,8 @@ def test_semeio_script_integration(tmpdir):
     ert_env["PYTHONPATH"] = os.pathsep.join(map(os.path.realpath, sys.path))
 
     subprocess.check_call(
-        ("ert", "workflow", "TEST_WORKFLOW", "config.ert"), env=ert_env,
+        ("ert", "workflow", "TEST_WORKFLOW", "config.ert"),
+        env=ert_env,
     )
 
     # Assert that data was published correctly

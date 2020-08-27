@@ -7,7 +7,8 @@ from semeio.communication import FileReporter
 
 
 @pytest.mark.parametrize(
-    "msg", ["msg", "This is a message!", "And this is another one"],
+    "msg",
+    ["msg", "This is a message!", "And this is another one"],
 )
 def test_file_reporter_publish_msg_valid_msg(msg, tmpdir):
     tmpdir.chdir()
@@ -70,7 +71,8 @@ def test_file_reporter_publish_msg_multiple_namespaces(tmpdir):
     ("folder", "namespace"),
     list(
         itertools.product(
-            ("", "monkey", os.path.join("a", "b")), ("namespace", "my_messages.log"),
+            ("", "monkey", os.path.join("a", "b")),
+            ("namespace", "my_messages.log"),
         )
     ),
 )
@@ -90,7 +92,12 @@ def test_file_reporter_publisg_msg_output_location(folder, namespace, tmpdir):
 
 
 @pytest.mark.parametrize(
-    "namespace", ("fdsm/fdsfds", "/ds/", "/..",),
+    "namespace",
+    (
+        "fdsm/fdsfds",
+        "/ds/",
+        "/..",
+    ),
 )
 def test_file_reporter_publish_msg_invalid_namespace(namespace, tmpdir):
     tmpdir.chdir()
@@ -117,7 +124,13 @@ def test_file_reporter_publish_msg_invalid_output_dir(tmpdir):
 
 
 @pytest.mark.parametrize(
-    "data", ("", None, [1, 2, "cat"], {"a": [1.0, 2], "b": "something"},)
+    "data",
+    (
+        "",
+        None,
+        [1, 2, "cat"],
+        {"a": [1.0, 2], "b": "something"},
+    ),
 )
 def test_file_reporter_publish_valid_json(data, tmpdir):
     tmpdir.chdir()
@@ -184,7 +197,8 @@ def test_file_reporter_publish_multiple_namespaces(tmpdir):
     ("folder", "namespace"),
     list(
         itertools.product(
-            ("", "monkey", os.path.join("a", "b")), ("namespace", "my_messages.log"),
+            ("", "monkey", os.path.join("a", "b")),
+            ("namespace", "my_messages.log"),
         )
     ),
 )
@@ -203,7 +217,12 @@ def test_file_reporter_publish_output_location(folder, namespace, tmpdir):
 
 
 @pytest.mark.parametrize(
-    "namespace", ("fdsm/fdsfds", "/ds/", "/..",),
+    "namespace",
+    (
+        "fdsm/fdsfds",
+        "/ds/",
+        "/..",
+    ),
 )
 def test_file_reporter_publish_invalid_namespace(namespace, tmpdir):
     tmpdir.chdir()
@@ -230,7 +249,13 @@ def test_file_reporter_publish_invalid_output_dir(tmpdir):
 
 
 @pytest.mark.parametrize(
-    "output_dir", ("fdsm/fdsfds", ".", "..", "reports",),
+    "output_dir",
+    (
+        "fdsm/fdsfds",
+        ".",
+        "..",
+        "reports",
+    ),
 )
 def test_file_reporter_relative_output_dir(output_dir, tmpdir):
     tmpdir.chdir()
@@ -241,7 +266,8 @@ def test_file_reporter_relative_output_dir(output_dir, tmpdir):
 
 
 @pytest.mark.parametrize(
-    "data", (pd.DataFrame([[1, 2, 3], [2, 3, 5]]),),
+    "data",
+    (pd.DataFrame([[1, 2, 3], [2, 3, 5]]),),
 )
 def test_file_reporter_publish_valid_csv(data, tmpdir):
     tmpdir.chdir()

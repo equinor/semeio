@@ -78,10 +78,16 @@ def _bounds_validator(
     msg = "Value must be within the interval {}, {}".format(
         "<"
         if lower is None
-        else "{}{}".format("[" if lower_inclusive else "(", lower,),
+        else "{}{}".format(
+            "[" if lower_inclusive else "(",
+            lower,
+        ),
         ">"
         if upper is None
-        else "{}{}".format(upper, "]" if upper_inclusive else ")",),
+        else "{}{}".format(
+            upper,
+            "]" if upper_inclusive else ")",
+        ),
     )
 
     @cs.validator_msg(msg)
@@ -260,7 +266,10 @@ _SCALING_SCHEMA = {
             ).format(default=_DEFAULT_VALUES[_SCALING][_THRESHOLD]),
             cs.MetaKeys.ElementValidators: (
                 _bounds_validator(
-                    lower=0, lower_inclusive=False, upper=1, upper_inclusive=False,
+                    lower=0,
+                    lower_inclusive=False,
+                    upper=1,
+                    upper_inclusive=False,
                 ),
             ),
         },
@@ -310,11 +319,13 @@ class _BooleanWithMessage:
 def _observations_present(observation_key, context):
     if observation_key in context.observation_keys:
         return _BooleanWithMessage(
-            True, "Observation {} found".format(observation_key),
+            True,
+            "Observation {} found".format(observation_key),
         )
     else:
         return _BooleanWithMessage(
-            False, "Found no match for observation {}".format(observation_key),
+            False,
+            "Found no match for observation {}".format(observation_key),
         )
 
 
