@@ -358,7 +358,10 @@ def test_default_linkage_metric():
     ],
 )
 def test_valid_observations(
-    observation_filter, observation_keys, expected_obs, expected_valid,
+    observation_filter,
+    observation_keys,
+    expected_obs,
+    expected_valid,
 ):
     config_data = {"observations": observation_filter}
     config = misfit_preprocessor.config.MisfitPreprocessorConfig(

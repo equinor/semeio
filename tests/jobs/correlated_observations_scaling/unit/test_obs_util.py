@@ -80,7 +80,12 @@ def test_find_and_expand_wildcards():
 @pytest.mark.parametrize(
     "config_dict,obs_list,expected_fails,err_msg",
     [
-        ({"CALCULATE_KEYS": {"keys": [{"key": "FOP*"}]}}, ["FOPR"], False, None,),
+        (
+            {"CALCULATE_KEYS": {"keys": [{"key": "FOP*"}]}},
+            ["FOPR"],
+            False,
+            None,
+        ),
         (
             {"CALCULATE_KEYS": {"keys": [{"key": "TYPO*"}, {"key": "FOP*"}]}},
             ["FOPR"],

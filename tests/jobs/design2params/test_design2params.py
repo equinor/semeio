@@ -169,7 +169,9 @@ def test_one_column_defaults(tmpdir):
     defaultssheet_df = pd.DataFrame(data=[["foo"]])
     writer = pd.ExcelWriter("design_matrix.xlsx")
     designsheet_df.to_excel(
-        writer, sheet_name="DesignSheet01", index=False,
+        writer,
+        sheet_name="DesignSheet01",
+        index=False,
     )
     defaultssheet_df.to_excel(
         writer, sheet_name="DefaultValues", index=False, header=None

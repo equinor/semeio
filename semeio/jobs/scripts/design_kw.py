@@ -25,15 +25,22 @@ def create_parser():
     parser = argparse.ArgumentParser(description=description)
 
     parser.add_argument(
-        "templatefile", type=valid_file, help="Path to template-file",
+        "templatefile",
+        type=valid_file,
+        help="Path to template-file",
     )
 
     parser.add_argument(
-        "resultfile", type=str, help="Path to result-file",
+        "resultfile",
+        type=str,
+        help="Path to result-file",
     )
 
     parser.add_argument(
-        "--log-level", required=False, default="WARNING", type=logging.getLevelName,
+        "--log-level",
+        required=False,
+        default="WARNING",
+        type=logging.getLevelName,
     )
 
     return parser

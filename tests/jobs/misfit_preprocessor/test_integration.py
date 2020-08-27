@@ -23,7 +23,9 @@ def test_misfit_preprocessor_main_entry_point_gen_data(monkeypatch):
     run_mock = Mock()
     scal_job = Mock(return_value=Mock(run=run_mock))
     monkeypatch.setattr(
-        misfit_preprocessor, "CorrelatedObservationsScalingJob", scal_job,
+        misfit_preprocessor,
+        "CorrelatedObservationsScalingJob",
+        scal_job,
     )
 
     test_data_dir = os.path.join(TEST_DATA_DIR, "local", "snake_oil")
@@ -55,7 +57,9 @@ def test_misfit_preprocessor_passing_scaling_parameters(monkeypatch):
     run_mock = Mock()
     scal_job = Mock(return_value=Mock(run=run_mock))
     monkeypatch.setattr(
-        misfit_preprocessor, "CorrelatedObservationsScalingJob", scal_job,
+        misfit_preprocessor,
+        "CorrelatedObservationsScalingJob",
+        scal_job,
     )
 
     test_data_dir = os.path.join(TEST_DATA_DIR, "local", "snake_oil")
@@ -85,7 +89,9 @@ def test_misfit_preprocessor_main_entry_point_no_config(monkeypatch):
     run_mock = Mock()
     scal_job = Mock(return_value=Mock(run=run_mock))
     monkeypatch.setattr(
-        misfit_preprocessor, "CorrelatedObservationsScalingJob", scal_job,
+        misfit_preprocessor,
+        "CorrelatedObservationsScalingJob",
+        scal_job,
     )
 
     test_data_dir = os.path.join(TEST_DATA_DIR, "local", "snake_oil")

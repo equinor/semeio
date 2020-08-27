@@ -71,7 +71,11 @@ class SemeioScript(ErtScript):  # pylint: disable=too-few-public-methods
     def _get_output_dir(self):
         base_dir = self.ert().resConfig().model_config.getEnspath()
         base_dir = os.path.realpath(base_dir)
-        return os.path.join(base_dir, "reports", type(self).__name__,)
+        return os.path.join(
+            base_dir,
+            "reports",
+            type(self).__name__,
+        )
 
     @property
     def reporter(self):
