@@ -12,7 +12,11 @@ import ert_shared.hook_implementations
 @pytest.mark.parametrize(
     "nosim_command,data_input,data_expected",
     [
-        ("INSERT_NOSIM", "RUNSPEC\n", "RUNSPEC\nNOSIM\n",),
+        (
+            "INSERT_NOSIM",
+            "RUNSPEC\n",
+            "RUNSPEC\nNOSIM\n",
+        ),
         (
             "INSERT_NOSIM",
             "RUNSPEC -- some comment about RUNSPEC and whatnot\n-- and more RUNSPEC\n",
@@ -23,7 +27,11 @@ import ert_shared.hook_implementations
             "RUNSPEC some comment about RUNSPEC and whatnot\n-- and more RUNSPEC\n",
             "RUNSPEC\nNOSIM\n-- and more RUNSPEC\n",
         ),
-        ("REMOVE_NOSIM", "RUNSPEC\nNOSIM\n", "RUNSPEC\n",),
+        (
+            "REMOVE_NOSIM",
+            "RUNSPEC\nNOSIM\n",
+            "RUNSPEC\n",
+        ),
         (
             "REMOVE_NOSIM",
             "RUNSPEC\nNOSIM\n-- and more RUNSPEC\n",

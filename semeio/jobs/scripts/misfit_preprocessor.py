@@ -37,7 +37,10 @@ class MisfitPreprocessorJob(SemeioScript):  # pylint: disable=too-few-public-met
 
 
 def _fetch_scaling_parameters(config_record, measured_data):
-    config = misfit_preprocessor.assemble_config(config_record, measured_data,)
+    config = misfit_preprocessor.assemble_config(
+        config_record,
+        measured_data,
+    )
     if not config.valid:
         # The config is loaded by misfit_preprocessor.run first. The
         # second time should never fail!

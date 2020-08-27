@@ -206,7 +206,7 @@ def run(
 def _get_interpolation_values(
     int_param_wo_name, int_param_go_name, parameters_file_name="parameters.txt"
 ):
-    """"
+    """ "
     Given parameter names, obtain values to interpolate through from parameters.txt
 
     If only WaterOil is supplied, the GasOil interpolation value will

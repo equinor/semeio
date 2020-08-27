@@ -74,7 +74,10 @@ def assert_homogen_clusters(config):
 
 
 def generate_simulated_responses(
-    forward_polynomials, parameter_distribution, poly_states, ensemble_size,
+    forward_polynomials,
+    parameter_distribution,
+    poly_states,
+    ensemble_size,
 ):
     simulated = {}
     for poly_idx, (poly_fm, states) in enumerate(zip(forward_polynomials, poly_states)):
@@ -89,7 +92,9 @@ def generate_simulated_responses(
 
 
 def generate_observations(
-    forward_polynomials, parameter_distribution, poly_states,
+    forward_polynomials,
+    parameter_distribution,
+    poly_states,
 ):
     true_parameters = parameter_distribution()
 
@@ -131,23 +136,31 @@ def generate_measurements(num_polynomials, poly_states=None, ensemble_size=10000
         ]
 
     observations = generate_observations(
-        forward_polynomials, parameter_distribution, poly_states,
+        forward_polynomials,
+        parameter_distribution,
+        poly_states,
     )
     simulated = generate_simulated_responses(
-        forward_polynomials, parameter_distribution, poly_states, ensemble_size,
+        forward_polynomials,
+        parameter_distribution,
+        poly_states,
+        ensemble_size,
     )
     return observations, simulated
 
 
 @pytest.mark.parametrize(
-    "num_polynomials", tuple(range(1, 5)) + (20, 100),
+    "num_polynomials",
+    tuple(range(1, 5)) + (20, 100),
 )
 def test_misfit_preprocessor_n_polynomials(num_polynomials):
     state_size = 3
     poly_states = [range(1, state_size + 1) for _ in range(num_polynomials)]
 
     observations, simulated = generate_measurements(
-        num_polynomials, poly_states=poly_states, ensemble_size=10000,
+        num_polynomials,
+        poly_states=poly_states,
+        ensemble_size=10000,
     )
     measured_data = MockedMeasuredData(observations, simulated)
 
@@ -159,14 +172,17 @@ def test_misfit_preprocessor_n_polynomials(num_polynomials):
 
 
 @pytest.mark.parametrize(
-    "state_size", [5 * [30], [5, 5, 5, 5, 100]],
+    "state_size",
+    [5 * [30], [5, 5, 5, 5, 100]],
 )
 def test_misfit_preprocessor_state_size(state_size):
     num_polynomials = 5
     poly_states = [range(1, size + 1) for size in state_size]
 
     observations, simulated = generate_measurements(
-        num_polynomials, poly_states=poly_states, ensemble_size=30000,
+        num_polynomials,
+        poly_states=poly_states,
+        ensemble_size=30000,
     )
     measured_data = MockedMeasuredData(observations, simulated)
 
@@ -178,14 +194,17 @@ def test_misfit_preprocessor_state_size(state_size):
 
 
 @pytest.mark.parametrize(
-    "state_size", [5 * [30], [5, 5, 5, 5, 100], [5, 5, 5, 5, 100], [2, 1000]],
+    "state_size",
+    [5 * [30], [5, 5, 5, 5, 100], [5, 5, 5, 5, 100], [2, 1000]],
 )
 def test_misfit_preprocessor_state_uneven_size(state_size):
     num_polynomials = len(state_size)
     poly_states = [range(1, size + 1) for size in state_size]
 
     observations, simulated = generate_measurements(
-        num_polynomials, poly_states=poly_states, ensemble_size=30000,
+        num_polynomials,
+        poly_states=poly_states,
+        ensemble_size=30000,
     )
     measured_data = MockedMeasuredData(observations, simulated)
 

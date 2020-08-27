@@ -79,7 +79,10 @@ def test_installed_python_version_of_enkf_scaling_job(setup_ert, monkeypatch):
     job.run(ert, ["job_config.yml"])
 
     assert_obs_vector(
-        obs_vector, np.sqrt(4.0 / 2.0), index_list=[0, 1, 2], val_2=np.sqrt(3.0 / 2.0),
+        obs_vector,
+        np.sqrt(4.0 / 2.0),
+        index_list=[0, 1, 2],
+        val_2=np.sqrt(3.0 / 2.0),
     )
 
 
@@ -141,7 +144,10 @@ def test_main_entry_point_gen_data():
 
     CorrelatedObservationsScalingJob(ert).run(cos_config)
     assert_obs_vector(
-        obs_vector, 1.0, [0, 1], np.sqrt(3.0 / 2.0),
+        obs_vector,
+        1.0,
+        [0, 1],
+        np.sqrt(3.0 / 2.0),
     )
 
     svd_file = (
@@ -154,7 +160,12 @@ def test_main_entry_point_gen_data():
 
         reported_svd = svd_reports[1]
         assert reported_svd == pytest.approx(
-            (6.531760256452532, 2.0045135017540487, 1.1768827000026516,), 0.1
+            (
+                6.531760256452532,
+                2.0045135017540487,
+                1.1768827000026516,
+            ),
+            0.1,
         )
 
     scale_file = (
