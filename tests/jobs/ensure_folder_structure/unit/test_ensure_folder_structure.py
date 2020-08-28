@@ -27,12 +27,7 @@ def assert_leaf_folders(folders, base="."):
 @pytest.mark.parametrize(
     ("config", "existing_folders", "expected_new_folders", "root"),
     [
-        [
-            "a:",
-            [],
-            ["a"],
-            ".",
-        ],
+        ["a:", [], ["a"], ".",],
         [
             """
               a:
@@ -50,10 +45,7 @@ def assert_leaf_folders(folders, base="."):
                 c:
             """,
             [],
-            [
-                "root/a/b",
-                "root/a/c"
-            ],
+            ["root/a/b", "root/a/c"],
             "root",
         ],
         [
@@ -89,7 +81,7 @@ def assert_leaf_folders(folders, base="."):
             ],
             ".",
         ],
-    ]
+    ],
 )
 def test_ensure_folder_structure(
     config, existing_folders, expected_new_folders, root, tmpdir,
@@ -164,12 +156,14 @@ def test_ensure_folder_structure_script(tmpdir):
     tmpdir.chdir()
 
     with open("config.yml", "w") as f:
-        f.write("""
+        f.write(
+            """
             a:
               b:
               c:
             d:
-        """)
+        """
+        )
 
     subprocess.check_call(["ensure_folder_structure.py", "config.yml"])
 

@@ -10,8 +10,7 @@ def _validate_path_element(path_elem):
         )
     if ".." in path_elem:
         raise ValueError(
-            "Path elements should not contain '..'."
-            "Found: {}".format(path_elem)
+            "Path elements should not contain '..'. Found: {}".format(path_elem)
         )
 
 

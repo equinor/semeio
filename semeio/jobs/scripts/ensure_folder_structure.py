@@ -6,8 +6,9 @@ from semeio.jobs import ensure_folder_structure
 
 
 def _parse_arguments():
-    parser = argparse.ArgumentParser(description=(
-        """Ensures that the specified folder structure is present on disk and if not,
+    parser = argparse.ArgumentParser(
+        description=(
+            """Ensures that the specified folder structure is present on disk and if not,
         creates it.
 
         Example:
@@ -22,17 +23,13 @@ def _parse_arguments():
         Two folders (b and c) will exist inside a. And inside c again, a single
         folder named d will reside.
         """
-
-    ))
-    parser.add_argument(
-        "configfile",
-        help="The folder structure configuration",
+        )
     )
     parser.add_argument(
-        "-r",
-        "--root",
-        dest="root",
-        default=".",
+        "configfile", help="The folder structure configuration",
+    )
+    parser.add_argument(
+        "-r", "--root", dest="root", default=".",
     )
     return parser.parse_args()
 
