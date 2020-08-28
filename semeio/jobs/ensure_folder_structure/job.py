@@ -31,5 +31,6 @@ def ensure_folder_structure(folder_structure, root):
     root = os.path.realpath(root)
     folders = _expand_folders(folder_structure, root)
     for elem in folders:
-        os.makedirs(elem, exist_ok=True)
-        logging.info("Created folder: {}".format(elem))
+        if not os.path.isdir(elem):
+            os.makedirs(elem)
+            logging.info("Created folder: {}".format(elem))
