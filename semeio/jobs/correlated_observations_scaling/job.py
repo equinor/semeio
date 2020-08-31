@@ -100,7 +100,7 @@ class ScalingJob(object):
             config_dict,
             schema,
             deduce_required=True,
-            layers = (default_values,),
+            layers=(default_values,),
         )
         return config
 
