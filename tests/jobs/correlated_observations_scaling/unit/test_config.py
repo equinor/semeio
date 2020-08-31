@@ -80,7 +80,11 @@ def test_expand_input_modification():
 def test_valid_config_setup(valid_config):
 
     schema = build_schema()
-    config = configsuite.ConfigSuite(valid_config, schema, deduce_required=True,)
+    config = configsuite.ConfigSuite(
+        valid_config,
+        schema,
+        deduce_required=True,
+    )
     assert config.valid
 
 
