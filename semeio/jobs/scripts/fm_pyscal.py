@@ -5,8 +5,6 @@ import sys
 import os
 import argparse
 
-import six
-
 from semeio.jobs.design_kw.design_kw import extract_key_value
 
 from pyscal import pyscalcli
@@ -265,7 +263,7 @@ def _get_interpolation_values(
 def rm_genkw_prefix(str_or_dict):
     """Remove anything before the first colon in a string, or remove
     the same before every key in a dict"""
-    if isinstance(str_or_dict, six.string_types):
+    if isinstance(str_or_dict, str):
         if ":" in str_or_dict:
             parts = str_or_dict.split(":")
             return ":".join(parts[1:])

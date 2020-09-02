@@ -9,7 +9,6 @@ if sys.version_info.major >= 3:
     from semeio.jobs.scripts import design_kw
 
 
-@pytest.mark.skipif(sys.version_info.major < 3, reason="requires python3")
 @pytest.fixture
 def input_data(tmpdir):
     data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
@@ -29,7 +28,6 @@ _log_level = "DEBUG"
 _default_log_level = "WARNING"
 
 
-@pytest.mark.skipif(sys.version_info.major < 3, reason="requires python3")
 def test_argparse(input_data):
     args = [_templatefile, _resultfile]
     parser = design_kw.create_parser()
@@ -41,7 +39,6 @@ def test_argparse(input_data):
     assert res.log_level == logging.getLevelName(_default_log_level)
 
 
-@pytest.mark.skipif(sys.version_info.major < 3, reason="requires python3")
 def test_argparse_with_logging(input_data):
     args = [_templatefile, _resultfile, "--log-level", _log_level]
     parser = design_kw.create_parser()
@@ -52,13 +49,11 @@ def test_argparse_with_logging(input_data):
     assert res.log_level == logging.getLevelName(_log_level)
 
 
-@pytest.mark.skipif(sys.version_info.major < 3, reason="requires python3")
 def test_argparse_file_not_exists():
     with pytest.raises(SystemExit):
         design_kw.main(["file_not_existing.yml.tmpl", _resultfile])
 
 
-@pytest.mark.skipif(sys.version_info.major < 3, reason="requires python3")
 def test_argparse_result_file_missing(input_data):
     with pytest.raises(SystemExit):
         design_kw.main([_templatefile])
