@@ -1,6 +1,5 @@
 import os
 import shutil
-import sys
 import json
 import pytest
 import pandas as pd
@@ -10,10 +9,7 @@ from res.enkf import EnKFMain, ResConfig
 from semeio.jobs.correlated_observations_scaling.exceptions import EmptyDatasetException
 from tests.jobs.correlated_observations_scaling.conftest import TEST_DATA_DIR
 
-if sys.version_info >= (3, 3):
-    from unittest.mock import Mock
-else:
-    from mock import Mock
+from unittest.mock import Mock
 
 
 @pytest.mark.skipif(TEST_DATA_DIR is None, reason="no libres test-data")
@@ -37,7 +33,7 @@ def test_main_entry_point_gen_data(monkeypatch):
     # call_args is a call object, which itself is a tuple of args and kwargs.
     # In this case, we want args, and the first element of the arguments, which
     # again is a tuple containing the configuration which is a list of configs.
-    assert len(run_mock.call_args[0][0]) == 47, "wrong number of clusters"
+    assert len(list(run_mock.call_args)[0][0]) == 47, "wrong number of clusters"
 
     cor_matrix_file = (
         "storage/snake_oil/ensemble/reports/"

@@ -1,12 +1,7 @@
-import sys
-
-import pytest
-
 import semeio.hook_implementations.jobs
 from ert_shared.plugins.plugin_manager import ErtPluginManager
 
 
-@pytest.mark.skipif(sys.version_info.major < 3, reason="requires python3")
 def test_hook_implementations():
     pm = ErtPluginManager(plugins=[semeio.hook_implementations.jobs])
 
@@ -40,7 +35,6 @@ def test_hook_implementations():
     assert set(installable_workflow_jobs.keys()) == set(expected_workflow_jobs.keys())
 
 
-@pytest.mark.skipif(sys.version_info.major < 3, reason="requires python3")
 def test_hook_implementations_job_docs():
     pm = ErtPluginManager(plugins=[semeio.hook_implementations.jobs])
 

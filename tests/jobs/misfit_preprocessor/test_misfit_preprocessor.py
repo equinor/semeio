@@ -2,13 +2,9 @@ import numpy as np
 import pandas as pd
 import pytest
 import random
-import sys
 from semeio.jobs import misfit_preprocessor
 
-if sys.version_info >= (3, 3):
-    from unittest.mock import Mock
-else:
-    from mock import Mock
+from unittest.mock import Mock
 
 
 class MockedMeasuredData(object):

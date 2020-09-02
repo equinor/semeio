@@ -2,14 +2,10 @@ import json
 import logging
 import os
 import pytest
-import sys
 
 from semeio.communication import SemeioScript, SEMEIOSCRIPT_LOG_FILE
 
-if sys.version_info >= (3, 3):
-    from unittest.mock import Mock
-else:
-    from mock import Mock
+from unittest.mock import Mock
 
 
 def test_semeio_script_publish(tmpdir):
