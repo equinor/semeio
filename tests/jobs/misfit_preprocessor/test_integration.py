@@ -1,6 +1,5 @@
 import os
 import shutil
-import sys
 import yaml
 import pytest
 
@@ -11,10 +10,7 @@ import semeio.jobs.scripts.misfit_preprocessor as misfit_preprocessor
 from semeio.jobs.correlated_observations_scaling.exceptions import EmptyDatasetException
 from tests.jobs.correlated_observations_scaling.conftest import TEST_DATA_DIR
 
-if sys.version_info >= (3, 3):
-    from unittest.mock import Mock
-else:
-    from mock import Mock
+from unittest.mock import Mock
 
 
 @pytest.mark.skipif(TEST_DATA_DIR is None, reason="no libres test-data")
@@ -48,7 +44,7 @@ def test_misfit_preprocessor_main_entry_point_gen_data(monkeypatch):
     # call_args is a call object, which itself is a tuple of args and kwargs.
     # In this case, we want args, and the first element of the arguments, which
     # again is a tuple containing the configuration which is a list of configs.
-    assert len(run_mock.call_args[0][0]) == 47, "wrong number of clusters"
+    assert len(list(run_mock.call_args)[0][0]) == 47, "wrong number of clusters"
 
 
 @pytest.mark.skipif(TEST_DATA_DIR is None, reason="no libres test-data")
@@ -77,7 +73,7 @@ def test_misfit_preprocessor_passing_scaling_parameters(monkeypatch):
 
     misfit_preprocessor.MisfitPreprocessorJob(ert).run(config_file)
 
-    for scaling_config in run_mock.call_args[0][0]:
+    for scaling_config in list(run_mock.call_args)[0][0]:
         assert 0.5 == scaling_config["CALCULATE_KEYS"]["threshold"]
 
 
@@ -102,7 +98,7 @@ def test_misfit_preprocessor_main_entry_point_no_config(monkeypatch):
 
     misfit_preprocessor.MisfitPreprocessorJob(ert).run()
 
-    assert len(run_mock.call_args[0][0]) > 1
+    assert len(run_mock.call_args[0][0]) > 1  # pylint: disable=unsubscriptable-object
 
 
 @pytest.mark.skipif(TEST_DATA_DIR is None, reason="no libres test-data")

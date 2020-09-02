@@ -2,7 +2,6 @@ import os
 import shutil
 import subprocess
 import pytest
-import sys
 
 from ert_shared.plugins.plugin_manager import ErtPluginContext
 import semeio.hook_implementations.jobs
@@ -53,7 +52,6 @@ import ert_shared.hook_implementations
         ),
     ],
 )
-@pytest.mark.skipif(sys.version_info.major < 3, reason="requires python3")
 def test_nosim(setup_tmpdir, nosim_command, data_input, data_expected):
     shutil.copy(os.path.join(os.path.dirname(__file__), "data", "nosim.ert"), ".")
 

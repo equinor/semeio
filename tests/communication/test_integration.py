@@ -1,4 +1,3 @@
-import distutils.spawn
 import json
 import os
 import pytest
@@ -7,14 +6,9 @@ import subprocess
 import sys
 from semeio.communication import SEMEIOSCRIPT_LOG_FILE
 
-if sys.version_info >= (3, 3):
-    which = shutil.which
-else:
-    which = distutils.spawn.find_executable
-
 
 TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), "test-data")
-ERT_INSTALLED = which("ert") is not None
+ERT_INSTALLED = shutil.which("ert") is not None
 
 
 @pytest.mark.skipif(not ERT_INSTALLED, reason="ERT is not installed")

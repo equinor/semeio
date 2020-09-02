@@ -1,16 +1,10 @@
-from __future__ import absolute_import
+from unittest.mock import patch
 import pytest
 from semeio.jobs.scripts.fm_stea import main_entry_point
 import shutil
 import os
 from stea import SteaResult, SteaKeys
 
-import sys
-
-if sys.version_info >= (3, 3):
-    from unittest.mock import patch
-else:
-    from mock import patch
 
 TEST_STEA_PATH, _ = os.path.split(os.path.abspath(__file__))
 
