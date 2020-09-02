@@ -1,3 +1,4 @@
+import sys
 import os
 import shutil
 import subprocess
@@ -8,6 +9,7 @@ import semeio.hook_implementations.jobs
 import ert_shared.hook_implementations
 
 
+@pytest.mark.skipif(sys.platform == "darwin", reason="Skip test for Mac OS")
 @pytest.mark.parametrize(
     "nosim_command,data_input,data_expected",
     [
