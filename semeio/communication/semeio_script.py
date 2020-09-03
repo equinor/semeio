@@ -1,7 +1,8 @@
 import datetime
 import logging
-from logging.handlers import BufferingHandler
 import os
+import threading
+from logging.handlers import BufferingHandler
 from types import MethodType
 from res.enkf import ErtScript
 from semeio.communication.reporter import FileReporter
@@ -22,10 +23,11 @@ class _LogHandlerContext(object):
 
 
 class _ReportHandler(BufferingHandler):
-    def __init__(self, output_dir):
+    def __init__(self, output_dir, thread_id):
         super(_ReportHandler, self).__init__(1)
         self._reporter = FileReporter(output_dir)
         self._namespace = SEMEIOSCRIPT_LOG_FILE
+        self.addFilter(lambda rec: rec.thread == thread_id)
 
     def flush(self):
         for log_record in self.buffer:
@@ -62,7 +64,8 @@ class SemeioScript(ErtScript):  # pylint: disable=too-few-public-methods
 
         def run_with_handler(self, *args, **kwargs):
             log = logging.getLogger("")
-            report_handler = _ReportHandler(self._output_dir)
+            thread_id = threading.get_ident()
+            report_handler = _ReportHandler(self._output_dir, thread_id)
             with _LogHandlerContext(log, report_handler):
                 self._real_run(*args, **kwargs)
 
