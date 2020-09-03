@@ -25,7 +25,12 @@ setup(
     url="https://github.com/equinor/semeio",
     description="Jobs and workflow jobs for Ert.",
     packages=find_packages(include=["semeio*"], exclude=["semeio.jobs.scripts"]),
-    entry_points={"ert": ["semeio_jobs = semeio.hook_implementations.jobs"]},
+    entry_points={
+        "ert": [
+            "semeio_jobs = semeio.hook_implementations.jobs",
+            "SpearmanCorrelation = semeio.jobs.scripts.spearman_correlation",
+        ]
+    },
     license="GPL-3.0",
     platforms="any",
     classifiers=[
