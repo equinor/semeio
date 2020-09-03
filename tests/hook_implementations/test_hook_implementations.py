@@ -1,9 +1,15 @@
+# pylint: disable=missing-docstring
+
+import os
 import semeio.hook_implementations.jobs
+from semeio.jobs.scripts import spearman_correlation
 from ert_shared.plugins.plugin_manager import ErtPluginManager
 
 
 def test_hook_implementations():
-    pm = ErtPluginManager(plugins=[semeio.hook_implementations.jobs])
+    pm = ErtPluginManager(
+        plugins=[semeio.hook_implementations.jobs, spearman_correlation]
+    )
 
     expected_jobs = {
         "DESIGN_KW": "semeio/jobs/config_jobs/DESIGN_KW",
@@ -21,18 +27,18 @@ def test_hook_implementations():
 
     assert set(installable_jobs.keys()) == set(expected_jobs.keys())
 
-    expected_workflow_jobs = {
-        "CORRELATED_OBSERVATIONS_SCALING": "semeio/jobs/config_workflow_jobs/CORRELATED_OBSERVATIONS_SCALING",  # noqa
-        "SPEARMAN_CORRELATION": "semeio/jobs/config_workflow_jobs/SPEARMAN_CORRELATION",
-        "CSV_EXPORT2": "semeio/jobs/config_workflow_jobs/CSV_EXPORT2",
-        "MISFIT_PREPROCESSOR": "semeio/jobs/config_workflow_jobs/MISFIT_PREPROCESSOR",
-    }
+    expected_workflow_jobs = [
+        "CORRELATED_OBSERVATIONS_SCALING",
+        "SPEARMAN_CORRELATION",
+        "CSV_EXPORT2",
+        "MISFIT_PREPROCESSOR",
+    ]
     installable_workflow_jobs = pm.get_installable_workflow_jobs()
-    for wf_name, wf_location in expected_workflow_jobs.items():
-        assert wf_name in installable_workflow_jobs
-        assert installable_workflow_jobs[wf_name].endswith(wf_location)
+    for wf_name, wf_location in installable_workflow_jobs.items():
+        assert wf_name in expected_workflow_jobs
+        assert os.path.isfile(wf_location)
 
-    assert set(installable_workflow_jobs.keys()) == set(expected_workflow_jobs.keys())
+    assert set(installable_workflow_jobs.keys()) == set(expected_workflow_jobs)
 
 
 def test_hook_implementations_job_docs():
