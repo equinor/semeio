@@ -2,8 +2,9 @@ import json
 import logging
 import os
 import pytest
+from threading import Thread
 
-from semeio.communication import SemeioScript, SEMEIOSCRIPT_LOG_FILE
+from semeio.communication import SEMEIOSCRIPT_LOG_FILE, SemeioScript
 
 from unittest.mock import Mock
 
@@ -157,6 +158,34 @@ def test_semeio_script_pre_logging(tmpdir):
     logging.error("A message - not from MySuperScript")
 
     my_super_script.run()
+
+    expected_logfile = os.path.join(
+        enspath, "reports", MySuperScript.__name__, SEMEIOSCRIPT_LOG_FILE
+    )
+
+    with open(expected_logfile) as f:
+        loaded_log = f.readlines()
+
+    assert len(loaded_log) == 1
+
+
+def test_semeio_script_concurrent_logging(tmpdir):
+    tmpdir.chdir()
+    enspath = "enspath"
+    ert = Mock(
+        resConfig=Mock(
+            return_value=Mock(model_config=Mock(getEnspath=Mock(return_value=enspath)))
+        )
+    )
+
+    class MySuperScript(SemeioScript):
+        def run(self, *args):
+            logging.error("A message from MySuperScript")
+            thread = Thread(target=lambda: logging.error("External event."))
+            thread.start()
+            thread.join()
+
+    MySuperScript(ert).run()
 
     expected_logfile = os.path.join(
         enspath, "reports", MySuperScript.__name__, SEMEIOSCRIPT_LOG_FILE
