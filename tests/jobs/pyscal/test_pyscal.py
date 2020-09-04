@@ -7,7 +7,7 @@ import pytest
 
 import pandas as pd
 
-from semeio.jobs.scripts.fm_pyscal import run, rm_genkw_prefix, main_entry_point
+from semeio.jobs.scripts.fm_pyscal import run, main_entry_point
 
 
 EXAMPLE_STATIC_DFRAME = pd.DataFrame(
@@ -57,10 +57,6 @@ def test_fm_pyscal(dframe, runargs, tmpdir):
     if "CASE" in dframe:
         with open("parameters.txt", "w") as p_file:
             p_file.write("INTERPOLATE_WO 0.1\n" + genkw_prefix + "INTERPOLATE_GO 0.5")
-
-    # Insert a genkw-prefix in some input samples:
-    if random.randint(0, 1):
-        runargs[1] = "BAR:" + runargs[1]
 
     run(*(["relperm-input.csv", "relperm.inc"] + runargs))
     assert os.path.exists("relperm.inc")
@@ -246,14 +242,3 @@ def test_fm_pyscal_errors(raises, dframe, runargs, tmpdir):
 
     with pytest.raises(raises):
         run(*runargs)
-
-
-def test_rm_genkw_prefix():
-    """Test that we are able to remove GEN_KW prefixes
-    from strings and dictionaries"""
-    assert rm_genkw_prefix("FOO:BAR") == "BAR"
-    assert rm_genkw_prefix("foo:BAR:com") == "BAR:com"
-    assert rm_genkw_prefix({"FOO:BAR": 1}) == {"BAR": 1}
-    assert rm_genkw_prefix(":") == ""
-    assert rm_genkw_prefix("") == ""
-    assert rm_genkw_prefix("::") == ":"
