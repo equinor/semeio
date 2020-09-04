@@ -5,7 +5,7 @@ import sys
 import os
 import argparse
 
-from semeio.jobs.design_kw.design_kw import extract_key_value
+from semeio.jobs.design_kw.design_kw import extract_key_value, rm_genkw_prefix
 
 from pyscal import pyscalcli
 
@@ -140,12 +140,6 @@ def run(
         _logger.error("%s does not exist", relperm_parameters_file)
         sys.exit(1)
 
-    # Always remove GEN_KW prefix from interpolation parameters,
-    # reduces to noop if equal to MAGIC_NONE.
-    assert ":" not in MAGIC_NONE
-    int_param_wo_name = rm_genkw_prefix(int_param_wo_name)
-    int_param_go_name = rm_genkw_prefix(int_param_go_name)
-
     # Determine which interpolation scenario the user has requested:
     if int_param_wo_name != MAGIC_NONE and int_param_go_name != MAGIC_NONE:
         # Separate interpolation parameter for WaterOil and GasOil
@@ -204,7 +198,7 @@ def run(
 def _get_interpolation_values(
     int_param_wo_name, int_param_go_name, parameters_file_name="parameters.txt"
 ):
-    """ "
+    """
     Given parameter names, obtain values to interpolate through from parameters.txt
 
     If only WaterOil is supplied, the GasOil interpolation value will
@@ -224,7 +218,8 @@ def _get_interpolation_values(
         raise IOError
     with open(parameters_file_name) as parameters_file:
         parameters = parameters_file.readlines()
-    parameter_dict = rm_genkw_prefix(extract_key_value(parameters))
+    parameter_dict = extract_key_value(parameters)
+    parameter_dict.update(rm_genkw_prefix(parameter_dict))
 
     # Add some magic parameters:
     parameter_dict.update(MAGIC_CASES)
@@ -258,19 +253,6 @@ def _get_interpolation_values(
             int_param_go,
         )
     return (int_param_wo, int_param_go)
-
-
-def rm_genkw_prefix(str_or_dict):
-    """Remove anything before the first colon in a string, or remove
-    the same before every key in a dict"""
-    if isinstance(str_or_dict, str):
-        if ":" in str_or_dict:
-            parts = str_or_dict.split(":")
-            return ":".join(parts[1:])
-        return str_or_dict
-    if isinstance(str_or_dict, dict):
-        return {rm_genkw_prefix(key): value for key, value in str_or_dict.items()}
-    raise TypeError("rm_genkw_prefix() can only handle str or dict as argument")
 
 
 if __name__ == "__main__":

@@ -22,10 +22,13 @@ def run(
     _logger.setLevel(log_level)
 
     valid = True
+
     with open(parameters_file_name) as parameters_file:
         parameters = parameters_file.readlines()
 
     key_vals = extract_key_value(parameters)
+
+    key_vals.update(rm_genkw_prefix(key_vals))
 
     with open(template_file_name, "r") as template_file:
         template = template_file.readlines()
@@ -116,3 +119,56 @@ def extract_key_value(parameters):
     if errors:
         raise ValueError("\n".join(errors))
     return res
+
+
+def rm_genkw_prefix(paramsdict, ignoreprefixes="LOG10_"):
+    """Strip prefixes from keys in a dictionary.
+
+    Prefix is any string before a colon. No colon means no prefix.
+
+    Only keys unique after prefix-stripping
+    are included. For intentional duplicates, as when ERT
+    prepares LOG10_ values, these are ignored by default in this
+    function.
+
+    Args:
+        paramsdict (dict): Dictionary with parameter names as keys.
+        ignoreprefixes (str or list of str): If any of these strings
+            are found at the start of the prefix, they are removed
+            from the dictionary before uniqueness is determined.
+
+    Returns:
+        Subset of the incoming dictionary (ignored keys are dropped), and with
+        stripped prefixes from keys.
+    """
+    if ignoreprefixes is None:
+        ignoreprefixes = []
+    if isinstance(ignoreprefixes, str):
+        ignoreprefixes = [ignoreprefixes]
+    ignoreprefixes = filter(None, ignoreprefixes)
+
+    for ignore_str in ignoreprefixes:
+        paramsdict = {
+            key: paramsdict[key]
+            for key in paramsdict
+            if ":" not in key or not key.startswith(ignore_str)
+        }
+
+    keyvalues = [
+        (key.split(":")[1], value) if ":" in key else (key, value)
+        for key, value in paramsdict.items()
+    ]
+
+    keys = [keyval[0] for keyval in keyvalues]
+
+    duplicates = {keyvalue[0] for keyvalue in keyvalues if keys.count(keyvalue[0]) > 1}
+    if duplicates:
+        _logger.warning(
+            "Key(s) {} can only be used with prefix.".format(list(duplicates))
+        )
+
+    return {
+        keyvalue[0]: keyvalue[1]
+        for keyvalue in keyvalues
+        if keys.count(keyvalue[0]) == 1
+    }
