@@ -78,6 +78,81 @@ def test_extract_key_value_dup_key():
         design_kw.extract_key_value(data)
 
 
+@pytest.mark.parametrize(
+    "paramsdict, expected",
+    [
+        ({"foo:bar": "value"}, {"bar": "value"}),
+        ({"foo:bar": "value", "foo:com": "value2"}, {"bar": "value", "com": "value2"}),
+        ({}, {}),
+    ],
+)
+def test_rm_genkw_prefix(paramsdict, expected):
+    assert design_kw.rm_genkw_prefix(paramsdict) == expected
+
+
+@pytest.mark.parametrize(
+    "paramsdict, warntext",
+    [
+        (
+            {"foo:bar": "value1", "com:bar": "value2"},
+            "Key(s) ['bar'] can only be used with prefix",
+        ),
+        (
+            {"foo:bar": "value1", "bar": "value2"},
+            "Key(s) ['bar'] can only be used with prefix",
+        ),
+    ],
+)
+def test_rm_genkw_prefix_warnings(paramsdict, warntext, caplog):
+    assert design_kw.rm_genkw_prefix(paramsdict) == {}
+    assert warntext in caplog.text
+
+
+@pytest.mark.parametrize(
+    "paramsdict, ignores, expected",
+    [
+        (
+            {"LOG10_foo:bar": "value1", "com:bar": "value2"},
+            ["LOG10"],
+            {"bar": "value2"},
+        ),
+        ({"LOG10_foo:bar": "value1", "com:bar": "value2"}, ["LOG"], {"bar": "value2"}),
+        ({"LOG10PARAM": "value"}, ["LOG10"], {"LOG10PARAM": "value"}),
+        ({"foo": "value"}, [""], {"foo": "value"}),
+        ({"foo:bar": "value"}, [""], {"bar": "value"}),
+    ],
+)
+def test_rm_genkw_prefix_ignore(paramsdict, ignores, expected):
+    assert design_kw.rm_genkw_prefix(paramsdict, ignores) == expected
+
+
+@pytest.mark.parametrize(
+    "paramlines, template, result",
+    [
+        ("foo:bar 12", "<foo:bar>", "12"),
+        ("foo:bar 12", "<bar>", "12"),
+        ("foo:bar 12\ncom:bar 13", "<bar>", "<bar>"),  # Yields logged error
+        ("LOG10_FOO:foo 1\nFOO:foo 10", "<foo>", "10"),
+        ("LOG30_FOO:foo 0.3\nFOO:foo 10", "<foo>", "<foo>"),  # Error logged
+        ("foo:bar 12\nbar 12", "<bar>", "12"),
+        ("foo:bar 13\nbar 12", "<foo:bar>", "13"),
+        ("foo:bar 13\ncom:bar 14", "<bar>", "<bar>"),
+        ("foo:bar 13\ncom:bar 14", "<foo:bar>", "13"),
+        ("foo:bar 13\ncom:bar 14", "<com:bar>", "14"),
+    ],
+)
+def test_genkw_prefix_handling(paramlines, template, result, tmpdir):
+    tmpdir.chdir()
+    with open("parameters.txt", "w") as file_h:
+        file_h.write(paramlines)
+    with open("template.tmpl", "w") as file_h:
+        file_h.write(template)
+    design_kw.run("template.tmpl", "result.txt", logging.DEBUG)
+    with open("result.txt", "r") as file_h:
+        resulttxt = "\n".join(file_h.readlines())
+    assert resulttxt == result
+
+
 def test_is_comment():
     line = "# this is a std pattern comment"
     assert design_kw.is_comment(line)
