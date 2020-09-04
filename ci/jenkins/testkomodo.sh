@@ -16,7 +16,6 @@ rm -rf $ENV
 mkdir $ENV
 python -m virtualenv --system-site-packages $ENV
 source $ENV/bin/activate
-python -m pip install -r test_requirements.txt
 ROOT_DIR=$(pwd)
 if [[ -z "${sha1// }" ]]; then
     EV=$(cat ${RELEASE_PATH}/${RELEASE_NAME} | grep "${PROJECT}:" -A2 | grep "version:")
@@ -30,6 +29,7 @@ if [[ -z "${sha1// }" ]]; then
 
     pushd temp_tests
 fi
+python -m pip install -r  ${ROOT_DIR}/test_requirements.txt
 
 echo "running pytest"
 LIBRES_TEST_DATA_DIR=$ROOT_DIR/libres/test-data python -m pytest tests
