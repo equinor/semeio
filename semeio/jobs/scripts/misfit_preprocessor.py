@@ -79,4 +79,7 @@ def _load_measured_record(enkf_main):
 
 @hook_implementation
 def legacy_ertscript_workflow(config):
-    config.add_workflow(MisfitPreprocessorJob, "MISFIT_PREPROCESSOR")
+    workflow = config.add_workflow(MisfitPreprocessorJob, "MISFIT_PREPROCESSOR")
+    _schema = misfit_preprocessor.config._SCHEMA
+    rst_doc = configsuite.docs.generate(_schema)
+    workflow.description = rst_doc
