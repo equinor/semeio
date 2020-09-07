@@ -6,6 +6,7 @@ from semeio.jobs.scripts import (
     spearman_correlation,
     misfit_preprocessor,
     correlated_observations_scaling,
+    csv_export2,
 )
 from ert_shared.plugins.plugin_manager import ErtPluginManager
 
@@ -17,6 +18,7 @@ def test_hook_implementations():
             spearman_correlation,
             misfit_preprocessor,
             correlated_observations_scaling,
+            csv_export2,
         ]
     )
 
