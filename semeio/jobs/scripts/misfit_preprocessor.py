@@ -1,7 +1,9 @@
 import yaml
+import configsuite
 
 from ert_data.measured import MeasuredData
 from ert_shared.libres_facade import LibresFacade
+from ert_shared.plugins.plugin_manager import hook_implementation
 from semeio.communication import SemeioScript
 
 from semeio.jobs import misfit_preprocessor
@@ -73,3 +75,8 @@ def _load_measured_record(enkf_main):
         facade.get_observation_key(nr) for nr, _ in enumerate(facade.get_observations())
     ]
     return MeasuredData(facade, obs_keys)
+
+
+@hook_implementation
+def legacy_ertscript_workflow(config):
+    config.add_workflow(MisfitPreprocessorJob, "MISFIT_PREPROCESSOR")
