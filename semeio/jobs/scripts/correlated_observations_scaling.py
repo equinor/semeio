@@ -1,11 +1,13 @@
 import collections
 
 import yaml
+import configsuite
 
 from ert_data.measured import MeasuredData
 from ert_shared.libres_facade import LibresFacade
 from ert_shared.plugins.plugin_manager import hook_implementation
 from semeio.communication import SemeioScript
+from semeio.jobs.correlated_observations_scaling import job_config
 from semeio.jobs.correlated_observations_scaling.job import ScalingJob
 from semeio.jobs.correlated_observations_scaling.obs_utils import keys_with_data
 
@@ -63,6 +65,9 @@ def _get_default_values(alpha, std_cutoff):
 
 @hook_implementation
 def legacy_ertscript_workflow(config):
-    config.add_workflow(
+    workflow = config.add_workflow(
         CorrelatedObservationsScalingJob, "CORRELATED_OBSERVATIONS_SCALING"
     )
+    _schema = job_config.build_schema()
+    rst_doc = configsuite.docs.generate(_schema)
+    workflow.description = rst_doc
