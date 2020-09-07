@@ -12,12 +12,7 @@ class CsvExport2Job(ErtScript):  # pylint: disable=too-few-public-methods
 
 
 def main(args):
-    """Setup parser"""
-    parser = argparse.ArgumentParser()
-    parser.add_argument("runpathfile", type=str)
-    parser.add_argument("outputfile", type=str)
-    parser.add_argument("time_index", type=str, default="monthly")
-    parser.add_argument("column_keys", nargs="+", default=None)
+    parser = csv_export_parser()
     args = parser.parse_args(args)
 
     csv_export2.csv_exporter(
@@ -46,4 +41,5 @@ if __name__ == "__main__":
 
 @hook_implementation
 def legacy_ertscript_workflow(config):
-    config.add_workflow(CsvExport2Job, "CSV_EXPORT2")
+    workflow = config.add_workflow(CsvExport2Job, "CSV_EXPORT2")
+    workflow.parser = csv_export_parser
