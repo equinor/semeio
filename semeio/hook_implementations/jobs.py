@@ -23,12 +23,6 @@ def installable_jobs():
     return _get_jobs_from_directory("jobs/config_jobs")
 
 
-@hook_implementation
-@plugin_response(plugin_name="semeio")  # pylint: disable=no-value-for-parameter
-def installable_workflow_jobs():
-    return _get_jobs_from_directory("jobs/config_workflow_jobs")
-
-
 def _get_module_variable_if_exists(module_name, variable_name, default=""):
     try:
         script_module = importlib.import_module(module_name)
