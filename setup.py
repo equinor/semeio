@@ -31,6 +31,7 @@ setup(
             "SpearmanCorrelation = semeio.jobs.scripts.spearman_correlation",
             "MisfitPreprocessor = semeio.jobs.scripts.misfit_preprocessor",
             "CorrelatedObsScaling = semeio.jobs.scripts.correlated_observations_scaling",  # noqa
+            "CsvExport2Job = semeio.jobs.scripts.csv_export2",
         ]
     },
     license="GPL-3.0",
