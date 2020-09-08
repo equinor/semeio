@@ -2,14 +2,17 @@
 import logging
 import configsuite
 import numpy as np
-from semeio.jobs.correlated_observations_scaling import job_config
-from semeio.jobs.correlated_observations_scaling.exceptions import ValidationError
-from semeio.jobs.correlated_observations_scaling.obs_utils import (
+from semeio.workflows.correlated_observations_scaling import job_config
+from semeio.workflows.correlated_observations_scaling.exceptions import ValidationError
+from semeio.workflows.correlated_observations_scaling.obs_utils import (
     create_active_lists,
     find_and_expand_wildcards,
 )
-from semeio.jobs.correlated_observations_scaling.scaled_matrix import DataMatrix
-from semeio.jobs.correlated_observations_scaling.validator import has_keys, is_subset
+from semeio.workflows.correlated_observations_scaling.scaled_matrix import DataMatrix
+from semeio.workflows.correlated_observations_scaling.validator import (
+    has_keys,
+    is_subset,
+)
 
 
 class ScalingJob(object):

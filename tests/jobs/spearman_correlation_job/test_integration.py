@@ -6,7 +6,9 @@ import pandas as pd
 import semeio.jobs.scripts.spearman_correlation as sc
 from scipy import stats
 from res.enkf import EnKFMain, ResConfig
-from semeio.jobs.correlated_observations_scaling.exceptions import EmptyDatasetException
+from semeio.workflows.correlated_observations_scaling.exceptions import (
+    EmptyDatasetException,
+)
 from tests.jobs.correlated_observations_scaling.conftest import TEST_DATA_DIR
 
 from unittest.mock import Mock

@@ -5,9 +5,9 @@ import shutil
 import configsuite
 import pytest
 from res.enkf import EnKFMain, ResConfig
-from semeio.jobs.correlated_observations_scaling import job_config
-from semeio.jobs.correlated_observations_scaling.exceptions import ValidationError
-from semeio.jobs.correlated_observations_scaling.obs_utils import (
+from semeio.workflows.correlated_observations_scaling import job_config
+from semeio.workflows.correlated_observations_scaling.exceptions import ValidationError
+from semeio.workflows.correlated_observations_scaling.obs_utils import (
     _wildcard_to_dict_list,
     create_active_lists,
     find_and_expand_wildcards,

@@ -7,10 +7,12 @@ from ert_shared.plugins.plugin_manager import hook_implementation
 from semeio.communication import SemeioScript
 
 from semeio.jobs import misfit_preprocessor
-from semeio.jobs.scripts.correlated_observations_scaling import (
+from semeio.workflows.correlated_observations_scaling.cos import (
     CorrelatedObservationsScalingJob,
 )
-from semeio.jobs.correlated_observations_scaling.exceptions import EmptyDatasetException
+from semeio.workflows.correlated_observations_scaling.exceptions import (
+    EmptyDatasetException,
+)
 
 
 class MisfitPreprocessorJob(SemeioScript):  # pylint: disable=too-few-public-methods

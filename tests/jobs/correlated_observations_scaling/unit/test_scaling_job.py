@@ -3,8 +3,8 @@ import pandas as pd
 import pytest
 import os
 from ert_data import measured
-from semeio.jobs.correlated_observations_scaling.job import ScalingJob
-from semeio.jobs.correlated_observations_scaling.exceptions import ValidationError
+from semeio.workflows.correlated_observations_scaling import ScalingJob
+from semeio.workflows.correlated_observations_scaling.exceptions import ValidationError
 from semeio.communication.reporter import FileReporter
 
 

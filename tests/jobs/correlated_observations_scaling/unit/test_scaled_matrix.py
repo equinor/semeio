@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from semeio.jobs.correlated_observations_scaling.scaled_matrix import DataMatrix
+from semeio.workflows.correlated_observations_scaling.scaled_matrix import DataMatrix
 
 
 def test_get_scaling_factor():
