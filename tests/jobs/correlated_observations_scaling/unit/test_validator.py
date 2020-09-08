@@ -1,6 +1,6 @@
 import pytest
 
-from semeio.jobs.correlated_observations_scaling import validator
+from semeio.workflows.correlated_observations_scaling import validator
 
 
 @pytest.mark.parametrize(

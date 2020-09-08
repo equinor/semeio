@@ -3,7 +3,9 @@ from copy import deepcopy
 
 import numpy as np
 
-from semeio.jobs.correlated_observations_scaling.exceptions import EmptyDatasetException
+from semeio.workflows.correlated_observations_scaling.exceptions import (
+    EmptyDatasetException,
+)
 
 
 class DataMatrix(object):
