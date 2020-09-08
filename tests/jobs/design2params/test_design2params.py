@@ -7,6 +7,7 @@ import pandas as pd
 import pytest
 
 from semeio.jobs.design2params import design2params
+from semeio.jobs.design_kw.design_kw import extract_key_value
 
 
 @pytest.fixture
@@ -262,3 +263,116 @@ def test_open_excel_file_wrong_defaults(input_data):
             design2params._PARAMETERS_TXT,
             log_level=logging.DEBUG,
         )
+
+
+@pytest.mark.parametrize(
+    "cellvalue, expected_parameters_str",
+    [
+        ("TRUE", "TRUE"),
+        ("FALSE", "FALSE"),
+        ("True", "True"),
+        (True, "True"),
+        (False, "False"),
+        (0, "0"),
+        (0.000, "0"),
+        (1, "1"),
+        ("1", "1"),
+        ("1.0", "1.0"),
+        (1.0, "1"),  # This difference is related to to_excel()
+        ("æøå", "æøå"),
+        (1e-1, "0.1"),
+        (1e-4, "0.0001"),
+        (1e-5, "1e-05"),
+        (1e-16, "1e-16"),
+        (1e3, "1000"),
+        (1e10, "10000000000"),
+    ],
+)
+def test_single_cell_values(cellvalue, expected_parameters_str, tmpdir):
+    """Test how certain single values go through the Excel input sheets
+    and all the way to parameters.txt"""
+    # pylint: disable=abstract-class-instantiated
+    tmpdir.chdir()
+
+    designsheet_df = pd.DataFrame(columns=["REAL", "SOMEKEY"], data=[[0, cellvalue]])
+
+    defaultssheet_df = pd.DataFrame()
+    writer = pd.ExcelWriter("design_matrix.xlsx")
+    designsheet_df.to_excel(writer, sheet_name="DesignSheet01", index=False)
+    defaultssheet_df.to_excel(
+        writer, sheet_name="DefaultValues", index=False, header=None
+    )
+    writer.save()
+    params_file = "parameters.txt"
+    design2params.run(
+        0,
+        "design_matrix.xlsx",
+        "DesignSheet01",
+        "DefaultValues",
+        params_file,
+        log_level=logging.DEBUG,
+    )
+    with open(params_file) as p_file:
+        params_lines = p_file.readlines()
+    key_vals = extract_key_value(params_lines)
+    assert key_vals["SOMEKEY"] == expected_parameters_str
+
+
+@pytest.mark.parametrize(
+    "cellvalues, expected_parameters_strs",
+    [
+        (["TRUE", "True"], ["TRUE", "True"]),
+        (["TRUE", 1], ["TRUE", "1"]),
+        (["True", 1.0], ["True", "1"]),
+        (["True", "1.0"], ["True", "1.0"]),
+        ([0, "1.0"], ["0", "1.0"]),
+        ([1, 1.2], ["1", "1.2"]),
+        (["æ", 1e10], ["æ", "10000000000"]),
+    ],
+)
+def test_pair_cell_values(cellvalues, expected_parameters_strs, tmpdir):
+    """Test how a pair of values, one for each realization, go through
+    the Excel input sheets and all the way to parameters.txt.
+
+    This is to ensure that differing datatypes in a single Excel columns does
+    not affect individual values."""
+    # pylint: disable=abstract-class-instantiated
+    tmpdir.chdir()
+
+    designsheet_df = pd.DataFrame(
+        columns=["REAL", "SOMEKEY"], data=[[0, cellvalues[0]], [1, cellvalues[1]]]
+    )
+
+    defaultssheet_df = pd.DataFrame()
+    writer = pd.ExcelWriter("design_matrix.xlsx")
+    designsheet_df.to_excel(writer, sheet_name="DesignSheet01", index=False)
+    defaultssheet_df.to_excel(
+        writer, sheet_name="DefaultValues", index=False, header=None
+    )
+    writer.save()
+    params_0 = "parameters0.txt"
+    design2params.run(
+        0,
+        "design_matrix.xlsx",
+        "DesignSheet01",
+        "DefaultValues",
+        params_0,
+        log_level=logging.DEBUG,
+    )
+    params_1 = "parameters1.txt"
+    design2params.run(
+        1,
+        "design_matrix.xlsx",
+        "DesignSheet01",
+        "DefaultValues",
+        params_1,
+        log_level=logging.DEBUG,
+    )
+    with open(params_0) as p_file:
+        params_lines_0 = p_file.readlines()
+    with open(params_1) as p_file:
+        params_lines_1 = p_file.readlines()
+    key_vals_real0 = extract_key_value(params_lines_0)
+    key_vals_real1 = extract_key_value(params_lines_1)
+    assert key_vals_real0["SOMEKEY"] == expected_parameters_strs[0]
+    assert key_vals_real1["SOMEKEY"] == expected_parameters_strs[1]
