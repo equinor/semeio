@@ -69,11 +69,11 @@ class ZoneMap:
                 )
             try:
                 raw_k = int(zonemap_line[0])
-            except ValueError:
+            except ValueError as err:
                 raise argparse.ArgumentTypeError(
                     basic_err_msg.format(line_number=line_number, filename=filename)
                     + "k must be integer, was {k}".format(k=zonemap_line[0])
-                )
+                ) from err
             if raw_k == 0:
                 raise argparse.ArgumentTypeError(
                     basic_err_msg.format(line_number=line_number, filename=filename)
