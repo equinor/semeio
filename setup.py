@@ -30,7 +30,7 @@ setup(
             "semeio_jobs = semeio.hook_implementations.jobs",
             "SpearmanCorrelation = semeio.jobs.scripts.spearman_correlation",
             "MisfitPreprocessor = semeio.jobs.scripts.misfit_preprocessor",
-            "CorrelatedObsScaling = semeio.jobs.scripts.correlated_observations_scaling",  # noqa
+            "CorrelatedObsScaling = semeio.workflows.correlated_observations_scaling.cos",  # noqa
             "CsvExport2Job = semeio.jobs.scripts.csv_export2",
         ]
     },

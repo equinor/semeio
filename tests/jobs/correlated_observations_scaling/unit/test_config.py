@@ -3,7 +3,7 @@ from copy import deepcopy
 import pytest
 import configsuite
 
-from semeio.jobs.correlated_observations_scaling.job_config import (
+from semeio.workflows.correlated_observations_scaling.job_config import (
     _expand_input,
     _min_value,
     _to_int_list,

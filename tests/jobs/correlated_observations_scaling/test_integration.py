@@ -6,8 +6,8 @@ import pytest
 import yaml
 from res.enkf import EnKFMain, ResConfig
 
-from semeio.jobs.scripts import correlated_observations_scaling
-from semeio.jobs.scripts.correlated_observations_scaling import (
+from semeio.workflows.correlated_observations_scaling import cos
+from semeio.workflows.correlated_observations_scaling.cos import (
     CorrelatedObservationsScalingJob,
 )
 from tests.jobs.correlated_observations_scaling.conftest import TEST_DATA_DIR
@@ -48,7 +48,7 @@ def test_installed_python_version_of_enkf_scaling_job(setup_ert, monkeypatch):
 
     pm = ErtPluginManager(
         plugins=[
-            correlated_observations_scaling,
+            cos,
         ]
     )
     installable_workflow_jobs = pm.get_installable_workflow_jobs()

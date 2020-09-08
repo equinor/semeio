@@ -4,7 +4,7 @@ from copy import deepcopy
 
 from ecl.util.util import BoolVector
 from res.enkf import ActiveList, LocalObsdata, RealizationStateEnum
-from semeio.jobs.correlated_observations_scaling.exceptions import ValidationError
+from semeio.workflows.correlated_observations_scaling.exceptions import ValidationError
 
 
 def _wildcard_to_dict_list(matching_keys, entry):
