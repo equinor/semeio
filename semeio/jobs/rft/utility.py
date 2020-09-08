@@ -68,13 +68,13 @@ def load_and_parse_well_time_file(filename):
 
         try:
             report_step = int(tokens[4])
-        except ValueError:
+        except ValueError as err:
             err_msg = base_error_msg + "Unable to convert {report_step} to int"
             raise argparse.ArgumentTypeError(
                 err_msg.format(
                     line_number=line_number, filename=filename, report_step=tokens[4]
                 )
-            )
+            ) from err
 
         try:
             year = int(tokens[3])
@@ -82,7 +82,7 @@ def load_and_parse_well_time_file(filename):
             day = int(tokens[1])
             time = datetime.date(year, month, day)
 
-        except ValueError:
+        except ValueError as err:
             err_msg = base_error_msg + (
                 "Unable to parse date, expected day month year got: "
                 "{day} {month} {year}"
@@ -95,7 +95,7 @@ def load_and_parse_well_time_file(filename):
                     month=tokens[2],
                     year=tokens[3],
                 )
-            )
+            ) from err
 
         well_times.append((well, time, report_step))
 
