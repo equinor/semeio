@@ -43,9 +43,10 @@ setup(
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
     install_requires=[
-        "configsuite>=0.6",
+        "configsuite==0.6.2",
         "numpy",
         "pandas",
+        "PyYAML==5.1.2",
         "six>=1.12.0",
         "scipy",
         "xlrd",
