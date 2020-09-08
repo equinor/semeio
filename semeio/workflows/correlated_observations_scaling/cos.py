@@ -12,6 +12,121 @@ from semeio.workflows.correlated_observations_scaling import ScalingJob
 from semeio.workflows.correlated_observations_scaling.obs_utils import keys_with_data
 
 
+_DESCRIPTION = """
+    Correlated_observation_scaling is an ERT workflow job that does Principal
+    Component Analysis (PCA) scaling of observations in ERT. The job accepts a
+    configuration as the only argument.
+
+    A valid job configuration is a YAML file in one of three formats:
+    a CALCULATE_KEYS and UPDATE_KEYS pair; a list of such pairs; or a singular
+    CALCULATE_KEYS directive. Each directive accepts a list of keys that
+    each are a key and index hash. Keys can contain wildcards, and indices
+    can represent ranges like "1-10,11,12". No index value implies all
+    values. CALCULATE_KEYS can be configured using threshold which sets the
+    threshold for PCA scaling [default: 0.95]; std_cutoff, the cutoff for
+    standard deviation filtering [defaults to ``ert`` values]; and alpha for filtering
+    between ensemble mean and observations [defaults to ``ert`` values].
+
+Correlated Observations Scaling Configuration
+=============================================
+{}
+""".format(
+    configsuite.docs.generate(job_config.build_schema())
+)
+
+
+def _get_example(config_example):
+    example_string = yaml.dump(config_example, default_flow_style=False)
+    return "\n      ".join(example_string.split("\n"))
+
+
+_calc_keys_example = {"CALCULATE_KEYS": {"keys": [{"key": "FOPR"}]}}
+_calc_keys_w_index = {
+    "CALCULATE_KEYS": {"keys": [{"key": "FOPR", "index": "1-10,50-100"}]}
+}
+_all_keys_w_index = {
+    "CALCULATE_KEYS": {"keys": [{"key": "FOPR", "index": "1-10,50-100"}]},
+    "UPDATE_KEYS": {"keys": [{"key": "FOPR", "index": "50-100"}]},
+}
+_wildcard_example = {"CALCULATE_KEYS": {"keys": [{"key": "WOPR_OP*"}]}}
+
+_groups_example = [
+    {"CALCULATE_KEYS": {"keys": [{"key": "FOPR"}]}},
+    {"CALCULATE_KEYS": {"keys": [{"key": "WOPR_OP*"}]}},
+]
+
+_EXAMPLES = """
+
+Configuration
+-------------
+
+Given a configuration in the format:
+
+.. code-block:: yaml
+
+    {calc_keys}
+
+This configuration will let COS calculate a scaling factor from all data
+points in ``FOPR`` and update all data points in ``FOPR``.
+You can also specify which indices will be updated on the ``FOPR`` key:
+
+
+Key indices
+^^^^^^^^^^^
+
+.. code-block:: yaml
+
+    {calc_w_index}
+
+This will calculate the scaling factor from indices 1-10 and 50-100, as
+well as update these indices.
+
+If not provided ``UPDATE_KEYS`` will use the same keys configuration as
+``CALCULATE_KEYS``. Provided, it allows to specify which keys are to be
+scaled:
+
+.. code-block:: yaml
+
+    {all_keys}
+
+This configuration will calculate a scaling factor from indices 1-10,50-100
+on ``FOPR``, but only update the scaling on indices ``50-100``.
+
+
+Wildcards
+^^^^^^^^^
+
+Keys can be given as wildcards:
+
+.. code-block:: yaml
+
+    {wildcard}
+This will calculate a scaling factor for all keys matching ``WOPR_OP*`` where
+the asteriks will match everything.
+
+
+Configuration for clusters
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+For clusters (groups) of keys, a list of ``CALCULATE_KEYS`` and
+``UPDATE_KEYS`` can be provided (the latter omitted for brevity):
+
+.. code-block:: yaml
+
+    {group}
+
+This will calculate the scaling factor and do the scaling twice, instead
+of passing two different configs.
+
+""".format(
+    calc_keys=_get_example(_calc_keys_example),
+    calc_w_index=_get_example(_calc_keys_w_index),
+    all_keys=_get_example(_all_keys_w_index),
+    wildcard=_get_example(_wildcard_example),
+    group=_get_example(_groups_example),
+)
+
+
 class CorrelatedObservationsScalingJob(
     SemeioScript
 ):  # pylint: disable=too-few-public-methods
@@ -68,6 +183,5 @@ def legacy_ertscript_workflow(config):
     workflow = config.add_workflow(
         CorrelatedObservationsScalingJob, "CORRELATED_OBSERVATIONS_SCALING"
     )
-    _schema = job_config.build_schema()
-    rst_doc = configsuite.docs.generate(_schema)
-    workflow.description = rst_doc
+    workflow.description = _DESCRIPTION
+    workflow.examples = _EXAMPLES
