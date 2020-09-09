@@ -23,9 +23,7 @@ def test_misfit_preprocessor_main_entry_point_gen_data(monkeypatch):
     run_mock = Mock()
     scal_job = Mock(return_value=Mock(run=run_mock))
     monkeypatch.setattr(
-        misfit_preprocessor,
-        "CorrelatedObservationsScalingJob",
-        scal_job,
+        misfit_preprocessor, "CorrelatedObservationsScalingJob", scal_job,
     )
 
     test_data_dir = os.path.join(TEST_DATA_DIR, "local", "snake_oil")
@@ -57,9 +55,7 @@ def test_misfit_preprocessor_passing_scaling_parameters(monkeypatch):
     run_mock = Mock()
     scal_job = Mock(return_value=Mock(run=run_mock))
     monkeypatch.setattr(
-        misfit_preprocessor,
-        "CorrelatedObservationsScalingJob",
-        scal_job,
+        misfit_preprocessor, "CorrelatedObservationsScalingJob", scal_job,
     )
 
     test_data_dir = os.path.join(TEST_DATA_DIR, "local", "snake_oil")
@@ -87,9 +83,7 @@ def test_misfit_preprocessor_main_entry_point_no_config(monkeypatch):
     run_mock = Mock()
     scal_job = Mock(return_value=Mock(run=run_mock))
     monkeypatch.setattr(
-        misfit_preprocessor,
-        "CorrelatedObservationsScalingJob",
-        scal_job,
+        misfit_preprocessor, "CorrelatedObservationsScalingJob", scal_job,
     )
 
     test_data_dir = os.path.join(TEST_DATA_DIR, "local", "snake_oil")
@@ -204,7 +198,7 @@ def test_misfit_preprocessor_with_auto_cluster():
     res_config = ResConfig("snake_oil.ert")
     ert = EnKFMain(res_config)
 
-    config = {"clustering": {"auto_cluster": {"fcluster": {"t": 1.0}}}}
+    config = {"clustering": {"auto_cluster": {}}}
     config_file = "my_config_file.yaml"
     with open(config_file, "w") as f:
         yaml.dump(config, f)
@@ -214,4 +208,4 @@ def test_misfit_preprocessor_with_auto_cluster():
     # assert that this arbitrarily chosen cluster gets scaled as expected
     obs = ert.getObservations()["FOPR"]
     for index in [13, 14, 15, 16, 17, 18, 19, 20]:
-        assert obs.getNode(index).getStdScaling() == 2.8284271247461903
+        assert obs.getNode(index).getStdScaling() == 5.1478150704935

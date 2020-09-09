@@ -9,13 +9,6 @@ from semeio.jobs.scripts.correlated_observations_scaling import (
     CorrelatedObservationsScalingJob,
 )
 from semeio.jobs.correlated_observations_scaling.exceptions import EmptyDatasetException
-from semeio.jobs.misfit_preprocessor.exceptions import ValidationError
-from semeio.jobs.misfit_preprocessor.config import (
-    SPEARMAN_CORRELATION,
-    AUTO_CLUSTER,
-    assemble_config,
-)
-from semeio.jobs.spearman_correlation_job.job import spearman_job
 
 
 class MisfitPreprocessorJob(SemeioScript):  # pylint: disable=too-few-public-methods
