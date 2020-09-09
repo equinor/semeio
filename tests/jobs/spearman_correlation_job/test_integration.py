@@ -37,16 +37,11 @@ def test_main_entry_point_gen_data(monkeypatch):
     # again is a tuple containing the configuration which is a list of configs.
     assert len(list(run_mock.call_args)[0][0]) == 47, "wrong number of clusters"
 
-    cor_matrix_file = (
-        "storage/snake_oil/ensemble/reports/"
-        "SpearmanCorrelationJob/correlation_matrix.csv"
-    )
+    cor_matrix_file = "reports/snake_oil/SpearmanCorrelationJob/correlation_matrix.csv"
 
     pd.read_csv(cor_matrix_file, index_col=[0, 1], header=[0, 1])
 
-    clusters_file = (
-        "storage/snake_oil/ensemble/reports/SpearmanCorrelationJob/clusters.json"
-    )
+    clusters_file = "reports/snake_oil/SpearmanCorrelationJob/clusters.json"
     with open(clusters_file) as f:
         cluster_reports = json.load(f)
         assert len(cluster_reports) == 1
@@ -135,14 +130,18 @@ def test_main_entry_point_syn_data(monkeypatch, facade, measured_data):
     monkeypatch.setattr(sc, "LibresFacade", facade_mock)
     monkeypatch.setattr(sc, "MeasuredData", md_mock)
 
-    rc_mock = Mock()
-    rc_mock.model_config.getEnspath.return_value = "."
-    ert_mock = Mock()
-    ert_mock.resConfig.return_value = rc_mock
+    resconfig_mock = Mock()
+    resconfig_mock.config_path = "config_path"
+    resconfig_mock.user_config_file = "user_config_file"
+
+    ert_mock = Mock(resConfig=Mock(return_value=resconfig_mock))
 
     sc.SpearmanCorrelationJob(ert_mock).run(*["-t", "1.0"])
 
-    cor_matrix_file = "reports/SpearmanCorrelationJob/correlation_matrix.csv"
+    cor_matrix_file = (
+        "config_path/reports/user_config_file/"
+        "SpearmanCorrelationJob/correlation_matrix.csv"
+    )
 
     r1 = [1, 5, 3]
     r2 = [2, 90, 2]
@@ -158,7 +157,9 @@ def test_main_entry_point_syn_data(monkeypatch, facade, measured_data):
     corr_matrix = pd.read_csv(cor_matrix_file, index_col=[0, 1], header=[0, 1])
 
     assert (expected_corr_matrix == corr_matrix.values).all()
-    clusters_file = "reports/SpearmanCorrelationJob/clusters.json"
+    clusters_file = (
+        "config_path/reports/user_config_file/SpearmanCorrelationJob/clusters.json"
+    )
     with open(clusters_file) as f:
         cluster_reports = json.load(f)
         assert len(cluster_reports) == 1
