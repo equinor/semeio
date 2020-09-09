@@ -9,14 +9,18 @@ from semeio.communication import SEMEIOSCRIPT_LOG_FILE, SemeioScript
 from unittest.mock import Mock
 
 
+def _ert_mock(config_path="config_path", user_config_file="config_file"):
+    resconfig_mock = Mock()
+    resconfig_mock.config_path = config_path
+    resconfig_mock.user_config_file = user_config_file
+
+    return Mock(resConfig=Mock(return_value=resconfig_mock))
+
+
 def test_semeio_script_publish(tmpdir):
     tmpdir.chdir()
-    enspath = "enspath"
-    ert = Mock(
-        resConfig=Mock(
-            return_value=Mock(model_config=Mock(getEnspath=Mock(return_value=enspath)))
-        )
-    )
+    config_path, user_config_file = "config_path", "config_file"
+    ert = _ert_mock(config_path, user_config_file)
 
     namespace = "arbitrary_data"
     data = [1, 2, 3, 4, "This is a very important string"]
@@ -29,7 +33,11 @@ def test_semeio_script_publish(tmpdir):
     my_super_script.run()
 
     expected_outputfile = os.path.join(
-        enspath, "reports", MySuperScript.__name__, namespace + ".json"
+        config_path,
+        "reports",
+        user_config_file,
+        MySuperScript.__name__,
+        namespace + ".json",
     )
 
     with open(expected_outputfile) as f:
@@ -40,12 +48,8 @@ def test_semeio_script_publish(tmpdir):
 
 def test_semeio_script_logging(tmpdir):
     tmpdir.chdir()
-    enspath = "enspath"
-    ert = Mock(
-        resConfig=Mock(
-            return_value=Mock(model_config=Mock(getEnspath=Mock(return_value=enspath)))
-        )
-    )
+    config_path, user_config_file = "config_path", "config_file"
+    ert = _ert_mock(config_path, user_config_file)
 
     msg = "My logging msg"
 
@@ -57,7 +61,11 @@ def test_semeio_script_logging(tmpdir):
     my_super_script.run()
 
     expected_logfile = os.path.join(
-        enspath, "reports", MySuperScript.__name__, SEMEIOSCRIPT_LOG_FILE
+        config_path,
+        "reports",
+        user_config_file,
+        MySuperScript.__name__,
+        SEMEIOSCRIPT_LOG_FILE,
     )
 
     with open(expected_logfile) as f:
@@ -86,12 +94,8 @@ def assert_log(messages, log_file):
 )
 def test_semeio_script_multiple_logging(messages, tmpdir):
     tmpdir.chdir()
-    enspath = "enspath"
-    ert = Mock(
-        resConfig=Mock(
-            return_value=Mock(model_config=Mock(getEnspath=Mock(return_value=enspath)))
-        )
-    )
+    config_path, user_config_file = "config_path", "config_file"
+    ert = _ert_mock(config_path, user_config_file)
 
     class MySuperScript(SemeioScript):
         def run(self, *args):
@@ -103,7 +107,11 @@ def test_semeio_script_multiple_logging(messages, tmpdir):
                 assert_log(posted_messages, expected_logfile)
 
     expected_logfile = os.path.join(
-        enspath, "reports", MySuperScript.__name__, SEMEIOSCRIPT_LOG_FILE
+        config_path,
+        "reports",
+        user_config_file,
+        MySuperScript.__name__,
+        SEMEIOSCRIPT_LOG_FILE,
     )
 
     my_super_script = MySuperScript(ert)
@@ -114,12 +122,8 @@ def test_semeio_script_multiple_logging(messages, tmpdir):
 
 def test_semeio_script_post_logging(tmpdir):
     tmpdir.chdir()
-    enspath = "enspath"
-    ert = Mock(
-        resConfig=Mock(
-            return_value=Mock(model_config=Mock(getEnspath=Mock(return_value=enspath)))
-        )
-    )
+    config_path, user_config_file = "config_path", "config_file"
+    ert = _ert_mock(config_path, user_config_file)
 
     class MySuperScript(SemeioScript):
         def run(self, *args):
@@ -131,7 +135,11 @@ def test_semeio_script_post_logging(tmpdir):
     logging.error("A second message - not from MySuperScript")
 
     expected_logfile = os.path.join(
-        enspath, "reports", MySuperScript.__name__, SEMEIOSCRIPT_LOG_FILE
+        config_path,
+        "reports",
+        user_config_file,
+        MySuperScript.__name__,
+        SEMEIOSCRIPT_LOG_FILE,
     )
 
     with open(expected_logfile) as f:
@@ -142,12 +150,8 @@ def test_semeio_script_post_logging(tmpdir):
 
 def test_semeio_script_pre_logging(tmpdir):
     tmpdir.chdir()
-    enspath = "enspath"
-    ert = Mock(
-        resConfig=Mock(
-            return_value=Mock(model_config=Mock(getEnspath=Mock(return_value=enspath)))
-        )
-    )
+    config_path, user_config_file = "config_path", "config_file"
+    ert = _ert_mock(config_path, user_config_file)
 
     class MySuperScript(SemeioScript):
         def run(self, *args):
@@ -160,7 +164,11 @@ def test_semeio_script_pre_logging(tmpdir):
     my_super_script.run()
 
     expected_logfile = os.path.join(
-        enspath, "reports", MySuperScript.__name__, SEMEIOSCRIPT_LOG_FILE
+        config_path,
+        "reports",
+        user_config_file,
+        MySuperScript.__name__,
+        SEMEIOSCRIPT_LOG_FILE,
     )
 
     with open(expected_logfile) as f:
@@ -171,12 +179,8 @@ def test_semeio_script_pre_logging(tmpdir):
 
 def test_semeio_script_concurrent_logging(tmpdir):
     tmpdir.chdir()
-    enspath = "enspath"
-    ert = Mock(
-        resConfig=Mock(
-            return_value=Mock(model_config=Mock(getEnspath=Mock(return_value=enspath)))
-        )
-    )
+    config_path, user_config_file = "config_path", "config_file"
+    ert = _ert_mock(config_path, user_config_file)
 
     class MySuperScript(SemeioScript):
         def run(self, *args):
@@ -188,7 +192,11 @@ def test_semeio_script_concurrent_logging(tmpdir):
     MySuperScript(ert).run()
 
     expected_logfile = os.path.join(
-        enspath, "reports", MySuperScript.__name__, SEMEIOSCRIPT_LOG_FILE
+        config_path,
+        "reports",
+        user_config_file,
+        MySuperScript.__name__,
+        SEMEIOSCRIPT_LOG_FILE,
     )
 
     with open(expected_logfile) as f:
@@ -199,12 +207,8 @@ def test_semeio_script_concurrent_logging(tmpdir):
 
 def test_semeio_script_post_logging_exception(tmpdir):
     tmpdir.chdir()
-    enspath = "enspath"
-    ert = Mock(
-        resConfig=Mock(
-            return_value=Mock(model_config=Mock(getEnspath=Mock(return_value=enspath)))
-        )
-    )
+    config_path, user_config_file = "config_path", "config_file"
+    ert = _ert_mock(config_path, user_config_file)
 
     class MySuperScript(SemeioScript):
         def run(self, *args):
@@ -220,7 +224,11 @@ def test_semeio_script_post_logging_exception(tmpdir):
     logging.error("A second message - not from MySuperScript")
 
     expected_logfile = os.path.join(
-        enspath, "reports", MySuperScript.__name__, SEMEIOSCRIPT_LOG_FILE
+        config_path,
+        "reports",
+        user_config_file,
+        MySuperScript.__name__,
+        SEMEIOSCRIPT_LOG_FILE,
     )
 
     with open(expected_logfile) as f:
@@ -231,12 +239,8 @@ def test_semeio_script_post_logging_exception(tmpdir):
 
 def test_semeio_script_keyword_args(tmpdir):
     tmpdir.chdir()
-    enspath = "enspath"
-    ert = Mock(
-        resConfig=Mock(
-            return_value=Mock(model_config=Mock(getEnspath=Mock(return_value=enspath)))
-        )
-    )
+    config_path, user_config_file = "config_path", "config_file"
+    ert = _ert_mock(config_path, user_config_file)
 
     class MySuperScript(SemeioScript):
         def run(self, param_A, param_B):
@@ -247,7 +251,11 @@ def test_semeio_script_keyword_args(tmpdir):
     my_super_script.run(param_B="param_B", param_A="param_A")
 
     expected_outputfile = os.path.join(
-        enspath, "reports", MySuperScript.__name__, SEMEIOSCRIPT_LOG_FILE
+        config_path,
+        "reports",
+        user_config_file,
+        MySuperScript.__name__,
+        SEMEIOSCRIPT_LOG_FILE,
     )
 
     with open(expected_outputfile) as f:
