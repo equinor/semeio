@@ -1,5 +1,5 @@
-from semeio.jobs.misfit_preprocessor.exceptions import ValidationError
-from semeio.jobs.misfit_preprocessor.config import (
+from semeio.workflows.misfit_preprocessor.exceptions import ValidationError
+from semeio.workflows.misfit_preprocessor.config import (
     SPEARMAN_CORRELATION,
     assemble_config,
 )

@@ -6,7 +6,7 @@ from ert_shared.libres_facade import LibresFacade
 from ert_shared.plugins.plugin_manager import hook_implementation
 from semeio.communication import SemeioScript
 
-from semeio.jobs import misfit_preprocessor
+from semeio.workflows import misfit_preprocessor
 from semeio.workflows.correlated_observations_scaling.cos import (
     CorrelatedObservationsScalingJob,
 )
