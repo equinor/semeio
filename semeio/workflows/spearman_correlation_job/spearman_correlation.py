@@ -10,7 +10,7 @@ from semeio.workflows.correlated_observations_scaling.exceptions import (
 from semeio.workflows.correlated_observations_scaling.cos import (
     CorrelatedObservationsScalingJob,
 )
-from semeio.jobs.spearman_correlation_job.job import spearman_job
+from semeio.workflows.spearman_correlation_job.job import spearman_job
 
 
 class SpearmanCorrelationJob(SemeioScript):  # pylint: disable=too-few-public-methods

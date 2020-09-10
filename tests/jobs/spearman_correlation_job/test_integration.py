@@ -3,7 +3,7 @@ import shutil
 import json
 import pytest
 import pandas as pd
-import semeio.jobs.scripts.spearman_correlation as sc
+import semeio.workflows.spearman_correlation_job.spearman_correlation as sc
 from scipy import stats
 from res.enkf import EnKFMain, ResConfig
 from semeio.workflows.correlated_observations_scaling.exceptions import (

@@ -28,7 +28,7 @@ setup(
     entry_points={
         "ert": [
             "semeio_jobs = semeio.hook_implementations.jobs",
-            "SpearmanCorrelation = semeio.jobs.scripts.spearman_correlation",
+            "SpearmanCorrelation = semeio.workflows.spearman_correlation_job.spearman_correlation",  # noqa
             "MisfitPreprocessor = semeio.jobs.scripts.misfit_preprocessor",
             "CorrelatedObsScaling = semeio.workflows.correlated_observations_scaling.cos",  # noqa
             "CsvExport2Job = semeio.jobs.scripts.csv_export2",

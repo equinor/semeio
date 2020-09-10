@@ -3,10 +3,10 @@
 import os
 import semeio.hook_implementations.jobs
 from semeio.jobs.scripts import (
-    spearman_correlation,
     misfit_preprocessor,
     csv_export2,
 )
+from semeio.workflows.spearman_correlation_job import spearman_correlation
 from semeio.workflows.correlated_observations_scaling import cos
 from ert_shared.plugins.plugin_manager import ErtPluginManager
 
