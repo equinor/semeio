@@ -397,7 +397,7 @@ class _ObservationContext:  # pylint: disable=too-few-public-methods
 
 class MisfitPreprocessorConfig(cs.ConfigSuite):
     def __init__(self, config_data, observation_keys):
-        super(MisfitPreprocessorConfig, self).__init__(
+        super().__init__(
             config_data,
             _SCHEMA,
             (_DEFAULT_VALUES,),

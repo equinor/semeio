@@ -1,6 +1,6 @@
 import pytest
 
-from semeio.jobs import misfit_preprocessor
+from semeio.workflows import misfit_preprocessor
 
 
 @pytest.mark.parametrize(

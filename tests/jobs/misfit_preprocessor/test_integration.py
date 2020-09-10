@@ -6,7 +6,7 @@ import pytest
 from res.enkf import EnKFMain, ResConfig
 
 import semeio
-import semeio.jobs.scripts.misfit_preprocessor as misfit_preprocessor
+import semeio.workflows.misfit_preprocessor.misfit_preprocessor as misfit_preprocessor
 from semeio.workflows.correlated_observations_scaling.exceptions import (
     EmptyDatasetException,
 )
@@ -180,7 +180,7 @@ def test_misfit_preprocessor_invalid_config():
         yaml.dump(config, f)
 
     job = misfit_preprocessor.MisfitPreprocessorJob(ert)
-    with pytest.raises(semeio.jobs.misfit_preprocessor.ValidationError) as ve:
+    with pytest.raises(semeio.workflows.misfit_preprocessor.ValidationError) as ve:
         job.run(config_file)
 
     expected_err_msg = (
