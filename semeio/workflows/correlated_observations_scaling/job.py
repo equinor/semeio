@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
 import configsuite
-import numpy as np
 from semeio.workflows.correlated_observations_scaling import job_config
 from semeio.workflows.correlated_observations_scaling.exceptions import ValidationError
 from semeio.workflows.correlated_observations_scaling.obs_utils import (
@@ -50,18 +49,15 @@ class ScalingJob(object):
         matrix = DataMatrix(measured_data.data)
         matrix.normalize_by_std()
 
-        scale_factor = matrix.get_scaling_factor(config.CALCULATE_KEYS)
         events = config.CALCULATE_KEYS
-        data_matrix = matrix.get_data_matrix()
         nr_components, singular_values = matrix.get_nr_primary_components(
             threshold=events.threshold
         )
         self._reporter.publish("svd", list(singular_values))
-        nr_observations = data_matrix.shape[1]
 
         logging.info("Scaling factor calculated from {}".format(events.keys))
+        scale_factor = matrix.get_scaling_factor(nr_components)
 
-        scale_factor = np.sqrt(nr_observations / float(nr_components))
         self._reporter.publish("scale_factor", scale_factor)
 
         update_data = create_active_lists(self._obs, config.UPDATE_KEYS.keys)
