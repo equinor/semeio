@@ -3,7 +3,7 @@ from semeio.jobs.misfit_preprocessor.config import (
     SPEARMAN_CORRELATION,
     assemble_config,
 )
-from semeio.jobs.spearman_correlation_job.job import spearman_job
+from semeio.workflows.spearman_correlation_job.job import spearman_job
 
 
 def run(misfit_preprocessor_config, measured_data, reporter):

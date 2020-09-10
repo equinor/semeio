@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import pytest
 
-from semeio.jobs.spearman_correlation_job import job as spearman
+from semeio.workflows.spearman_correlation_job import job as spearman
 
 
 @pytest.mark.parametrize(
