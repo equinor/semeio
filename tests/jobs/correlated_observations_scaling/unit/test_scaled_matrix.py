@@ -1,5 +1,3 @@
-from collections import namedtuple
-
 import numpy as np
 import pandas as pd
 import pytest
@@ -8,13 +6,11 @@ from semeio.workflows.correlated_observations_scaling.scaled_matrix import DataM
 
 
 def test_get_scaling_factor():
-    new_event = namedtuple("named_dict", ["keys", "threshold"])
-    event = new_event(["one_random_key"], 0.95)
     np.random.seed(123)
     input_matrix = np.random.rand(10, 10)
 
     matrix = DataMatrix(pd.DataFrame(data=input_matrix))
-    assert matrix.get_scaling_factor(event) == np.sqrt(10 / 6.0)
+    assert matrix.get_scaling_factor(6) == np.sqrt(10 / 6.0)
 
 
 @pytest.mark.parametrize(
