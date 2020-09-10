@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import pytest
 import random
-from semeio.jobs import misfit_preprocessor
+from semeio.workflows import misfit_preprocessor
 
 from unittest.mock import Mock
 

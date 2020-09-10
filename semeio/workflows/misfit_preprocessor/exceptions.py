@@ -1,6 +1,6 @@
 class ValidationError(ValueError):
     def __init__(self, message, errors):
-        super(ValidationError, self).__init__(message)
+        super().__init__(message)
         self.errors = errors
         self.message = message
 
