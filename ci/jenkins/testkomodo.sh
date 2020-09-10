@@ -30,6 +30,7 @@ if [[ -z "${sha1// }" ]]; then
     pushd temp_tests
 fi
 python -m pip install -r  ${ROOT_DIR}/test_requirements.txt
+python -m pip install ${ROOT_DIR} --no-deps
 
 echo "running pytest"
 LIBRES_TEST_DATA_DIR=$ROOT_DIR/libres/test-data python -m pytest tests
