@@ -60,15 +60,7 @@ _OBSERVATIONS = "observations"
 
 
 _DEFAULT_VALUES = {
-    _SCALING: {_THRESHOLD: 0.95},
     _OBSERVATIONS: (),
-    _CLUSTERING: {
-        _METHOD: SPEARMAN_CORRELATION,
-        SPEARMAN_CORRELATION: {
-            _FCLUSTER: {_CRITERION: _INCONSISTENT, _DEPTH: 2},
-            _LINKAGE: {_METHOD: _SINGLE, _METRIC: _EUCLIDEAN},
-        },
-    },
 }
 
 
@@ -140,97 +132,94 @@ def _inject_default_t(config):
     return config
 
 
+_LINKAGE_SCHEMA = {
+    cs.MetaKeys.Type: cs.types.NamedDict,
+    cs.MetaKeys.Description: (
+        "The {linkage} implementation is backed by scipy and for a "
+        "more detailed description we refer the reader to the "
+        "documentation of scipy.cluster.hierarchy.linkage` "
+        "(https://docs.scipy.org/doc/scipy/reference/generated"
+        "/scipy.cluster.hierarchy.linkage.html)."
+    ).format(linkage=_LINKAGE),
+    cs.MetaKeys.Content: {
+        _METHOD: {
+            cs.MetaKeys.Type: cs.types.String,
+            cs.MetaKeys.Description: (
+                "Method used to calculate the distance between the clusters."
+            ),
+            cs.MetaKeys.ElementValidators: (_one_of(*_METHODS),),
+            cs.MetaKeys.Default: _SINGLE,
+        },
+        _METRIC: {
+            cs.MetaKeys.Type: cs.types.String,
+            cs.MetaKeys.Description: ("Distance metric used to calculate distances."),
+            cs.MetaKeys.ElementValidators: (_one_of(*_METRICS),),
+            cs.MetaKeys.Default: _EUCLIDEAN,
+        },
+    },
+}
+
+
+_FCLUSTER_SCHEMA = {
+    cs.MetaKeys.Type: cs.types.NamedDict,
+    cs.MetaKeys.Description: (
+        "The {fcluster} implementation is backed by scipy and for a "
+        "more detailed description we refer the reader to the "
+        "documentation of scipy.cluster.hierarchy.fcluster` "
+        "(https://docs.scipy.org/doc/scipy/reference/generated"
+        "/scipy.cluster.hierarchy.fcluster.html)."
+    ).format(fcluster=_FCLUSTER),
+    cs.MetaKeys.ElementValidators: (_t_is_int_if_maxclust,),
+    cs.MetaKeys.Transformation: _inject_default_t,
+    cs.MetaKeys.Content: {
+        _SPEARMAN_THRESHOLD: {
+            cs.MetaKeys.Type: cs.types.Number,
+            cs.MetaKeys.Description: (
+                "Scalar threshold for the clustering. When a "
+                "'{maxclust}' {criterion} is used, the scalar gives "
+                "the maximum number of clusters to be formed."
+            ).format(maxclust=_MAXCLUST, criterion=_CRITERION),
+            cs.MetaKeys.ElementValidators: (
+                _bounds_validator(lower=0, lower_inclusive=False),
+            ),
+        },
+        _CRITERION: {
+            cs.MetaKeys.Type: cs.types.String,
+            cs.MetaKeys.Description: (
+                "The criterion to use in forming flat clusters. "
+                "Defaults to {default_criterion}."
+            ).format(default_criterion=_INCONSISTENT),
+            cs.MetaKeys.ElementValidators: (
+                _one_of(
+                    _INCONSISTENT,
+                    _DISTANCE,
+                    _MAXCLUST,
+                    _MONOCRIT,
+                    _MAXCLUST_MONOCRIT,
+                ),
+            ),
+            cs.MetaKeys.Default: _INCONSISTENT,
+        },
+        _DEPTH: {
+            cs.MetaKeys.Type: cs.types.Integer,
+            cs.MetaKeys.Description: (
+                "The maximum depth to perform the {inconsistent} calculation. "
+            ).format(
+                inconsistent=_INCONSISTENT,
+            ),
+            cs.MetaKeys.ElementValidators: (_bounds_validator(lower=1),),
+            cs.MetaKeys.Default: 2,
+        },
+    },
+}
+
+
 SPEARMAN_CORRELATION_SCHEMA = {
     cs.MetaKeys.Type: cs.types.NamedDict,
     cs.MetaKeys.Description: (
         "The {sc} clustering is supporting multiple parameters."
     ).format(sc=SPEARMAN_CORRELATION),
-    cs.MetaKeys.Content: {
-        _FCLUSTER: {
-            cs.MetaKeys.Type: cs.types.NamedDict,
-            cs.MetaKeys.Description: (
-                "The {fcluster} implementation is backed by scipy and for a "
-                "more detailed description we refer the reader to the "
-                "documentation of scipy.cluster.hierarchy.fcluster` "
-                "(https://docs.scipy.org/doc/scipy/reference/generated"
-                "/scipy.cluster.hierarchy.fcluster.html)."
-            ).format(fcluster=_FCLUSTER),
-            cs.MetaKeys.ElementValidators: (_t_is_int_if_maxclust,),
-            cs.MetaKeys.Transformation: _inject_default_t,
-            cs.MetaKeys.Content: {
-                _SPEARMAN_THRESHOLD: {
-                    cs.MetaKeys.Type: cs.types.Number,
-                    cs.MetaKeys.Description: (
-                        "Scalar threshold for the clustering. When a "
-                        "'{maxclust}' {criterion} is used, the scalar gives "
-                        "the maximum number of clusters to be formed."
-                    ).format(maxclust=_MAXCLUST, criterion=_CRITERION),
-                    cs.MetaKeys.ElementValidators: (
-                        _bounds_validator(lower=0, lower_inclusive=False),
-                    ),
-                },
-                _CRITERION: {
-                    cs.MetaKeys.Type: cs.types.String,
-                    cs.MetaKeys.Description: (
-                        "The criterion to use in forming flat clusters. "
-                        "Defaults to {default_criterion}."
-                    ).format(
-                        default_criterion=_DEFAULT_VALUES[_CLUSTERING][
-                            SPEARMAN_CORRELATION
-                        ][_FCLUSTER][_CRITERION]
-                    ),
-                    cs.MetaKeys.ElementValidators: (
-                        _one_of(
-                            _INCONSISTENT,
-                            _DISTANCE,
-                            _MAXCLUST,
-                            _MONOCRIT,
-                            _MAXCLUST_MONOCRIT,
-                        ),
-                    ),
-                },
-                _DEPTH: {
-                    cs.MetaKeys.Type: cs.types.Integer,
-                    cs.MetaKeys.Description: (
-                        "The maximum depth to perform the {inconsistent} calculation. "
-                        "Defaults to {default_depth}."
-                    ).format(
-                        inconsistent=_INCONSISTENT,
-                        default_depth=_DEFAULT_VALUES[_CLUSTERING][
-                            SPEARMAN_CORRELATION
-                        ][_FCLUSTER][_DEPTH],
-                    ),
-                    cs.MetaKeys.ElementValidators: (_bounds_validator(lower=1),),
-                },
-            },
-        },
-        _LINKAGE: {
-            cs.MetaKeys.Type: cs.types.NamedDict,
-            cs.MetaKeys.Description: (
-                "The {linkage} implementation is backed by scipy and for a "
-                "more detailed description we refer the reader to the "
-                "documentation of scipy.cluster.hierarchy.linkage` "
-                "(https://docs.scipy.org/doc/scipy/reference/generated"
-                "/scipy.cluster.hierarchy.linkage.html)."
-            ).format(linkage=_LINKAGE),
-            cs.MetaKeys.Content: {
-                _METHOD: {
-                    cs.MetaKeys.Type: cs.types.String,
-                    cs.MetaKeys.Description: (
-                        "Method used to calculate the distance between the clusters."
-                    ),
-                    cs.MetaKeys.ElementValidators: (_one_of(*_METHODS),),
-                },
-                _METRIC: {
-                    cs.MetaKeys.Type: cs.types.String,
-                    cs.MetaKeys.Description: (
-                        "Distance metric used to calculate distances."
-                    ),
-                    cs.MetaKeys.ElementValidators: (_one_of(*_METRICS),),
-                },
-            },
-        },
-    },
+    cs.MetaKeys.Content: {_FCLUSTER: _FCLUSTER_SCHEMA, _LINKAGE: _LINKAGE_SCHEMA},
 }
 
 
@@ -262,8 +251,8 @@ _SCALING_SCHEMA = {
             cs.MetaKeys.Type: cs.types.Number,
             cs.MetaKeys.Description: (
                 "Threshold used when computing primary components of the "
-                "clusters. Defaults to: {default}"
-            ).format(default=_DEFAULT_VALUES[_SCALING][_THRESHOLD]),
+            ),
+            cs.MetaKeys.Default: 0.95,
             cs.MetaKeys.ElementValidators: (
                 _bounds_validator(
                     lower=0,
@@ -403,6 +392,7 @@ class MisfitPreprocessorConfig(cs.ConfigSuite):
             (_DEFAULT_VALUES,),
             extract_validation_context=_ObservationContext(observation_keys),
             extract_transformation_context=_ObservationContext(observation_keys),
+            deduce_required=True,
         )
 
 
