@@ -176,7 +176,6 @@ class CorrelatedObservationsScalingJob(
 def _get_measured_data(
     facade, observation_keys, observation_index_list, alpha, std_cutoff
 ):
-
     measured_data = MeasuredData(facade, observation_keys, observation_index_list)
     measured_data.remove_failed_realizations()
     measured_data.remove_inactive_observations()
