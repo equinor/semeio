@@ -117,6 +117,30 @@ def test_gendata_rft_csv(tmpdir, input_data):
     assert (~dframe[~dframe["is_active"]]["inactive_info"].isnull()).all()
 
 
+def test_gendata_rft_directory(tmpdir, input_data):
+    outputdirectory = "rft_output_dir"
+    tmpdir.mkdir(outputdirectory)
+    arguments = [
+        "-e",
+        ECL_BASE,
+        "-w",
+        "well_and_time.txt",
+        "-t",
+        tmpdir.strpath,
+        "-z",
+        "zonemap.txt",
+        "-c",
+        "csvfile.csv",
+        "-o",
+        outputdirectory,
+    ]
+    main_entry_point(arguments)
+    well_count = 6
+    files_pr_well = 3
+    assert len(list(os.walk(outputdirectory))[0][2]) == well_count * files_pr_well
+    assert os.path.exists("csvfile.csv")  # Should be independent of --outputdirectory
+
+
 def test_gendata_rft_entry_point(tmpdir, input_data):
 
     arguments = [
@@ -337,10 +361,10 @@ def test_gendata_rft_empty_well_and_time(tmpdir, input_data):
     assert file_count_cwd() == pre_file_count
 
 
-def test_csv_defaults():
-    """Default filename for CSV export is/can be handled at multiple layers.
-    ERT users infer the default from the JOB_DESCRIPTION file, while command line
-    users (or Everest/ERT3?) might get the default from the argparse setup.
+def test_defaults():
+    """Default filename for CSV export and outputdir is/can be handled at multiple
+    layers.  ERT users infer the default from the JOB_DESCRIPTION file, while command
+    line users (or Everest/ERT3?) might get the default from the argparse setup.
 
     To avoid confusion, these should be in sync, enforced by this test"""
 
@@ -352,11 +376,13 @@ def test_csv_defaults():
     )
 
     # Crude parsing of the file
-    job_default = ""
     for line in open(job_description_file).readlines():
         if line.startswith("DEFAULT"):
             if line.split()[0:2] == ["DEFAULT", "<CSVFILE>"]:
-                job_default = line.split()[2]
+                csv_job_default = line.split()[2]
+            if line.split()[0:2] == ["DEFAULT", "<DIRECTORY>"]:
+                directory_job_default = line.split()[2]
 
     # And compare with argparse:
-    assert job_default == _build_parser().get_default("csvfile")
+    assert csv_job_default == _build_parser().get_default("csvfile")
+    assert directory_job_default == _build_parser().get_default("outputdirectory")

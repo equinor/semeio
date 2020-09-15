@@ -1,3 +1,5 @@
+import os
+
 import logging
 import pandas as pd
 
@@ -131,6 +133,7 @@ def run(
     ecl_rft,
     zonemap=None,
     csvfile=None,
+    outputdirectory=".",
 ):
     dframes = []
 
@@ -157,7 +160,10 @@ def run(
 
             # Write trajectory and associated data to three  files,
             # individual pr. well and time, this is for GEN_DATA to pick up.
-            _write_gen_data_files(trajectory_df, "RFT_{}_{}".format(well, report_step))
+            _write_gen_data_files(
+                trajectory_df,
+                os.path.join(outputdirectory, "RFT_{}_{}".format(well, report_step)),
+            )
 
             # Aggregate dataframe for all wells and report steps.
             dframes.append(trajectory_df)
