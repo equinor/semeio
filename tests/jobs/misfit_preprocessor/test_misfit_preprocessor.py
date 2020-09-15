@@ -145,11 +145,16 @@ def generate_measurements(num_polynomials, poly_states=None, ensemble_size=10000
     return observations, simulated
 
 
+@pytest.mark.parametrize("method", ["spearman_correlation", "auto_scale"])
 @pytest.mark.parametrize(
     "num_polynomials",
     tuple(range(1, 5)) + (20, 100),
 )
-def test_misfit_preprocessor_n_polynomials(num_polynomials):
+def test_misfit_preprocessor_n_polynomials(num_polynomials, method):
+    """
+    The goal of this test is to create a data set of uncorrelated polynomials,
+    meaning that there should be as many clusters as there are input polynomials.
+    """
     state_size = 3
     poly_states = [range(1, state_size + 1) for _ in range(num_polynomials)]
 
@@ -159,19 +164,23 @@ def test_misfit_preprocessor_n_polynomials(num_polynomials):
         ensemble_size=10000,
     )
     measured_data = MockedMeasuredData(observations, simulated)
-
-    config = {}
+    # We set the PCA threshold to 0.99 so a high degree of correlation is required
+    # to have an impact. Setting it this way only has an impact for "auto_scale"
+    config = {"clustering": {"method": method}, "scaling": {"threshold": 0.99}}
     reporter_mock = Mock()
     configs = misfit_preprocessor.run(config, measured_data, reporter_mock)
     assert_homogen_clusters(configs)
     assert num_polynomials == len(configs), configs
 
 
+@pytest.mark.parametrize("method", ["spearman_correlation", "auto_scale"])
 @pytest.mark.parametrize(
     "state_size",
     [5 * [30], [5, 5, 5, 5, 100]],
 )
-def test_misfit_preprocessor_state_size(state_size):
+def test_misfit_preprocessor_state_size(state_size, method):
+    if state_size == [5, 5, 5, 5, 100] and method == "auto_scale":
+        pytest.skip("Produces not homogeneous clusters due to PCA analysis")
     num_polynomials = 5
     poly_states = [range(1, size + 1) for size in state_size]
 
@@ -182,7 +191,7 @@ def test_misfit_preprocessor_state_size(state_size):
     )
     measured_data = MockedMeasuredData(observations, simulated)
 
-    config = {}
+    config = {"clustering": {"method": method}, "scaling": {"threshold": 0.99}}
     reporter_mock = Mock()
     configs = misfit_preprocessor.run(config, measured_data, reporter_mock)
     assert_homogen_clusters(configs)
@@ -206,9 +215,10 @@ def test_misfit_preprocessor_state_uneven_size(state_size):
 
     config = {
         "clustering": {
+            "method": "spearman_correlation",
             "spearman_correlation": {
                 "fcluster": {"t": num_polynomials + 1, "criterion": "maxclust"}
-            }
+            },
         }
     }
     reporter_mock = Mock()
@@ -223,7 +233,10 @@ def test_misfit_preprocessor_configuration_errors():
 
     config = {
         "unknown_key": [],
-        "clustering": {"spearman_correlation": {"fcluster": {"threshold": 1.0}}},
+        "clustering": {
+            "method": "spearman_correlation",
+            "spearman_correlation": {"fcluster": {"threshold": 1.0}},
+        },
     }
     reporter_mock = Mock()
     with pytest.raises(misfit_preprocessor.ValidationError) as ve:
@@ -235,3 +248,30 @@ def test_misfit_preprocessor_configuration_errors():
         "  - Unknown key: threshold (clustering.spearman_correlation.fcluster)\n"
     )
     assert expected_err_msg == str(ve.value)
+
+
+@pytest.mark.parametrize(
+    "num_polynomials",
+    tuple(range(2, 5)) + (20, 100),
+)
+def test_misfit_preprocessor_n_polynomials_w_correlation(num_polynomials):
+    state_size = 3
+    poly_states = [range(1, state_size + 1) for _ in range(num_polynomials)]
+
+    observations, simulated = generate_measurements(
+        num_polynomials,
+        poly_states=poly_states,
+        ensemble_size=10000,
+    )
+    measured_data = MockedMeasuredData(observations, simulated)
+
+    # We add a correlation:
+    measured_data.data["poly_0"] = measured_data.data["poly_1"] * 2.0
+
+    config = {
+        "clustering": {"method": "spearman_correlation"},
+        "scaling": {"threshold": 0.99},
+    }
+    reporter_mock = Mock()
+    configs = misfit_preprocessor.run(config, measured_data, reporter_mock)
+    assert num_polynomials == len(configs) - 1, configs

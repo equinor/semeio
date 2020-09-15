@@ -11,6 +11,7 @@ _ALPHA = "alpha"
 _CLUSTERING = "clustering"
 _METHOD = "method"
 SPEARMAN_CORRELATION = "spearman_correlation"
+AUTO_SCALE = "auto_scale"
 _FCLUSTER = "fcluster"
 _SPEARMAN_THRESHOLD = "t"
 _CRITERION = "criterion"
@@ -214,6 +215,15 @@ _FCLUSTER_SCHEMA = {
 }
 
 
+AUTO_SCALE_SCHEMA = {
+    cs.MetaKeys.Type: cs.types.NamedDict,
+    cs.MetaKeys.Description: (
+        "The {sc} clustering is supporting multiple parameters."
+    ).format(sc=AUTO_SCALE),
+    cs.MetaKeys.Content: {_LINKAGE: _LINKAGE_SCHEMA},
+}
+
+
 SPEARMAN_CORRELATION_SCHEMA = {
     cs.MetaKeys.Type: cs.types.NamedDict,
     cs.MetaKeys.Description: (
@@ -236,9 +246,11 @@ _CLUSTERING_SCHEMA = {
                 "Currently the workflow only supports clustering by "
                 "{spearman}.".format(spearman=SPEARMAN_CORRELATION)
             ),
-            cs.MetaKeys.ElementValidators: (_one_of(SPEARMAN_CORRELATION),),
+            cs.MetaKeys.ElementValidators: (_one_of(SPEARMAN_CORRELATION, AUTO_SCALE),),
+            cs.MetaKeys.Default: AUTO_SCALE,
         },
         SPEARMAN_CORRELATION: SPEARMAN_CORRELATION_SCHEMA,
+        AUTO_SCALE: AUTO_SCALE_SCHEMA,
     },
 }
 

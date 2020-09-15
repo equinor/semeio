@@ -1,5 +1,7 @@
+from semeio.workflows.correlated_observations_scaling import ObservationScaleFactor
 from semeio.workflows.misfit_preprocessor.exceptions import ValidationError
 from semeio.workflows.misfit_preprocessor.config import (
+    AUTO_SCALE,
     SPEARMAN_CORRELATION,
     assemble_config,
 )
@@ -22,6 +24,18 @@ def run(misfit_preprocessor_config, measured_data, reporter):
             reporter,
             criterion=sconfig.fcluster.criterion,
             depth=sconfig.fcluster.depth,
+            method=sconfig.linkage.method,
+            metric=sconfig.linkage.metric,
+        )
+    elif config.clustering.method == AUTO_SCALE:
+        job = ObservationScaleFactor(reporter, measured_data)
+        nr_components, _ = job.perform_pca(config.scaling.threshold)
+        sconfig = config.clustering.auto_scale
+        scaling_configs = spearman_job(
+            measured_data,
+            nr_components,
+            reporter,
+            criterion="maxclust",
             method=sconfig.linkage.method,
             metric=sconfig.linkage.metric,
         )
