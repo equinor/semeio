@@ -101,6 +101,19 @@ a specific pressure point is valid
 """,
     )
     parser.add_argument(
+        "-o",
+        "--outputdirectory",
+        required=False,
+        type=existing_directory,
+        default=".",
+        help=(
+            "Output directory used for outputting resulting files "
+            "(except for the csvfile output). "
+            "The directory must exist. "
+            "Defaults to RUNPATH."
+        ),
+    )
+    parser.add_argument(
         "--log-level",
         "-l",
         required=False,
@@ -136,6 +149,7 @@ def main_entry_point(args=None):
             ecl_rft=options.eclbase[1],
             zonemap=options.zonemap,
             csvfile=options.csvfile,
+            outputdirectory=options.outputdirectory,
         )
         with open("GENDATA_RFT.OK", "w") as fh:
             fh.write("GENDATA RFT completed OK")
