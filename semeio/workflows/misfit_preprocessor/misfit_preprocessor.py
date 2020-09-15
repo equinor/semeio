@@ -76,7 +76,12 @@ def _load_measured_record(enkf_main):
     obs_keys = [
         facade.get_observation_key(nr) for nr, _ in enumerate(facade.get_observations())
     ]
-    return MeasuredData(facade, obs_keys)
+    measured_data = MeasuredData(facade, obs_keys)
+    measured_data.remove_failed_realizations()
+    measured_data.remove_inactive_observations()
+    measured_data.filter_ensemble_mean_obs(facade.get_alpha())
+    measured_data.filter_ensemble_std(facade.get_std_cutoff())
+    return measured_data
 
 
 @hook_implementation

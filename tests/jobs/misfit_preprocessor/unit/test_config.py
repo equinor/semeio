@@ -104,7 +104,7 @@ def test_default_clustering_method():
     )
 
     assert config.valid, config.errors
-    assert "spearman_correlation" == config.snapshot.clustering.method
+    assert "auto_scale" == config.snapshot.clustering.method
 
 
 @pytest.mark.parametrize(
