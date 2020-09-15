@@ -32,7 +32,12 @@ def test_misfit_preprocessor_main_entry_point_gen_data(monkeypatch, test_data_ro
     res_config = ResConfig("snake_oil.ert")
     ert = EnKFMain(res_config)
 
-    config = {"clustering": {"spearman_correlation": {"fcluster": {"t": 1.0}}}}
+    config = {
+        "clustering": {
+            "method": "spearman_correlation",
+            "spearman_correlation": {"fcluster": {"t": 1.0}},
+        }
+    }
     config_file = "my_config_file.yaml"
     with open(config_file, "w") as f:
         yaml.dump(config, f)
@@ -65,7 +70,10 @@ def test_misfit_preprocessor_passing_scaling_parameters(monkeypatch, test_data_r
     res_config = ResConfig("snake_oil.ert")
     ert = EnKFMain(res_config)
 
-    config = {"scaling": {"threshold": 0.5, "std_cutoff": 2, "alpha": 3}}
+    config = {
+        "clustering": {"method": "spearman_correlation"},
+        "scaling": {"threshold": 0.5, "std_cutoff": 2, "alpha": 3},
+    }
     config_file = "my_config_file.yaml"
     with open(config_file, "w") as f:
         yaml.dump(config, f)
@@ -109,7 +117,12 @@ def test_misfit_preprocessor_with_scaling(test_data_root):
     res_config = ResConfig("snake_oil.ert")
     ert = EnKFMain(res_config)
 
-    config = {"clustering": {"spearman_correlation": {"fcluster": {"t": 1.0}}}}
+    config = {
+        "clustering": {
+            "method": "spearman_correlation",
+            "spearman_correlation": {"fcluster": {"t": 1.0}},
+        }
+    }
     config_file = "my_config_file.yaml"
     with open(config_file, "w") as f:
         yaml.dump(config, f)
@@ -143,7 +156,12 @@ def test_misfit_preprocessor_skip_clusters_yielding_empty_data_matrixes(
     res_config = ResConfig("snake_oil.ert")
     ert = EnKFMain(res_config)
 
-    config = {"clustering": {"spearman_correlation": {"fcluster": {"t": 1.0}}}}
+    config = {
+        "clustering": {
+            "method": "spearman_correlation",
+            "spearman_correlation": {"fcluster": {"t": 1.0}},
+        }
+    }
     config_file = "my_config_file.yaml"
     with open(config_file, "w") as f:
         yaml.dump(config, f)
@@ -168,7 +186,10 @@ def test_misfit_preprocessor_invalid_config(test_data_root):
 
     config = {
         "unknown_key": [],
-        "clustering": {"spearman_correlation": {"fcluster": {"threshold": 1.0}}},
+        "clustering": {
+            "method": "spearman_correlation",
+            "spearman_correlation": {"fcluster": {"threshold": 1.0}},
+        },
     }
     config_file = "my_config_file.yaml"
     with open(config_file, "w") as f:
