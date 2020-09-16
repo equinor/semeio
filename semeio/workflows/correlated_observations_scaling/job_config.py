@@ -180,51 +180,50 @@ _KEYS_SCHEMA = {
 }
 
 
-def build_schema():
-    return {
-        MK.Type: types.NamedDict,
-        MK.Description: "Keys and index lists from all scaled keys",
-        MK.LayerTransformation: _expand_input,
-        MK.Content: {
-            "CALCULATE_KEYS": {
-                MK.Type: types.NamedDict,
-                MK.Description: _CALCULATE_KEYS_DESCRIPTION,
-                MK.Content: {
-                    "keys": _KEYS_SCHEMA,
-                    "threshold": {
-                        MK.Type: types.Number,
-                        MK.ElementValidators: (_min_max_value,),
-                        MK.Description: "Threshold used when computing primary"
-                        "components of the clusters.",
-                        MK.Default: 0.95,
-                    },
-                    "std_cutoff": {
-                        MK.Type: types.Number,
-                        MK.Description: "A lower bound on the ensemble standard"
-                        " deviation. All data points with insufficient variation"
-                        " will be dropped. The value is defaulted to the value used"
-                        " in the ert run, but if a value is given in the config, "
-                        " that value will be used",
-                    },
-                    "alpha": {
-                        MK.Type: types.Number,
-                        MK.Description: "Scalar controlling the allowed distance"
-                        "between ensemble mean and observation. In particular, "
-                        "if: `abs(observed_value - ensemble_mean) > "
-                        "alpha * (ensenmble_std + observed_std)` the data point "
-                        "will be dropped. The value is defaulted to the value used "
-                        "in the ert run, but if a value is given in the config, "
-                        "that value will be used",
-                    },
+_CORRELATED_OBSERVATIONS_SCHEMA = {
+    MK.Type: types.NamedDict,
+    MK.Description: "Keys and index lists from all scaled keys",
+    MK.LayerTransformation: _expand_input,
+    MK.Content: {
+        "CALCULATE_KEYS": {
+            MK.Type: types.NamedDict,
+            MK.Description: _CALCULATE_KEYS_DESCRIPTION,
+            MK.Content: {
+                "keys": _KEYS_SCHEMA,
+                "threshold": {
+                    MK.Type: types.Number,
+                    MK.ElementValidators: (_min_max_value,),
+                    MK.Description: "Threshold used when computing primary"
+                    "components of the clusters.",
+                    MK.Default: 0.95,
+                },
+                "std_cutoff": {
+                    MK.Type: types.Number,
+                    MK.Description: "A lower bound on the ensemble standard"
+                    " deviation. All data points with insufficient variation"
+                    " will be dropped. The value is defaulted to the value used"
+                    " in the ert run, but if a value is given in the config, "
+                    " that value will be used",
+                },
+                "alpha": {
+                    MK.Type: types.Number,
+                    MK.Description: "Scalar controlling the allowed distance"
+                    "between ensemble mean and observation. In particular, "
+                    "if: `abs(observed_value - ensemble_mean) > "
+                    "alpha * (ensenmble_std + observed_std)` the data point "
+                    "will be dropped. The value is defaulted to the value used "
+                    "in the ert run, but if a value is given in the config, "
+                    "that value will be used",
                 },
             },
-            "UPDATE_KEYS": {
-                MK.Type: types.NamedDict,
-                MK.Description: _UPDATE_KEYS_DESCRIPTION,
-                MK.Content: {"keys": _KEYS_SCHEMA},
-            },
         },
-    }
+        "UPDATE_KEYS": {
+            MK.Type: types.NamedDict,
+            MK.Description: _UPDATE_KEYS_DESCRIPTION,
+            MK.Content: {"keys": _KEYS_SCHEMA},
+        },
+    },
+}
 
 
 class ObsCorrConfig:
@@ -268,7 +267,7 @@ class ObsCorrConfig:
         config_dict = find_and_expand_wildcards(obs_keys, config_data)
         config = configsuite.ConfigSuite(
             config_dict,
-            build_schema(),
+            _CORRELATED_OBSERVATIONS_SCHEMA,
             deduce_required=True,
             layers=(default_values,),
         )
