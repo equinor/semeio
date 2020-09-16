@@ -7,6 +7,15 @@ import configsuite
 from configsuite import MetaKeys as MK
 from configsuite import types
 
+from semeio.workflows.correlated_observations_scaling.exceptions import ValidationError
+from semeio.workflows.correlated_observations_scaling.obs_utils import (
+    find_and_expand_wildcards,
+)
+from semeio.workflows.correlated_observations_scaling.validator import (
+    is_subset,
+    has_keys,
+)
+
 
 @configsuite.validator_msg("Minimum length of index list must be > 1 for PCA")
 def _min_length(value):
@@ -216,3 +225,72 @@ def build_schema():
             },
         },
     }
+
+
+class ObsCorrConfig:
+    def __init__(self, config_dict, obs_keys, default_values):
+        self._config_dict = config_dict
+        self._obs_keys = obs_keys
+        self._default_values = default_values
+        self.config = self._setup_configuration()
+        self.errors = []
+
+    def validate(self, obs_with_data):
+        """
+        Validates the full configuration. If invalid, raises an ValidationError.
+        """
+        self._schema_validation()
+        self._context_validation(obs_with_data)
+
+        if len(self.errors) > 0:
+            raise ValidationError("Invalid job", self.errors)
+
+    def _schema_validation(self):
+        self.errors.extend(list(self.config.errors))
+
+    def _context_validation(self, obs_with_data):
+        config = self.config.snapshot
+        calc_keys = [event.key for event in config.CALCULATE_KEYS.keys]
+        application_keys = [entry.key for entry in config.UPDATE_KEYS.keys]
+        self.errors.extend(is_subset(calc_keys, application_keys))
+        self.errors.extend(
+            has_keys(self._obs_keys, calc_keys, "Key: {} has no observations")
+        )
+        self.errors.extend(has_keys(obs_with_data, calc_keys, "Key: {} has no data"))
+
+    def _setup_configuration(self):
+        """
+        Creates a ConfigSuite instance and inserts default values
+        """
+        config_data = self._config_dict
+        obs_keys = self._obs_keys
+        default_values = self._default_values
+        config_dict = find_and_expand_wildcards(obs_keys, config_data)
+        config = configsuite.ConfigSuite(
+            config_dict,
+            build_schema(),
+            deduce_required=True,
+            layers=(default_values,),
+        )
+        return config
+
+    def get_calculation_keys(self):
+        return [event.key for event in self.config.snapshot.CALCULATE_KEYS.keys]
+
+    def get_index_lists(self):
+        return [
+            event.index if len(event.index) > 0 else None
+            for event in self.config.snapshot.CALCULATE_KEYS.keys
+        ]
+
+    def get_update_keys(self):
+        return self.config.snapshot.UPDATE_KEYS.keys
+
+    def get_threshold(self):
+        return self.config.snapshot.CALCULATE_KEYS.threshold
+
+    def get_alpha(self):
+        return self.config.snapshot.CALCULATE_KEYS.alpha
+
+    def get_std_cutoff(self):
+        return self.config.snapshot.CALCULATE_KEYS.std_cutoff

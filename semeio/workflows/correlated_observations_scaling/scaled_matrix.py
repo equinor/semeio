@@ -47,7 +47,8 @@ class DataMatrix(object):
 
         return output_data
 
-    def get_scaling_factor(self, nr_components):
+    @staticmethod
+    def get_scaling_factor(nr_observations, nr_components):
         """
         Calculates a observation scaling factor which is:
             sqrt(nr_obs / pc)
@@ -56,9 +57,6 @@ class DataMatrix(object):
             pc is the number of primary components from PCA analysis
                 below a user threshold
         """
-        data_matrix = self.get_data_matrix()
-        nr_observations = data_matrix.shape[1]
-
         logging.info(
             (
                 "Calculation scaling factor, nr of primary components: "
