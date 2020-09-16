@@ -35,7 +35,7 @@ Correlated Observations Scaling Configuration
 =============================================
 {}
 """.format(
-    configsuite.docs.generate(job_config.build_schema())
+    configsuite.docs.generate(job_config._CORRELATED_OBSERVATIONS_SCHEMA)
 )
 
 
