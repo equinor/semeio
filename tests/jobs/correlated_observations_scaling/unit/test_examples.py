@@ -20,7 +20,7 @@ def test_valid_examples(input_config):
         "CALCULATE_KEYS": {"std_cutoff": 1.0e-6, "alpha": 3},
         "UPDATE_KEYS": {},
     }
-    schema = job_config.build_schema()
+    schema = job_config._CORRELATED_OBSERVATIONS_SCHEMA
     config = configsuite.ConfigSuite(
         input_config,
         schema,

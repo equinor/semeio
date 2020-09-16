@@ -7,7 +7,7 @@ from semeio.workflows.correlated_observations_scaling.job_config import (
     _expand_input,
     _min_value,
     _to_int_list,
-    build_schema,
+    _CORRELATED_OBSERVATIONS_SCHEMA,
 )
 
 
@@ -79,7 +79,7 @@ def test_expand_input_modification():
 )
 def test_valid_config_setup(valid_config):
 
-    schema = build_schema()
+    schema = _CORRELATED_OBSERVATIONS_SCHEMA
     config = configsuite.ConfigSuite(
         valid_config,
         schema,
@@ -142,7 +142,7 @@ def test_valid_config_setup(valid_config):
     ],
 )
 def test_invalid_config_setup(test_input, expected_errors):
-    schema = build_schema()
+    schema = _CORRELATED_OBSERVATIONS_SCHEMA
     config = configsuite.ConfigSuite(
         test_input,
         schema,
@@ -165,7 +165,7 @@ def test_valid_configuration():
         "UPDATE_KEYS": {"keys": [{"key": "POLY_OBS"}]},
     }
 
-    schema = build_schema()
+    schema = _CORRELATED_OBSERVATIONS_SCHEMA
     config = configsuite.ConfigSuite(
         valid_config_data,
         schema,
