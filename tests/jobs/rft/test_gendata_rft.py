@@ -380,7 +380,7 @@ def test_defaults():
         if line.startswith("DEFAULT"):
             if line.split()[0:2] == ["DEFAULT", "<CSVFILE>"]:
                 csv_job_default = line.split()[2]
-            if line.split()[0:2] == ["DEFAULT", "<DIRECTORY>"]:
+            if line.split()[0:2] == ["DEFAULT", "<OUTPUTDIRECTORY>"]:
                 directory_job_default = line.split()[2]
 
     # And compare with argparse:
