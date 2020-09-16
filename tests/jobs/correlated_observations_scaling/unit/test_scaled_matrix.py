@@ -10,7 +10,7 @@ def test_get_scaling_factor():
     input_matrix = np.random.rand(10, 10)
 
     matrix = DataMatrix(pd.DataFrame(data=input_matrix))
-    assert matrix.get_scaling_factor(6) == np.sqrt(10 / 6.0)
+    assert matrix.get_scaling_factor(10, 6) == np.sqrt(10 / 6.0)
 
 
 @pytest.mark.parametrize(

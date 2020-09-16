@@ -1,5 +1,5 @@
 import collections
-
+import logging
 import yaml
 import configsuite
 
@@ -7,9 +7,13 @@ from ert_data.measured import MeasuredData
 from ert_shared.libres_facade import LibresFacade
 from ert_shared.plugins.plugin_manager import hook_implementation
 from semeio.communication import SemeioScript
+from semeio.workflows.correlated_observations_scaling.job import (
+    scale_observations,
+    ObservationScaleFactor,
+)
 from semeio.workflows.correlated_observations_scaling import job_config
-from semeio.workflows.correlated_observations_scaling import ScalingJob
 from semeio.workflows.correlated_observations_scaling.obs_utils import keys_with_data
+from semeio.workflows.correlated_observations_scaling.job_config import ObsCorrConfig
 
 
 _DESCRIPTION = """
@@ -146,14 +150,37 @@ class CorrelatedObservationsScalingJob(
         default_values = _get_default_values(
             facade.get_alpha(), facade.get_std_cutoff()
         )
-        for config in user_config:
-            job = ScalingJob(
-                obs_keys, obs, obs_with_data, config, self.reporter, default_values
+        for config_dict in user_config:
+            config = ObsCorrConfig(config_dict, obs_keys, default_values)
+            config.validate(obs_with_data)
+
+            measured_data = _get_measured_data(
+                facade,
+                config.get_calculation_keys(),
+                config.get_index_lists(),
+                config.get_alpha(),
+                config.get_std_cutoff(),
             )
-            measured_data = MeasuredData(
-                facade, job.get_calc_keys(), job.get_index_lists()
+            job = ObservationScaleFactor(self.reporter, measured_data)
+            scale_factor = job.get_scaling_factor(config.get_threshold())
+            logging.info(
+                "Scaling factor calculated from keys: {}".format(
+                    config.get_calculation_keys()
+                )
             )
-            job.scale(measured_data)
+            scale_observations(obs, scale_factor, config.get_update_keys())
+
+
+def _get_measured_data(
+    facade, observation_keys, observation_index_list, alpha, std_cutoff
+):
+
+    measured_data = MeasuredData(facade, observation_keys, observation_index_list)
+    measured_data.remove_failed_realizations()
+    measured_data.remove_inactive_observations()
+    measured_data.filter_ensemble_mean_obs(alpha)
+    measured_data.filter_ensemble_std(std_cutoff)
+    return measured_data
 
 
 def load_yaml(job_config):

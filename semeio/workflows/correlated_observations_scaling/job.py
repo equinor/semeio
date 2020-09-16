@@ -1,130 +1,77 @@
-# -*- coding: utf-8 -*-
 import logging
-import configsuite
-from semeio.workflows.correlated_observations_scaling import job_config
-from semeio.workflows.correlated_observations_scaling.exceptions import ValidationError
+
+
 from semeio.workflows.correlated_observations_scaling.obs_utils import (
     create_active_lists,
-    find_and_expand_wildcards,
 )
 from semeio.workflows.correlated_observations_scaling.scaled_matrix import DataMatrix
-from semeio.workflows.correlated_observations_scaling.validator import (
-    has_keys,
-    is_subset,
-)
 
 
-class ScalingJob(object):
+class ObservationScaleFactor(object):
     def __init__(
         self,
-        obs_keys,
-        obs,
-        obs_with_data,
-        user_config_dict,
         reporter,
-        default_values=None,
+        measured_data,
     ):
         """Creates a ScalingJob instance with the given obs_keys, obs,
         obs_with_data and user_config_dict."""
-        if default_values is None:
-            default_values = {}
-        self._obs = obs
-        self._obs_with_data = obs_with_data
-        self._obs_keys = obs_keys
-        self._config = self._setup_configuration(user_config_dict, default_values)
-        self._validate()
         self._reporter = reporter
+        self._measured_data = measured_data
 
-    def scale(self, measured_data):
-        """
-        Collects data, performs scaling and applies scaling, assumes validated input.
-        """
-        config = self._config.snapshot
-
-        measured_data.remove_failed_realizations()
-        measured_data.remove_inactive_observations()
-        measured_data.filter_ensemble_mean_obs(config.CALCULATE_KEYS.alpha)
-        measured_data.filter_ensemble_std(config.CALCULATE_KEYS.std_cutoff)
-
-        matrix = DataMatrix(measured_data.data)
+    def perform_pca(self, threshold):
+        matrix = DataMatrix(self._measured_data.data)
         matrix.normalize_by_std()
 
-        events = config.CALCULATE_KEYS
         nr_components, singular_values = matrix.get_nr_primary_components(
-            threshold=events.threshold
+            threshold=threshold
         )
         self._reporter.publish("svd", list(singular_values))
+        return nr_components, singular_values
 
-        logging.info("Scaling factor calculated from {}".format(events.keys))
-        scale_factor = matrix.get_scaling_factor(nr_components)
+    def get_scaling_factor(self, threshold):
+        """
+        Collects data performs pca, and returns scaling factor, assumes validated input.
+        """
+        nr_observations = self._measured_data.data.shape[1]
+        nr_components, singular_values = self.perform_pca(threshold)
+        scale_factor = DataMatrix.get_scaling_factor(nr_observations, nr_components)
 
         self._reporter.publish("scale_factor", scale_factor)
 
-        update_data = create_active_lists(self._obs, config.UPDATE_KEYS.keys)
-        self._update_scaling(self._obs, scale_factor, update_data)
+        return scale_factor
 
-    def _validate(self):
-        """
-        Validates the job. If invalid, raises an ValidationError.
-        """
-        errors = [] if self._config.valid else list(self._config.errors)
-        calc_keys = self.get_calc_keys()
-        application_keys = [
-            entry.key for entry in self._config.snapshot.UPDATE_KEYS.keys
-        ]
-        errors.extend(is_subset(calc_keys, application_keys))
-        errors.extend(
-            has_keys(self._obs_keys, calc_keys, "Key: {} has no observations")
+
+def scale_observations(obs, scale_factor, obs_list):
+    """
+    Function to scale observations
+    :param obs: enkfObservations type
+    :param scale_factor: float
+    :param obs_list: list of observations to scale, must have fields key and index
+    :return: None, scales observations in place
+    """
+    update_data = create_active_lists(obs, obs_list)
+    _update_scaling(obs, scale_factor, update_data)
+
+
+def _update_scaling(obs, scale_factor, obs_list):
+    """
+    Applies the scaling factor to the user specified index, SUMMARY_OBS needs to be
+    treated differently as it only has one data point per node, compared with other
+    observation types which have multiple data points per node.
+    """
+    for event in obs_list:
+        obs_vector = obs[event.key]
+        for index, obs_node in enumerate(obs_vector):
+            if obs_vector.getImplementationType().name == "SUMMARY_OBS":
+                index_list = (
+                    event.index if event.index is not None else range(len(obs_vector))
+                )
+                if index in index_list:
+                    obs_node.set_std_scaling(scale_factor)
+            elif obs_vector.getImplementationType().name != "SUMMARY_OBS":
+                obs_node.updateStdScaling(scale_factor, event.active_list)
+    logging.info(
+        "Keys: {} scaled with scaling factor: {}".format(
+            [event.key for event in obs_list], scale_factor
         )
-        errors.extend(has_keys(self._obs_with_data, calc_keys, "Key: {} has no data"))
-        if len(errors) > 0:
-            raise ValidationError("Invalid job", errors)
-
-    def get_calc_keys(self):
-        return [event.key for event in self._config.snapshot.CALCULATE_KEYS.keys]
-
-    def get_index_lists(self):
-        return [
-            event.index if len(event.index) > 0 else None
-            for event in self._config.snapshot.CALCULATE_KEYS.keys
-        ]
-
-    def _setup_configuration(self, config_data, default_values):
-        """
-        Creates a ConfigSuite instance and inserts default values
-        """
-        schema = job_config.build_schema()
-        config_dict = find_and_expand_wildcards(self._obs_keys, config_data)
-        config = configsuite.ConfigSuite(
-            config_dict,
-            schema,
-            deduce_required=True,
-            layers=(default_values,),
-        )
-        return config
-
-    @staticmethod
-    def _update_scaling(obs, scale_factor, events):
-        """
-        Applies the scaling factor to the user specified index, SUMMARY_OBS needs to be
-        treated differently as it only has one data point per node, compared with other
-        observation types which have multiple data points per node.
-        """
-        for event in events:
-            obs_vector = obs[event.key]
-            for index, obs_node in enumerate(obs_vector):
-                if obs_vector.getImplementationType().name == "SUMMARY_OBS":
-                    index_list = (
-                        event.index
-                        if event.index is not None
-                        else range(len(obs_vector))
-                    )
-                    if index in index_list:
-                        obs_node.set_std_scaling(scale_factor)
-                elif obs_vector.getImplementationType().name != "SUMMARY_OBS":
-                    obs_node.updateStdScaling(scale_factor, event.active_list)
-        logging.info(
-            "Keys: {} scaled with scaling factor: {}".format(
-                [event.key for event in events], scale_factor
-            )
-        )
+    )

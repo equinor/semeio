@@ -1,11 +1,9 @@
 import numpy as np
 import pandas as pd
 import pytest
-import os
 from ert_data import measured
-from semeio.workflows.correlated_observations_scaling import ScalingJob
+from semeio.workflows.correlated_observations_scaling.job_config import ObsCorrConfig
 from semeio.workflows.correlated_observations_scaling.exceptions import ValidationError
-from semeio.communication.reporter import FileReporter
 
 
 def test_filter_on_column_index():
@@ -42,7 +40,7 @@ def test_filter_on_column_index():
     ],
 )
 @pytest.mark.usefixtures("setup_tmpdir")
-def test_valid_job(
+def test_valid_configuration(
     calc_key,
     app_key,
     obs_keys,
@@ -57,12 +55,10 @@ def test_valid_job(
         "CALCULATE_KEYS": {"std_cutoff": 1.0e-6, "alpha": 3},
         "UPDATE_KEYS": {},
     }
-    reporter = FileReporter(os.path.realpath(os.getcwd()))
-    job = ScalingJob(
-        obs_keys, [], obs_with_data, user_config_dict, reporter, default_vals
-    )
-    assert job.get_index_lists() == scaling_job_content["get_index_lists"]
-    assert job.get_calc_keys() == scaling_job_content["get_calc_keys"]
+
+    config = ObsCorrConfig(user_config_dict, obs_keys, default_vals)
+    assert config.get_index_lists() == scaling_job_content["get_index_lists"]
+    assert config.get_calculation_keys() == scaling_job_content["get_calc_keys"]
 
 
 @pytest.mark.parametrize("input_key", ["alpha", "std_cutoff"])
@@ -74,17 +70,16 @@ def test_config_value_overwrites_default(input_key):
         "CALCULATE_KEYS": {"std_cutoff": 1.0e-6, "alpha": 3},
         "UPDATE_KEYS": {},
     }
-    reporter = FileReporter(os.path.realpath(os.getcwd()))
-    job = ScalingJob(["a_key"], [], ["a_key"], user_config_dict, reporter, default_vals)
+    config = ObsCorrConfig(user_config_dict, [], default_vals)
 
     # Check that the value equals the config value
     assert (
-        getattr(job._config.snapshot.CALCULATE_KEYS, input_key)
+        getattr(config.config.snapshot.CALCULATE_KEYS, input_key)
         == user_config_dict["CALCULATE_KEYS"][input_key]
     )
     # Check that different from default value
     assert (
-        getattr(job._config.snapshot.CALCULATE_KEYS, input_key)
+        getattr(config.config.snapshot.CALCULATE_KEYS, input_key)
         != default_vals["CALCULATE_KEYS"][input_key]
     )
 
@@ -151,8 +146,6 @@ def test_invalid_job(
             "key_path=('CALCULATE_KEYS',), layer=None)",
         )
 
-    reporter = FileReporter(os.path.realpath(os.getcwd()))
-
     with pytest.raises(ValidationError) as exc_info:
-        ScalingJob(obs_keys, [], obs_with_data, user_config_dict, reporter)
+        ObsCorrConfig(user_config_dict, obs_keys, {}).validate(obs_with_data)
     assert [str(elem) for elem in exc_info.value.errors] == errors
