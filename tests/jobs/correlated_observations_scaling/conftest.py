@@ -17,22 +17,14 @@ def pytest_runtest_setup(item):
 
 
 @pytest.fixture()
-def setup_ert(tmpdir):
+def setup_ert(tmpdir, test_data_root):
     cwd = os.getcwd()
     tmpdir.chdir()
-    test_data_dir = os.path.join(TEST_DATA_DIR, "local", "snake_oil")
+    test_data_dir = os.path.join(test_data_root, "snake_oil")
     shutil.copytree(test_data_dir, "test_data")
     os.chdir(os.path.join("test_data"))
 
     res_config = ResConfig("snake_oil.ert")
     yield res_config
 
-    os.chdir(cwd)
-
-
-@pytest.fixture()
-def setup_tmpdir(tmpdir):
-    cwd = os.getcwd()
-    tmpdir.chdir()
-    yield
     os.chdir(cwd)
