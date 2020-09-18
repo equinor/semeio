@@ -13,7 +13,6 @@ from semeio.workflows.correlated_observations_scaling.obs_utils import (
     find_and_expand_wildcards,
     keys_with_data,
 )
-from tests.jobs.correlated_observations_scaling.conftest import TEST_DATA_DIR
 
 
 @pytest.mark.parametrize(
@@ -129,7 +128,6 @@ def test_failed_wildcard_expansion(config_dict, obs_list, expected_fails, err_ms
             pytest.fail("unexpectedly raised with config: {}".format(config_dict))
 
 
-@pytest.mark.skipif(TEST_DATA_DIR is None, reason="no libres test-data")
 @pytest.mark.usefixtures("setup_ert")
 def test_create_observation_vectors(setup_ert):
 
@@ -155,16 +153,15 @@ def test_create_observation_vectors(setup_ert):
     assert "SNAKE_OIL_WPR_DIFF" not in keys
 
 
-@pytest.mark.skipif(TEST_DATA_DIR is None, reason="no libres test-data")
 @pytest.mark.usefixtures("setup_tmpdir")
-def test_add_observation_vectors():
+def test_add_observation_vectors(test_data_root):
 
     valid_config_data = {"UPDATE_KEYS": {"keys": [{"key": "WOPR_OP1_108"}]}}
 
     schema = job_config._CORRELATED_OBSERVATIONS_SCHEMA
     config = configsuite.ConfigSuite(valid_config_data, schema, deduce_required=True)
 
-    test_data_dir = os.path.join(TEST_DATA_DIR, "local", "snake_oil_field")
+    test_data_dir = os.path.join(test_data_root, "snake_oil")
 
     shutil.copytree(test_data_dir, "test_data")
     os.chdir(os.path.join("test_data"))
@@ -183,13 +180,12 @@ def test_add_observation_vectors():
     assert "WOPR_OP1_144" not in keys
 
 
-@pytest.mark.skipif(TEST_DATA_DIR is None, reason="no libres test-data")
 @pytest.mark.usefixtures("setup_tmpdir")
-def test_validate_failed_realizations():
+def test_validate_failed_realizations(test_data_root):
     """
     Config has several failed realisations
     """
-    test_data_dir = os.path.join(TEST_DATA_DIR, "local", "custom_kw")
+    test_data_dir = os.path.join(test_data_root, "failed_runs_in_storage")
     shutil.copytree(test_data_dir, "test_data")
     os.chdir(os.path.join("test_data"))
 
@@ -206,13 +202,12 @@ def test_validate_failed_realizations():
     assert result == ["GEN_PERLIN_1"]
 
 
-@pytest.mark.skipif(TEST_DATA_DIR is None, reason="no libres test-data")
 @pytest.mark.usefixtures("setup_tmpdir")
-def test_validate_no_realizations():
+def test_validate_no_realizations(test_data_root):
     """
     Ensamble has not run
     """
-    test_data_dir = os.path.join(TEST_DATA_DIR, "local", "poly_normal")
+    test_data_dir = os.path.join(test_data_root, "poly_normal")
     shutil.copytree(test_data_dir, "test_data")
     os.chdir(os.path.join("test_data"))
 

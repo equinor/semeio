@@ -10,14 +10,12 @@ import semeio.workflows.misfit_preprocessor.misfit_preprocessor as misfit_prepro
 from semeio.workflows.correlated_observations_scaling.exceptions import (
     EmptyDatasetException,
 )
-from tests.jobs.correlated_observations_scaling.conftest import TEST_DATA_DIR
 
 from unittest.mock import Mock
 
 
-@pytest.mark.skipif(TEST_DATA_DIR is None, reason="no libres test-data")
 @pytest.mark.usefixtures("setup_tmpdir")
-def test_misfit_preprocessor_main_entry_point_gen_data(monkeypatch):
+def test_misfit_preprocessor_main_entry_point_gen_data(monkeypatch, test_data_root):
     run_mock = Mock()
     scal_job = Mock(return_value=Mock(run=run_mock))
     monkeypatch.setattr(
@@ -26,7 +24,7 @@ def test_misfit_preprocessor_main_entry_point_gen_data(monkeypatch):
         scal_job,
     )
 
-    test_data_dir = os.path.join(TEST_DATA_DIR, "local", "snake_oil")
+    test_data_dir = os.path.join(test_data_root, "snake_oil")
 
     shutil.copytree(test_data_dir, "test_data")
     os.chdir(os.path.join("test_data"))
@@ -49,9 +47,8 @@ def test_misfit_preprocessor_main_entry_point_gen_data(monkeypatch):
     assert len(list(run_mock.call_args)[0][0]) == 47, "wrong number of clusters"
 
 
-@pytest.mark.skipif(TEST_DATA_DIR is None, reason="no libres test-data")
 @pytest.mark.usefixtures("setup_tmpdir")
-def test_misfit_preprocessor_passing_scaling_parameters(monkeypatch):
+def test_misfit_preprocessor_passing_scaling_parameters(monkeypatch, test_data_root):
     run_mock = Mock()
     scal_job = Mock(return_value=Mock(run=run_mock))
     monkeypatch.setattr(
@@ -60,7 +57,7 @@ def test_misfit_preprocessor_passing_scaling_parameters(monkeypatch):
         scal_job,
     )
 
-    test_data_dir = os.path.join(TEST_DATA_DIR, "local", "snake_oil")
+    test_data_dir = os.path.join(test_data_root, "snake_oil")
 
     shutil.copytree(test_data_dir, "test_data")
     os.chdir(os.path.join("test_data"))
@@ -79,9 +76,8 @@ def test_misfit_preprocessor_passing_scaling_parameters(monkeypatch):
         assert 0.5 == scaling_config["CALCULATE_KEYS"]["threshold"]
 
 
-@pytest.mark.skipif(TEST_DATA_DIR is None, reason="no libres test-data")
 @pytest.mark.usefixtures("setup_tmpdir")
-def test_misfit_preprocessor_main_entry_point_no_config(monkeypatch):
+def test_misfit_preprocessor_main_entry_point_no_config(monkeypatch, test_data_root):
     run_mock = Mock()
     scal_job = Mock(return_value=Mock(run=run_mock))
     monkeypatch.setattr(
@@ -90,7 +86,7 @@ def test_misfit_preprocessor_main_entry_point_no_config(monkeypatch):
         scal_job,
     )
 
-    test_data_dir = os.path.join(TEST_DATA_DIR, "local", "snake_oil")
+    test_data_dir = os.path.join(test_data_root, "snake_oil")
 
     shutil.copytree(test_data_dir, "test_data")
     os.chdir(os.path.join("test_data"))
@@ -103,10 +99,9 @@ def test_misfit_preprocessor_main_entry_point_no_config(monkeypatch):
     assert len(run_mock.call_args[0][0]) > 1  # pylint: disable=unsubscriptable-object
 
 
-@pytest.mark.skipif(TEST_DATA_DIR is None, reason="no libres test-data")
 @pytest.mark.usefixtures("setup_tmpdir")
-def test_misfit_preprocessor_with_scaling():
-    test_data_dir = os.path.join(TEST_DATA_DIR, "local", "snake_oil")
+def test_misfit_preprocessor_with_scaling(test_data_root):
+    test_data_dir = os.path.join(test_data_root, "snake_oil")
 
     shutil.copytree(test_data_dir, "test_data")
     os.chdir(os.path.join("test_data"))
@@ -127,9 +122,10 @@ def test_misfit_preprocessor_with_scaling():
         assert obs.getNode(index).getStdScaling() == 2.8284271247461903
 
 
-@pytest.mark.skipif(TEST_DATA_DIR is None, reason="no libres test-data")
 @pytest.mark.usefixtures("setup_tmpdir")
-def test_misfit_preprocessor_skip_clusters_yielding_empty_data_matrixes(monkeypatch):
+def test_misfit_preprocessor_skip_clusters_yielding_empty_data_matrixes(
+    monkeypatch, test_data_root
+):
     def raising_scaling_job(data):
         if data == {"CALCULATE_KEYS": {"keys": [{"index": [88, 89], "key": "FOPR"}]}}:
             raise EmptyDatasetException("foo")
@@ -139,7 +135,7 @@ def test_misfit_preprocessor_skip_clusters_yielding_empty_data_matrixes(monkeypa
         misfit_preprocessor, "CorrelatedObservationsScalingJob", scaling_mock
     )
 
-    test_data_dir = os.path.join(TEST_DATA_DIR, "local", "snake_oil")
+    test_data_dir = os.path.join(test_data_root, "snake_oil")
 
     shutil.copytree(test_data_dir, "test_data")
     os.chdir(os.path.join("test_data"))
@@ -160,10 +156,9 @@ def test_misfit_preprocessor_skip_clusters_yielding_empty_data_matrixes(monkeypa
         pytest.fail("EmptyDatasetException was not handled by misfit preprocessor")
 
 
-@pytest.mark.skipif(TEST_DATA_DIR is None, reason="no libres test-data")
 @pytest.mark.usefixtures("setup_tmpdir")
-def test_misfit_preprocessor_invalid_config():
-    test_data_dir = os.path.join(TEST_DATA_DIR, "local", "snake_oil")
+def test_misfit_preprocessor_invalid_config(test_data_root):
+    test_data_dir = os.path.join(test_data_root, "snake_oil")
 
     shutil.copytree(test_data_dir, "test_data")
     os.chdir(os.path.join("test_data"))
