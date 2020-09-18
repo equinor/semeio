@@ -40,7 +40,6 @@ install:
     - pushd libres
     - pip install -r requirements.txt --prefix=$INSTALL_DIR
     - source .libecl_version
-    - export LIBRES_TEST_DATA_DIR="$(pwd)/test-data"
     - popd
     - git clone --branch $LIBECL_VERSION --depth 1 https://github.com/equinor/libecl
     - bash ert/.build_install.sh libecl
