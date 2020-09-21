@@ -173,14 +173,19 @@ def test_misfit_preprocessor_n_polynomials(num_polynomials, method):
     assert num_polynomials == len(configs), configs
 
 
+@pytest.mark.parametrize("linkage", ["average", "single"])
 @pytest.mark.parametrize("method", ["spearman_correlation", "auto_scale"])
 @pytest.mark.parametrize(
     "state_size",
     [5 * [30], [5, 5, 5, 5, 100]],
 )
-def test_misfit_preprocessor_state_size(state_size, method):
-    if state_size == [5, 5, 5, 5, 100] and method == "auto_scale":
-        pytest.skip("Produces not homogeneous clusters due to PCA analysis")
+def test_misfit_preprocessor_state_size(state_size, method, linkage):
+    if state_size == [5, 5, 5, 5, 100]:
+        if linkage == "average":
+            pytest.skip("Produces wrong number of clusters")
+        elif method == "auto_scale":
+            pytest.skip("Produces not homogeneous clusters due to PCA analysis")
+
     num_polynomials = 5
     poly_states = [range(1, size + 1) for size in state_size]
 
@@ -191,7 +196,10 @@ def test_misfit_preprocessor_state_size(state_size, method):
     )
     measured_data = MockedMeasuredData(observations, simulated)
 
-    config = {"clustering": {"method": method}, "scaling": {"threshold": 0.99}}
+    config = {
+        "clustering": {"method": method, method: {"linkage": {"method": linkage}}},
+        "scaling": {"threshold": 0.99},
+    }
     reporter_mock = Mock()
     configs = misfit_preprocessor.run(config, measured_data, reporter_mock)
     assert_homogen_clusters(configs)
