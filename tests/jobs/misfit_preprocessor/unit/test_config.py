@@ -255,7 +255,7 @@ def test_default_linkage_method():
     )
 
     assert config.valid, config.errors
-    assert "single" == config.snapshot.clustering.spearman_correlation.linkage.method
+    assert "average" == config.snapshot.clustering.spearman_correlation.linkage.method
 
 
 @pytest.mark.parametrize(

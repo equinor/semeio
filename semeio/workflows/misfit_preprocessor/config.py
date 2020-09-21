@@ -23,10 +23,11 @@ _MAXCLUST_MONOCRIT = "maxclust_monocrit"
 _DEPTH = "depth"
 _LINKAGE = "linkage"
 _SINGLE = "single"
+_AVERAGE = "average"
 _METHODS = (
     _SINGLE,
     "complete",
-    "average",
+    _AVERAGE,
     "weighted",
     "centroid",
     "ward",
@@ -149,7 +150,7 @@ _LINKAGE_SCHEMA = {
                 "Method used to calculate the distance between the clusters."
             ),
             cs.MetaKeys.ElementValidators: (_one_of(*_METHODS),),
-            cs.MetaKeys.Default: _SINGLE,
+            cs.MetaKeys.Default: _AVERAGE,
         },
         _METRIC: {
             cs.MetaKeys.Type: cs.types.String,
