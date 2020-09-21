@@ -49,7 +49,7 @@ def test_misfit_preprocessor_main_entry_point_gen_data(monkeypatch, test_data_ro
     # call_args is a call object, which itself is a tuple of args and kwargs.
     # In this case, we want args, and the first element of the arguments, which
     # again is a tuple containing the configuration which is a list of configs.
-    assert len(list(run_mock.call_args)[0][0]) == 47, "wrong number of clusters"
+    assert len(list(run_mock.call_args)[0][0]) == 58, "wrong number of clusters"
 
 
 @pytest.mark.usefixtures("setup_tmpdir")
