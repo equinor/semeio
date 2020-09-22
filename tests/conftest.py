@@ -1,4 +1,4 @@
-import os
+import gc
 import pytest
 from tests import legacy_test_data
 
@@ -10,7 +10,10 @@ def test_data_root():
 
 @pytest.fixture()
 def setup_tmpdir(tmpdir):
-    cwd = os.getcwd()
-    tmpdir.chdir()
-    yield
-    os.chdir(cwd)
+    with tmpdir.as_cwd():
+        yield
+    # This makes sure EnkFMain is cleaned up between
+    # each test, otherwise a storage folder is created
+    # in semeio root dir at the end of the test run.
+    # Should be deleted when we no longer use EnkFMain
+    gc.collect()
