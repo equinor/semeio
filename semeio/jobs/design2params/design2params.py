@@ -40,6 +40,9 @@ def run(
             "No {} exists, creating a new, empty one.".format(parametersfilename)
         )
         parameters = pd.DataFrame(columns=[0, 1])
+    except pd.errors.EmptyDataError:
+        logger.info("{} existed but was empty.".format(parametersfilename))
+        parameters = pd.DataFrame(columns=[0, 1])
     parameters.rename(columns={0: "keys", 1: "parameters"}, inplace=True)
 
     _complete_parameters_file(
@@ -107,6 +110,21 @@ def _complete_parameters_file(
     # keys without value in parameters and design matrix
     defaults = merged[merged["parameters_realization"].isnull()]
     logger.info("\ndefaults used: \n%s", defaults[["keys", "combined"]])
+
+    # warn if keys with different values in parameters.tst and design matrix
+    conflicts = merged[
+        ~(merged["combined"].astype(str) == merged["realization"].astype(str))
+        & (~merged["realization"].isnull())
+    ]
+    if not conflicts.empty:
+        for _, row in conflicts.iterrows():
+            msg = (
+                "Parameter {} already exists in {} with value {}, "
+                "design matrix value {} ignored"
+            ).format(
+                row["keys"], parametersfilename, row["parameters"], row["realization"]
+            )
+            logger.warning(msg)
 
     # write used design matrix to csv
     design_matrix_sheet.to_csv(
