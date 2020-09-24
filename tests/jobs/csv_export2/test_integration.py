@@ -1,5 +1,5 @@
 import pytest
-from semeio.jobs.csv_export2 import csv_export2
+from semeio.workflows.csv_export2 import csv_export2
 
 from tests.jobs.csv_export2 import conftest
 
