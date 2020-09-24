@@ -253,6 +253,54 @@ def test_open_excel_file_value_missing(input_data):
         )
 
 
+@pytest.mark.parametrize(
+    "exist_params, design_m, expected_warning",
+    [
+        ("NAMESPACE:FOO 3", {"FOO": 5}, None),
+        ("FOO 3", {"FOO": 4}, "Parameter FOO already exists"),
+        ("FOO 3", {"FOO": 3}, None),  # Silently ignore this situation
+        ("", {"FOO": 3}, None),
+        ("FOO 4\nBAR 5", {"BAR": 6}, "Parameter BAR already exists"),
+        ("FOO 4\nBAR 5", {"FOO": 4}, None),
+        ("FOO 4\nBAR 5", {"FOO": 5}, "Parameter FOO already exists"),
+        ("FOO 4\nBAR 5", {"FOO": 4, "BAR": 6}, "Parameter BAR already exists"),
+    ],
+)
+def test_existing_parameterstxt(
+    exist_params, design_m, expected_warning, tmpdir, caplog
+):
+    # pylint: disable=abstract-class-instantiated
+    """Test warnings emitted when the file parameters.txt is prefilled"""
+    tmpdir.chdir()
+
+    params_file = "parameters.txt"
+    with open(params_file, "w") as file_h:
+        file_h.write(exist_params)
+
+    designsheet_df = pd.DataFrame.from_records(data=[design_m])
+    designsheet_df.insert(0, "REAL", [0])
+    defaultssheet_df = pd.DataFrame()
+    writer = pd.ExcelWriter("design_matrix.xlsx")
+    designsheet_df.to_excel(writer, sheet_name="DesignSheet01", index=False)
+    defaultssheet_df.to_excel(
+        writer, sheet_name="DefaultValues", index=False, header=None
+    )
+    writer.save()
+    design2params.run(
+        0,
+        "design_matrix.xlsx",
+        "DesignSheet01",
+        "DefaultValues",
+        params_file,
+        log_level=logging.DEBUG,
+    )
+
+    if expected_warning:
+        assert expected_warning in caplog.text
+    else:
+        assert "already exists" not in caplog.text
+
+
 def test_open_excel_file_wrong_defaults(input_data):
     with pytest.raises(SystemExit):
         design2params.run(
