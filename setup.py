@@ -31,8 +31,9 @@ setup(
             "SpearmanCorrelation = semeio.workflows.spearman_correlation_job.spearman_correlation",  # noqa
             "MisfitPreprocessor = semeio.workflows.misfit_preprocessor.misfit_preprocessor",  # noqa
             "CorrelatedObsScaling = semeio.workflows.correlated_observations_scaling.cos",  # noqa
-            "CsvExport2Job = semeio.jobs.scripts.csv_export2",
-        ]
+            "CsvExport2Job = semeio.workflows.csv_export2.csv_export2",
+        ],
+        "console_scripts": ["csv_export2=semeio.workflows.csv_export2.csv_export2:cli"],
     },
     license="GPL-3.0",
     platforms="any",

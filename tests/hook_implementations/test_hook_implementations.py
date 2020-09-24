@@ -2,12 +2,11 @@
 
 import os
 import semeio.hook_implementations.jobs
-from semeio.jobs.scripts import (
-    csv_export2,
-)
+
 from semeio.workflows.misfit_preprocessor import misfit_preprocessor
 from semeio.workflows.spearman_correlation_job import spearman_correlation
 from semeio.workflows.correlated_observations_scaling import cos
+from semeio.workflows.csv_export2 import csv_export2
 from ert_shared.plugins.plugin_manager import ErtPluginManager
 
 
