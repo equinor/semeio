@@ -91,11 +91,11 @@ def test_fm_pysal_static_xlsx(tmpdir):
     assert "SGOF" not in "".join(open("wateroil.inc").readlines())
 
 
-def test_fm_pyscal_argparse(tmpdir):
+def test_fm_pyscal_argparse(tmpdir, monkeypatch):
     """Test the command line wrapper"""
     tmpdir.chdir()
     EXAMPLE_STATIC_DFRAME.to_excel("relperm-input.xlsx")
-    sys.argv = [
+    arguments = [
         "fm_pyscal",
         "relperm-input.xlsx",
         "relperm.inc",
@@ -105,6 +105,7 @@ def test_fm_pyscal_argparse(tmpdir):
         "slgof",
         "1",
     ]
+    monkeypatch.setattr(sys, "argv", arguments)
     main_entry_point()
     assert os.path.exists("relperm.inc")
 

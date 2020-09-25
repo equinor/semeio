@@ -1,4 +1,4 @@
-EXECUTABLE ../scripts/fm_pyscal.py
+EXECUTABLE fm_pyscal
 
 DEFAULT <RESULT_FILE> relperm.inc
 DEFAULT <SHEET_NAME> __NONE__

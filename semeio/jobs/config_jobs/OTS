@@ -1,4 +1,4 @@
-EXECUTABLE     ../scripts/overburden_timeshift.py
+EXECUTABLE     overburden_timeshift
 ARGLIST        -c <CONFIG>
 
 ARG_TYPE 0 STRING

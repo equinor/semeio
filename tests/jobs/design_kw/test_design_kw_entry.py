@@ -49,11 +49,15 @@ def test_argparse_with_logging(input_data):
     assert res.log_level == logging.getLevelName(_log_level)
 
 
-def test_argparse_file_not_exists():
+def test_argparse_file_not_exists(monkeypatch):
+    monkeypatch.setattr(
+        sys, "argv", ["script_name", "file_not_existing.yml.tmpl", _resultfile]
+    )
     with pytest.raises(SystemExit):
-        design_kw.main(["file_not_existing.yml.tmpl", _resultfile])
+        design_kw.main()
 
 
-def test_argparse_result_file_missing(input_data):
+def test_argparse_result_file_missing(input_data, monkeypatch):
+    monkeypatch.setattr(sys, "argv", ["script_name", _templatefile])
     with pytest.raises(SystemExit):
-        design_kw.main([_templatefile])
+        design_kw.main()

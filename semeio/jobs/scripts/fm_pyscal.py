@@ -30,11 +30,11 @@ MAGIC_CASES = {
 }
 
 
-def main_entry_point(args=None):
+def main_entry_point():
     """This mimics the pyscal command line client, but differs because
     all arguments are required (but can be defaulted using MAGIC_NONE)"""
     parser = _get_args_parser()
-    options = parser.parse_args(args)
+    options = parser.parse_args()
     run(
         options.relperm_parameters_file,
         options.output_filename,
@@ -254,7 +254,3 @@ def _get_interpolation_values(
             int_param_go,
         )
     return (int_param_wo, int_param_go)
-
-
-if __name__ == "__main__":
-    main_entry_point()
