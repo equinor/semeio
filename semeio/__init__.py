@@ -19,4 +19,4 @@ logger.addHandler(std_err_handler)
 def valid_file(arg):
     if os.path.isfile(arg):
         return arg
-    raise argparse.ArgumentTypeError("{} is not a existing file!".format(arg))
+    raise argparse.ArgumentTypeError("{} is not an existing file!".format(arg))
