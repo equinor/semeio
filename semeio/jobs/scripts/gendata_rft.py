@@ -2,7 +2,6 @@
 
 import argparse
 import logging
-import sys
 import os
 
 from semeio.jobs.rft.utility import (
@@ -125,9 +124,9 @@ a specific pressure point is valid
     return parser
 
 
-def main_entry_point(args=None):
+def main_entry_point():
     arg_parser = _build_parser()
-    options = arg_parser.parse_args(args)
+    options = arg_parser.parse_args()
     logger.setLevel(options.log_level)
 
     well_names = [w_info[0] for w_info in options.well_and_time_file]
@@ -156,7 +155,3 @@ def main_entry_point(args=None):
         logger.info("Completed!")
     except ValueError as exception:
         logger.error("Failed with error message: {}".format(exception))
-
-
-if __name__ == "__main__":
-    main_entry_point(sys.argv[1:])

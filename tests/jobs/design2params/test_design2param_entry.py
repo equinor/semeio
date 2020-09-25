@@ -1,3 +1,4 @@
+import sys
 import logging
 import os
 from distutils.dir_util import copy_tree
@@ -72,9 +73,10 @@ def test_argparse_with_optionals(input_data):
     assert res.log_level == logging.getLevelName(_log_level)
 
 
-def test_argparse_xls_file_not_exists():
+def test_argparse_xls_file_not_exists(monkeypatch):
+    monkeypatch.setattr(sys, "argv", ["path", str(_realization), "not_a_file", _sheet])
     with pytest.raises(SystemExit):
-        design2params.main([str(_realization), "not_a_file", _sheet])
+        design2params.main()
 
 
 def test_argparse_parameters_file_not_exists(input_data):
@@ -98,6 +100,7 @@ def test_argparse_parameters_file_not_exists(input_data):
     assert res.log_level == logging.getLevelName(_default_log_level)
 
 
-def test_argparse_design_sheet_missing(input_data):
+def test_argparse_design_sheet_missing(input_data, monkeypatch):
+    monkeypatch.setattr(sys, "argv", ["path", str(_realization), _xls])
     with pytest.raises(SystemExit):
-        design2params.main([str(_realization), _xls])
+        design2params.main()

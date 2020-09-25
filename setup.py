@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 from pathlib import Path
 import os
-from glob import glob
 from setuptools import setup, find_packages
 
 
@@ -20,7 +19,6 @@ def get_long_description() -> str:
 job_files = package_files("semeio/jobs/config_jobs") + package_files(
     "semeio/jobs/config_workflow_jobs"
 )
-scripts = glob("semeio/jobs/scripts/[!__]*.py")
 
 setup(
     name="semeio",
@@ -31,7 +29,7 @@ setup(
     author_email="fg_gpl@statoil.com",
     url="https://github.com/equinor/semeio",
     description="Jobs and workflow jobs for Ert.",
-    packages=find_packages(include=["semeio*"], exclude=["semeio.jobs.scripts"]),
+    packages=find_packages(include=["semeio*"]),
     entry_points={
         "ert": [
             "semeio_jobs = semeio.hook_implementations.jobs",
@@ -40,7 +38,15 @@ setup(
             "CorrelatedObsScaling = semeio.workflows.correlated_observations_scaling.cos",  # noqa
             "CsvExport2Job = semeio.workflows.csv_export2.csv_export2",
         ],
-        "console_scripts": ["csv_export2=semeio.workflows.csv_export2.csv_export2:cli"],
+        "console_scripts": [
+            "csv_export2=semeio.workflows.csv_export2.csv_export2:cli",
+            "overburden_timeshift=semeio.jobs.scripts.overburden_timeshift:main_entry_point",  # noqa
+            "design2params=semeio.jobs.scripts.design2params:main",
+            "gendata_rft=semeio.jobs.scripts.gendata_rft:main_entry_point",
+            "design_kw=semeio.jobs.scripts.design_kw:main",
+            "fm_pyscal=semeio.jobs.scripts.fm_pyscal:main_entry_point",
+            "fm_stea=semeio.jobs.scripts.gendata_rft:main_entry_point",
+        ],
     },
     license="GPL-3.0",
     platforms="any",
@@ -71,6 +77,5 @@ setup(
     ],
     setup_requires=["setuptools_scm"],
     package_data={"": job_files},
-    scripts=scripts,
     include_package_data=True,
 )

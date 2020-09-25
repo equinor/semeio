@@ -38,7 +38,3 @@ def main_entry_point(args=None):
     for res, value in res.results(stea.SteaKeys.CORPORATE).items():
         with open("{}_0".format(res), "w") as ofh:
             ofh.write("{}\n".format(value))
-
-
-if __name__ == "__main__":
-    main_entry_point()
