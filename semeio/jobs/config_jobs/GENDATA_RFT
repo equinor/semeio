@@ -1,4 +1,4 @@
-EXECUTABLE    ../scripts/gendata_rft.py
+EXECUTABLE    gendata_rft
 
 DEFAULT <ZONEMAP> ZONEMAP_NOT_PROVIDED
 DEFAULT <CSVFILE> gendata_rft.csv

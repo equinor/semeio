@@ -2,7 +2,6 @@
 
 import argparse
 import logging
-import sys
 
 from semeio import valid_file
 from semeio.jobs.design2params import design2params
@@ -74,9 +73,9 @@ def create_parser():
     return parser
 
 
-def main(args):
+def main():
     parser = create_parser()
-    parsed_args = parser.parse_args(args)
+    parsed_args = parser.parse_args()
     design2params.run(
         realization=parsed_args.realization,
         xlsfilename=parsed_args.xlsfilename,
@@ -85,7 +84,3 @@ def main(args):
         parametersfilename=parsed_args.parametersfilename,
         log_level=parsed_args.log_level,
     )
-
-
-if __name__ == "__main__":
-    main(sys.argv[1:])
