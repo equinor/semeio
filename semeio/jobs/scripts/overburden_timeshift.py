@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-
+import sys
+from semeio._exceptions.exceptions import ConfigurationError
 from semeio.jobs.overburden_timeshift.ots import ots_run
 from semeio.jobs.overburden_timeshift.ots_config import generate_rst_doc
 import argparse
@@ -44,7 +45,10 @@ def main_entry_point(args=None):
     if options.help_params:
         print(generate_rst_doc())
     else:
-        ots_run(options.config)
+        try:
+            ots_run(options.config)
+        except ConfigurationError as err:
+            sys.exit(str(err))
 
 
 if __name__ == "__main__":
