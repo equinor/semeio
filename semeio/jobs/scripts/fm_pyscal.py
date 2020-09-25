@@ -237,7 +237,6 @@ def _get_interpolation_values(
         int_param_wo_name,
         int_param_wo,
     )
-    int_param_go = int_param_wo
 
     if int_param_go_name not in parameter_dict:
         _logger.error(
