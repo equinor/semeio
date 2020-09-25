@@ -14,6 +14,7 @@ from ecl.util.geometry import Surface
 from semeio.jobs.overburden_timeshift.ots_vel_surface import OTSVelSurface
 from semeio.jobs.overburden_timeshift.ots_res_surface import OTSResSurface
 from semeio.jobs.overburden_timeshift.ots_config import build_schema
+from semeio._exceptions.exceptions import ConfigurationError
 import configsuite
 import yaml
 
@@ -29,7 +30,6 @@ def extract_ots_context(configuration):
 
 
 def ots_load_params(input_file):
-    config = None
     with open(input_file, "r") as fin:
         config = yaml.safe_load(fin)
     config = configsuite.ConfigSuite(
@@ -38,7 +38,11 @@ def ots_load_params(input_file):
         deduce_required=True,
         extract_validation_context=extract_ots_context,
     )
-    assert config.valid
+    if not config.valid:
+        raise ConfigurationError(
+            "Invalid configuration for config file: {}".format(input_file),
+            config.errors,
+        )
 
     input_data = config.snapshot
     return input_data
