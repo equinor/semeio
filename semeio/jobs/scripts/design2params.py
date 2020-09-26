@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import argparse
 import logging
 
@@ -73,7 +71,7 @@ def create_parser():
     return parser
 
 
-def main():
+def main_entry_point():
     parser = create_parser()
     parsed_args = parser.parse_args()
     design2params.run(

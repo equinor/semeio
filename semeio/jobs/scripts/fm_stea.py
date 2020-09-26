@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import stea
 import argparse
 from semeio import valid_file
