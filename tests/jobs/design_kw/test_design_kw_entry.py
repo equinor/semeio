@@ -54,10 +54,10 @@ def test_argparse_file_not_exists(monkeypatch):
         sys, "argv", ["script_name", "file_not_existing.yml.tmpl", _resultfile]
     )
     with pytest.raises(SystemExit):
-        design_kw.main()
+        design_kw.main_entry_point()
 
 
 def test_argparse_result_file_missing(input_data, monkeypatch):
     monkeypatch.setattr(sys, "argv", ["script_name", _templatefile])
     with pytest.raises(SystemExit):
-        design_kw.main()
+        design_kw.main_entry_point()

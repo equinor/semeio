@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 """Forward model for connecting ERT with the Pyscal command line client"""
 import logging
 import sys

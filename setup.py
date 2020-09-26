@@ -41,9 +41,9 @@ setup(
         "console_scripts": [
             "csv_export2=semeio.workflows.csv_export2.csv_export2:cli",
             "overburden_timeshift=semeio.jobs.scripts.overburden_timeshift:main_entry_point",  # noqa
-            "design2params=semeio.jobs.scripts.design2params:main",
+            "design2params=semeio.jobs.scripts.design2params:main_entry_point",
             "gendata_rft=semeio.jobs.scripts.gendata_rft:main_entry_point",
-            "design_kw=semeio.jobs.scripts.design_kw:main",
+            "design_kw=semeio.jobs.scripts.design_kw:main_entry_point",
             "fm_pyscal=semeio.jobs.scripts.fm_pyscal:main_entry_point",
             "fm_stea=semeio.jobs.scripts.gendata_rft:main_entry_point",
         ],

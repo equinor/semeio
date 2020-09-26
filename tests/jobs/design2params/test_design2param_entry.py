@@ -76,7 +76,7 @@ def test_argparse_with_optionals(input_data):
 def test_argparse_xls_file_not_exists(monkeypatch):
     monkeypatch.setattr(sys, "argv", ["path", str(_realization), "not_a_file", _sheet])
     with pytest.raises(SystemExit):
-        design2params.main()
+        design2params.main_entry_point()
 
 
 def test_argparse_parameters_file_not_exists(input_data):
@@ -103,4 +103,4 @@ def test_argparse_parameters_file_not_exists(input_data):
 def test_argparse_design_sheet_missing(input_data, monkeypatch):
     monkeypatch.setattr(sys, "argv", ["path", str(_realization), _xls])
     with pytest.raises(SystemExit):
-        design2params.main()
+        design2params.main_entry_point()
