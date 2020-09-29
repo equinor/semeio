@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from pathlib import Path
 import os
 from glob import glob
 from setuptools import setup, find_packages
@@ -12,6 +13,10 @@ def package_files(directory):
     return paths
 
 
+def get_long_description() -> str:
+    return Path("README.md").read_text(encoding="utf8")
+
+
 job_files = package_files("semeio/jobs/config_jobs") + package_files(
     "semeio/jobs/config_workflow_jobs"
 )
@@ -19,6 +24,8 @@ scripts = glob("semeio/jobs/scripts/[!__]*.py")
 
 setup(
     name="semeio",
+    long_description=get_long_description(),
+    long_description_content_type="text/markdown",
     use_scm_version={"write_to": "semeio/version.py"},
     author="Software Innovation Bergen, Equinor ASA",
     author_email="fg_gpl@statoil.com",
