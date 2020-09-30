@@ -7,6 +7,10 @@ class ValidationError(ValueError):
     def __str__(self):
         msg = "{}\n".format(self.message)
         for error in self.errors:
-            path = ".".join(error.key_path) if len(error.key_path) > 0 else "root level"
+            path = (
+                ".".join((str(path) for path in error.key_path))
+                if len(error.key_path) > 0
+                else "root level"
+            )
             msg += "  - {} ({})\n".format(error.msg, path)
         return msg
