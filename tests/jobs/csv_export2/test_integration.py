@@ -1,4 +1,6 @@
 import pytest
+import rstcheck
+
 from semeio.workflows.csv_export2 import csv_export2
 
 from tests.jobs.csv_export2 import conftest
@@ -102,6 +104,15 @@ def test_no_iterations(ert_statoil_test_data):
             outputfile=export_file,
             column_keys="FOPR",
         )
+
+
+@pytest.mark.parametrize("input_rst", [csv_export2.DESCRIPTION, csv_export2.EXAMPLES])
+def test_valid_rst(input_rst):
+    """
+    Check that the documentation passed through the plugin system is
+    valid rst
+    """
+    assert not list(rstcheck.check(input_rst))
 
 
 def verifyExportedFile(exported_file_name, result_header, result_iter_rel):
