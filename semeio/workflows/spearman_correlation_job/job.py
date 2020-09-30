@@ -19,7 +19,6 @@ def spearman_job(
     """
     measured_data.remove_failed_realizations()
     measured_data.remove_inactive_observations()
-    measured_data.filter_ensemble_std(1.0e-6)
 
     simulated_data = measured_data.get_simulated_data()
 
