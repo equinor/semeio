@@ -6,6 +6,8 @@ from semeio.workflows import misfit_preprocessor
 
 from unittest.mock import Mock
 
+from semeio.workflows.misfit_preprocessor import assemble_config
+
 
 class MockedMeasuredData(object):
     def __init__(self, observations, responses):
@@ -166,9 +168,13 @@ def test_misfit_preprocessor_n_polynomials(num_polynomials, method):
     measured_data = MockedMeasuredData(observations, simulated)
     # We set the PCA threshold to 0.99 so a high degree of correlation is required
     # to have an impact. Setting it this way only has an impact for "auto_scale"
-    config = {"clustering": {"method": method}, "scaling": {"threshold": 0.99}}
+    obs_keys = measured_data.data.columns.get_level_values(0)
+    config = assemble_config(
+        {"clustering": {"method": method}, "scaling": {"threshold": 0.99}},
+        obs_keys,
+    )
     reporter_mock = Mock()
-    configs = misfit_preprocessor.run(config, measured_data, reporter_mock)
+    configs = misfit_preprocessor.run(config.snapshot, measured_data, reporter_mock)
     assert_homogen_clusters(configs)
     assert num_polynomials == len(configs), configs
 
@@ -195,11 +201,14 @@ def test_misfit_preprocessor_state_size(state_size, method, linkage):
         ensemble_size=30000,
     )
     measured_data = MockedMeasuredData(observations, simulated)
-
-    config = {
-        "clustering": {"method": method, method: {"linkage": {"method": linkage}}},
-        "scaling": {"threshold": 0.99},
-    }
+    obs_keys = measured_data.data.columns.get_level_values(0)
+    config = assemble_config(
+        {
+            "clustering": {"method": method, method: {"linkage": {"method": linkage}}},
+            "scaling": {"threshold": 0.99},
+        },
+        obs_keys,
+    ).snapshot
     reporter_mock = Mock()
     configs = misfit_preprocessor.run(config, measured_data, reporter_mock)
     assert_homogen_clusters(configs)
@@ -220,15 +229,18 @@ def test_misfit_preprocessor_state_uneven_size(state_size):
         ensemble_size=30000,
     )
     measured_data = MockedMeasuredData(observations, simulated)
-
-    config = {
-        "clustering": {
-            "method": "spearman_correlation",
-            "spearman_correlation": {
-                "fcluster": {"t": num_polynomials + 1, "criterion": "maxclust"}
-            },
-        }
-    }
+    obs_keys = measured_data.data.columns.get_level_values(0)
+    config = assemble_config(
+        {
+            "clustering": {
+                "method": "spearman_correlation",
+                "spearman_correlation": {
+                    "fcluster": {"t": num_polynomials + 1, "criterion": "maxclust"}
+                },
+            }
+        },
+        obs_keys,
+    ).snapshot
     reporter_mock = Mock()
     configs = misfit_preprocessor.run(config, measured_data, reporter_mock)
     assert num_polynomials == len(configs), configs
@@ -236,19 +248,17 @@ def test_misfit_preprocessor_state_uneven_size(state_size):
 
 
 def test_misfit_preprocessor_configuration_errors():
-    observations, simulated = generate_measurements(1)
-    measured_data = MockedMeasuredData(observations, simulated)
-
-    config = {
-        "unknown_key": [],
-        "clustering": {
-            "method": "spearman_correlation",
-            "spearman_correlation": {"fcluster": {"threshold": 1.0}},
-        },
-    }
-    reporter_mock = Mock()
     with pytest.raises(misfit_preprocessor.ValidationError) as ve:
-        misfit_preprocessor.run(config, measured_data, reporter_mock)
+        assemble_config(
+            {
+                "unknown_key": ["not in set"],
+                "clustering": {
+                    "method": "spearman_correlation",
+                    "spearman_correlation": {"fcluster": {"threshold": 1.0}},
+                },
+            },
+            ["a", "list", "of", "observations"],
+        )
 
     expected_err_msg = (
         "Invalid configuration of misfit preprocessor\n"
@@ -276,10 +286,13 @@ def test_misfit_preprocessor_n_polynomials_w_correlation(num_polynomials):
     # We add a correlation:
     measured_data.data["poly_0"] = measured_data.data["poly_1"] * 2.0
 
-    config = {
-        "clustering": {"method": "spearman_correlation"},
-        "scaling": {"threshold": 0.99},
-    }
+    config = assemble_config(
+        {
+            "clustering": {"method": "spearman_correlation"},
+            "scaling": {"threshold": 0.99},
+        },
+        list(measured_data.data.columns.get_level_values(0)),
+    ).snapshot
     reporter_mock = Mock()
     configs = misfit_preprocessor.run(config, measured_data, reporter_mock)
     assert num_polynomials == len(configs) - 1, configs

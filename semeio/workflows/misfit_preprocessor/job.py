@@ -1,21 +1,13 @@
 from semeio.workflows.correlated_observations_scaling import ObservationScaleFactor
-from semeio.workflows.misfit_preprocessor.exceptions import ValidationError
 from semeio.workflows.misfit_preprocessor.config import (
     AUTO_SCALE,
     SPEARMAN_CORRELATION,
-    assemble_config,
 )
 from semeio.workflows.spearman_correlation_job.job import spearman_job
 
 
-def run(misfit_preprocessor_config, measured_data, reporter):
-    config = assemble_config(misfit_preprocessor_config, measured_data)
-    if not config.valid:
-        raise ValidationError(
-            "Invalid configuration of misfit preprocessor", config.errors
-        )
+def run(config, measured_data, reporter):
 
-    config = config.snapshot
     if config.clustering.method == SPEARMAN_CORRELATION:
         sconfig = config.clustering.spearman_correlation
         scaling_configs = spearman_job(
