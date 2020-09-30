@@ -6,6 +6,7 @@ from ert_shared.libres_facade import LibresFacade
 from ert_shared.plugins.plugin_manager import hook_implementation
 from semeio.communication import SemeioScript
 
+from semeio.workflows.misfit_preprocessor.config import assemble_config
 from semeio.workflows import misfit_preprocessor
 from semeio.workflows.correlated_observations_scaling.cos import (
     CorrelatedObservationsScalingJob,
@@ -17,11 +18,16 @@ from semeio.workflows.correlated_observations_scaling.exceptions import (
 
 class MisfitPreprocessorJob(SemeioScript):  # pylint: disable=too-few-public-methods
     def run(self, *args):
+        facade = LibresFacade(self.ert())
         config_record = _fetch_config_record(args)
-        measured_record = _load_measured_record(self.ert())
+        observations = _get_observations(facade)
+        config = assemble_config(config_record, observations)
+        config = config.snapshot
+
+        measured_record = _load_measured_record(facade, observations)
         scaling_configs = misfit_preprocessor.run(
             **{
-                "misfit_preprocessor_config": config_record,
+                "config": config,
                 "measured_data": measured_record,
                 "reporter": self.reporter,
             }
@@ -30,7 +36,7 @@ class MisfitPreprocessorJob(SemeioScript):  # pylint: disable=too-few-public-met
         # The execution of COS should be moved into
         # misfit_preprocessor.run when COS no longer depend on self.ert
         # to run.
-        scaling_params = _fetch_scaling_parameters(config_record, measured_record)
+        scaling_params = _fetch_scaling_parameters(config_record, observations)
         for scaling_config in scaling_configs:
             scaling_config["CALCULATE_KEYS"].update(scaling_params)
 
@@ -40,10 +46,10 @@ class MisfitPreprocessorJob(SemeioScript):  # pylint: disable=too-few-public-met
             pass
 
 
-def _fetch_scaling_parameters(config_record, measured_data):
+def _fetch_scaling_parameters(config_record, observations):
     config = misfit_preprocessor.assemble_config(
         config_record,
-        measured_data,
+        observations,
     )
     if not config.valid:
         # The config is loaded by misfit_preprocessor.run first. The
@@ -71,17 +77,19 @@ def _fetch_config_record(args):
         )
 
 
-def _load_measured_record(enkf_main):
-    facade = LibresFacade(enkf_main)
-    obs_keys = [
-        facade.get_observation_key(nr) for nr, _ in enumerate(facade.get_observations())
-    ]
+def _load_measured_record(facade, obs_keys):
     measured_data = MeasuredData(facade, obs_keys)
     measured_data.remove_failed_realizations()
     measured_data.remove_inactive_observations()
     measured_data.filter_ensemble_mean_obs(facade.get_alpha())
     measured_data.filter_ensemble_std(facade.get_std_cutoff())
     return measured_data
+
+
+def _get_observations(facade):
+    return [
+        facade.get_observation_key(nr) for nr, _ in enumerate(facade.get_observations())
+    ]
 
 
 @hook_implementation

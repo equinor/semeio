@@ -3,6 +3,8 @@ import configsuite as cs
 import copy
 import fnmatch
 
+from semeio.workflows.misfit_preprocessor.exceptions import ValidationError
+
 
 _SCALING = "scaling"
 _THRESHOLD = "threshold"
@@ -409,6 +411,10 @@ class MisfitPreprocessorConfig(cs.ConfigSuite):
         )
 
 
-def assemble_config(misfit_preprocessor_config, measured_data):
-    observation_names = set(col[0] for col in measured_data.data.columns)
-    return MisfitPreprocessorConfig(misfit_preprocessor_config, observation_names)
+def assemble_config(misfit_preprocessor_config, observation_names):
+    config = MisfitPreprocessorConfig(misfit_preprocessor_config, observation_names)
+    if not config.valid:
+        raise ValidationError(
+            "Invalid configuration of misfit preprocessor", config.errors
+        )
+    return config
