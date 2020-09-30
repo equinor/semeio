@@ -24,7 +24,7 @@ class MisfitPreprocessorJob(SemeioScript):  # pylint: disable=too-few-public-met
         config = assemble_config(config_record, observations)
         config = config.snapshot
 
-        measured_record = _load_measured_record(facade, observations)
+        measured_record = _load_measured_record(facade, config.observations)
         scaling_configs = misfit_preprocessor.run(
             **{
                 "config": config,

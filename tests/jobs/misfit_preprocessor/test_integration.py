@@ -15,7 +15,12 @@ from unittest.mock import Mock
 
 
 @pytest.mark.usefixtures("setup_tmpdir")
-def test_misfit_preprocessor_main_entry_point_gen_data(monkeypatch, test_data_root):
+@pytest.mark.parametrize(
+    "observation, expected_nr_clusters", [["*", 58], ["WPR_DIFF_1", 1]]
+)
+def test_misfit_preprocessor_main_entry_point_gen_data(
+    monkeypatch, test_data_root, observation, expected_nr_clusters
+):
     run_mock = Mock()
     scal_job = Mock(return_value=Mock(run=run_mock))
     monkeypatch.setattr(
@@ -33,10 +38,11 @@ def test_misfit_preprocessor_main_entry_point_gen_data(monkeypatch, test_data_ro
     ert = EnKFMain(res_config)
 
     config = {
+        "observations": [observation],
         "clustering": {
             "method": "spearman_correlation",
             "spearman_correlation": {"fcluster": {"t": 1.0}},
-        }
+        },
     }
     config_file = "my_config_file.yaml"
     with open(config_file, "w") as f:
@@ -49,7 +55,9 @@ def test_misfit_preprocessor_main_entry_point_gen_data(monkeypatch, test_data_ro
     # call_args is a call object, which itself is a tuple of args and kwargs.
     # In this case, we want args, and the first element of the arguments, which
     # again is a tuple containing the configuration which is a list of configs.
-    assert len(list(run_mock.call_args)[0][0]) == 58, "wrong number of clusters"
+    assert (
+        len(list(run_mock.call_args)[0][0]) == expected_nr_clusters
+    ), "wrong number of clusters"
 
 
 @pytest.mark.usefixtures("setup_tmpdir")
