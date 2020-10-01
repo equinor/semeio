@@ -1,3 +1,4 @@
+import os
 import pytest
 import datetime
 from collections import namedtuple
@@ -29,7 +30,7 @@ parms = namedtuple(
 
 
 @pytest.fixture()
-def setUp():
+def set_up():
     spec = segyio.spec()
     spec.format = 5
     spec.sorting = 2
@@ -54,56 +55,40 @@ def setUp():
     yield spec, actnum, parms
 
 
+@pytest.mark.parametrize(
+    "missing_file, expected_error",
+    [
+        ("TEST.INIT", 'Failed to open file "TEST.INIT"'),
+        ("TEST.EGRID", "Loading grid from:TEST.EGRID failed"),
+        ("TEST.UNRST", 'Failed to open file "TEST.UNRST"'),
+    ],
+)
 @pytest.mark.usefixtures("setup_tmpdir")
-def test_invalid_input(setUp):
-    spec, actnum, parms = setUp
+def test_create_missing_ecl_file(set_up, missing_file, expected_error):
+    spec, actnum, params = set_up
     grid = EclGridGenerator.createRectangular(dims=(10, 10, 10), dV=(1, 1, 1))
 
-    create_init(grid, "TEST")
-
-    with pytest.raises(IOError):
-        OverburdenTimeshift(
-            parms.eclbase,
-            parms.mapaxes,
-            parms.seabed,
-            parms.youngs,
-            parms.poisson,
-            parms.rfactor,
-            parms.convention,
-            parms.above,
-            parms.velocity_model,
-        )
-
-    with pytest.raises(IOError):
-        OverburdenTimeshift(
-            parms.eclbase,
-            parms.mapaxes,
-            parms.seabed,
-            parms.youngs,
-            parms.poisson,
-            parms.rfactor,
-            parms.convention,
-            parms.above,
-            parms.velocity_model,
-        )
-
-    grid = EclGridGenerator.createRectangular(dims=(10, 10, 10), dV=(1, 1, 1))
-
+    grid.save_EGRID("TEST.EGRID")
     create_init(grid, "TEST")
     create_restart(grid, "TEST")
 
-    with pytest.raises(IOError):
+    os.remove(missing_file)
+    with pytest.raises(IOError, match=expected_error):
         OverburdenTimeshift(
-            parms.eclbase,
-            parms.mapaxes,
-            parms.seabed,
-            parms.youngs,
-            parms.poisson,
-            parms.rfactor,
-            parms.convention,
-            parms.above,
-            parms.velocity_model,
+            params.eclbase,
+            params.mapaxes,
+            params.seabed,
+            params.youngs,
+            params.poisson,
+            params.rfactor,
+            params.convention,
+            params.above,
+            params.velocity_model,
         )
+
+
+def test_create_invalid_input_missing_segy(set_up):
+    spec, actnum, parms = set_up
 
     grid = EclGridGenerator.createRectangular(dims=(10, 10, 10), dV=(1, 1, 1))
     grid.save_EGRID("TEST.EGRID")
@@ -113,7 +98,7 @@ def test_invalid_input(setUp):
 
     parms.velocity_model = "missing.segy"
 
-    with pytest.raises(IOError):
+    with pytest.raises(IOError, match="No such file or directory"):
         OverburdenTimeshift(
             parms.eclbase,
             parms.mapaxes,
@@ -131,8 +116,8 @@ def test_invalid_input(setUp):
     "config_item, value", [("velocity_model", "TEST.segy"), ("velocity_model", None)]
 )
 @pytest.mark.usefixtures("setup_tmpdir")
-def test_valid_input(setUp, config_item, value):
-    spec, actnum, params = setUp
+def test_create_valid(set_up, config_item, value):
+    spec, actnum, params = set_up
     grid = EclGridGenerator.createRectangular(dims=(10, 10, 10), dV=(1, 1, 1))
 
     grid.save_EGRID("TEST.EGRID")
@@ -158,8 +143,8 @@ def test_valid_input(setUp, config_item, value):
 
 
 @pytest.mark.usefixtures("setup_tmpdir")
-def test_eval(setUp):
-    spec, actnum, parms = setUp
+def test_eval(set_up):
+    spec, actnum, parms = set_up
     grid = EclGridGenerator.createRectangular(
         dims=(2, 2, 2), dV=(100, 100, 100), actnum=actnum
     )
@@ -201,8 +186,8 @@ def test_eval(setUp):
 
 
 @pytest.mark.usefixtures("setup_tmpdir")
-def test_geertsma_TS_simple(setUp):
-    spec, actnum, parms = setUp
+def test_geertsma_TS_simple(set_up):
+    spec, actnum, parms = set_up
     grid = EclGridGenerator.createRectangular(
         dims=(2, 2, 2), dV=(100, 100, 100), actnum=actnum
     )
@@ -261,8 +246,8 @@ def test_geertsma_TS_simple(setUp):
 
 
 @pytest.mark.usefixtures("setup_tmpdir")
-def test_geertsma_TS_rporv(setUp):
-    spec, actnum, parms = setUp
+def test_geertsma_TS_rporv(set_up):
+    spec, actnum, parms = set_up
     grid = EclGridGenerator.createRectangular(
         dims=(2, 2, 2), dV=(100, 100, 100), actnum=actnum
     )
@@ -300,8 +285,8 @@ def test_geertsma_TS_rporv(setUp):
 
 
 @pytest.mark.usefixtures("setup_tmpdir")
-def test_geertsma_TS(setUp):
-    spec, actnum, parms = setUp
+def test_geertsma_TS(set_up):
+    spec, actnum, parms = set_up
     grid = EclGridGenerator.createRectangular(
         dims=(2, 2, 2), dV=(100, 100, 100), actnum=actnum
     )
@@ -362,8 +347,8 @@ def test_geertsma_TS(setUp):
 
 
 @pytest.mark.usefixtures("setup_tmpdir")
-def test_dPV(setUp):
-    spec, actnum, parms = setUp
+def test_dPV(set_up):
+    spec, actnum, parms = set_up
     grid = EclGridGenerator.createRectangular(
         dims=(2, 2, 2), dV=(100, 100, 100), actnum=actnum
     )
@@ -414,8 +399,8 @@ def test_dPV(setUp):
 
 
 @pytest.mark.usefixtures("setup_tmpdir")
-def test_irap_surface(setUp):
-    spec, actnum, parms = setUp
+def test_irap_surface(set_up):
+    spec, actnum, parms = set_up
     grid = EclGridGenerator.createRectangular(
         dims=(2, 2, 2), dV=(100, 100, 100), actnum=actnum
     )
