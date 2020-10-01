@@ -55,7 +55,7 @@ def setUp():
 
 
 @pytest.mark.usefixtures("setup_tmpdir")
-def test_create(setUp):
+def test_invalid_input(setUp):
     spec, actnum, parms = setUp
     grid = EclGridGenerator.createRectangular(dims=(10, 10, 10), dV=(1, 1, 1))
 
@@ -126,25 +126,34 @@ def test_create(setUp):
             parms.velocity_model,
         )
 
+
+@pytest.mark.parametrize(
+    "config_item, value", [("velocity_model", "TEST.segy"), ("velocity_model", None)]
+)
+@pytest.mark.usefixtures("setup_tmpdir")
+def test_valid_input(setUp, config_item, value):
+    spec, actnum, params = setUp
     grid = EclGridGenerator.createRectangular(dims=(10, 10, 10), dV=(1, 1, 1))
 
     grid.save_EGRID("TEST.EGRID")
     create_init(grid, "TEST")
     create_restart(grid, "TEST")
 
-    parms.velocity_model = "TEST.segy"
-    create_segy_file(parms.velocity_model, spec)
+    # Testing individual items in config, so setting that value here:
+    setattr(params, config_item, value)
+    if params.velocity_model:
+        create_segy_file(params.velocity_model, spec)
 
     OverburdenTimeshift(
-        parms.eclbase,
-        parms.mapaxes,
-        parms.seabed,
-        parms.youngs,
-        parms.poisson,
-        parms.rfactor,
-        parms.convention,
-        parms.above,
-        parms.velocity_model,
+        params.eclbase,
+        params.mapaxes,
+        params.seabed,
+        params.youngs,
+        params.poisson,
+        params.rfactor,
+        params.convention,
+        params.above,
+        params.velocity_model,
     )
 
 

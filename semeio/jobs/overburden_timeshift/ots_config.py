@@ -101,6 +101,8 @@ def build_schema():
             "velocity_model": {
                 MK.Type: types.String,
                 MK.Description: "Path to segy file containing the velocity field.",
+                MK.Default: None,
+                MK.AllowNone: True,
             },
             "mapaxes": {
                 MK.Type: types.Bool,
