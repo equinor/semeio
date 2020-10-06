@@ -80,9 +80,15 @@ def csv_exporter(runpathfile, time_index, outputfile, column_keys=None):
         name="ERT EnsembleSet for CSV_EXPORT2", runpathfile=runpathfile
     )
     summary = ensemble_set.load_smry(time_index=time_index, column_keys=column_keys)
-    parameters = ensemble_set.parameters
-    summary_parameters = pd.merge(summary, parameters)
-    summary_parameters.to_csv(outputfile, index=False)
+    try:  # try/except is needed for fmu-ensemble<=1.3.0
+        parameters = ensemble_set.parameters
+    except KeyError:
+        parameters = pd.DataFrame()
+
+    if not parameters.empty:
+        pd.merge(summary, parameters).to_csv(outputfile, index=False)
+    else:
+        summary.to_csv(outputfile, index=False)
 
 
 class CsvExport2Job(ErtScript):  # pylint: disable=too-few-public-methods
