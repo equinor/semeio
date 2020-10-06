@@ -1,11 +1,24 @@
 import pytest
 import rstcheck
+import pandas as pd
 
 from semeio.workflows.csv_export2 import csv_export2
 
 from tests.jobs.csv_export2 import conftest
 
-test_header = "ENSEMBLE,REAL,DATE,FOPR,X,FLUID_PARAMS:SWL,FLUID_PARAMS:SGCR,A,H\n"
+test_header = [
+    "ENSEMBLE",
+    "REAL",
+    "DATE",
+    "FOPR",
+    "X",
+    "FLUID_PARAMS:SWL",
+    "FLUID_PARAMS:SGCR",
+    "A",
+    "H",
+]
+
+NORNE_VECS = ["FGPT", "FLPT", "FOPT", "FVPT", "FWPT"]
 
 
 @pytest.mark.skipif(
@@ -115,19 +128,41 @@ def test_valid_rst(input_rst):
     assert not list(rstcheck.check(input_rst))
 
 
+@pytest.mark.usefixtures("norne_mocked_ensembleset")
+def test_norne_ensemble(norne_mocked_ensembleset):
+    csv_export2.csv_exporter(
+        runpathfile="runpathfile",
+        time_index="yearly",
+        outputfile="unsmry--yearly.csv",
+        column_keys=["F?PT"],
+    )
+    verifyExportedFile(
+        "unsmry--yearly.csv",
+        ["ENSEMBLE", "REAL", "DATE"] + NORNE_VECS + ["FOO"],
+        {
+            ("iter-0", 0),
+            ("iter-0", 1),
+            ("iter-1", 0),
+            ("iter-1", 1),
+        },
+    )
+
+
 def verifyExportedFile(exported_file_name, result_header, result_iter_rel):
-    with open(exported_file_name, "r") as exported_file:
-        lines = exported_file.readlines()
+    """Verify an exported CSV file with respect to:
 
-        assert sorted(lines[0]) == sorted(result_header)
+        * Exactly the set of requested headers is found
+        * The realizations and iterations that exist must equal
+          given set of tuples.
 
-        iter_rel_no = set()
-
-        for index, line in enumerate(lines[1:]):
-            tokens = line.split(",")
-            iteration, rel = tokens[0], int(tokens[1])
-
-            if (iteration, rel) not in iter_rel_no:
-                iter_rel_no.add((iteration, rel))
-
-        assert iter_rel_no == result_iter_rel
+    Args:
+        exported_file_name (str): path to CSV file.
+        result_header (list of str): The strings required in the header.
+        result_iter_real (set): Set of 2-tuples: {(iterstring, realidx)}
+    """
+    dframe = pd.read_csv(exported_file_name)
+    assert set(dframe.columns) == set(result_header)
+    assert (
+        set(dframe[["ENSEMBLE", "REAL"]].itertuples(index=False, name=None))
+        == result_iter_rel
+    )

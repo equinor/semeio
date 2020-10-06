@@ -7,6 +7,8 @@ TEST_DATA_DIR = os.environ.get("ERT_TESTDATA_ROOT")
 TEST_DATA_DIR_BERGEN = "/d/proj/bg/enkf/ErtTestData"
 TEST_DATA_DIR_STAVANGER = "/project/res-testdata/ErtTestData"
 
+NORNE_DIR = os.path.join(os.path.dirname(__file__), "../../test_data/norne")
+
 
 def find_available_test_data():
     if TEST_DATA_DIR is None:
@@ -38,6 +40,55 @@ def ert_statoil_test_data(tmpdir):
     yield
 
     os.chdir(cwd)
+
+
+def mock_norne_data(reals, iters, parameters=True):
+    """From a single UNSMRY file, produce arbitrary sized ensembles.
+
+    Summary data will be equivalent over realizations, but the
+    parameters.txt is made unique.
+
+    Writes realization-*/iter-* file structure in cwd.
+
+    Args:
+        reals (list): integers with realization indices wanted
+        iters (list): integers with iter indices wanted
+        parameters (bool): Whether to write parameters.txt in each runpath
+    """
+    for real in reals:
+        for iteration in iters:
+            runpath = os.path.join(
+                "realization-{}".format(real), "iter-{}".format(iteration)
+            )
+
+            os.makedirs(runpath, exist_ok=True)
+
+            os.symlink(
+                os.path.join(NORNE_DIR, "NORNE_ATW2013.UNSMRY"),
+                os.path.join(runpath, "NORNE_{}.UNSMRY".format(real)),
+            )
+            os.symlink(
+                os.path.join(NORNE_DIR, "NORNE_ATW2013.SMSPEC"),
+                os.path.join(runpath, "NORNE_{}.SMSPEC".format(real)),
+            )
+            if parameters:
+                with open(os.path.join(runpath, "parameters.txt"), "w") as p_fileh:
+                    p_fileh.write("FOO 1{}{}".format(real, iteration))
+
+    with open("runpathfile", "w") as file_h:
+        for iteration in iters:
+            for real in reals:
+                runpath = os.path.join(
+                    "realization-{}".format(real), "iter-{}".format(iteration)
+                )
+                file_h.write(
+                    "{0:03d} {1} NORNE_{0} {2:03d}\n".format(real, runpath, iteration)
+                )
+
+
+@pytest.fixture()
+def norne_mocked_ensembleset(setup_tmpdir):
+    mock_norne_data(reals=[0, 1], iters=[0, 1], parameters=True)
 
 
 @pytest.fixture()
