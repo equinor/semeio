@@ -148,6 +148,26 @@ def test_norne_ensemble(norne_mocked_ensembleset):
     )
 
 
+@pytest.mark.usefixtures("norne_mocked_ensembleset_noparams")
+def test_norne_ensemble_noparams(norne_mocked_ensembleset_noparams):
+    csv_export2.csv_exporter(
+        runpathfile="runpathfile",
+        time_index="yearly",
+        outputfile="unsmry--yearly.csv",
+        column_keys=["FOPT"],
+    )
+    verifyExportedFile(
+        "unsmry--yearly.csv",
+        ["ENSEMBLE", "REAL", "DATE", "FOPT"],
+        {
+            ("iter-0", 0),
+            ("iter-0", 1),
+            ("iter-1", 0),
+            ("iter-1", 1),
+        },
+    )
+
+
 def verifyExportedFile(exported_file_name, result_header, result_iter_rel):
     """Verify an exported CSV file with respect to:
 
