@@ -381,6 +381,12 @@ _SCHEMA = {
         "to be an almost out-of-the-box solution, where the user can tweak some "
         "parameters to get reasonable clusterings. The rest will be configured "
         "according to whatever is at the time considered best practices."
+        "The recommended practice for running this workflow is though the "
+        "ert workflow hooks. The hook needs to run after the simulations, as "
+        "simulated data is needed for the workflow. The relevant hooks are "
+        "POST_SIMULATION, PRE_FIRST_ANAYLSIS and PRE_ANALYSIS. The recommended "
+        "hook is PRE_FIRST_ANALYSIS, which will only run once, also in the case "
+        "where an iterative algorithm is used."
     ),
     cs.MetaKeys.Content: {
         _OBSERVATIONS: _OBSERVATION_SCHEMA,
