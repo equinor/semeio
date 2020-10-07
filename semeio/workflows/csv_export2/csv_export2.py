@@ -142,6 +142,7 @@ def legacy_ertscript_workflow(config):
     workflow.parser = csv_export_parser
     workflow.description = DESCRIPTION
     workflow.examples = EXAMPLES
+    workflow.category = "export"
 
 
 def cli():

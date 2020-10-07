@@ -74,3 +74,4 @@ def spearman_job_parser():
 def legacy_ertscript_workflow(config):
     workflow = config.add_workflow(SpearmanCorrelationJob, "SPEARMAN_CORRELATION")
     workflow.parser = spearman_job_parser
+    workflow.category = "observations.correlation"
