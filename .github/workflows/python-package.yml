@@ -1,0 +1,75 @@
+# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: Python package
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+env:
+  INSTALL_DIR: ${{ github.workspace }}/install
+  ERT_SHOW_BACKTRACE: 1
+
+jobs:
+  build:
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [3.8]
+        os: [ubuntu-latest]
+        include:
+          - python-version: 3.8
+            os: macos-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install Ubuntu dependencies
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get update
+        sudo apt-get install liblapack-dev valgrind clang cmake cmake-data xvfb libxcb-image0 libxcb-icccm4 libxcb-keysyms1 libxcb-randr0 libxcb-render0 libxcb-render-util0 libxcb-shape0 libxcb-shm0 libxcb-xfixes0 libxcb-xinerama0 libfontconfig1 libxcb-xkb1 libxkbcommon-x11-0 libdbus-1-3
+    - name: Setup environment
+      run: |
+        echo "::add-path::${{ env.INSTALL_DIR}}/bin"
+        echo "::set-env name=LD_LIBRARY_PATH::${{ env.INSTALL_DIR }}/lib:${{ env.INSTALL_DIR }}/lib64"
+        echo "::set-env name=DYLD_LIBRARY_PATH::${{ env.INSTALL_DIR }}/lib:${{ env.INSTALL_DIR }}/lib64"
+        echo "::set-env name=PYTHONPATH::${{ env.INSTALL_DIR }}/lib/python${{ matrix.python-version }}/site-packages:${{ env.INSTALL_DIR }}/lib/python${{ matrix.python-version }}/dist-packages"
+    - name: Install dependencies and semeio
+      run: |
+        python -m pip install --upgrade pip
+        pip install semeio
+        pip install -r test_requirements.txt
+    - name: Lint with black
+      run: |
+        pip install black==20.8b1
+        black --check semeio tests/*.py
+    - name: Install ERT and dependencies
+      run: |
+        git clone --branch master --depth 1 https://github.com/equinor/ert
+        source ert/.libres_version
+        git clone --branch $LIBRES_VERSION --depth 1 https://github.com/equinor/libres
+        source libres/.libecl_version
+        git clone --branch $LIBECL_VERSION --depth 1 https://github.com/equinor/libecl
+        bash ert/.build_install.sh libecl
+        bash ert/.build_install.sh libres
+        pip install -r ert/dev-requirements.txt
+        pip install ert/
+        pip list
+        ert --help
+    - name: Test Ubuntu
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        pytest tests/
+    - name: Test MacOS
+      if: matrix.os == 'macos-latest'
+      run: |
+        pytest tests/
