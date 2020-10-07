@@ -98,3 +98,4 @@ def legacy_ertscript_workflow(config):
     _schema = misfit_preprocessor.config._SCHEMA
     rst_doc = configsuite.docs.generate(_schema)
     workflow.description = rst_doc
+    workflow.category = "observations.correlation"

@@ -213,3 +213,4 @@ def legacy_ertscript_workflow(config):
     )
     workflow.description = _DESCRIPTION
     workflow.examples = _EXAMPLES
+    workflow.category = "observations.correlation"
