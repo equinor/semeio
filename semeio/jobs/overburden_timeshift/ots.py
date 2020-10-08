@@ -91,7 +91,7 @@ def ots_run(parameter_file):
     if parms.horizon is not None:
         surface_horizon.write(parms.horizon)
 
-    if parms.ascii is not None:
+    if parms.vintages_export_file is not None:
         num_pairs = (
             len(vintage_pairs.ts)
             + len(vintage_pairs.ts_simple)
@@ -99,7 +99,7 @@ def ots_run(parameter_file):
             + len(vintage_pairs.ts_rporv)
         )
         line = "{}, {}, {}" + ", {}" * num_pairs + "\n"
-        with open(parms.ascii, "w") as f:
+        with open(parms.vintages_export_file, "w") as f:
             for point in range(len(surface_horizon)):
                 xy = surface_horizon.getXY(point)
                 ts = []

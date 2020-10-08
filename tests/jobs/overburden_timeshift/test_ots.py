@@ -22,7 +22,7 @@ parms = namedtuple(
         "convention",
         "output_dir",
         "horizon",
-        "ascii",
+        "vintages_export_file",
         "velocity_model",
         "eclbase",
     ],
@@ -42,7 +42,7 @@ def set_up():
 
     parms.output_dir = None
     parms.horizon = None
-    parms.ascii = None
+    parms.vintages_export_file = None
     parms.velocity_model = None
     parms.seabed = 10
     parms.above = 10
