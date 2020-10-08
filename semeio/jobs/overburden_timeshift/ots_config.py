@@ -87,6 +87,7 @@ def build_schema():
                 MK.Description: "Path to result irap file, the surface mapped to "
                 "the velocity grid, with the depth of horizon.",
                 MK.Default: None,
+                MK.AllowNone: True,
             },
             "eclbase": {
                 MK.Type: types.String,
