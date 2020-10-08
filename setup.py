@@ -61,8 +61,7 @@ setup(
         "fmu-ensemble",
         "segyio",
         "typing_extensions; python_version < '3.8'",
-        "xtgeo",
-        "typing_extensions; python_version < '3.8'",
+        "xtgeo>=2.15",
     ],
     include_package_data=True,
 )
