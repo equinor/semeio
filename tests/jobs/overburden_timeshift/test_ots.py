@@ -4,11 +4,11 @@ import datetime
 from collections import namedtuple
 
 from ecl.grid import EclGridGenerator
-from ecl.util.geometry import Surface
 import segyio
 
 from semeio.jobs.overburden_timeshift.ots import OverburdenTimeshift
 from .ots_util import create_init, create_restart, create_segy_file
+from xtgeo import surface_from_file
 
 parms = namedtuple(
     "Parms",
@@ -221,7 +221,7 @@ def test_geertsma_TS_simple(set_up):
     ]
 
     tshift = ots.geertsma_ts_simple(vintage_pairs)
-    assert tshift[0][0] == pytest.approx(-0.01006, abs=0.0001)
+    assert tshift[0][(0, 0)] == pytest.approx(-0.01006, abs=0.0001)
 
     parms.convention = -1
     ots = OverburdenTimeshift(
@@ -242,7 +242,7 @@ def test_geertsma_TS_simple(set_up):
     ]
 
     tshift = ots.geertsma_ts_simple(vintage_pairs)
-    assert tshift[0][0] == pytest.approx(0.01006, abs=0.0001)
+    assert tshift[0][(0, 0)] == pytest.approx(0.01006, abs=0.0001)
 
 
 @pytest.mark.usefixtures("setup_tmpdir")
@@ -281,7 +281,7 @@ def test_geertsma_TS_rporv(set_up):
     ]
 
     tshift = ots.geertsma_ts_rporv(vintage_pairs)
-    assert tshift[0][0] == pytest.approx(0.0, abs=0.0001)
+    assert tshift[0][(0, 0)] == pytest.approx(0.0, abs=0.0001)
 
 
 @pytest.mark.usefixtures("setup_tmpdir")
@@ -321,7 +321,7 @@ def test_geertsma_TS(set_up):
 
     tshift = ots.geertsma_ts(vintage_pairs)
 
-    assert tshift[0][0] == pytest.approx(-0.00104, abs=0.0001)
+    assert tshift[0][(0, 0)] == pytest.approx(-0.00104, abs=0.0001)
 
     parms.convention = -1
 
@@ -343,7 +343,7 @@ def test_geertsma_TS(set_up):
     ]
 
     tshift = ots.geertsma_ts(vintage_pairs)
-    assert tshift[0][0] == pytest.approx(0.00104, abs=0.0001)
+    assert tshift[0][(0, 0)] == pytest.approx(0.00104, abs=0.0001)
 
 
 @pytest.mark.usefixtures("setup_tmpdir")
@@ -375,11 +375,11 @@ def test_dPV(set_up):
     ]
 
     tshift = ots.dpv(vintage_pairs)
-    assert tshift[0][0] == pytest.approx(((20 - 10) * 1e6 + (0 - 0) * 1e6) / 1e9)
-    assert tshift[0][2] == pytest.approx(((20 - 10) * 1e6 + (0 - 0) * 1e6) / 1e9)
+    assert tshift[0][(0, 0)] == pytest.approx(((20 - 10) * 1e6 + (0 - 0) * 1e6) / 1e9)
+    assert tshift[0][(0, 1)] == pytest.approx(((20 - 10) * 1e6 + (0 - 0) * 1e6) / 1e9)
 
-    assert tshift[1][0] == pytest.approx(((25 - 20) * 1e6 + (0 - 0) * 1e6) / 1e9)
-    assert tshift[1][2] == pytest.approx(((25 - 20) * 1e6 + (0 - 0) * 1e6) / 1e9)
+    assert tshift[1][(0, 0)] == pytest.approx(((25 - 20) * 1e6 + (0 - 0) * 1e6) / 1e9)
+    assert tshift[1][(0, 1)] == pytest.approx(((25 - 20) * 1e6 + (0 - 0) * 1e6) / 1e9)
 
     parms.convention = -1
 
@@ -395,7 +395,7 @@ def test_dPV(set_up):
         parms.velocity_model,
     )
     tshift_b_m = ots.dpv(vintage_pairs)
-    assert tshift[0][0] == pytest.approx(-tshift_b_m[0][0])
+    assert tshift[0][(0, 0)] == pytest.approx(-tshift_b_m[0][(0, 0)])
 
 
 @pytest.mark.usefixtures("setup_tmpdir")
@@ -427,11 +427,10 @@ def test_irap_surface(set_up):
 
     f_name = "irap.txt"
     s = ots._create_surface()
-    s.write(f_name)
-    s = Surface(f_name)
+    s.to_file(f_name)
+    s = surface_from_file(f_name, fformat="irap_binary")
 
-    assert s.getNX() == 2
-    assert s.getNY() == 2
+    assert s.get_nx() == 2
+    assert s.get_ny() == 2
 
-    for val in s:
-        assert val == 90
+    assert list(s.get_zval()) == [90.0, 90.0, 90.0, 90.0]
