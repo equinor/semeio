@@ -7,9 +7,10 @@ from unittest import mock
 from datetime import datetime
 
 
+@pytest.mark.parametrize("ascii_file", ["ts.txt", None])
 @pytest.mark.parametrize("horizon", ["horizon.irap", None])
 @pytest.mark.parametrize("velocity_model", ["norne_vol.segy", None])
-def test_valid_config(tmpdir, monkeypatch, velocity_model, horizon):
+def test_valid_config(tmpdir, monkeypatch, velocity_model, horizon, ascii_file):
     dates = ["1997-11-06", "1997-12-17", "1998-02-01", "1998-02-01"]
     context_mock = mock.Mock(
         return_value=[datetime.strptime(x, "%Y-%m-%d").date() for x in dates]
@@ -25,7 +26,6 @@ def test_valid_config(tmpdir, monkeypatch, velocity_model, horizon):
         "mapaxes": False,
         "convention": 1,
         "output_dir": "ts",
-        "ascii": "ts.txt",
         "vintages": {
             "ts_simple": [["1997-11-06", "1998-02-01"], ["1997-12-17", "1998-02-01"]],
             "dpv": [["1997-11-06", "1997-12-17"]],
@@ -35,6 +35,8 @@ def test_valid_config(tmpdir, monkeypatch, velocity_model, horizon):
         conf.update({"velocity_model": velocity_model})
     if horizon:
         conf.update({"horizon": horizon})
+    if ascii_file:
+        conf.update({"ascii": ascii_file})
 
     with tmpdir.as_cwd():
         with open("ots_config.yml", "w") as f:
