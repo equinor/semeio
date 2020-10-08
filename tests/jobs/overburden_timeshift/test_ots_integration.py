@@ -40,7 +40,7 @@ def test_ots_config_run_parameters(
         "convention": 1,
         "output_dir": "ts",
         "horizon": "horizon.irap",
-        "ascii": "ts.txt",
+        "vintages_export_file": "ts.txt",
         "velocity_model": "norne_vol.segy",
         "vintages": {
             "ts_simple": [["1997-11-06", "1998-02-01"], ["1997-12-17", "1998-01-01"]],

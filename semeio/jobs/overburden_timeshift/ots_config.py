@@ -93,7 +93,7 @@ def build_schema():
                 MK.Type: types.String,
                 MK.Description: "Path to the Eclipse case.",
             },
-            "ascii": {
+            "vintages_export_file": {
                 MK.Type: types.String,
                 MK.Description: "Path to resulting text file, which contains all "
                 "computed vintage pair dates: lines of x, y, z, ts1, ts2, ts3....",
