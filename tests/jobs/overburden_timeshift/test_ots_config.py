@@ -82,3 +82,68 @@ def test_eclbase_config(tmpdir, monkeypatch, ecl_files, extension, error_msg):
         Path(f"NORNE_ATW2013.{extension}").rename("NOT_ECLBASE")
         with pytest.raises(ConfigurationError, match=error_msg):
             ots_load_params("ots_config.yml")
+
+
+@pytest.mark.parametrize(
+    "file_format",
+    [
+        "irap_ascii",
+        "irapascii",
+        "irap_txt",
+        "irapasc",
+        "irap_binary",
+        "irapbinary",
+        "irapbin",
+        "irap",
+        "gri",
+        "zmap",
+        "storm_binary",
+        "petromod",
+        "ijxyz",
+    ],
+)
+def test_valid_file_format(tmpdir, ecl_files, file_format):
+    conf = {
+        "eclbase": "NORNE_ATW2013",
+        "above": 100,
+        "seabed": 300,
+        "youngs": 0.5,
+        "poisson": 0.3,
+        "rfactor": 20,
+        "mapaxes": False,
+        "convention": 1,
+        "output_dir": "ts",
+        "vintages": {
+            "ts_simple": [["1997-11-06", "1998-02-01"], ["1997-12-17", "1998-02-01"]],
+            "dpv": [["1997-11-06", "1997-12-17"]],
+        },
+    }
+    conf.update({"file_format": file_format})
+    with tmpdir.as_cwd():
+        with open("ots_config.yml", "w", encoding="utf-8") as f:
+            yaml.dump(conf, f, default_flow_style=False)
+        ots_load_params("ots_config.yml")
+
+
+def test_invalid_file_format(tmpdir, ecl_files):
+    conf = {
+        "eclbase": "NORNE_ATW2013",
+        "above": 100,
+        "seabed": 300,
+        "youngs": 0.5,
+        "poisson": 0.3,
+        "rfactor": 20,
+        "mapaxes": False,
+        "convention": 1,
+        "output_dir": "ts",
+        "vintages": {
+            "ts_simple": [["1997-11-06", "1998-02-01"], ["1997-12-17", "1998-02-01"]],
+            "dpv": [["1997-11-06", "1997-12-17"]],
+        },
+    }
+    conf.update({"file_format": "not a file format"})
+    with tmpdir.as_cwd():
+        with open("ots_config.yml", "w", encoding="utf-8") as f:
+            yaml.dump(conf, f, default_flow_style=False)
+        with pytest.raises(ConfigurationError, match="valid file type is false"):
+            ots_load_params("ots_config.yml")

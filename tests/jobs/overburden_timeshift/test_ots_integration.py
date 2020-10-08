@@ -1,10 +1,9 @@
 from semeio.jobs.overburden_timeshift.ots import ots_run
-from ecl.util.geometry import Surface
+import xtgeo
 from ecl.grid import EclGrid
 import pytest
 from .ots_util import mock_segy
 import yaml
-import numpy as np
 import os
 
 
@@ -57,19 +56,19 @@ def test_ots_config_run_parameters(
     #   2a. top left and bottom right corners (which is due to shift segy volume)
     #   2b. we expect the surface to drop with each timeshift
     def to_numpy(surf):
-        arr = np.array([surf[i] for i in range(len(surf))]).reshape(-1, surf.getNX())
+        arr = surf.get_zval().reshape(-1, surf.get_nx())
         return arr
 
     # horizon
-    s_horizon = Surface("horizon.irap")
-    assert surf_res[0] == s_horizon.getNX()
-    assert surf_res[1] == s_horizon.getNY()
-    assert (s_horizon.getNX() > grid.getNY()) == results[-1]
-    assert (s_horizon.getNY() > grid.getNX()) == results[-1]
+    s_horizon = xtgeo.surface_from_file("horizon.irap", fformat="irap_binary")
+    assert surf_res[0] == s_horizon.get_nx()
+    assert surf_res[1] == s_horizon.get_ny()
+    assert (s_horizon.get_nx() > grid.get_ny()) == results[-1]
+    assert (s_horizon.get_ny() > grid.get_nx()) == results[-1]
 
     _err = 0.01
-    nx = s_horizon.getNX()
-    ny = s_horizon.getNY()
+    nx = s_horizon.get_nx()
+    ny = s_horizon.get_ny()
     arr = to_numpy(s_horizon)
     sh_top_left = arr[: ny // 2 - 1, : nx // 2 - 1].sum()
     sh_bottom_right = arr[ny // 2 :, nx // 2 :].sum()
@@ -77,11 +76,13 @@ def test_ots_config_run_parameters(
     assert ((sh_bottom_right - _err) > 0) == results[1]
 
     # ts_simple1
-    ts_simple1 = Surface("ts_ts_simple/ots_1997_11_06_1998_02_01.irap")
-    assert nx == ts_simple1.getNX()
-    assert ny == ts_simple1.getNY()
-    assert (ts_simple1.getNX() > grid.getNY()) == results[-1]
-    assert (ts_simple1.getNY() > grid.getNX()) == results[-1]
+    ts_simple1 = xtgeo.surface_from_file(
+        "ts_ts_simple/ots_1997_11_06_1998_02_01.irap", fformat="irap_binary"
+    )
+    assert nx == ts_simple1.get_nx()
+    assert ny == ts_simple1.get_ny()
+    assert (ts_simple1.get_nx() > grid.get_ny()) == results[-1]
+    assert (ts_simple1.get_ny() > grid.get_nx()) == results[-1]
 
     arr = to_numpy(ts_simple1)
     ts1_top_left = arr[: ny // 2 - 1, : nx // 2 - 1].sum()
@@ -91,11 +92,13 @@ def test_ots_config_run_parameters(
     assert ts1_top_left + ts1_bottom_right < sh_top_left + sh_bottom_right
 
     # ts_simple2
-    ts_simple2 = Surface("ts_ts_simple/ots_1997_12_17_1998_01_01.irap")
-    assert nx == ts_simple2.getNX()
-    assert ny == ts_simple2.getNY()
-    assert (ts_simple2.getNX() > grid.getNY()) == results[-1]
-    assert (ts_simple2.getNY() > grid.getNX()) == results[-1]
+    ts_simple2 = xtgeo.surface_from_file(
+        "ts_ts_simple/ots_1997_12_17_1998_01_01.irap", fformat="irap_binary"
+    )
+    assert nx == ts_simple2.get_nx()
+    assert ny == ts_simple2.get_ny()
+    assert (ts_simple2.get_nx() > grid.get_ny()) == results[-1]
+    assert (ts_simple2.get_ny() > grid.get_nx()) == results[-1]
 
     arr = to_numpy(ts_simple2)
     ts2_top_left = arr[: ny // 2 - 1, : nx // 2 - 1].sum()
@@ -106,11 +109,13 @@ def test_ots_config_run_parameters(
     assert ts2_top_left + ts2_bottom_right < ts1_top_left + ts1_bottom_right
 
     # ts_dpv
-    ts_dpv = Surface("ts_dpv/ots_1997_11_06_1997_12_17.irap")
-    assert nx == ts_dpv.getNX()
-    assert ny == ts_dpv.getNY()
-    assert (ts_dpv.getNX() > grid.getNY()) == results[-1]
-    assert (ts_dpv.getNY() > grid.getNX()) == results[-1]
+    ts_dpv = xtgeo.surface_from_file(
+        "ts_dpv/ots_1997_11_06_1997_12_17.irap", fformat="irap_binary"
+    )
+    assert nx == ts_dpv.get_nx()
+    assert ny == ts_dpv.get_ny()
+    assert (ts_dpv.get_nx() > grid.get_ny()) == results[-1]
+    assert (ts_dpv.get_ny() > grid.get_nx()) == results[-1]
 
     arr = to_numpy(ts_simple2)
     dpv_top_left = arr[: ny // 2 - 1, : nx // 2 - 1].sum()

@@ -55,11 +55,37 @@ def _vintage_present_in_rst(elem, context):
     return elem in context
 
 
+@configsuite.validator_msg("Checking valid file type")
+def _is_valid_file_format(value):
+    valid_formats = [
+        "irap_ascii",
+        "irapascii",
+        "irap_txt",
+        "irapasc",
+        "irap_binary",
+        "irapbinary",
+        "irapbin",
+        "irap",
+        "gri",
+        "zmap",
+        "storm_binary",
+        "petromod",
+        "ijxyz",
+    ]
+    return value in valid_formats
+
+
 def build_schema():
     return {
         MK.Type: types.NamedDict,
         MK.Description: "Overburden time shift job parameters",
         MK.Content: {
+            "file_format": {
+                MK.Type: types.String,
+                MK.Description: "The file format of the exported surfaces",
+                MK.Default: "irap_binary",
+                MK.ElementValidators: (_is_valid_file_format,),
+            },
             "seabed": {
                 MK.Type: types.Number,
                 MK.Description: "The depth of the seabead in meters.",

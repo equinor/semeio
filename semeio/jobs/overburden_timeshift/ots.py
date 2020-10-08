@@ -1,3 +1,4 @@
+import xtgeo
 import logging
 from collections import namedtuple
 import os.path
@@ -10,8 +11,6 @@ from scipy.interpolate import CloughTocher2DInterpolator
 from ecl.grid import EclGrid
 from ecl.gravimetry import EclSubsidence
 from ecl.eclfile import Ecl3DKW, EclFile
-
-from ecl.util.geometry import Surface
 
 from semeio.jobs.overburden_timeshift.ots_vel_surface import OTSVelSurface
 from semeio.jobs.overburden_timeshift.ots_res_surface import OTSResSurface
@@ -49,11 +48,14 @@ def ots_load_params(input_file):
     return input_data
 
 
-def write_surface(vintage_pairs, ts, output_dir, type_str):
+def write_surface(vintage_pairs, ts, output_dir, type_str, file_format="irap_binary"):
+    output_path = Path(output_dir + type_str)
+    if not output_path.is_dir():
+        output_path.mkdir()
     for iv, vp in enumerate(vintage_pairs):
         d0 = vp[0].strftime("%Y_%m_%d")
         d1 = vp[1].strftime("%Y_%m_%d")
-        ts[iv].write(output_dir + type_str + "/ots" + "_" + d0 + "_" + d1 + ".irap")
+        ts[iv].to_file(output_path / f"ots_{d0}_{d1}.irap", fformat=file_format)
 
 
 def ots_run(parameter_file):
@@ -80,17 +82,37 @@ def ots_run(parameter_file):
 
     surface_horizon = ots.get_horizon()
 
-    write_surface(vintage_pairs.ts, tshift_ts, parms.output_dir, "_ts")
     write_surface(
-        vintage_pairs.ts_simple, tshift_ts_simple, parms.output_dir, "_ts_simple"
+        vintage_pairs.ts,
+        tshift_ts,
+        parms.output_dir,
+        "_ts",
+        file_format=parms.file_format,
     )
-    write_surface(vintage_pairs.dpv, tshift_dpv, parms.output_dir, "_dpv")
     write_surface(
-        vintage_pairs.ts_rporv, tshift_ts_rporv, parms.output_dir, "_ts_rporv"
+        vintage_pairs.ts_simple,
+        tshift_ts_simple,
+        parms.output_dir,
+        "_ts_simple",
+        file_format=parms.file_format,
+    )
+    write_surface(
+        vintage_pairs.dpv,
+        tshift_dpv,
+        parms.output_dir,
+        "_dpv",
+        file_format=parms.file_format,
+    )
+    write_surface(
+        vintage_pairs.ts_rporv,
+        tshift_ts_rporv,
+        parms.output_dir,
+        "_ts_rporv",
+        file_format=parms.file_format,
     )
 
     if parms.horizon is not None:
-        surface_horizon.write(parms.horizon)
+        surface_horizon.to_file(parms.horizon)
 
     if parms.vintages_export_file is not None:
         num_pairs = (
@@ -101,18 +123,35 @@ def ots_run(parameter_file):
         )
         line = "{}, {}, {}" + ", {}" * num_pairs + "\n"
         with open(parms.vintages_export_file, "w") as f:
-            for point in range(len(surface_horizon)):
-                xy = surface_horizon.getXY(point)
-                ts = []
-                for iv in range(len(vintage_pairs.ts)):
-                    ts.append(tshift_ts[iv][point])
-                for iv in range(len(vintage_pairs.ts_simple)):
-                    ts.append(tshift_ts_simple[iv][point])
-                for iv in range(len(vintage_pairs.dpv)):
-                    ts.append(tshift_dpv[iv][point])
-                for iv in range(len(vintage_pairs.ts_rporv)):
-                    ts.append(tshift_ts_rporv[iv][point])
-                f.write(line.format(xy[0], xy[1], surface_horizon[point], *ts))
+
+            point = 0
+            for x_index in range(1, surface_horizon.get_nx() + 1):
+                for y_index in range(1, surface_horizon.get_ny() + 1):
+                    x_cord, y_cord, _ = surface_horizon.get_xy_value_from_ij(
+                        x_index, y_index
+                    )
+                    ts = []
+                    for iv in range(len(vintage_pairs.ts)):
+                        ts.append(tshift_ts[iv][point])
+                    for iv in range(len(vintage_pairs.ts_simple)):
+                        ts.append(
+                            tshift_ts_simple[iv].get_value_from_xy((x_cord, y_cord))
+                        )
+                    for iv in range(len(vintage_pairs.dpv)):
+                        ts.append(tshift_dpv[iv].get_value_from_xy((x_cord, y_cord)))
+                    for iv in range(len(vintage_pairs.ts_rporv)):
+                        ts.append(
+                            tshift_ts_rporv[iv].get_value_from_xy((x_cord, y_cord))
+                        )
+                    f.write(
+                        line.format(
+                            x_cord,
+                            y_cord,
+                            surface_horizon.get_value_from_xy((x_cord, y_cord)),
+                            *ts,
+                        )
+                    )
+                    point += 1
 
 
 class OverburdenTimeshift(object):
@@ -173,8 +212,8 @@ class OverburdenTimeshift(object):
         if z is None:
             z = self._surface.z
 
-        xstart = np.min(x)
-        ystart = np.min(y)
+        xstart = float(np.min(x))  # Casting to float for xtgeo
+        ystart = float(np.min(y))  # Casting to float for xtgeo
 
         if nx < 2 or ny < 2:
             raise RuntimeError("Cannot create IRAP surface if nx or ny is <2")
@@ -182,25 +221,35 @@ class OverburdenTimeshift(object):
         xinc = (np.max(x) - xstart) / (nx - 1)
         yinc = (np.max(y) - ystart) / (ny - 1)
 
-        surf = Surface(
-            nx=nx, ny=ny, xinc=xinc, yinc=yinc, xstart=xstart, ystart=ystart, angle=0
+        surf_geo = xtgeo.RegularSurface(
+            ncol=nx,
+            nrow=ny,
+            xori=xstart,
+            yori=ystart,
+            xinc=xinc,
+            yinc=yinc,
+            rotation=0,
         )
 
         irap_x = np.empty(nx * ny)
         irap_y = np.array(irap_x)
 
-        for i in range(len(surf)):
-            irap_x[i], irap_y[i] = surf.getXY(i)
+        counter = 0
+        for x_index in range(1, nx + 1):
+            for y_index in range(1, ny + 1):
+                irap_x[counter], irap_y[counter], _ = surf_geo.get_xy_value_from_ij(
+                    x_index, y_index
+                )
+                counter += 1
 
         # Interpolate vel grid to irap grid, should be the same apart from ordering
         z = np.nan_to_num(z)
         ip = CloughTocher2DInterpolator((x, y), z, fill_value=0)
         irap_z = ip(irap_x, irap_y)
 
-        for i in range(len(surf)):
-            surf[i] = irap_z[i]
+        surf_geo.set_zval(irap_z)
 
-        return surf
+        return surf_geo
 
     def add_survey(self, name, date):
         """The add_survey() method will register a survey at a specific date.
