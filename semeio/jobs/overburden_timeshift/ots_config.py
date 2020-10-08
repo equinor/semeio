@@ -98,6 +98,7 @@ def build_schema():
                 MK.Description: "Path to resulting text file, which contains all "
                 "computed vintage pair dates: lines of x, y, z, ts1, ts2, ts3....",
                 MK.Default: None,
+                MK.AllowNone: True,
             },
             "velocity_model": {
                 MK.Type: types.String,
