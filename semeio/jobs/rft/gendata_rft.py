@@ -49,7 +49,7 @@ def _write_pressure(fname, trajectory_df):
                 + "\n"
             )
         else:
-            fh.write("\n".join(["-1" * len(trajectory_df)]))
+            fh.write("\n".join(["-1"] * len(trajectory_df)) + "\n")
 
     logger.info("Forward model script gendata_rft.py: Wrote file {}".format(fname))
 
