@@ -11,9 +11,10 @@ from semeio.jobs.rft.gendata_rft import _write_pressure
     ],
 )
 def test_write_pressure(tmpdir, input_data, expected_result):
-    df = pd.DataFrame(input_data)
-    _write_pressure("some_file_name", df)
+    with tmpdir.as_cwd():
+        df = pd.DataFrame(input_data)
+        _write_pressure("some_file_name", df)
 
-    with open("some_file_name", "r") as fin:
-        result = fin.readlines()
-    assert result == expected_result
+        with open("some_file_name", "r") as fin:
+            result = fin.readlines()
+        assert result == expected_result
