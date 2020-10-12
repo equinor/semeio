@@ -18,6 +18,7 @@ setup(
             "MisfitPreprocessor = semeio.workflows.misfit_preprocessor.misfit_preprocessor",  # noqa
             "CorrelatedObsScaling = semeio.workflows.correlated_observations_scaling.cos",  # noqa
             "CsvExport2Job = semeio.workflows.csv_export2.csv_export2",
+            "AhmAnalysisJob = semeio.workflows.ahm_analysis.ahmanalysis",
         ],
         "console_scripts": [
             "csv_export2=semeio.workflows.csv_export2.csv_export2:cli",
@@ -60,6 +61,8 @@ setup(
         "pyscal>=0.4.0",
         "fmu-ensemble",
         "segyio",
+        "typing_extensions; python_version < '3.8'",
+        "xtgeo",
         "typing_extensions; python_version < '3.8'",
     ],
     include_package_data=True,
