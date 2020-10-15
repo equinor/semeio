@@ -29,7 +29,11 @@ def run(
     logger.setLevel(log_level)
 
     design_matrix_sheet = _read_excel(xlsfilename, designsheetname)
-    _validate_design_matrix(design_matrix_sheet)
+
+    _validate_design_matrix_header(design_matrix_sheet)
+
+    if realization in _invalid_design_realizations(design_matrix_sheet):
+        raise SystemExit("Design parameters invalid for current realization")
 
     default_df = _read_defaultssheet(xlsfilename, defaultssheetname)
 
@@ -66,7 +70,7 @@ def _complete_parameters_file(
     :raises: SystemExit design matrix contains empty cells
     :raises: SystemExit if provided realization not exists
     """
-    # get header / vals for choosen realization
+    # get header / vals for chosen realization
     try:
         realization_values = pd.DataFrame(design_matrix_sheet.iloc[realization, 1:])
     except IndexError:
@@ -181,13 +185,11 @@ def _read_excel(file_name, sheet_name, header=0):
         )
 
 
-def _validate_design_matrix(design_matrix):
+def _validate_design_matrix_header(design_matrix):
     """
-    Validate user inputted design matrix
+    Validate header in user inputted design matrix
     :raises: SystemExit if design matrix contains empty headers
-    :raises: SystemExit design matrix contains empty cells
     """
-    # find column headers missing and raise exception if any
     unnamed = design_matrix.loc[:, design_matrix.columns.str.contains("^Unnamed")]
     column_indexes = [int(x.split(":")[1]) for x in unnamed.columns.values]
     if len(column_indexes) > 0:
@@ -195,13 +197,23 @@ def _validate_design_matrix(design_matrix):
             "Column headers not present in column {}".format(column_indexes)
         )
 
-    # find empty cells and raise exception if any
+
+def _invalid_design_realizations(design_matrix):
+    """
+    Build a set of realization indices where something is wrong,
+    f.ex empty cells
+
+    Logs warnings for all empty cells found in all realizations.
+    """
+
+    empty_cell_coords = list(zip(*np.where(pd.isnull(design_matrix))))
+
     empties = [
-        "Realization {}, key {}".format(i, j)
+        "Realization {}, column {}".format(i, design_matrix.columns[j])
         for i, j in zip(*np.where(pd.isnull(design_matrix)))
     ]
     if len(empties) > 0:
-        raise SystemExit("Design matrix contains empty cells {}".format(empties))
+        logger.warning("Design matrix contains empty cells {}".format(empties))
 
     # Look for initial or trailing whitespace in column headers. This
     # is disallowed as it can create user confusion and has no use-case.
@@ -212,6 +224,8 @@ def _validate_design_matrix(design_matrix):
                     col_header
                 )
             )
+
+    return {cell_coord[0] for cell_coord in empty_cell_coords}
 
 
 def _read_defaultssheet(xlsfilename, defaultssheetname):
