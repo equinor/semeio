@@ -241,16 +241,35 @@ def test_open_excel_file_header_missing(input_data):
         )
 
 
-def test_open_excel_file_value_missing(input_data):
-    with pytest.raises(SystemExit):
-        design2params.run(
-            1,
-            "design_matrix_missing_value.xlsx",
-            "DesignSheet01",
-            "DefaultValues",
-            design2params._PARAMETERS_TXT,
-            log_level=logging.DEBUG,
-        )
+def test_open_excel_file_value_missing(input_data, caplog):
+    """Check that we get SystemExit only for those realizations
+    affected by missing cell values
+
+    (all realizations see warnings for empty cells in other realizations)
+    """
+    reals_with_missing_values = [7, 11]
+    for real in range(0, 25):
+        if real in reals_with_missing_values:
+            with pytest.raises(SystemExit):
+                design2params.run(
+                    real,
+                    "design_matrix_missing_value.xlsx",
+                    "DesignSheet01",
+                    "DefaultValues",
+                    design2params._PARAMETERS_TXT,
+                    log_level=logging.DEBUG,
+                )
+        else:
+            design2params.run(
+                real,
+                "design_matrix_missing_value.xlsx",
+                "DesignSheet01",
+                "DefaultValues",
+                design2params._PARAMETERS_TXT,
+                log_level=logging.DEBUG,
+            )
+    assert "Realization 7, column RMS_SEED" in caplog.text
+    assert "Realization 11, column MULTFLT_F1" in caplog.text
 
 
 @pytest.mark.parametrize(
@@ -307,7 +326,7 @@ def test_open_excel_file_wrong_defaults(input_data):
             1,
             "design_matrix_missing_value.xlsx",
             "DesignSheet01",
-            "DefaultValues",
+            "DefaultValuesWRONGNAME",
             design2params._PARAMETERS_TXT,
             log_level=logging.DEBUG,
         )
