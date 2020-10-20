@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 from pathlib import Path
 import os
 from setuptools import setup, find_packages
@@ -25,8 +24,8 @@ setup(
     long_description=get_long_description(),
     long_description_content_type="text/markdown",
     use_scm_version={"write_to": "semeio/version.py"},
-    author="Software Innovation Bergen, Equinor ASA",
-    author_email="fg_gpl@statoil.com",
+    author="Equinor ASA",
+    author_email="fg_sib-scout@equinor.com",
     url="https://github.com/equinor/semeio",
     description="Jobs and workflow jobs for Ert.",
     packages=find_packages(include=["semeio*"]),
@@ -65,6 +64,7 @@ setup(
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
     install_requires=[
+        # "ert",
         "configsuite>=0.6",
         "numpy",
         "pandas",
@@ -75,7 +75,6 @@ setup(
         "fmu-ensemble",
         "segyio",
     ],
-    setup_requires=["setuptools_scm"],
     package_data={"": job_files},
     include_package_data=True,
 )
