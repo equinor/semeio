@@ -424,3 +424,67 @@ def test_pair_cell_values(cellvalues, expected_parameters_strs, tmpdir):
     key_vals_real1 = extract_key_value(params_lines_1)
     assert key_vals_real0["SOMEKEY"] == expected_parameters_strs[0]
     assert key_vals_real1["SOMEKEY"] == expected_parameters_strs[1]
+
+
+@pytest.mark.parametrize(
+    "paramnames",
+    (
+        [
+            ["REAL", "SOMEKEY "],
+            ["REAL", " SOMEKEY"],
+            ["REAL", " SOMEKEY "],
+            ["REAL", "\tSOMEKEY"],
+            ["REAL", "SOMEKEY\t"],
+            ["REAL", "SOMEKEY\n"],
+        ]
+    ),
+)
+def test_headers_trailing_whitespace(paramnames, tmpdir):
+    """Parameter names can have un-noticed trailing whitespace in Excel.
+
+    This can happen both in the design- and the defaultssheet.
+
+    This should error hard as it has no believed use-case and only
+    creates user confusion.
+    """
+    # pylint: disable=abstract-class-instantiated
+    tmpdir.chdir()
+
+    designsheet_df = pd.DataFrame(columns=paramnames, data=[[0, "foo"]])
+    emptydesignsheet_df = pd.DataFrame(columns=["REAL"], data=[[0]])
+
+    emptydefaultssheet_df = pd.DataFrame()
+    defaultssheet_df = pd.DataFrame(data=[[paramnames[1], "bar"]])
+
+    writer = pd.ExcelWriter("design_matrix.xlsx")
+    designsheet_df.to_excel(writer, sheet_name="DesignSheet01", index=False)
+    emptydefaultssheet_df.to_excel(
+        writer, sheet_name="DefaultValues", index=False, header=None
+    )
+    writer.save()
+
+    writer = pd.ExcelWriter("design_matrix_onlydefaults.xlsx")
+    emptydesignsheet_df.to_excel(writer, sheet_name="DesignSheet01", index=False)
+    defaultssheet_df.to_excel(
+        writer, sheet_name="DefaultValues", index=False, header=None
+    )
+    writer.save()
+
+    with pytest.raises(SystemExit, match="whitespace"):
+        design2params.run(
+            0,
+            "design_matrix.xlsx",
+            "DesignSheet01",
+            "DefaultValues",
+            "parameters.txt",
+            log_level=logging.DEBUG,
+        )
+    with pytest.raises(SystemExit, match="whitespace"):
+        design2params.run(
+            0,
+            "design_matrix_onlydefaults.xlsx",
+            "DesignSheet01",
+            "DefaultValues",
+            "parameters_onlydefaults.txt",
+            log_level=logging.DEBUG,
+        )
