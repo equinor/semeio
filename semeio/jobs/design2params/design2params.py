@@ -203,6 +203,16 @@ def _validate_design_matrix(design_matrix):
     if len(empties) > 0:
         raise SystemExit("Design matrix contains empty cells {}".format(empties))
 
+    # Look for initial or trailing whitespace in column headers. This
+    # is disallowed as it can create user confusion and has no use-case.
+    for col_header in design_matrix:
+        if col_header != col_header.strip():
+            raise SystemExit(
+                'Column header "{}" contains initial or trailing whitespace.'.format(
+                    col_header
+                )
+            )
+
 
 def _read_defaultssheet(xlsfilename, defaultssheetname):
     """
@@ -233,6 +243,17 @@ def _read_defaultssheet(xlsfilename, defaultssheetname):
                 UserWarning,
             )
             default_df = default_df[[0, 1]]  # Slicing columns
+        # Look for initial or trailing whitespace in parameter names. This
+        # is disallowed as it can create user confusion and has no use-case.
+        for paramname in default_df.loc[:, 0]:
+            if paramname != paramname.strip():
+                raise SystemExit(
+                    (
+                        'Parameter name "{}" in default values contains '
+                        "initial or trailing whitespace."
+                    ).format(paramname)
+                )
+
     else:
         logger.info("No defaultssheet provided, using empty dataframe")
         default_df = pd.DataFrame(columns=[0, 1])
