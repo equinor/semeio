@@ -12,6 +12,11 @@ _DESIGN_MATRIX_TXT = "designmatrix.txt"
 _DESIGN_PARAMETERS_TXT = "designparameters.txt"
 _PARAMETERS_TXT = "parameters.txt"
 
+# These parameter names are reserved and cannot
+# be used in design matrices.
+DENYLIST = ["ENSEMBLE", "DATE"]
+DENYLIST_DEFAULTS = DENYLIST + ["REAL"]
+
 logger = logging.getLogger(__name__)
 
 
@@ -204,6 +209,11 @@ def _invalid_design_realizations(design_matrix):
     f.ex empty cells
 
     Logs warnings for all empty cells found in all realizations.
+
+    Logs warning if it looks like some column names have been
+    repeated in the source xlsx file.
+
+    :raises: SystemExit if some parameter names are not allowed
     """
 
     empty_cell_coords = list(zip(*np.where(pd.isnull(design_matrix))))
@@ -224,6 +234,26 @@ def _invalid_design_realizations(design_matrix):
                     col_header
                 )
             )
+
+    # pd.read_excel() will always allow duplicated column names, but will
+    # change names of the columns so that if REAL is given twice, it will
+    # occur as "REAL" and "REAL.1". Give warning if it looks like that
+    # has happened.
+    dot1columns = [
+        col
+        for col in design_matrix.columns
+        if col.endswith(".1") and col.replace(".1", "") in design_matrix
+    ]
+    if dot1columns:
+        logger.warning(
+            "Column(s) {} are probably duplicated in design matrix".format(dot1columns)
+        )
+
+    denied_params = set(design_matrix.columns).intersection(set(DENYLIST))
+    if denied_params:
+        raise SystemExit(
+            "Column name(s) {} is not allowed in design matrix.".format(denied_params)
+        )
 
     return {cell_coord[0] for cell_coord in empty_cell_coords}
 
@@ -267,6 +297,14 @@ def _read_defaultssheet(xlsfilename, defaultssheetname):
                         "initial or trailing whitespace."
                     ).format(paramname)
                 )
+
+        denied_params = set(default_df.loc[:, 0]).intersection(set(DENYLIST_DEFAULTS))
+        if denied_params:
+            raise SystemExit(
+                "Column name(s) {} is not allowed in design matrix defaults.".format(
+                    denied_params
+                )
+            )
 
     else:
         logger.info("No defaultssheet provided, using empty dataframe")

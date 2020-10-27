@@ -507,3 +507,104 @@ def test_headers_trailing_whitespace(paramnames, tmpdir):
             "parameters_onlydefaults.txt",
             log_level=logging.DEBUG,
         )
+
+
+@pytest.mark.parametrize("paramname", design2params.DENYLIST)
+def test_denylist_designsheet(paramname, tmpdir):
+    """Some parameter names are reserved, ensure we error hard if found."""
+    # pylint: disable=abstract-class-instantiated
+    tmpdir.chdir()
+
+    designsheet_df = pd.DataFrame(columns=["REAL", paramname], data=[[0, "foo"]])
+    emptydesignsheet_df = pd.DataFrame(columns=["REAL"], data=[[0]])
+
+    emptydefaultssheet_df = pd.DataFrame()
+    defaultssheet_df = pd.DataFrame(data=[[paramname, "bar"]])
+
+    writer = pd.ExcelWriter("design_matrix.xlsx")
+    designsheet_df.to_excel(writer, sheet_name="DesignSheet01", index=False)
+    emptydefaultssheet_df.to_excel(
+        writer, sheet_name="DefaultValues", index=False, header=None
+    )
+    writer.save()
+
+    writer = pd.ExcelWriter("design_matrix_onlydefaults.xlsx")
+    emptydesignsheet_df.to_excel(writer, sheet_name="DesignSheet01", index=False)
+    defaultssheet_df.to_excel(
+        writer, sheet_name="DefaultValues", index=False, header=None
+    )
+    writer.save()
+
+    with pytest.raises(SystemExit, match="not allowed"):
+        design2params.run(
+            0,
+            "design_matrix.xlsx",
+            "DesignSheet01",
+            "DefaultValues",
+            "parameters.txt",
+            log_level=logging.DEBUG,
+        )
+
+
+@pytest.mark.parametrize("paramname", design2params.DENYLIST_DEFAULTS)
+def test_denylist_defaults(paramname, tmpdir):
+    """Some parameter names are reserved, ensure we error hard if found.
+
+    The defaults sheet can have more denied parameters than the designsheet,
+    in particular the "REAL" column."""
+
+    # pylint: disable=abstract-class-instantiated
+    tmpdir.chdir()
+
+    emptydesignsheet_df = pd.DataFrame(columns=["REAL"], data=[[0]])
+    defaultssheet_df = pd.DataFrame(data=[[paramname, "bar"]])
+    writer = pd.ExcelWriter("design_matrix.xlsx")
+    emptydesignsheet_df.to_excel(writer, sheet_name="DesignSheet01", index=False)
+    defaultssheet_df.to_excel(
+        writer, sheet_name="DefaultValues", index=False, header=None
+    )
+    writer.save()
+
+    with pytest.raises(SystemExit, match="not allowed"):
+        design2params.run(
+            0,
+            "design_matrix.xlsx",
+            "DesignSheet01",
+            "DefaultValues",
+            "parameters.txt",
+            log_level=logging.DEBUG,
+        )
+
+
+@pytest.mark.parametrize(
+    "paramset", [["REAL", "REAL"], ["REAL", "REAL", "REAL"], ["FOO", "FOO"]]
+)
+def test_duplicated_designcolumns(paramset, tmpdir, caplog):
+    """If the excel sheet contains duplicated column headers, pandas will
+    happily read it but modify column names. This is most likely a user error,
+    and a warning is issued"""
+
+    # pylint: disable=abstract-class-instantiated
+    tmpdir.chdir()
+
+    designsheet_df = pd.DataFrame(
+        columns=["REAL"] + paramset, data=[[0] + ["foo"] * len(paramset)]
+    )
+    emptydefaultssheet_df = pd.DataFrame()
+
+    writer = pd.ExcelWriter("design_matrix.xlsx")
+    designsheet_df.to_excel(writer, sheet_name="DesignSheet01", index=False)
+    emptydefaultssheet_df.to_excel(
+        writer, sheet_name="DefaultValues", index=False, header=None
+    )
+    writer.save()
+
+    design2params.run(
+        0,
+        "design_matrix.xlsx",
+        "DesignSheet01",
+        "DefaultValues",
+        "parameters.txt",
+        log_level=logging.DEBUG,
+    )
+    assert "are probably duplicated" in caplog.text
