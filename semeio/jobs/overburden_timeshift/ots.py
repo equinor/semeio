@@ -1,13 +1,16 @@
-import xtgeo
 import logging
-from collections import namedtuple
 import os.path
+from collections import namedtuple
+from itertools import product
 from datetime import datetime as dt
 from pathlib import Path
 
+
+import configsuite
+import yaml
+import xtgeo
 import numpy as np
 from scipy.interpolate import CloughTocher2DInterpolator
-
 from ecl.grid import EclGrid
 from ecl.gravimetry import EclSubsidence
 from ecl.eclfile import Ecl3DKW, EclFile
@@ -16,8 +19,6 @@ from semeio.jobs.overburden_timeshift.ots_vel_surface import OTSVelSurface
 from semeio.jobs.overburden_timeshift.ots_res_surface import OTSResSurface
 from semeio.jobs.overburden_timeshift.ots_config import build_schema
 from semeio._exceptions.exceptions import ConfigurationError
-import configsuite
-import yaml
 
 
 # pylint: disable=consider-using-enumerate
@@ -124,34 +125,32 @@ def ots_run(parameter_file):
         line = "{}, {}, {}" + ", {}" * num_pairs + "\n"
         with open(parms.vintages_export_file, "w") as f:
 
-            point = 0
-            for x_index in range(1, surface_horizon.get_nx() + 1):
-                for y_index in range(1, surface_horizon.get_ny() + 1):
-                    x_cord, y_cord, _ = surface_horizon.get_xy_value_from_ij(
-                        x_index, y_index
+            for point, (x_index, y_index) in enumerate(
+                product(
+                    range(1, surface_horizon.get_nx() + 1),
+                    range(1, surface_horizon.get_ny() + 1),
+                )
+            ):
+                x_cord, y_cord, _ = surface_horizon.get_xy_value_from_ij(
+                    x_index, y_index
+                )
+                ts = []
+                for iv in range(len(vintage_pairs.ts)):
+                    ts.append(tshift_ts[iv][point])
+                for iv in range(len(vintage_pairs.ts_simple)):
+                    ts.append(tshift_ts_simple[iv].get_value_from_xy((x_cord, y_cord)))
+                for iv in range(len(vintage_pairs.dpv)):
+                    ts.append(tshift_dpv[iv].get_value_from_xy((x_cord, y_cord)))
+                for iv in range(len(vintage_pairs.ts_rporv)):
+                    ts.append(tshift_ts_rporv[iv].get_value_from_xy((x_cord, y_cord)))
+                f.write(
+                    line.format(
+                        x_cord,
+                        y_cord,
+                        surface_horizon.get_value_from_xy((x_cord, y_cord)),
+                        *ts,
                     )
-                    ts = []
-                    for iv in range(len(vintage_pairs.ts)):
-                        ts.append(tshift_ts[iv][point])
-                    for iv in range(len(vintage_pairs.ts_simple)):
-                        ts.append(
-                            tshift_ts_simple[iv].get_value_from_xy((x_cord, y_cord))
-                        )
-                    for iv in range(len(vintage_pairs.dpv)):
-                        ts.append(tshift_dpv[iv].get_value_from_xy((x_cord, y_cord)))
-                    for iv in range(len(vintage_pairs.ts_rporv)):
-                        ts.append(
-                            tshift_ts_rporv[iv].get_value_from_xy((x_cord, y_cord))
-                        )
-                    f.write(
-                        line.format(
-                            x_cord,
-                            y_cord,
-                            surface_horizon.get_value_from_xy((x_cord, y_cord)),
-                            *ts,
-                        )
-                    )
-                    point += 1
+                )
 
 
 class OverburdenTimeshift(object):
@@ -234,13 +233,12 @@ class OverburdenTimeshift(object):
         irap_x = np.empty(nx * ny)
         irap_y = np.array(irap_x)
 
-        counter = 0
-        for x_index in range(1, nx + 1):
-            for y_index in range(1, ny + 1):
-                irap_x[counter], irap_y[counter], _ = surf_geo.get_xy_value_from_ij(
-                    x_index, y_index
-                )
-                counter += 1
+        for counter, (x_index, y_index) in enumerate(
+            product(range(1, nx + 1), range(1, ny + 1))
+        ):
+            irap_x[counter], irap_y[counter], _ = surf_geo.get_xy_value_from_ij(
+                x_index, y_index
+            )
 
         # Interpolate vel grid to irap grid, should be the same apart from ordering
         z = np.nan_to_num(z)
