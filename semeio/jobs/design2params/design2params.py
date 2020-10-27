@@ -23,15 +23,16 @@ logger = logging.getLogger(__name__)
 def run(
     realization,
     xlsfilename,
-    designsheetname,
-    defaultssheetname,
-    parametersfilename,
-    log_level,
+    designsheetname="DesignSheet01",
+    defaultssheetname="DefaultValues",
+    parametersfilename="parameters.txt",
+    log_level=None,
 ):
     """
     Reads out all file content from different files and create dataframes
     """
-    logger.setLevel(log_level)
+    if log_level is not None:
+        logger.setLevel(log_level)
 
     design_matrix_sheet = _read_excel(xlsfilename, designsheetname)
 

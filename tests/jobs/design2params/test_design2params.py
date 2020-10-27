@@ -133,9 +133,7 @@ def test_runs_different_reals_all_ok(realization_id):
     design2params.run(
         realization_id,
         "design_matrix_tampered_defaults.xlsx",
-        "DesignSheet01",
-        "DefaultValues",
-        design2params._PARAMETERS_TXT,
+        parametersfilename=design2params._PARAMETERS_TXT,
         log_level=logging.DEBUG,
     )
 
@@ -147,14 +145,7 @@ def test_runs_different_reals_all_ok(realization_id):
 def test_empty_defaults(tmpdir):
     # pylint: disable=abstract-class-instantiated
     tmpdir.chdir()
-    designsheet_df = pd.DataFrame()
-    defaultssheet_df = pd.DataFrame()
-    writer = pd.ExcelWriter("design_matrix.xlsx")
-    designsheet_df.to_excel(writer, sheet_name="DesignSheet01", index=False)
-    defaultssheet_df.to_excel(
-        writer, sheet_name="DefaultValues", index=False, header=None
-    )
-    writer.save()
+    write_design_xlsx("design_matrix.xlsx")
 
     parsed_defaults = design2params._read_defaultssheet(
         "design_matrix.xlsx", "DefaultValues"
@@ -164,20 +155,8 @@ def test_empty_defaults(tmpdir):
 
 
 def test_one_column_defaults(tmpdir):
-    # pylint: disable=abstract-class-instantiated
     tmpdir.chdir()
-    designsheet_df = pd.DataFrame()
-    defaultssheet_df = pd.DataFrame(data=[["foo"]])
-    writer = pd.ExcelWriter("design_matrix.xlsx")
-    designsheet_df.to_excel(
-        writer,
-        sheet_name="DesignSheet01",
-        index=False,
-    )
-    defaultssheet_df.to_excel(
-        writer, sheet_name="DefaultValues", index=False, header=None
-    )
-    writer.save()
+    write_design_xlsx("design_matrix.xlsx", defaultsdf=pd.DataFrame(data=[["foo"]]))
 
     with pytest.raises(SystemExit):
         design2params._read_defaultssheet("design_matrix.xlsx", "DefaultValues")
@@ -191,14 +170,9 @@ def test_three_column_defaults(tmpdir):
     """
     # pylint: disable=abstract-class-instantiated
     tmpdir.chdir()
-    designsheet_df = pd.DataFrame()
-    defaultssheet_df = pd.DataFrame(data=[["foo", "bar", "com"]])
-    writer = pd.ExcelWriter("design_matrix.xlsx")
-    designsheet_df.to_excel(writer, sheet_name="DesignSheet01", index=False)
-    defaultssheet_df.to_excel(
-        writer, sheet_name="DefaultValues", index=False, header=None
+    write_design_xlsx(
+        "design_matrix.xlsx", defaultsdf=pd.DataFrame(data=[["foo", "bar", "com"]])
     )
-    writer.save()
 
     parsed_defaults = design2params._read_defaultssheet(
         "design_matrix.xlsx", "DefaultValues"
@@ -288,7 +262,6 @@ def test_open_excel_file_value_missing(input_data, caplog):
 def test_existing_parameterstxt(
     exist_params, design_m, expected_warning, tmpdir, caplog
 ):
-    # pylint: disable=abstract-class-instantiated
     """Test warnings emitted when the file parameters.txt is prefilled"""
     tmpdir.chdir()
 
@@ -298,19 +271,13 @@ def test_existing_parameterstxt(
 
     designsheet_df = pd.DataFrame.from_records(data=[design_m])
     designsheet_df.insert(0, "REAL", [0])
-    defaultssheet_df = pd.DataFrame()
-    writer = pd.ExcelWriter("design_matrix.xlsx")
-    designsheet_df.to_excel(writer, sheet_name="DesignSheet01", index=False)
-    defaultssheet_df.to_excel(
-        writer, sheet_name="DefaultValues", index=False, header=None
-    )
-    writer.save()
+
+    write_design_xlsx("design_matrix.xlsx", designdf=designsheet_df)
+
     design2params.run(
         0,
         "design_matrix.xlsx",
-        "DesignSheet01",
-        "DefaultValues",
-        params_file,
+        parametersfilename=params_file,
         log_level=logging.DEBUG,
     )
 
@@ -358,25 +325,17 @@ def test_open_excel_file_wrong_defaults(input_data):
 def test_single_cell_values(cellvalue, expected_parameters_str, tmpdir):
     """Test how certain single values go through the Excel input sheets
     and all the way to parameters.txt"""
-    # pylint: disable=abstract-class-instantiated
     tmpdir.chdir()
-
-    designsheet_df = pd.DataFrame(columns=["REAL", "SOMEKEY"], data=[[0, cellvalue]])
-
-    defaultssheet_df = pd.DataFrame()
-    writer = pd.ExcelWriter("design_matrix.xlsx")
-    designsheet_df.to_excel(writer, sheet_name="DesignSheet01", index=False)
-    defaultssheet_df.to_excel(
-        writer, sheet_name="DefaultValues", index=False, header=None
+    write_design_xlsx(
+        "design_matrix.xlsx",
+        designdf=pd.DataFrame(columns=["REAL", "SOMEKEY"], data=[[0, cellvalue]]),
     )
-    writer.save()
+
     params_file = "parameters.txt"
     design2params.run(
         0,
         "design_matrix.xlsx",
-        "DesignSheet01",
-        "DefaultValues",
-        params_file,
+        parametersfilename=params_file,
         log_level=logging.DEBUG,
     )
     with open(params_file) as p_file:
@@ -403,36 +362,27 @@ def test_pair_cell_values(cellvalues, expected_parameters_strs, tmpdir):
 
     This is to ensure that differing datatypes in a single Excel columns does
     not affect individual values."""
-    # pylint: disable=abstract-class-instantiated
     tmpdir.chdir()
 
-    designsheet_df = pd.DataFrame(
-        columns=["REAL", "SOMEKEY"], data=[[0, cellvalues[0]], [1, cellvalues[1]]]
+    write_design_xlsx(
+        "design_matrix.xlsx",
+        designdf=pd.DataFrame(
+            columns=["REAL", "SOMEKEY"], data=[[0, cellvalues[0]], [1, cellvalues[1]]]
+        ),
     )
 
-    defaultssheet_df = pd.DataFrame()
-    writer = pd.ExcelWriter("design_matrix.xlsx")
-    designsheet_df.to_excel(writer, sheet_name="DesignSheet01", index=False)
-    defaultssheet_df.to_excel(
-        writer, sheet_name="DefaultValues", index=False, header=None
-    )
-    writer.save()
     params_0 = "parameters0.txt"
     design2params.run(
         0,
         "design_matrix.xlsx",
-        "DesignSheet01",
-        "DefaultValues",
-        params_0,
+        parametersfilename=params_0,
         log_level=logging.DEBUG,
     )
     params_1 = "parameters1.txt"
     design2params.run(
         1,
         "design_matrix.xlsx",
-        "DesignSheet01",
-        "DefaultValues",
-        params_1,
+        parametersfilename=params_1,
         log_level=logging.DEBUG,
     )
     with open(params_0) as p_file:
@@ -466,83 +416,43 @@ def test_headers_trailing_whitespace(paramnames, tmpdir):
     This should error hard as it has no believed use-case and only
     creates user confusion.
     """
-    # pylint: disable=abstract-class-instantiated
     tmpdir.chdir()
 
-    designsheet_df = pd.DataFrame(columns=paramnames, data=[[0, "foo"]])
-    emptydesignsheet_df = pd.DataFrame(columns=["REAL"], data=[[0]])
-
-    emptydefaultssheet_df = pd.DataFrame()
-    defaultssheet_df = pd.DataFrame(data=[[paramnames[1], "bar"]])
-
-    writer = pd.ExcelWriter("design_matrix.xlsx")
-    designsheet_df.to_excel(writer, sheet_name="DesignSheet01", index=False)
-    emptydefaultssheet_df.to_excel(
-        writer, sheet_name="DefaultValues", index=False, header=None
+    write_design_xlsx(
+        "design_matrix.xlsx",
+        designdf=pd.DataFrame(columns=paramnames, data=[[0, "foo"]]),
     )
-    writer.save()
-
-    writer = pd.ExcelWriter("design_matrix_onlydefaults.xlsx")
-    emptydesignsheet_df.to_excel(writer, sheet_name="DesignSheet01", index=False)
-    defaultssheet_df.to_excel(
-        writer, sheet_name="DefaultValues", index=False, header=None
+    write_design_xlsx(
+        "design_matrix_onlydefaults.xlsx",
+        defaultsdf=pd.DataFrame(data=[[paramnames[1], "bar"]]),
     )
-    writer.save()
 
     with pytest.raises(SystemExit, match="whitespace"):
         design2params.run(
             0,
             "design_matrix.xlsx",
-            "DesignSheet01",
-            "DefaultValues",
-            "parameters.txt",
-            log_level=logging.DEBUG,
         )
     with pytest.raises(SystemExit, match="whitespace"):
         design2params.run(
             0,
             "design_matrix_onlydefaults.xlsx",
-            "DesignSheet01",
-            "DefaultValues",
-            "parameters_onlydefaults.txt",
-            log_level=logging.DEBUG,
+            parametersfilename="parameters_onlydefaults.txt",
         )
 
 
 @pytest.mark.parametrize("paramname", design2params.DENYLIST)
 def test_denylist_designsheet(paramname, tmpdir):
     """Some parameter names are reserved, ensure we error hard if found."""
-    # pylint: disable=abstract-class-instantiated
     tmpdir.chdir()
 
-    designsheet_df = pd.DataFrame(columns=["REAL", paramname], data=[[0, "foo"]])
-    emptydesignsheet_df = pd.DataFrame(columns=["REAL"], data=[[0]])
-
-    emptydefaultssheet_df = pd.DataFrame()
-    defaultssheet_df = pd.DataFrame(data=[[paramname, "bar"]])
-
-    writer = pd.ExcelWriter("design_matrix.xlsx")
-    designsheet_df.to_excel(writer, sheet_name="DesignSheet01", index=False)
-    emptydefaultssheet_df.to_excel(
-        writer, sheet_name="DefaultValues", index=False, header=None
+    write_design_xlsx(
+        "design_matrix.xlsx",
+        designdf=pd.DataFrame(columns=["REAL", paramname], data=[[0, "foo"]]),
     )
-    writer.save()
-
-    writer = pd.ExcelWriter("design_matrix_onlydefaults.xlsx")
-    emptydesignsheet_df.to_excel(writer, sheet_name="DesignSheet01", index=False)
-    defaultssheet_df.to_excel(
-        writer, sheet_name="DefaultValues", index=False, header=None
-    )
-    writer.save()
-
     with pytest.raises(SystemExit, match="not allowed"):
         design2params.run(
             0,
             "design_matrix.xlsx",
-            "DesignSheet01",
-            "DefaultValues",
-            "parameters.txt",
-            log_level=logging.DEBUG,
         )
 
 
@@ -552,27 +462,14 @@ def test_denylist_defaults(paramname, tmpdir):
 
     The defaults sheet can have more denied parameters than the designsheet,
     in particular the "REAL" column."""
-
-    # pylint: disable=abstract-class-instantiated
     tmpdir.chdir()
-
-    emptydesignsheet_df = pd.DataFrame(columns=["REAL"], data=[[0]])
-    defaultssheet_df = pd.DataFrame(data=[[paramname, "bar"]])
-    writer = pd.ExcelWriter("design_matrix.xlsx")
-    emptydesignsheet_df.to_excel(writer, sheet_name="DesignSheet01", index=False)
-    defaultssheet_df.to_excel(
-        writer, sheet_name="DefaultValues", index=False, header=None
+    write_design_xlsx(
+        "design_matrix.xlsx", defaultsdf=pd.DataFrame(data=[[paramname, "bar"]])
     )
-    writer.save()
-
     with pytest.raises(SystemExit, match="not allowed"):
         design2params.run(
             0,
             "design_matrix.xlsx",
-            "DesignSheet01",
-            "DefaultValues",
-            "parameters.txt",
-            log_level=logging.DEBUG,
         )
 
 
@@ -584,27 +481,52 @@ def test_duplicated_designcolumns(paramset, tmpdir, caplog):
     happily read it but modify column names. This is most likely a user error,
     and a warning is issued"""
 
-    # pylint: disable=abstract-class-instantiated
     tmpdir.chdir()
-
-    designsheet_df = pd.DataFrame(
-        columns=["REAL"] + paramset, data=[[0] + ["foo"] * len(paramset)]
+    write_design_xlsx(
+        "design_matrix.xlsx",
+        designdf=pd.DataFrame(
+            columns=["REAL"] + paramset, data=[[0] + ["foo"] * len(paramset)]
+        ),
     )
-    emptydefaultssheet_df = pd.DataFrame()
-
-    writer = pd.ExcelWriter("design_matrix.xlsx")
-    designsheet_df.to_excel(writer, sheet_name="DesignSheet01", index=False)
-    emptydefaultssheet_df.to_excel(
-        writer, sheet_name="DefaultValues", index=False, header=None
-    )
-    writer.save()
 
     design2params.run(
         0,
         "design_matrix.xlsx",
-        "DesignSheet01",
-        "DefaultValues",
-        "parameters.txt",
-        log_level=logging.DEBUG,
     )
     assert "are probably duplicated" in caplog.text
+
+
+def write_design_xlsx(
+    filename,
+    designdf=None,
+    defaultsdf=None,
+    designsheetname="DesignSheet01",
+    defaultssheetname="DefaultValues",
+):
+    """Generate an XLS file with a design sheet and a defaults sheet.
+
+    Args:
+        filename (str)
+        designdf (pd.DataFrame): Design data. Empty data will be written if None
+        defaultsdf (pd.DataFrame): defaults data. Empty data will be written if None
+        designsheetname (str): sheet-name in xlsx file. Defaulted if not provided
+        defaultssheetname (str): sheet-name in xlsx file. Defaulted if not provided
+    """
+    # pylint: disable=abstract-class-instantiated
+    writer = pd.ExcelWriter(filename)
+    if designdf is not None:
+        designdf.to_excel(writer, sheet_name=designsheetname, index=False)
+    else:
+        # Write empty sheet.
+        pd.DataFrame().to_excel(writer, sheet_name=designsheetname, index=False)
+
+    if defaultsdf is not None:
+        defaultsdf.to_excel(
+            writer, sheet_name=defaultssheetname, index=False, header=None
+        )
+    else:
+        # Write empty sheet.
+        pd.DataFrame().to_excel(
+            writer, sheet_name=defaultssheetname, index=False, header=None
+        )
+    writer.save()
