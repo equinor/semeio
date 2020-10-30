@@ -1,3 +1,4 @@
+import sys
 from unittest.mock import patch
 import pytest
 from semeio.jobs.scripts.fm_stea import main_entry_point
@@ -32,9 +33,10 @@ def calculate_patch(stea_input):
 
 @patch("stea.calculate")
 @pytest.mark.usefixtures("setup_stea")
-def test_stea(mock_stea):
+def test_stea(mock_stea, monkeypatch):
+    monkeypatch.setattr(sys, "argv", ["script_name", "-c", "stea_input.yml"])
     mock_stea.side_effect = calculate_patch
-    main_entry_point(["-c", "stea_input.yml"])
+    main_entry_point()
     mock_stea.assert_called_once()
     files = os.listdir(os.getcwd())
     # the resulting file i.e. key is defined in the input config file: stea_input.yml

@@ -28,9 +28,9 @@ def _get_args_parser():
     return parser
 
 
-def main_entry_point(args=None):
+def main_entry_point():
     parser = _get_args_parser()
-    options = parser.parse_args(args)
+    options = parser.parse_args()
     stea_input = stea.SteaInput([options.config])
     res = stea.calculate(stea_input)
     for res, value in res.results(stea.SteaKeys.CORPORATE).items():
