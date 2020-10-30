@@ -1,4 +1,4 @@
-EXECUTABLE     fm_stea
+EXECUTABLE     semeio_stea
 ARGLIST        -c <CONFIG>
 
 ARG_TYPE 0 STRING
