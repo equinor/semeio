@@ -196,7 +196,16 @@ def _validate_design_matrix_header(design_matrix):
     Validate header in user inputted design matrix
     :raises: SystemExit if design matrix contains empty headers
     """
-    unnamed = design_matrix.loc[:, design_matrix.columns.str.contains("^Unnamed")]
+    try:
+        unnamed = design_matrix.loc[:, design_matrix.columns.str.contains("^Unnamed")]
+    except (AttributeError, ValueError) as err:
+        # We catch these errors because:
+        # 1) AttributeError is a pandas 0.24 compatibility
+        # 2) ValueError because int/floats as column headers in xlsx gets read as
+        # int/float and is not valid to index by.
+        raise SystemExit(
+            f"Invalid value in design matrix header, error: {str(err)}"
+        ) from err
     column_indexes = [int(x.split(":")[1]) for x in unnamed.columns.values]
     if len(column_indexes) > 0:
         raise SystemExit(

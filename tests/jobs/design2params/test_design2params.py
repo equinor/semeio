@@ -1,6 +1,7 @@
 import filecmp
 import logging
 import os
+from packaging import version
 from distutils.dir_util import copy_tree
 
 import pandas as pd
@@ -432,7 +433,11 @@ def test_headers_trailing_whitespace(paramnames, tmpdir):
             0,
             "design_matrix.xlsx",
         )
-    with pytest.raises(SystemExit, match="whitespace"):
+    if version.parse(pd.__version__) < version.parse("0.25"):
+        expected_error = "Invalid value in design matrix header"
+    else:
+        expected_error = "whitespace"
+    with pytest.raises(SystemExit, match=expected_error):
         design2params.run(
             0,
             "design_matrix_onlydefaults.xlsx",
@@ -466,7 +471,45 @@ def test_denylist_defaults(paramname, tmpdir):
     write_design_xlsx(
         "design_matrix.xlsx", defaultsdf=pd.DataFrame(data=[[paramname, "bar"]])
     )
-    with pytest.raises(SystemExit, match="not allowed"):
+    if version.parse(pd.__version__) < version.parse("0.25"):
+        expected_error = "Invalid value in design matrix header"
+    else:
+        expected_error = "not allowed"
+    with pytest.raises(SystemExit, match=expected_error):
+        design2params.run(
+            0,
+            "design_matrix.xlsx",
+        )
+
+
+@pytest.mark.parametrize("paramname", [1, 1.0])
+def test_invalid_pandas_header_error(tmpdir, paramname):
+    tmpdir.chdir()
+
+    write_design_xlsx(
+        "design_matrix.xlsx",
+        designdf=pd.DataFrame(columns=["REAL", paramname], data=[[0, "foo"]]),
+    )
+
+    expected_error = "Invalid value in design matrix header"
+    with pytest.raises(SystemExit, match=expected_error):
+        design2params.run(
+            0,
+            "design_matrix.xlsx",
+        )
+
+
+@pytest.mark.parametrize("paramname", [1, 1.0])
+def test_denylist_expected_error(paramname, tmpdir):
+    tmpdir.chdir()
+    write_design_xlsx(
+        "design_matrix.xlsx", defaultsdf=pd.DataFrame(data=[[paramname, "bar"]])
+    )
+    if version.parse(pd.__version__) < version.parse("0.25"):
+        expected_error = "Invalid value in design matrix header"
+    else:
+        expected_error = "does not exist in design matrix"
+    with pytest.raises(SystemExit, match=expected_error):
         design2params.run(
             0,
             "design_matrix.xlsx",
