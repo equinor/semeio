@@ -79,12 +79,12 @@ def _complete_parameters_file(
     # get header / vals for chosen realization
     try:
         realization_values = pd.DataFrame(design_matrix_sheet.iloc[realization, 1:])
-    except IndexError:
+    except IndexError as err:
         raise SystemExit(
             "Provided realization arg {} does not exist in design matrix".format(
                 realization
             )
-        )
+        ) from err
     realization_values.reset_index(inplace=True)
     realization_values.rename(
         columns={"index": "keys", realization: "realization"}, inplace=True
@@ -181,14 +181,14 @@ def _read_excel(file_name, sheet_name, header=0):
     """
     try:
         return pd.read_excel(file_name, sheet_name, header=header, dtype=str)
-    except IOError:
-        raise SystemExit("File {} not found".format(file_name))
+    except IOError as err:
+        raise SystemExit("File {} not found".format(file_name)) from err
     except Exception as err:
         raise SystemExit(
             (
                 "File {} is probably not of correct type. Failed with exception '{}'"
             ).format(file_name, str(err))
-        )
+        ) from err
 
 
 def _validate_design_matrix_header(design_matrix):
