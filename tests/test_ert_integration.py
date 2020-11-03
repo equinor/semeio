@@ -22,6 +22,14 @@ FORWARD_MODEL {}({})
 """
 
 
+@pytest.mark.skipif(
+    sys.platform == "darwin",
+    reason=(
+        "Forward models have same name as executable and "
+        "libres will find wrong exe on case insensitive system "
+        "bug report here: https://github.com/equinor/libres/issues/1053"
+    ),
+)
 @pytest.mark.parametrize(
     "forward_model, configuration, expected_error",
     [
@@ -40,17 +48,6 @@ FORWARD_MODEL {}({})
 def test_console_script_integration(
     setup_tmpdir, forward_model, configuration, expected_error
 ):
-    if (
-        forward_model in ["DESIGN2PARAMS", "GENDATA_RFT", "DESIGN_KW"]
-        and sys.platform == "darwin"
-    ):
-        pytest.skip(
-            (
-                "Forward models have same name as executable and "
-                "libres will find wrong exe on case insensitive system "
-                "bug report here: https://github.com/equinor/libres/issues/1053"
-            )
-        )
     config = default_config.format(forward_model, configuration)
     with open("config.ert", "w") as fh:
         fh.write(config)
