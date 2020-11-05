@@ -12,6 +12,7 @@ from semeio.workflows.correlated_observations_scaling.cos import (
 )
 from tests.jobs.correlated_observations_scaling.conftest import TEST_DATA_DIR
 from ert_shared.plugins.plugin_manager import ErtPluginManager
+from unittest.mock import MagicMock
 
 
 def assert_obs_vector(vector, val_1, index_list=None, val_2=None):
@@ -286,3 +287,30 @@ def test_main_entry_point_block_and_summary_data_calc():
 
     for index, node in enumerate(obs_vector):
         assert node.getStdScaling(index) == np.sqrt(64)
+
+
+@pytest.mark.usefixtures("setup_tmpdir")
+def test_main_entry_point_sum_data_update(test_data_root, monkeypatch):
+    cos_config = {"CALCULATE_KEYS": {"keys": [{"key": "WOPR_OP1_108"}]}}
+
+    test_data_dir = os.path.join(test_data_root, "snake_oil")
+
+    shutil.copytree(test_data_dir, "test_data")
+    os.chdir(os.path.join("test_data"))
+
+    res_config = ResConfig("snake_oil.ert")
+
+    ert = EnKFMain(res_config)
+    obs = ert.getObservations()
+
+    obs_vector = obs["WOPR_OP1_108"]
+
+    for index, node in enumerate(obs_vector):
+        assert node.getStdScaling(index) == 1.0
+    monkeypatch.setattr(
+        cos.ObservationScaleFactor, "get_scaling_factor", MagicMock(return_value=1.23)
+    )
+    CorrelatedObservationsScalingJob(ert).run(cos_config)
+
+    for index, node in enumerate(obs_vector):
+        assert node.getStdScaling(index) == 1.23

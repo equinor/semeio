@@ -27,9 +27,7 @@ def _update_scaling(obs, scale_factor, obs_list):
         obs_vector = obs[event.key]
         for index, obs_node in enumerate(obs_vector):
             if obs_vector.getImplementationType().name == "SUMMARY_OBS":
-                index_list = (
-                    event.index if event.index is not None else range(len(obs_vector))
-                )
+                index_list = event.index if event.index else range(len(obs_vector))
                 if index in index_list:
                     obs_node.set_std_scaling(scale_factor)
             elif obs_vector.getImplementationType().name != "SUMMARY_OBS":
