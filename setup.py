@@ -1,32 +1,13 @@
-#!/usr/bin/env python
-from pathlib import Path
-import os
 from setuptools import setup, find_packages
 
 
-def package_files(directory):
-    paths = []
-    for (path, _, filenames) in os.walk(directory):
-        for filename in filenames:
-            paths.append(os.path.join("..", path, filename))
-    return paths
-
-
-def get_long_description() -> str:
-    return Path("README.md").read_text(encoding="utf8")
-
-
-job_files = package_files("semeio/jobs/config_jobs") + package_files(
-    "semeio/jobs/config_workflow_jobs"
-)
-
 setup(
     name="semeio",
-    long_description=get_long_description(),
+    long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
     use_scm_version={"write_to": "semeio/version.py"},
-    author="Software Innovation Bergen, Equinor ASA",
-    author_email="fg_gpl@statoil.com",
+    author="Equinor ASA",
+    author_email="fg_sib-scout@equinor.com",
     url="https://github.com/equinor/semeio",
     description="Jobs and workflow jobs for Ert.",
     packages=find_packages(include=["semeio*"]),
@@ -65,6 +46,9 @@ setup(
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
     install_requires=[
+        "ecl",
+        "ert",
+        "equinor-libres",
         "configsuite>=0.6",
         "numpy",
         "pandas",
@@ -75,7 +59,5 @@ setup(
         "fmu-ensemble",
         "segyio",
     ],
-    setup_requires=["setuptools_scm"],
-    package_data={"": job_files},
     include_package_data=True,
 )

@@ -13,7 +13,7 @@ from semeio.workflows.correlated_observations_scaling.cos import (
 from semeio.workflows.spearman_correlation_job.job import spearman_job
 
 
-class SpearmanCorrelationJob(SemeioScript):  # pylint: disable=too-few-public-methods
+class SpearmanCorrelationJob(SemeioScript):
     def run(self, *args):
         facade = LibresFacade(self.ert())
 

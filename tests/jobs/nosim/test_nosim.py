@@ -66,13 +66,8 @@ def test_nosim(setup_tmpdir, nosim_command, data_input, data_expected):
     with ErtPluginContext(
         plugins=[semeio.hook_implementations.jobs, ert_shared.hook_implementations]
     ):
-        p = subprocess.Popen(
+        subprocess.check_call(
             ["ert", "test_run", "nosim.ert", "--verbose"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            env=os.environ.copy(),
         )
-        p.wait()
-
     with open("nosim/real_0/iter_0/TEST.DATA") as fh:
         assert fh.read() == data_expected
