@@ -27,7 +27,7 @@ class _LogHandlerContext(object):
 
 class _ReportHandler(BufferingHandler):
     def __init__(self, output_dir, thread_id):
-        super(_ReportHandler, self).__init__(1)
+        super().__init__(1)
         self._reporter = FileReporter(output_dir)
         self._namespace = SEMEIOSCRIPT_LOG_FILE
         self.addFilter(lambda rec: rec.thread == thread_id)
@@ -36,7 +36,7 @@ class _ReportHandler(BufferingHandler):
         for log_record in self.buffer:
             self._reporter.publish_msg(self._namespace, self._format_record(log_record))
 
-        super(_ReportHandler, self).flush()
+        super().flush()
 
     def _format_record(self, log_record):
         log_fmt = "{log_level} [{log_time}]: {log_message}"
@@ -47,7 +47,7 @@ class _ReportHandler(BufferingHandler):
         )
 
 
-class SemeioScript(ErtScript):  # pylint: disable=too-few-public-methods
+class SemeioScript(ErtScript):
     """
     SemeioScript is a workflow utility extending the functionality of ErtScript.
     In particular it provides a `self.reporter` instance available for passing
@@ -56,7 +56,7 @@ class SemeioScript(ErtScript):  # pylint: disable=too-few-public-methods
     """
 
     def __init__(self, ert):
-        super(SemeioScript, self).__init__(ert)
+        super().__init__(ert)
         self._output_dir = self._get_output_dir()
         self._reporter = FileReporter(self._output_dir)
         self._wrap_run()

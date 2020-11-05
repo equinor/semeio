@@ -12,9 +12,12 @@ the API.
 
 # Installation and usage
 
-Semeio is available on [pypi](https://pypi.org/project/semeio/) and can be installed using `pip install semeio`. This requires
-that [ERT](https://github.com/equinor/ert), and [libres](https://github.com/equinor/libres) are installed first, which are not
-on pypi.
+Semeio is available on [pypi](https://pypi.org/project/semeio/) and can be installed using `pip install semeio`.
+
+```sh
+# Install
+pip install semeio
+```
 
 ## Usage
 

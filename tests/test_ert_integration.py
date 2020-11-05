@@ -1,4 +1,3 @@
-import os
 import sys
 import subprocess
 import pytest
@@ -55,13 +54,7 @@ def test_console_script_integration(
     with ErtPluginContext(
         plugins=[semeio.hook_implementations.jobs, ert_shared.hook_implementations]
     ):
-        p = subprocess.Popen(
-            ["ert", "test_run", "config.ert", "--verbose"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            env=os.environ.copy(),
-        )
-        p.wait()
+        subprocess.run(["ert", "test_run", "config.ert", "--verbose"], check=False)
     with open(f"simulations/realization0/{forward_model}.stderr.0") as fin:
         error = fin.read()
     assert expected_error in error

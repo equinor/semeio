@@ -16,7 +16,7 @@ from semeio.workflows.correlated_observations_scaling.exceptions import (
 )
 
 
-class MisfitPreprocessorJob(SemeioScript):  # pylint: disable=too-few-public-methods
+class MisfitPreprocessorJob(SemeioScript):
     def run(self, *args):
         facade = LibresFacade(self.ert())
         config_record = _fetch_config_record(args)
