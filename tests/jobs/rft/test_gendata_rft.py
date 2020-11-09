@@ -112,6 +112,28 @@ def test_gendata_rft_directory(tmpdir, norne_data, monkeypatch):
     assert os.path.exists("csvfile.csv")  # Should be independent of --outputdirectory
 
 
+def test_gendata_rft_entry_point_wrong_well_file(
+    tmpdir, norne_data, monkeypatch, capsys
+):
+
+    arguments = [
+        "script_name",
+        "-e",
+        ECL_BASE_NORNE,
+        "-w",
+        "well_and_time.txt",
+        "-t",
+        tmpdir.strpath,
+        "-z",
+        "zonemap.txt",
+    ]
+    with open("well_and_time.txt", "w+") as fh:
+        fh.write("NO_FILE_HERE 1 12 2005 0\n")
+    monkeypatch.setattr(sys, "argv", arguments)
+    with pytest.raises(SystemExit, match="NO_FILE_HERE.txt not found"):
+        main_entry_point()
+
+
 def test_gendata_rft_entry_point(tmpdir, norne_data, monkeypatch):
 
     arguments = [

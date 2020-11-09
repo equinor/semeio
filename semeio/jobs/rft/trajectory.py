@@ -1,4 +1,3 @@
-import argparse
 import os
 
 import pandas as pd
@@ -250,7 +249,7 @@ class Trajectory:
         """
         point = line.split()
         if len(point) < 4 or len(point) > 5:
-            raise argparse.ArgumentTypeError(
+            raise ValueError(
                 (
                     "Trajectory data file not on correct format: "
                     "'utm_x utm_y md tvd <zone>' - zone is optional"
@@ -260,7 +259,7 @@ class Trajectory:
         try:
             floats = [float(v) for v in point[:4]]
         except ValueError as err:
-            raise argparse.ArgumentTypeError(
+            raise ValueError(
                 "Error: Failed to extract data from line {line}. Expected the format "
                 "'utm_x utm_y md tvd zone' - zone is optional, where utm coordinates, "
                 "md and tvd are numbers".format(line=line)
@@ -276,11 +275,7 @@ class Trajectory:
 
         filename = os.path.join(filepath)
         if not os.path.isfile(filename):
-            raise argparse.ArgumentTypeError(
-                "Warning: Trajectory file {filename} not found!".format(
-                    filename=filename
-                )
-            )
+            raise IOError(f"Trajectory file {filename} not found!")
 
         with open(filename, "r") as f:
             trajectory_lines = f.readlines()
