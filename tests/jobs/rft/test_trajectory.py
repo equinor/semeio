@@ -1,5 +1,4 @@
 import itertools
-import argparse
 
 import pandas as pd
 
@@ -30,9 +29,8 @@ def test_load_from_line(line, expected_zone):
     ],
 )
 def test_invalid_load_from_line(line, expected_error):
-    with pytest.raises(argparse.ArgumentTypeError) as err_context:
+    with pytest.raises(ValueError, match=expected_error):
         TrajectoryPoint(*Trajectory.parse_trajectory_line(line))
-    assert expected_error in err_context.value.args[0]
 
 
 @pytest.mark.parametrize(
@@ -245,9 +243,5 @@ def test_tuple_column_splitter_explicit():
 
 def test_non_existing_file():
 
-    with pytest.raises(argparse.ArgumentTypeError) as err_context:
+    with pytest.raises(IOError, match="Trajectory file non_existing not found!"):
         Trajectory.load_from_file("non_existing")
-
-    assert (
-        "Warning: Trajectory file non_existing not found!" == err_context.value.args[0]
-    )
