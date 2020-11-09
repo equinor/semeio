@@ -173,14 +173,18 @@ def main_entry_point():
     options = arg_parser.parse_args()
     logger.setLevel(options.log_level)
 
-    well_names = [w_info[0] for w_info in options.well_and_time_file]
+    context_errors = []
+    trajectories = {}
+    for well_name, *_ in options.well_and_time_file:
+        try:
+            trajectories[well_name] = Trajectory.load_from_file(
+                filepath=os.path.join(options.trajectory_path, well_name + ".txt")
+            )
+        except (IOError, ValueError) as err:
+            context_errors.append(str(err))
 
-    trajectories = {
-        wname: Trajectory.load_from_file(
-            filepath=os.path.join(options.trajectory_path, wname + ".txt")
-        )
-        for wname in well_names
-    }
+    if context_errors:
+        raise SystemExit("\n".join(context_errors))
 
     logger.info("All files loaded\nRetrieving RFT data...")
 
