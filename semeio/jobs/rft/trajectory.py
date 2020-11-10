@@ -260,9 +260,9 @@ class Trajectory:
             floats = [float(v) for v in point[:4]]
         except ValueError as err:
             raise ValueError(
-                "Error: Failed to extract data from line {line}. Expected the format "
+                f"Error: Failed to extract data from line {line}. Expected the format "
                 "'utm_x utm_y md tvd zone' - zone is optional, where utm coordinates, "
-                "md and tvd are numbers".format(line=line)
+                "md and tvd are numbers"
             ) from err
 
         zone = point[4].strip() if len(point) == 5 else None
