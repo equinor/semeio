@@ -1,3 +1,7 @@
+import os
+import sys
+import subprocess
+
 import pytest
 import rstcheck
 import pandas as pd
@@ -186,3 +190,84 @@ def verifyExportedFile(exported_file_name, result_header, result_iter_rel):
         set(dframe[["ENSEMBLE", "REAL"]].itertuples(index=False, name=None))
         == result_iter_rel
     )
+
+
+@pytest.mark.integration
+def test_ert_integration(norne_mocked_ensembleset):
+    """Mock an ERT config and test the workflow"""
+    with open("FOO.DATA", "w") as file_h:
+        file_h.write("--Empty")
+
+    with open("wf_csvexport", "w") as file_h:
+        file_h.write(
+            (
+                # This workflow is representing the example in csv_export2.py:
+                (
+                    "MAKE_DIRECTORY csv_output\n"
+                    "EXPORT_RUNPATH * | *\n"  # (not really relevant in mocked case)
+                    "CSV_EXPORT2 runpathfile csv_output/data.csv monthly FOPT\n"
+                    # Example in documentation uses <RUNPATH_FILE> which is
+                    # linked to the RUNPATH keyword that we don't use in this
+                    # test (mocking data gets more complex if that is to be used)
+                )
+            )
+        )
+
+    ert_config = [
+        "ECLBASE FOO.DATA",
+        "QUEUE_SYSTEM LOCAL",
+        "NUM_REALIZATIONS 2",
+        "LOAD_WORKFLOW wf_csvexport",
+        "HOOK_WORKFLOW wf_csvexport PRE_SIMULATION",
+    ]
+
+    ert_config_fname = "test.ert"
+    with open(ert_config_fname, "w") as file_h:
+        file_h.write("\n".join(ert_config))
+
+    subprocess.run(["ert", "test_run", ert_config_fname], check=True)
+
+    assert pd.read_csv("csv_output/data.csv").shape == (16, 5)
+
+
+@pytest.mark.skipif(sys.version_info < (3, 7), reason="Py 3.7 for capture_output")
+@pytest.mark.integration
+def test_ert_integration_errors(norne_mocked_ensembleset):
+    """Test CSV_EXPORT2 when runpathfile points to non-existing realizations
+
+    This test proves that CSV_EXPORT2 happily skips non-existing
+    realizations, but emits a warning that there is no STATUS file.
+    """
+    with open("FOO.DATA", "w") as file_h:
+        file_h.write("--Empty")
+
+    # Append a not-existing realizations to the runpathfile:
+    with open("runpathfile", "a") as file_h:
+        file_h.write("002 realization-2/iter-0 NORNE_1 000")
+
+    with open("wf_csvexport", "w") as file_h:
+        file_h.write("CSV_EXPORT2 runpathfile data.csv monthly FOPT\n")
+
+    ert_config = [
+        "ECLBASE FOO.DATA",
+        "QUEUE_SYSTEM LOCAL",
+        "NUM_REALIZATIONS 2",
+        "LOAD_WORKFLOW wf_csvexport",
+        "HOOK_WORKFLOW wf_csvexport PRE_SIMULATION",
+    ]
+
+    ert_config_fname = "test.ert"
+    with open(ert_config_fname, "w") as file_h:
+        file_h.write("\n".join(ert_config))
+
+    ertoutput = subprocess.run(
+        ["ert", "test_run", ert_config_fname], check=True, capture_output=True
+    )
+
+    assert "fmu.ensemble.realization - WARNING - No STATUS file" in str(
+        ertoutput.stdout
+    )
+    assert "realization-2/iter-0" in str(ertoutput.stdout)
+
+    assert os.path.exists("data.csv")
+    assert pd.read_csv("data.csv").shape == (16, 5)
