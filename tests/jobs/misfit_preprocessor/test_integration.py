@@ -142,6 +142,9 @@ def test_misfit_preprocessor_with_scaling(test_data_root):
     for index in [13, 14, 15, 16, 17, 18, 19, 20]:
         assert obs.getNode(index).getStdScaling() == 2.8284271247461903
 
+    for index in (38, 39, 40, 41, 42, 43, 44):
+        assert obs.getNode(index).getStdScaling() == 2.6457513110645907
+
 
 @pytest.mark.usefixtures("setup_tmpdir")
 def test_misfit_preprocessor_skip_clusters_yielding_empty_data_matrixes(
@@ -213,3 +216,43 @@ def test_misfit_preprocessor_invalid_config(test_data_root):
         "  - Unknown key: threshold (clustering.spearman_correlation.fcluster)\n"
     )
     assert expected_err_msg == str(ve.value)
+
+
+@pytest.mark.usefixtures("setup_tmpdir")
+def test_misfit_preprocessor_all_obs(test_data_root, monkeypatch):
+    from unittest.mock import MagicMock
+    from semeio.workflows.correlated_observations_scaling import cos
+
+    test_data_dir = os.path.join(test_data_root, "snake_oil")
+
+    shutil.copytree(test_data_dir, "test_data")
+    os.chdir(os.path.join("test_data"))
+
+    res_config = ResConfig("snake_oil.ert")
+    ert = EnKFMain(res_config)
+
+    monkeypatch.setattr(
+        cos.ObservationScaleFactor, "get_scaling_factor", MagicMock(return_value=1.234)
+    )
+
+    misfit_preprocessor.MisfitPreprocessorJob(ert).run()
+
+    scaling_factors = []
+
+    obs = ert.getObservations()
+    for key in [
+        "FOPR",
+        "WOPR_OP1_9",
+        "WOPR_OP1_36",
+        "WOPR_OP1_72",
+        "WOPR_OP1_108",
+        "WOPR_OP1_144",
+        "WOPR_OP1_190",
+        "WPR_DIFF_1",
+    ]:
+        obs_vector = obs[key]
+        for index, node in enumerate(obs_vector):
+            scaling_factors.append((index, key, node.getStdScaling(index)))
+
+    for index, key, scaling_factor in scaling_factors:
+        assert scaling_factor == 1.234, f"{index}, {key}"

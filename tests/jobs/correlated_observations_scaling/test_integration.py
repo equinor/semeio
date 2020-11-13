@@ -10,7 +10,7 @@ from semeio.workflows.correlated_observations_scaling import cos
 from semeio.workflows.correlated_observations_scaling.cos import (
     CorrelatedObservationsScalingJob,
 )
-from tests.jobs.correlated_observations_scaling.conftest import TEST_DATA_DIR
+from tests.jobs.conftest import TEST_DATA_DIR
 from ert_shared.plugins.plugin_manager import ErtPluginManager
 from unittest.mock import MagicMock
 
@@ -313,4 +313,7 @@ def test_main_entry_point_sum_data_update(test_data_root, monkeypatch):
     CorrelatedObservationsScalingJob(ert).run(cos_config)
 
     for index, node in enumerate(obs_vector):
-        assert node.getStdScaling(index) == 1.23
+        if index in [1, 2, 3, 4, 5]:
+            assert node.getStdScaling(index) == 1.23, f"index: {index}"
+        else:
+            assert node.getStdScaling(index) == 1.0, f"index: {index}"

@@ -25,12 +25,14 @@ def _update_scaling(obs, scale_factor, obs_list):
     """
     for event in obs_list:
         obs_vector = obs[event.key]
-        for index, obs_node in enumerate(obs_vector):
+        step_list = list(obs_vector.getStepList())  # List of steps, 1-indexed
+        for step in step_list:
+            obs_node = obs_vector.getNode(step)
             if obs_vector.getImplementationType().name == "SUMMARY_OBS":
-                index_list = event.index if event.index else range(len(obs_vector))
-                if index in index_list:
+                index_list = event.index if event.index else [x - 1 for x in step_list]
+                if step - 1 in index_list:
                     obs_node.set_std_scaling(scale_factor)
-            elif obs_vector.getImplementationType().name != "SUMMARY_OBS":
+            else:
                 obs_node.updateStdScaling(scale_factor, event.active_list)
     logging.info(
         "Keys: {} scaled with scaling factor: {}".format(
