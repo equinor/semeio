@@ -26,7 +26,6 @@ def assert_obs_vector(vector, val_1, index_list=None, val_2=None):
                 assert node.getStdScaling(index) == val_1
 
 
-@pytest.mark.usefixtures("setup_ert")
 def test_old_enkf_scaling_job(setup_ert):
     res_config = setup_ert
     ert = EnKFMain(res_config)
@@ -42,7 +41,6 @@ def test_old_enkf_scaling_job(setup_ert):
     assert_obs_vector(obs_vector, np.sqrt(4.0 / 2.0))
 
 
-@pytest.mark.usefixtures("setup_ert")
 def test_installed_python_version_of_enkf_scaling_job(setup_ert, monkeypatch):
 
     pm = ErtPluginManager(
@@ -88,16 +86,10 @@ def test_installed_python_version_of_enkf_scaling_job(setup_ert, monkeypatch):
     )
 
 
-@pytest.mark.usefixtures("setup_tmpdir")
-def test_compare_different_jobs(test_data_root):
+def test_compare_different_jobs(setup_ert):
     cos_config = {"CALCULATE_KEYS": {"keys": [{"key": "WPR_DIFF_1"}]}}
 
-    test_data_dir = os.path.join(test_data_root, "snake_oil")
-
-    shutil.copytree(test_data_dir, "test_data")
-    os.chdir(os.path.join("test_data"))
-
-    res_config = ResConfig("snake_oil.ert")
+    res_config = setup_ert
 
     ert = EnKFMain(res_config)
     obs = ert.getObservations()
@@ -117,20 +109,12 @@ def test_compare_different_jobs(test_data_root):
     assert_obs_vector(obs_vector, np.sqrt(4 / 2))
 
 
-@pytest.mark.usefixtures("setup_tmpdir")
-def test_main_entry_point_gen_data(test_data_root):
+def test_main_entry_point_gen_data(setup_ert):
     cos_config = {
         "CALCULATE_KEYS": {"keys": [{"key": "WPR_DIFF_1"}]},
         "UPDATE_KEYS": {"keys": [{"key": "WPR_DIFF_1", "index": [400, 800]}]},
     }
-
-    test_data_dir = os.path.join(test_data_root, "snake_oil")
-
-    shutil.copytree(test_data_dir, "test_data")
-    os.chdir(os.path.join("test_data"))
-
-    res_config = ResConfig("snake_oil.ert")
-
+    res_config = setup_ert
     ert = EnKFMain(res_config)
 
     CorrelatedObservationsScalingJob(ert).run(cos_config)
@@ -175,18 +159,12 @@ def test_main_entry_point_gen_data(test_data_root):
         assert reported_scalefactor == pytest.approx(1.224744871391589, 0.1)
 
 
-@pytest.mark.usefixtures("setup_tmpdir")
-def test_main_entry_point_summary_data_calc(test_data_root):
+def test_main_entry_point_summary_data_calc(setup_ert, monkeypatch):
     cos_config = {
         "CALCULATE_KEYS": {"keys": [{"key": "WOPR_OP1_108"}, {"key": "WOPR_OP1_144"}]}
     }
 
-    test_data_dir = os.path.join(test_data_root, "snake_oil")
-
-    shutil.copytree(test_data_dir, "test_data")
-    os.chdir(os.path.join("test_data"))
-
-    res_config = ResConfig("snake_oil.ert")
+    res_config = setup_ert
 
     ert = EnKFMain(res_config)
     obs = ert.getObservations()
@@ -199,7 +177,7 @@ def test_main_entry_point_summary_data_calc(test_data_root):
     CorrelatedObservationsScalingJob(ert).run(cos_config)
 
     for index, node in enumerate(obs_vector):
-        assert node.getStdScaling(index) == np.sqrt(1.0)
+        assert node.getStdScaling(index) == 1.0
 
 
 @pytest.mark.skipif(TEST_DATA_DIR is None, reason="no equinor libres test-data")
@@ -289,17 +267,10 @@ def test_main_entry_point_block_and_summary_data_calc():
         assert node.getStdScaling(index) == np.sqrt(64)
 
 
-@pytest.mark.usefixtures("setup_tmpdir")
-def test_main_entry_point_sum_data_update(test_data_root, monkeypatch):
+def test_main_entry_point_sum_data_update(setup_ert, monkeypatch):
     cos_config = {"CALCULATE_KEYS": {"keys": [{"key": "WOPR_OP1_108"}]}}
 
-    test_data_dir = os.path.join(test_data_root, "snake_oil")
-
-    shutil.copytree(test_data_dir, "test_data")
-    os.chdir(os.path.join("test_data"))
-
-    res_config = ResConfig("snake_oil.ert")
-
+    res_config = setup_ert
     ert = EnKFMain(res_config)
     obs = ert.getObservations()
 
@@ -307,6 +278,29 @@ def test_main_entry_point_sum_data_update(test_data_root, monkeypatch):
 
     for index, node in enumerate(obs_vector):
         assert node.getStdScaling(index) == 1.0
+    monkeypatch.setattr(
+        cos.ObservationScaleFactor, "get_scaling_factor", MagicMock(return_value=1.23)
+    )
+    CorrelatedObservationsScalingJob(ert).run(cos_config)
+
+    for index, node in enumerate(obs_vector):
+        assert node.getStdScaling(index) == 1.23
+
+
+def test_main_entry_point_shielded_data(setup_ert, monkeypatch):
+    cos_config = {
+        "CALCULATE_KEYS": {"keys": [{"key": "FOPR", "index": [1, 2, 3, 4, 5]}]}
+    }
+
+    res_config = setup_ert
+    ert = EnKFMain(res_config)
+    obs = ert.getObservations()
+
+    obs_vector = obs["FOPR"]
+
+    for index, node in enumerate(obs_vector):
+        assert node.getStdScaling(index) == 1.0
+
     monkeypatch.setattr(
         cos.ObservationScaleFactor, "get_scaling_factor", MagicMock(return_value=1.23)
     )
