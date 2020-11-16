@@ -44,13 +44,49 @@ def main_entry_point():
     )
 
 
-description = (
-    "ERT forward model wrapping around the pyscal command line client. "
-    "In the forward model context, this gives access to interpolation "
-    "parameters in parameters.txt which the command line client is "
-    "not aware of. For other uses, head to the pyscal client from "
-    "the pyscal package."
-)
+description = """
+ERT forward model wrapping around the pyscal command line client.
+In the forward model context, this gives access to interpolation
+parameters in ``parameters.txt`` which the command line client is
+not aware of.
+
+Pyscal docs: https://equinor.github.io/pyscal/
+
+The main argument to the forward model is an Excel spreadsheet
+with relperm parameterization, and then an argument for the name
+of the Eclipse include file to produce.
+
+If your SCAL spreadsheet contains scenarios for pessimistic, base and
+optimistic, you must tell the forward model how you want to treat the cases
+through interpolation parameters. Provide the parameter ``INT_PARAM_WO_NAME``
+with the name of a parameter in ``parameters.txt`` that holds an interpolation
+parameter between -1 and 1, similarly for ``INT_PARAM_GO_NAME`` for gas-oil. For
+testing in ert configuration files, you can also provide the magic strings
+``__PESS__``, ``__BASE__``, ``__OPT__`` as interpolation parameter names, these
+will be directly mapped to -1, 0 and 1. If you don't provide a parameter for
+gasoil, the wateroil parameter is used.
+
+It is recommended to test your spreadsheet interactively using the command line
+client upfront:
+
+.. code-block:: bash
+
+  $ pyscal -o relperm.inc --int_param_wo 0 scalinput.xlsx
+
+Run ``pyscal --help`` for syntax.
+"""
+
+examples = """
+
+.. code-block:: none
+
+  FORWARD_MODEL PYSCAL(<PARAMETER_FILE>=scalinput.xlsx, <RESULT_FILE>=eclipse/include/props/relperm.inc, <SHEETNAME>=alternativerecommendation)
+  FORWARD_MODEL PYSCAL(<PARAMETER_FILE>=scalinput.xlsx, <RESULT_FILE>=eclipse/include/props/relperm.inc, <INT_PARAM_WO_NAME>=RELPERM_INTERP)
+  FORWARD_MODEL PYSCAL(<PARAMETER_FILE>=scalinput.xlsx, <RESULT_FILE>=eclipse/include/props/relperm.inc, <INT_PARAM_WO_NAME>=RELPERM_INTERP_WO, <INT_PARAM_GO_NAME>=RELPERM_INTERP_GO)
+  FORWARD_MODEL PYSCAL(<PARAMETER_FILE>=scalinput.xlsx, <RESULT_FILE>=eclipse/include/props/relperm.inc, <FAMILY>=2) -- for Eclipse family 2 output
+
+"""  # noqa
+
 
 category = "modeling.reservoir"
 
