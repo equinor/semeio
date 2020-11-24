@@ -27,7 +27,7 @@ class SpearmanCorrelationJob(SemeioScript):
         parser = spearman_job_parser()
         args = parser.parse_args(args)
 
-        scaling_configs = spearman_job(measured_data, args.threshold, self.reporter)
+        scaling_configs = spearman_job(measured_data=measured_data, threshold=args.threshold, reporter=self.reporter, kmeans=args.kmeans, n_clusters=args.n_clusters)
 
         if not args.dry_run:
             try:
@@ -66,6 +66,26 @@ def spearman_job_parser():
         required=False,
         help="Dry run, no scaling will be performed",
         action="store_true",
+    )
+    parser.add_argument(
+        "--kmeans",
+        required=False,
+        default=False,
+        type=bool,
+        help="""
+            Forms clusters so that the observations will 
+            be grouped in the number of clusters specified.
+            """,
+    )
+    parser.add_argument(
+        "--n_clusters",
+        required=False,
+        default=5,
+        type=int,
+        help="""
+            Forms clusters so that the observations will 
+            be grouped in the number of clusters specified.
+            """,
     )
     return parser
 

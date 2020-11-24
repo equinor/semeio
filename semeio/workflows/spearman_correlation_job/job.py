@@ -12,6 +12,8 @@ def spearman_job(
     depth=2,
     method="single",
     metric="euclidean",
+    kmeans=False,
+    n_clusters=5,
 ):
     """
     Given measured_data and threshold, it returns configurations that describe
@@ -25,9 +27,14 @@ def spearman_job(
     correlation_matrix = _calculate_correlation_matrix(simulated_data)
     reporter.publish_csv("correlation_matrix", correlation_matrix)
 
-    clusters = _cluster_analysis(
-        correlation_matrix, threshold, criterion, depth, method, metric
-    )
+    if kmeans:
+        clusters = _kmeans_analysis(
+            correlation_matrix, n_clusters
+        )
+    else:
+        clusters = _cluster_analysis(
+            correlation_matrix, threshold, criterion, depth, method, metric
+        )
 
     columns = correlation_matrix.columns
 
@@ -102,3 +109,10 @@ def _calculate_correlation_matrix(data):
 def _cluster_analysis(correlation_matrix, threshold, criterion, depth, method, metric):
     a = linkage(correlation_matrix, method, metric)
     return fcluster(a, threshold, criterion=criterion, depth=depth)
+
+
+def _kmeans_analysis(correlation_matrix, n_clusters):
+    from sklearn.cluster import KMeans
+    kmeans = KMeans(n_clusters=n_clusters, random_state=0).fit(correlation_matrix)
+
+    return kmeans.labels_
