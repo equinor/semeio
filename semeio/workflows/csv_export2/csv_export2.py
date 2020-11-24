@@ -24,7 +24,7 @@ iter-0   1    2020-01-01  1100 401500
 
 The time frequency must be chosen. If ``raw``, the original timesteps from
 Eclipse is chosen, and it will be individual pr. realization. If ``daily``,
-``monthly``  or  ``yearly`` is chosen, only data at those dates are
+``weekly``, ``monthly``  or  ``yearly`` is chosen, only data at those dates are
 given for all realization. Rate data (e.g.  FOPR) is valid for the given dates,
 but can not be summed up to cumulative data when time interpolation. Cumulative
 columns (f.ex. FOPT) are time-interpolated linearly. See the `documentation on
@@ -39,9 +39,9 @@ be used to select multiple columns.
 Column count more than 1000 gives increased probability for problems downstream,
 depending on which applications are put into use. Column count depends on the
 combination of wildcards used in this workflow and the actual vectors that are
-requested in the Eclipse DATA file. A wildcard like``W*`` can in certain cases
+requested in the Eclipse DATA file. A wildcard like ``W*`` can in certain cases
 (e.g. Eclipse simulations with 100+ wells) produce thousands of vectors, and can
-then be replaced by something more explicit like ``WOPT*  WGPT* WWPT*``.
+then be replaced by something more explicit like ``WOPT* WGPT* WWPT*``.
 """  # noqa
 
 EXAMPLES = """
@@ -133,7 +133,7 @@ def csv_export_parser():
         help=(
             "Time interval specifier for the output. "
             "This argument is passed on to fmu-ensemble, "
-            "supported specifiers are 'raw', 'daily', 'monthly' and 'yearly'"
+            "supported specifiers are 'raw', 'daily', 'weekly', 'monthly' and 'yearly'"
         ),
     )
     parser.add_argument(
