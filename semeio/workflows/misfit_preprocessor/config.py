@@ -15,6 +15,7 @@ _METHOD = "method"
 SPEARMAN_CORRELATION = "spearman_correlation"
 AUTO_SCALE = "auto_scale"
 _FCLUSTER = "fcluster"
+_KMEANS = "kmeans"
 _SPEARMAN_THRESHOLD = "t"
 _CRITERION = "criterion"
 _INCONSISTENT = "inconsistent"
@@ -164,6 +165,32 @@ _LINKAGE_SCHEMA = {
 }
 
 
+_KMEANS_SCHEMA = {
+    cs.MetaKeys.Type: cs.types.NamedDict,
+    cs.MetaKeys.Description: (
+        "The {kmeans} implementation is backed by sklearn and for a "
+        "more detailed description we refer the reader to the "
+        "documentation of sklearn.cluster.KMeans "
+        "(https://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html)."
+    ).format(kmeans=_KMEANS),
+    cs.MetaKeys.ElementValidators: (_t_is_int_if_maxclust,),
+    cs.MetaKeys.Transformation: _inject_default_t,
+    cs.MetaKeys.Content: {
+        _SPEARMAN_THRESHOLD: {
+            cs.MetaKeys.Type: cs.types.Number,
+            cs.MetaKeys.Description: (
+                "Integer representing the number of clusters to be used. "
+                "When no argument is used, the scalar gives "
+                "the maximum number of clusters to be formed."
+            ).format(maxclust=_MAXCLUST, criterion=_CRITERION),
+            cs.MetaKeys.ElementValidators: (
+                _bounds_validator(lower=0, lower_inclusive=False),
+            ),
+        },
+    },
+}
+
+
 _FCLUSTER_SCHEMA = {
     cs.MetaKeys.Type: cs.types.NamedDict,
     cs.MetaKeys.Description: (
@@ -232,7 +259,11 @@ SPEARMAN_CORRELATION_SCHEMA = {
     cs.MetaKeys.Description: (
         "The {sc} clustering is supporting multiple parameters."
     ).format(sc=SPEARMAN_CORRELATION),
-    cs.MetaKeys.Content: {_FCLUSTER: _FCLUSTER_SCHEMA, _LINKAGE: _LINKAGE_SCHEMA},
+    cs.MetaKeys.Content: {
+        _FCLUSTER: _FCLUSTER_SCHEMA,
+        _KMEANS: _KMEANS_SCHEMA,
+        _LINKAGE: _LINKAGE_SCHEMA,
+    },
 }
 
 

@@ -13,74 +13,74 @@ from semeio.workflows.correlated_observations_scaling.exceptions import (
 from unittest.mock import Mock
 
 
-# @pytest.mark.usefixtures("setup_tmpdir")
-# def test_main_entry_point_gen_data(monkeypatch, test_data_root):
-#     run_mock = Mock()
-#     scal_job = Mock(return_value=Mock(run=run_mock))
-#     monkeypatch.setattr(sc, "CorrelatedObservationsScalingJob", scal_job)
-#
-#     test_data_dir = os.path.join(test_data_root, "snake_oil")
-#
-#     shutil.copytree(test_data_dir, "test_data")
-#     os.chdir(os.path.join("test_data"))
-#
-#     res_config = ResConfig("snake_oil.ert")
-#     ert = EnKFMain(res_config)
-#     sc.SpearmanCorrelationJob(ert).run(*["-t", "1.0"])
-#
-#     # call_args represents the clusters, we expect the snake_oil
-#     # observations to generate this amount of them
-#     # call_args is a call object, which itself is a tuple of args and kwargs.
-#     # In this case, we want args, and the first element of the arguments, which
-#     # again is a tuple containing the configuration which is a list of configs.
-#     assert len(list(run_mock.call_args)[0][0]) == 47, "wrong number of clusters"
-#
-#     cor_matrix_file = "reports/snake_oil/SpearmanCorrelationJob/correlation_matrix.csv"
-#
-#     pd.read_csv(cor_matrix_file, index_col=[0, 1], header=[0, 1])
-#
-#     clusters_file = "reports/snake_oil/SpearmanCorrelationJob/clusters.json"
-#     with open(clusters_file) as f:
-#         cluster_reports = json.load(f)
-#         assert len(cluster_reports) == 1
-#
-#         clusters = cluster_reports[0]
-#         assert len(clusters.keys()) == 47
+@pytest.mark.usefixtures("setup_tmpdir")
+def test_main_entry_point_gen_data_fcluster(monkeypatch, test_data_root):
+    run_mock = Mock()
+    scal_job = Mock(return_value=Mock(run=run_mock))
+    monkeypatch.setattr(sc, "CorrelatedObservationsScalingJob", scal_job)
+
+    test_data_dir = os.path.join(test_data_root, "snake_oil")
+
+    shutil.copytree(test_data_dir, "test_data")
+    os.chdir(os.path.join("test_data"))
+
+    res_config = ResConfig("snake_oil.ert")
+    ert = EnKFMain(res_config)
+    sc.SpearmanCorrelationJob(ert).run(*["-t", "1.0"])
+
+    # call_args represents the clusters, we expect the snake_oil
+    # observations to generate this amount of them
+    # call_args is a call object, which itself is a tuple of args and kwargs.
+    # In this case, we want args, and the first element of the arguments, which
+    # again is a tuple containing the configuration which is a list of configs.
+    assert len(list(run_mock.call_args)[0][0]) == 47, "wrong number of clusters"
+
+    cor_matrix_file = "reports/snake_oil/SpearmanCorrelationJob/correlation_matrix.csv"
+
+    pd.read_csv(cor_matrix_file, index_col=[0, 1], header=[0, 1])
+
+    clusters_file = "reports/snake_oil/SpearmanCorrelationJob/clusters.json"
+    with open(clusters_file) as f:
+        cluster_reports = json.load(f)
+        assert len(cluster_reports) == 1
+
+        clusters = cluster_reports[0]
+        assert len(clusters.keys()) == 47
 
 
 @pytest.mark.usefixtures("setup_tmpdir")
-def test_main_entry_point_gen_data(monkeypatch, test_data_root):
-     run_mock = Mock()
-     scal_job = Mock(return_value=Mock(run=run_mock))
-     monkeypatch.setattr(sc, "CorrelatedObservationsScalingJob", scal_job)
+def test_main_entry_point_gen_data_kmeans(monkeypatch, test_data_root):
+    run_mock = Mock()
+    scal_job = Mock(return_value=Mock(run=run_mock))
+    monkeypatch.setattr(sc, "CorrelatedObservationsScalingJob", scal_job)
 
-     test_data_dir = os.path.join(test_data_root, "snake_oil")
+    test_data_dir = os.path.join(test_data_root, "snake_oil")
 
-     shutil.copytree(test_data_dir, "test_data")
-     os.chdir(os.path.join("test_data"))
+    shutil.copytree(test_data_dir, "test_data")
+    os.chdir(os.path.join("test_data"))
 
-     res_config = ResConfig("snake_oil.ert")
-     ert = EnKFMain(res_config)
-     sc.SpearmanCorrelationJob(ert).run(*["--kmeans", "True", "--n_clusters", "5"])
+    res_config = ResConfig("snake_oil.ert")
+    ert = EnKFMain(res_config)
+    sc.SpearmanCorrelationJob(ert).run(*["-t", "5.0", "--kmeans", "True"])
 
-     # call_args represents the clusters, we expect the snake_oil
-     # observations to generate this amount of them
-     # call_args is a call object, which itself is a tuple of args and kwargs.
-     # In this case, we want args, and the first element of the arguments, which
-     # again is a tuple containing the configuration which is a list of configs.
-     assert len(list(run_mock.call_args)[0][0]) == 5, "wrong number of clusters"
+    # call_args represents the clusters, we expect the snake_oil
+    # observations to generate this amount of them
+    # call_args is a call object, which itself is a tuple of args and kwargs.
+    # In this case, we want args, and the first element of the arguments, which
+    # again is a tuple containing the configuration which is a list of configs.
+    assert len(list(run_mock.call_args)[0][0]) == 5, "wrong number of clusters"
 
-     cor_matrix_file = "reports/snake_oil/SpearmanCorrelationJob/correlation_matrix.csv"
+    cor_matrix_file = "reports/snake_oil/SpearmanCorrelationJob/correlation_matrix.csv"
 
-     pd.read_csv(cor_matrix_file, index_col=[0, 1], header=[0, 1])
+    pd.read_csv(cor_matrix_file, index_col=[0, 1], header=[0, 1])
 
-     clusters_file = "reports/snake_oil/SpearmanCorrelationJob/clusters.json"
-     with open(clusters_file) as f:
-         cluster_reports = json.load(f)
-         assert len(cluster_reports) == 1
+    clusters_file = "reports/snake_oil/SpearmanCorrelationJob/clusters.json"
+    with open(clusters_file) as f:
+        cluster_reports = json.load(f)
+        assert len(cluster_reports) == 1
 
-         clusters = cluster_reports[0]
-         assert len(clusters.keys()) == 5
+        clusters = cluster_reports[0]
+        assert len(clusters.keys()) == 5
 
 
 @pytest.mark.usefixtures("setup_tmpdir")
