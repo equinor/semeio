@@ -246,8 +246,7 @@ _CLUSTERING_SCHEMA = {
         _METHOD: {
             cs.MetaKeys.Type: cs.types.String,
             cs.MetaKeys.Description: (
-                "Currently the workflow only supports clustering by "
-                "{spearman}.".format(spearman=SPEARMAN_CORRELATION)
+                f"The workflow supports {SPEARMAN_CORRELATION} and {AUTO_SCALE}."
             ),
             cs.MetaKeys.ElementValidators: (_one_of(SPEARMAN_CORRELATION, AUTO_SCALE),),
             cs.MetaKeys.Default: AUTO_SCALE,
