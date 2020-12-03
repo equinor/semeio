@@ -24,4 +24,3 @@ repos:
       language: system
       types: [python]
       entry: "python -m pylint"
-exclude: tests/legacy_test_data/
