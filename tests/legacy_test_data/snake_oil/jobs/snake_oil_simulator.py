@@ -1,11 +1,8 @@
 #!/usr/bin/env python
+# pylint: disable=too-many-statements
 from datetime import datetime
-import os
-import sys
 
-from ecl.summary import EclSum, EclSumTStep
-from ecl.util.test import ExtendedTestCase
-import res
+from ecl.summary import EclSum
 
 from res.test.synthesizer import OilSimulator
 
