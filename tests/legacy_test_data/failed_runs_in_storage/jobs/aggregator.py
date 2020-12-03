@@ -10,7 +10,7 @@ if __name__ == "__main__":
     with open("aggregated.txt", "w") as output_file:
         sum_of_sum = 0.0
         for key in files:
-            sum = 0.0
+            sum = 0.0  # pylint: disable=redefined-builtin
             with open(files[key], "r") as input_file:
                 sum += float(input_file.readline())
             sum_of_sum += sum
