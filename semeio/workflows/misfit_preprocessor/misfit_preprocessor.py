@@ -36,30 +36,11 @@ class MisfitPreprocessorJob(SemeioScript):
         # The execution of COS should be moved into
         # misfit_preprocessor.run when COS no longer depend on self.ert
         # to run.
-        scaling_params = _fetch_scaling_parameters(config_record, observations)
-        for scaling_config in scaling_configs:
-            scaling_config["CALCULATE_KEYS"].update(scaling_params)
 
         try:
             CorrelatedObservationsScalingJob(self.ert()).run(scaling_configs)
         except EmptyDatasetException:
             pass
-
-
-def _fetch_scaling_parameters(config_record, observations):
-    config = misfit_preprocessor.assemble_config(
-        config_record,
-        observations,
-    )
-    if not config.valid:
-        # The config is loaded by misfit_preprocessor.run first. The
-        # second time should never fail!
-        raise ValueError("Misfit preprocessor config not valid on second load")
-
-    scale_conf = config.snapshot.scaling
-    return {
-        "threshold": scale_conf.threshold,
-    }
 
 
 def _fetch_config_record(args):

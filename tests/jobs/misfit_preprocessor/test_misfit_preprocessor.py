@@ -170,7 +170,7 @@ def test_misfit_preprocessor_n_polynomials(num_polynomials, method):
     # to have an impact. Setting it this way only has an impact for "auto_scale"
     obs_keys = measured_data.data.columns.get_level_values(0)
     config = assemble_config(
-        {"clustering": {"method": method}, "scaling": {"threshold": 0.99}},
+        {"workflow": {method: {"pca": {"threshold": 0.99}}}},
         obs_keys,
     )
     reporter_mock = Mock()
@@ -204,8 +204,12 @@ def test_misfit_preprocessor_state_size(state_size, method, linkage):
     obs_keys = measured_data.data.columns.get_level_values(0)
     config = assemble_config(
         {
-            "clustering": {"method": method, method: {"linkage": {"method": linkage}}},
-            "scaling": {"threshold": 0.99},
+            "workflow": {
+                method: {
+                    "clustering": {"hierarchical": {"method": linkage}},
+                    "pca": {"threshold": 0.99},
+                }
+            },
         },
         obs_keys,
     ).snapshot
@@ -232,11 +236,15 @@ def test_misfit_preprocessor_state_uneven_size(state_size):
     obs_keys = measured_data.data.columns.get_level_values(0)
     config = assemble_config(
         {
-            "clustering": {
-                "method": "spearman_correlation",
+            "workflow": {
                 "spearman_correlation": {
-                    "fcluster": {"t": num_polynomials + 1, "criterion": "maxclust"}
-                },
+                    "clustering": {
+                        "hierarchical": {
+                            "t": num_polynomials + 1,
+                            "criterion": "maxclust",
+                        }
+                    },
+                }
             }
         },
         obs_keys,
@@ -252,9 +260,10 @@ def test_misfit_preprocessor_configuration_errors():
         assemble_config(
             {
                 "unknown_key": ["not in set"],
-                "clustering": {
-                    "method": "spearman_correlation",
-                    "spearman_correlation": {"fcluster": {"threshold": 1.0}},
+                "workflow": {
+                    "spearman_correlation": {
+                        "clustering": {"hierarchical": {"threshold": 1.0}}
+                    },
                 },
             },
             ["a", "list", "of", "observations"],
@@ -263,7 +272,8 @@ def test_misfit_preprocessor_configuration_errors():
     expected_err_msg = (
         "Invalid configuration of misfit preprocessor\n"
         "  - Unknown key: unknown_key (root level)\n"
-        "  - Unknown key: threshold (clustering.spearman_correlation.fcluster)\n"
+        "  - Unknown key: threshold "
+        "(workflow.spearman_correlation.clustering.hierarchical)\n"
     )
     assert expected_err_msg == str(ve.value)
 
@@ -288,8 +298,9 @@ def test_misfit_preprocessor_n_polynomials_w_correlation(num_polynomials):
 
     config = assemble_config(
         {
-            "clustering": {"method": "spearman_correlation"},
-            "scaling": {"threshold": 0.99},
+            "workflow": {
+                "spearman_correlation": {"pca": {"threshold": 0.99}},
+            }
         },
         list(measured_data.data.columns.get_level_values(0)),
     ).snapshot

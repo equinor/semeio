@@ -8,32 +8,39 @@ from semeio.workflows.spearman_correlation_job.job import spearman_job
 
 def run(config, measured_data, reporter):
 
-    if config.clustering.method == SPEARMAN_CORRELATION:
-        sconfig = config.clustering.spearman_correlation
+    if config.workflow.method == SPEARMAN_CORRELATION:
+        sconfig = config.workflow.spearman_correlation.clustering
         scaling_configs = spearman_job(
             measured_data,
-            sconfig.fcluster.t,
+            sconfig.hierarchical.t,
             reporter,
-            criterion=sconfig.fcluster.criterion,
-            depth=sconfig.fcluster.depth,
-            method=sconfig.linkage.method,
-            metric=sconfig.linkage.metric,
+            criterion=sconfig.hierarchical.criterion,
+            depth=sconfig.hierarchical.depth,
+            method=sconfig.hierarchical.method,
+            metric=sconfig.hierarchical.metric,
         )
-    elif config.clustering.method == AUTO_SCALE:
+        pca_threshold = config.workflow.spearman_correlation.pca.threshold
+    elif config.workflow.method == AUTO_SCALE:
         job = ObservationScaleFactor(reporter, measured_data)
-        nr_components, _ = job.perform_pca(config.scaling.threshold)
-        sconfig = config.clustering.auto_scale
+        auto_scale_config = config.workflow.auto_scale
+        nr_components, _ = job.perform_pca(auto_scale_config.pca.threshold)
+        sconfig = auto_scale_config.clustering
         scaling_configs = spearman_job(
             measured_data,
             nr_components,
             reporter,
             criterion="maxclust",
-            method=sconfig.linkage.method,
-            metric=sconfig.linkage.metric,
+            method=sconfig.hierarchical.method,
+            metric=sconfig.hierarchical.metric,
         )
+        pca_threshold = auto_scale_config.pca.threshold
     else:
         raise AssertionError(
-            "Unknown clustering method: {}".format(config.clustering.method)
+            "Unknown clustering method: {}".format(config.workflow.method)
         )
+
+    scaling_params = {"threshold": pca_threshold}
+    for scaling_config in scaling_configs:
+        scaling_config["CALCULATE_KEYS"].update(scaling_params)
 
     return scaling_configs
