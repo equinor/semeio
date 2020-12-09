@@ -99,6 +99,28 @@ def _bounds_validator(
     return validator
 
 
+PCA_SCHEMA = {
+    cs.MetaKeys.Type: cs.types.NamedDict,
+    cs.MetaKeys.Content: {
+        _THRESHOLD: {
+            cs.MetaKeys.Type: cs.types.Number,
+            cs.MetaKeys.Description: (
+                "Threshold used when computing primary components of the clusters."
+            ),
+            cs.MetaKeys.Default: 0.95,
+            cs.MetaKeys.ElementValidators: (
+                _bounds_validator(
+                    lower=0,
+                    lower_inclusive=False,
+                    upper=1,
+                    upper_inclusive=False,
+                ),
+            ),
+        },
+    },
+}
+
+
 def _one_of(*valid_values):
     msg = "Value must be one of: ({})".format(", ".join(map(str, valid_values)))
 
@@ -136,117 +158,90 @@ def _inject_default_t(config):
     return config
 
 
-_LINKAGE_SCHEMA = {
+HIERARCHICAL_SCHEMA = {
     cs.MetaKeys.Type: cs.types.NamedDict,
-    cs.MetaKeys.Description: (
-        "The {linkage} implementation is backed by scipy and for a "
-        "more detailed description we refer the reader to the "
-        "documentation of scipy.cluster.hierarchy.linkage` "
-        "(https://docs.scipy.org/doc/scipy/reference/generated"
-        "/scipy.cluster.hierarchy.linkage.html)."
-    ).format(linkage=_LINKAGE),
     cs.MetaKeys.Content: {
-        _METHOD: {
-            cs.MetaKeys.Type: cs.types.String,
+        "hierarchical": {
+            cs.MetaKeys.ElementValidators: (_t_is_int_if_maxclust,),
+            cs.MetaKeys.Transformation: _inject_default_t,
+            cs.MetaKeys.Type: cs.types.NamedDict,
             cs.MetaKeys.Description: (
-                "Method used to calculate the distance between the clusters."
-            ),
-            cs.MetaKeys.ElementValidators: (_one_of(*_METHODS),),
-            cs.MetaKeys.Default: _AVERAGE,
-        },
-        _METRIC: {
-            cs.MetaKeys.Type: cs.types.String,
-            cs.MetaKeys.Description: ("Distance metric used to calculate distances."),
-            cs.MetaKeys.ElementValidators: (_one_of(*_METRICS),),
-            cs.MetaKeys.Default: _EUCLIDEAN,
-        },
+                "The {linkage} implementation is backed by scipy and for a "
+                "more detailed description we refer the reader to the "
+                "documentation of scipy.cluster.hierarchy.linkage` "
+                "(https://docs.scipy.org/doc/scipy/reference/generated"
+                "/scipy.cluster.hierarchy.linkage.html)."
+                "The {fcluster} implementation is backed by scipy and for a "
+                "more detailed description we refer the reader to the "
+                "documentation of scipy.cluster.hierarchy.fcluster` "
+                "(https://docs.scipy.org/doc/scipy/reference/generated"
+                "/scipy.cluster.hierarchy.fcluster.html)."
+            ).format(linkage=_LINKAGE, fcluster=_FCLUSTER),
+            cs.MetaKeys.Content: {
+                _SPEARMAN_THRESHOLD: {
+                    cs.MetaKeys.Type: cs.types.Number,
+                    cs.MetaKeys.Description: (
+                        "Scalar threshold for the clustering. When a "
+                        "'{maxclust}' {criterion} is used, the scalar gives "
+                        "the maximum number of clusters to be formed."
+                        "This has a defaulted value for auto_scale "
+                        "and is not configurable for this workflow. "
+                    ).format(maxclust=_MAXCLUST, criterion=_CRITERION),
+                    cs.MetaKeys.ElementValidators: (
+                        _bounds_validator(lower=0, lower_inclusive=False),
+                    ),
+                },
+                _CRITERION: {
+                    cs.MetaKeys.Type: cs.types.String,
+                    cs.MetaKeys.Description: (
+                        "The criterion to use in forming flat clusters. "
+                        "Defaults to {default_criterion}."
+                        "This has a defaulted value for auto_scale "
+                        "and is not configurable for this workflow. "
+                    ).format(default_criterion=_INCONSISTENT),
+                    cs.MetaKeys.ElementValidators: (
+                        _one_of(
+                            _INCONSISTENT,
+                            _DISTANCE,
+                            _MAXCLUST,
+                            _MONOCRIT,
+                            _MAXCLUST_MONOCRIT,
+                        ),
+                    ),
+                    cs.MetaKeys.Default: _INCONSISTENT,
+                },
+                _DEPTH: {
+                    cs.MetaKeys.Type: cs.types.Integer,
+                    cs.MetaKeys.Description: (
+                        "The maximum depth to perform the {inconsistent} calculation. "
+                        "This has a defaulted value for auto_scale "
+                        "and is not configurable for this workflow. "
+                    ).format(
+                        inconsistent=_INCONSISTENT,
+                    ),
+                    cs.MetaKeys.ElementValidators: (_bounds_validator(lower=1),),
+                    cs.MetaKeys.Default: 2,
+                },
+                _METHOD: {
+                    cs.MetaKeys.Type: cs.types.String,
+                    cs.MetaKeys.Description: (
+                        "Method used to calculate the distance between the clusters."
+                    ),
+                    cs.MetaKeys.ElementValidators: (_one_of(*_METHODS),),
+                    cs.MetaKeys.Default: _AVERAGE,
+                },
+                _METRIC: {
+                    cs.MetaKeys.Type: cs.types.String,
+                    cs.MetaKeys.Description: (
+                        "Distance metric used to calculate distances."
+                    ),
+                    cs.MetaKeys.ElementValidators: (_one_of(*_METRICS),),
+                    cs.MetaKeys.Default: _EUCLIDEAN,
+                },
+            },
+        }
     },
 }
-
-
-_FCLUSTER_SCHEMA = {
-    cs.MetaKeys.Type: cs.types.NamedDict,
-    cs.MetaKeys.Description: (
-        "The {fcluster} implementation is backed by scipy and for a "
-        "more detailed description we refer the reader to the "
-        "documentation of scipy.cluster.hierarchy.fcluster` "
-        "(https://docs.scipy.org/doc/scipy/reference/generated"
-        "/scipy.cluster.hierarchy.fcluster.html)."
-    ).format(fcluster=_FCLUSTER),
-    cs.MetaKeys.ElementValidators: (_t_is_int_if_maxclust,),
-    cs.MetaKeys.Transformation: _inject_default_t,
-    cs.MetaKeys.Content: {
-        _SPEARMAN_THRESHOLD: {
-            cs.MetaKeys.Type: cs.types.Number,
-            cs.MetaKeys.Description: (
-                "Scalar threshold for the clustering. When a "
-                "'{maxclust}' {criterion} is used, the scalar gives "
-                "the maximum number of clusters to be formed."
-            ).format(maxclust=_MAXCLUST, criterion=_CRITERION),
-            cs.MetaKeys.ElementValidators: (
-                _bounds_validator(lower=0, lower_inclusive=False),
-            ),
-        },
-        _CRITERION: {
-            cs.MetaKeys.Type: cs.types.String,
-            cs.MetaKeys.Description: (
-                "The criterion to use in forming flat clusters. "
-                "Defaults to {default_criterion}."
-            ).format(default_criterion=_INCONSISTENT),
-            cs.MetaKeys.ElementValidators: (
-                _one_of(
-                    _INCONSISTENT,
-                    _DISTANCE,
-                    _MAXCLUST,
-                    _MONOCRIT,
-                    _MAXCLUST_MONOCRIT,
-                ),
-            ),
-            cs.MetaKeys.Default: _INCONSISTENT,
-        },
-        _DEPTH: {
-            cs.MetaKeys.Type: cs.types.Integer,
-            cs.MetaKeys.Description: (
-                "The maximum depth to perform the {inconsistent} calculation. "
-            ).format(
-                inconsistent=_INCONSISTENT,
-            ),
-            cs.MetaKeys.ElementValidators: (_bounds_validator(lower=1),),
-            cs.MetaKeys.Default: 2,
-        },
-    },
-}
-
-
-AUTO_SCALE_SCHEMA = {
-    cs.MetaKeys.Type: cs.types.NamedDict,
-    cs.MetaKeys.Description: (
-        f"The {AUTO_SCALE} clustering is supporting multiple parameters. The "
-        "the job will first run PCA analysis on all the data to determine the number "
-        "of components. Then spearman correlation is performed on the simulated data"
-        " to create a correlation matrix. Clustering is then performed on the "
-        "correlation matrix using the input from the first PCA analysis, where the "
-        "number of clusters equals the number of components. Then PCA is performed "
-        "on the individual clusters. Observations in each cluster are then scaled with "
-        "the same value."
-    ),
-    cs.MetaKeys.Content: {_LINKAGE: _LINKAGE_SCHEMA},
-}
-
-
-SPEARMAN_CORRELATION_SCHEMA = {
-    cs.MetaKeys.Type: cs.types.NamedDict,
-    cs.MetaKeys.Description: (
-        f"The {SPEARMAN_CORRELATION} clustering supports multiple parameters. The "
-        "the job will first run spearman correlation on the simulated data to create "
-        "a correlation matrix. Clustering is then performed on the correlation matrix "
-        "before the PCA is performed on the individual clusters. Observations in each "
-        "cluster are then scaled with the same value."
-    ),
-    cs.MetaKeys.Content: {_FCLUSTER: _FCLUSTER_SCHEMA, _LINKAGE: _LINKAGE_SCHEMA},
-}
-
-
 _CLUSTERING_SCHEMA = {
     cs.MetaKeys.Type: cs.types.NamedDict,
     cs.MetaKeys.Description: (
@@ -254,59 +249,69 @@ _CLUSTERING_SCHEMA = {
         "results are not according to expectations."
     ),
     cs.MetaKeys.Content: {
-        _METHOD: {
-            cs.MetaKeys.Type: cs.types.String,
+        "clustering": HIERARCHICAL_SCHEMA,
+        "pca": PCA_SCHEMA,
+    },
+}
+
+
+def _insert_method(layer):
+    if "method" in layer:
+        if len(layer) == 1:
+            return layer
+        if len(layer) == 2 and layer["method"] in layer:
+            return layer
+        raise ValueError(
+            f"<method> is {layer['method']} but {layer.keys()} was the one configured."
+        )
+
+    if len(layer) != 1:
+        raise ValueError(f"Only one entry is expected. Got {layer.keys()}")
+
+    layer.update({"method": list(layer.keys())[0]})
+    return layer
+
+
+def _check_linkage(config):
+    try:
+        invalid_options = []
+        for option in ["t", "criteria", "depth"]:
+            if option in config["auto_scale"]["clustering"]["hierarchical"]:
+                invalid_options.append(option)
+        if invalid_options:
+            raise ValueError(
+                f"{invalid_options} not configurable for auto_scale method."
+            )
+    except KeyError:
+        pass
+
+    return config
+
+
+@cs.transformation_msg(
+    "Checking that workflow schema only has one method configured and "
+    "that invalid options are not inserted."
+)
+def _double_transformation(config):
+    config = _insert_method(config)
+    config = _check_linkage(config)
+
+    return config
+
+
+_WORKFLOW_SCHEMA = {
+    cs.MetaKeys.Type: cs.types.NamedDict,
+    cs.MetaKeys.LayerTransformation: _double_transformation,
+    cs.MetaKeys.Content: {
+        AUTO_SCALE: _CLUSTERING_SCHEMA,
+        SPEARMAN_CORRELATION: _CLUSTERING_SCHEMA,
+        "method": {
             cs.MetaKeys.Description: (
                 f"The workflow supports {SPEARMAN_CORRELATION} and {AUTO_SCALE}."
             ),
             cs.MetaKeys.ElementValidators: (_one_of(SPEARMAN_CORRELATION, AUTO_SCALE),),
             cs.MetaKeys.Default: AUTO_SCALE,
-        },
-        SPEARMAN_CORRELATION: SPEARMAN_CORRELATION_SCHEMA,
-        AUTO_SCALE: AUTO_SCALE_SCHEMA,
-    },
-}
-
-
-_SCALING_SCHEMA = {
-    cs.MetaKeys.Type: cs.types.NamedDict,
-    cs.MetaKeys.Description: ("Computes primary components and scales them."),
-    cs.MetaKeys.Content: {
-        _THRESHOLD: {
-            cs.MetaKeys.Type: cs.types.Number,
-            cs.MetaKeys.Description: (
-                "Threshold used when computing primary components of the "
-            ),
-            cs.MetaKeys.Default: 0.95,
-            cs.MetaKeys.ElementValidators: (
-                _bounds_validator(
-                    lower=0,
-                    lower_inclusive=False,
-                    upper=1,
-                    upper_inclusive=False,
-                ),
-            ),
-        },
-        _STD_CUTOFF: {
-            cs.MetaKeys.Type: cs.types.Number,
-            cs.MetaKeys.Description: (
-                "A lower bound on the ensemble standard deviation. All data "
-                "points with insufficient variation will be dropped."
-            ),
-            cs.MetaKeys.AllowNone: True,
-            cs.MetaKeys.Required: False,
-        },
-        _ALPHA: {
-            cs.MetaKeys.Type: cs.types.Number,
-            cs.MetaKeys.Description: (
-                "Scalar controlling the allowed distance between "
-                "ensemble mean and observation. In particular, if: "
-                "`abs(observed_value - ensemble_mean) "
-                "> alpha * (ensenmble_std + observed_std)` "
-                "the data point will be dropped."
-            ),
-            cs.MetaKeys.AllowNone: True,
-            cs.MetaKeys.Required: False,
+            cs.MetaKeys.Type: cs.types.String,
         },
     },
 }
@@ -335,6 +340,8 @@ class _BooleanWithMessage:
 # This is a hack to avoid configsuite wrapping the return value
 @cs.transformation_msg("Ensures that all requested observations are indeed present")
 def _observations_present(observation_key, context):
+    """A validator, not a transformation.
+    It avoids configsuite wrapping the return value."""
     if observation_key in context.observation_keys:
         return _BooleanWithMessage(
             True,
@@ -400,8 +407,7 @@ _SCHEMA = {
     ),
     cs.MetaKeys.Content: {
         _OBSERVATIONS: _OBSERVATION_SCHEMA,
-        _CLUSTERING: _CLUSTERING_SCHEMA,
-        _SCALING: _SCALING_SCHEMA,
+        "workflow": _WORKFLOW_SCHEMA,
     },
 }
 

@@ -16,9 +16,7 @@ from semeio.workflows import misfit_preprocessor
     ],
 )
 def test_valid_scaling_threshold(threshold, expected_valid):
-    config_data = {
-        "scaling": {"threshold": threshold, "std_cutoff": 2, "alpha": 3},
-    }
+    config_data = {"workflow": {"auto_scale": {"pca": {"threshold": threshold}}}}
     config = misfit_preprocessor.config.MisfitPreprocessorConfig(
         config_data, ("some_observation",)
     )
@@ -28,55 +26,22 @@ def test_valid_scaling_threshold(threshold, expected_valid):
     else:
         assert not config.valid
         assert 1 == len(config.errors)
-        assert ("scaling", "threshold") == config.errors[0].key_path
+        assert config.errors[0].key_path == (
+            "workflow",
+            "auto_scale",
+            "pca",
+            "threshold",
+        )
 
 
 def test_default_scaling_threshold():
-    config_data = {
-        "scaling": {"std_cutoff": 2, "alpha": 3},
-    }
+    config_data = {}
     config = misfit_preprocessor.config.MisfitPreprocessorConfig(
         config_data, ("some_observation",)
     )
 
     assert config.valid, config.errors
-    assert 0.95 == config.snapshot.scaling.threshold
-
-
-@pytest.mark.parametrize(
-    "std_cutoff, expected_valid", [(1, True), (2, True), (None, True)]
-)
-def test_scaling_std_cutoff(std_cutoff, expected_valid):
-    config_data = {
-        "scaling": {"threshold": 0.1, "std_cutoff": std_cutoff, "alpha": 3},
-    }
-    config = misfit_preprocessor.config.MisfitPreprocessorConfig(
-        config_data, ("some_observation",)
-    )
-
-    if expected_valid:
-        assert config.valid, config.errors
-    else:
-        assert not config.valid
-        assert 1 == len(config.errors)
-        assert ("scaling", "std_cutoff") == config.errors[0].key_path
-
-
-@pytest.mark.parametrize("alpha, expected_valid", [(1, True), (2, True)])
-def test_scaling_alpha(alpha, expected_valid):
-    config_data = {
-        "scaling": {"alpha": alpha},
-    }
-    config = misfit_preprocessor.config.MisfitPreprocessorConfig(
-        config_data, ("some_observation",)
-    )
-
-    if expected_valid:
-        assert config.valid, config.errors
-    else:
-        assert not config.valid
-        assert 1 == len(config.errors)
-        assert ("scaling", "alpha") == config.errors[0].key_path
+    assert 0.95 == config.snapshot.workflow.auto_scale.pca.threshold
 
 
 @pytest.mark.parametrize(
@@ -84,7 +49,7 @@ def test_scaling_alpha(alpha, expected_valid):
     [("spearman_correlation", True), ("super_clustering", False), (None, False)],
 )
 def test_clustering_method(clustering_method, expected_valid):
-    config_data = {"clustering": {"method": clustering_method}}
+    config_data = {"workflow": {"method": clustering_method}}
     config = misfit_preprocessor.config.MisfitPreprocessorConfig(
         config_data, ("some_observation",)
     )
@@ -94,7 +59,7 @@ def test_clustering_method(clustering_method, expected_valid):
     else:
         assert not config.valid
         assert 1 == len(config.errors)
-        assert ("clustering", "method") == config.errors[0].key_path
+        assert ("workflow", "method") == config.errors[0].key_path
 
 
 def test_default_clustering_method():
@@ -104,7 +69,7 @@ def test_default_clustering_method():
     )
 
     assert config.valid, config.errors
-    assert "auto_scale" == config.snapshot.clustering.method
+    assert "auto_scale" == config.snapshot.workflow.method
 
 
 @pytest.mark.parametrize(
@@ -136,9 +101,11 @@ def test_valid_spearman_threshold(
     threshold, criterion, expected_valid, postfix_key_path
 ):
     config_data = {
-        "clustering": {
+        "workflow": {
             "spearman_correlation": {
-                "fcluster": {"t": threshold, "criterion": criterion},
+                "clustering": {
+                    "hierarchical": {"t": threshold, "criterion": criterion},
+                }
             },
         },
     }
@@ -151,7 +118,12 @@ def test_valid_spearman_threshold(
     else:
         assert not config.valid
         assert 1 == len(config.errors)
-        expected_key_path = ("clustering", "spearman_correlation", "fcluster")
+        expected_key_path = (
+            "workflow",
+            "spearman_correlation",
+            "clustering",
+            "hierarchical",
+        )
         expected_key_path += postfix_key_path
         assert expected_key_path == config.errors[0].key_path
 
@@ -168,15 +140,23 @@ def test_valid_spearman_threshold(
 )
 def test_default_spearman_threshold(criterion, default_threshold):
     config_data = {
-        "clustering": {"spearman_correlation": {"fcluster": {"criterion": criterion}}}
+        "workflow": {
+            "spearman_correlation": {
+                "clustering": {
+                    "hierarchical": {"criterion": criterion},
+                }
+            },
+        },
     }
+
     config = misfit_preprocessor.config.MisfitPreprocessorConfig(
         config_data, ("some_observation",)
     )
 
     assert config.valid, config.errors
     assert (
-        default_threshold == config.snapshot.clustering.spearman_correlation.fcluster.t
+        default_threshold
+        == config.snapshot.workflow.spearman_correlation.clustering.hierarchical.t
     )
 
 
@@ -193,8 +173,15 @@ def test_default_spearman_threshold(criterion, default_threshold):
 )
 def test_valid_spearman_depth(depth, expected_valid):
     config_data = {
-        "clustering": {"spearman_correlation": {"fcluster": {"depth": depth}}},
+        "workflow": {
+            "spearman_correlation": {
+                "clustering": {
+                    "hierarchical": {"depth": depth},
+                }
+            },
+        },
     }
+
     config = misfit_preprocessor.config.MisfitPreprocessorConfig(
         config_data, ("some_observation",)
     )
@@ -204,7 +191,13 @@ def test_valid_spearman_depth(depth, expected_valid):
     else:
         assert not config.valid
         assert 1 == len(config.errors)
-        expected_key_path = ("clustering", "spearman_correlation", "fcluster", "depth")
+        expected_key_path = (
+            "workflow",
+            "spearman_correlation",
+            "clustering",
+            "hierarchical",
+            "depth",
+        )
         assert expected_key_path == config.errors[0].key_path
 
 
@@ -215,7 +208,9 @@ def test_default_spearman_depth():
     )
 
     assert config.valid, config.errors
-    assert 2 == config.snapshot.clustering.spearman_correlation.fcluster.depth
+    assert (
+        2 == config.snapshot.workflow.spearman_correlation.clustering.hierarchical.depth
+    )
 
 
 @pytest.mark.parametrize(
@@ -233,7 +228,9 @@ def test_default_spearman_depth():
 )
 def test_valid_linkage_method(method, expected_valid):
     config_data = {
-        "clustering": {"spearman_correlation": {"linkage": {"method": method}}},
+        "workflow": {
+            "spearman_correlation": {"clustering": {"hierarchical": {"method": method}}}
+        },
     }
     config = misfit_preprocessor.config.MisfitPreprocessorConfig(
         config_data, ("some_observation",)
@@ -244,7 +241,13 @@ def test_valid_linkage_method(method, expected_valid):
     else:
         assert not config.valid
         assert 1 == len(config.errors)
-        expected_key_path = ("clustering", "spearman_correlation", "linkage", "method")
+        expected_key_path = (
+            "workflow",
+            "spearman_correlation",
+            "clustering",
+            "hierarchical",
+            "method",
+        )
         assert expected_key_path == config.errors[0].key_path
 
 
@@ -255,7 +258,10 @@ def test_default_linkage_method():
     )
 
     assert config.valid, config.errors
-    assert "average" == config.snapshot.clustering.spearman_correlation.linkage.method
+    assert (
+        "average"
+        == config.snapshot.workflow.spearman_correlation.clustering.hierarchical.method
+    )
 
 
 @pytest.mark.parametrize(
@@ -289,7 +295,9 @@ def test_default_linkage_method():
 )
 def test_valid_linkage_metric(metric, expected_valid):
     config_data = {
-        "clustering": {"spearman_correlation": {"linkage": {"metric": metric}}},
+        "workflow": {
+            "spearman_correlation": {"clustering": {"hierarchical": {"metric": metric}}}
+        },
     }
     config = misfit_preprocessor.config.MisfitPreprocessorConfig(
         config_data, ("some_observation",)
@@ -300,7 +308,13 @@ def test_valid_linkage_metric(metric, expected_valid):
     else:
         assert not config.valid
         assert 1 == len(config.errors)
-        expected_key_path = ("clustering", "spearman_correlation", "linkage", "metric")
+        expected_key_path = (
+            "workflow",
+            "spearman_correlation",
+            "clustering",
+            "hierarchical",
+            "metric",
+        )
         assert expected_key_path == config.errors[0].key_path
 
 
@@ -311,7 +325,10 @@ def test_default_linkage_metric():
     )
 
     assert config.valid, config.errors
-    assert "euclidean" == config.snapshot.clustering.spearman_correlation.linkage.metric
+    assert (
+        "euclidean"
+        == config.snapshot.workflow.spearman_correlation.clustering.hierarchical.metric
+    )
 
 
 @pytest.mark.parametrize(
@@ -372,3 +389,59 @@ def test_default_observations(observation_keys):
 
     assert config.valid, config.errors
     assert sorted(observation_keys) == sorted(config.snapshot.observations)
+
+
+def test_config_workflow():
+    config_data = {
+        "observations": ["WWPR"],
+        "workflow": {
+            "spearman_correlation": {
+                "clustering": {
+                    "hierarchical": {"method": "complete", "metric": "jensenshannon"}
+                },
+                "pca": {"threshold": 0.98},
+            }
+        },
+    }
+    config = misfit_preprocessor.config.MisfitPreprocessorConfig(config_data, ["WWPR"])
+    assert config.valid, config.errors
+    assert config.snapshot.workflow.method == "spearman_correlation"
+
+
+@pytest.mark.parametrize("workflow", [{"spearman_correlation": {}}, {"auto_scale": {}}])
+def test_config_workflow_valid(workflow):
+    config_data = {"workflow": workflow}
+    config = misfit_preprocessor.config.MisfitPreprocessorConfig(config_data, ["WWPR"])
+    assert config.valid, config.errors
+    assert config.snapshot.workflow.method == list(workflow.keys())[0]
+
+
+@pytest.mark.parametrize(
+    "workflow, expected_errors",
+    [
+        [{"spearman_correlation": {}, "auto_scale": {}}, "Only one entry is expected."],
+        [
+            {"spearman_correlation": {}, "method": "auto_scale"},
+            "<method> is auto_scale but dict_keys(['spearman_correlation', 'method']) "
+            "was the one configured.",
+        ],
+        [
+            {
+                "auto_scale": {"clustering": {"hierarchical": {"t": 1}}},
+                "method": "auto_scale",
+            },
+            "['t'] not configurable for auto_scale method.",
+        ],
+    ],
+)
+def test_config_workflow_invalid(workflow, expected_errors):
+    config_data = {"workflow": workflow}
+    config = misfit_preprocessor.config.MisfitPreprocessorConfig(config_data, ["WWPR"])
+
+    expected_msg = (
+        f"'Checking that workflow schema only has one method configured and that "
+        f"invalid options are not inserted.' failed on input '{workflow}' with error "
+    )
+    assert not config.valid
+    assert expected_msg in config.errors[0].msg
+    assert expected_errors in config.errors[0].msg

@@ -39,9 +39,8 @@ def test_misfit_preprocessor_main_entry_point_gen_data(
 
     config = {
         "observations": [observation],
-        "clustering": {
-            "method": "spearman_correlation",
-            "spearman_correlation": {"fcluster": {"t": 1.0}},
+        "workflow": {
+            "spearman_correlation": {"clustering": {"hierarchical": {"t": 1.0}}},
         },
     }
     config_file = "my_config_file.yaml"
@@ -79,9 +78,11 @@ def test_misfit_preprocessor_passing_scaling_parameters(monkeypatch, test_data_r
     ert = EnKFMain(res_config)
 
     config = {
-        "clustering": {"method": "spearman_correlation"},
-        "scaling": {"threshold": 0.5, "std_cutoff": 2, "alpha": 3},
+        "workflow": {
+            "spearman_correlation": {"pca": {"threshold": 0.5}},
+        },
     }
+
     config_file = "my_config_file.yaml"
     with open(config_file, "w") as f:
         yaml.dump(config, f)
@@ -126,9 +127,12 @@ def test_misfit_preprocessor_with_scaling(test_data_root):
     ert = EnKFMain(res_config)
 
     config = {
-        "clustering": {
-            "method": "spearman_correlation",
-            "spearman_correlation": {"fcluster": {"t": 1.0}},
+        "workflow": {
+            "spearman_correlation": {
+                "clustering": {
+                    "hierarchical": {"t": 1.0},
+                }
+            },
         }
     }
     config_file = "my_config_file.yaml"
@@ -168,9 +172,9 @@ def test_misfit_preprocessor_skip_clusters_yielding_empty_data_matrixes(
     ert = EnKFMain(res_config)
 
     config = {
-        "clustering": {
+        "workflow": {
             "method": "spearman_correlation",
-            "spearman_correlation": {"fcluster": {"t": 1.0}},
+            "spearman_correlation": {"clustering": {"hierarchical": {"t": 1.0}}},
         }
     }
     config_file = "my_config_file.yaml"
@@ -197,9 +201,11 @@ def test_misfit_preprocessor_invalid_config(test_data_root):
 
     config = {
         "unknown_key": [],
-        "clustering": {
+        "workflow": {
             "method": "spearman_correlation",
-            "spearman_correlation": {"fcluster": {"threshold": 1.0}},
+            "spearman_correlation": {
+                "clustering": {"hierarchical": {"threshold": 1.0}}
+            },
         },
     }
     config_file = "my_config_file.yaml"
@@ -213,7 +219,8 @@ def test_misfit_preprocessor_invalid_config(test_data_root):
     expected_err_msg = (
         "Invalid configuration of misfit preprocessor\n"
         "  - Unknown key: unknown_key (root level)\n"
-        "  - Unknown key: threshold (clustering.spearman_correlation.fcluster)\n"
+        "  - Unknown key: "
+        "threshold (workflow.spearman_correlation.clustering.hierarchical)\n"
     )
     assert expected_err_msg == str(ve.value)
 
