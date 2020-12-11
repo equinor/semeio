@@ -384,7 +384,7 @@ _SCHEMA = {
         "ert workflow hooks. The hook needs to run after the simulations, as "
         "simulated data is needed for the workflow. The relevant hooks are "
         "POST_SIMULATION, PRE_FIRST_UPDATE and PRE_UPDATE. The recommended "
-        "hook is PRE_FIRST_ANALYSIS, which will only run once, also in the case "
+        "hook is PRE_FIRST_UPDATE, which will only run once, also in the case "
         "where an iterative algorithm is used."
     ),
     cs.MetaKeys.Content: {
