@@ -198,11 +198,9 @@ def _validate_design_matrix_header(design_matrix):
     """
     try:
         unnamed = design_matrix.loc[:, design_matrix.columns.str.contains("^Unnamed")]
-    except (AttributeError, ValueError) as err:
-        # We catch these errors because:
-        # 1) AttributeError is a pandas 0.24 compatibility
-        # 2) ValueError because int/floats as column headers in xlsx gets read as
-        # int/float and is not valid to index by.
+    except ValueError as err:
+        # We catch because int/floats as column headers
+        # in xlsx gets read as int/float and is not valid to index by.
         raise SystemExit(
             f"Invalid value in design matrix header, error: {str(err)}"
         ) from err

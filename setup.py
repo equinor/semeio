@@ -51,7 +51,7 @@ setup(
         "equinor-libres",
         "configsuite>=0.6",
         "numpy",
-        "pandas",
+        "pandas>0.24",
         "scipy",
         "xlrd<2",
         "stea",
