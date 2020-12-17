@@ -8,6 +8,7 @@ import pytest
 
 from semeio.jobs.design2params import design2params
 from semeio.jobs.design_kw.design_kw import extract_key_value
+from semeio._exceptions.exceptions import ValidationError
 
 
 @pytest.fixture
@@ -204,7 +205,10 @@ def test_open_excel_file_not_xls(input_data):
 
 
 def test_open_excel_file_header_missing(input_data):
-    with pytest.raises(SystemExit):
+    with pytest.raises(
+        ValidationError,
+        match="Design matrix not valid, error: Column headers not present in column",
+    ):
         design2params.run(
             1,
             "design_matrix_missing_header.xlsx",
@@ -483,7 +487,7 @@ def test_invalid_pandas_header_error(tmpdir, paramname):
     )
 
     expected_error = "Invalid value in design matrix header"
-    with pytest.raises(SystemExit, match=expected_error):
+    with pytest.raises(ValidationError, match=expected_error):
         design2params.run(
             0,
             "design_matrix.xlsx",
