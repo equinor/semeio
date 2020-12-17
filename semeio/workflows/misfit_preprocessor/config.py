@@ -221,8 +221,15 @@ _FCLUSTER_SCHEMA = {
 AUTO_SCALE_SCHEMA = {
     cs.MetaKeys.Type: cs.types.NamedDict,
     cs.MetaKeys.Description: (
-        "The {sc} clustering is supporting multiple parameters."
-    ).format(sc=AUTO_SCALE),
+        f"The {AUTO_SCALE} clustering is supporting multiple parameters. The "
+        "the job will first run PCA analysis on all the data to determine the number "
+        "of components. Then spearman correlation is performed on the simulated data"
+        " to create a correlation matrix. Clustering is then performed on the "
+        "correlation matrix using the input from the first PCA analysis, where the "
+        "number of clusters equals the number of components. Then PCA is performed "
+        "on the individual clusters. Observations in each cluster are then scaled with "
+        "the same value."
+    ),
     cs.MetaKeys.Content: {_LINKAGE: _LINKAGE_SCHEMA},
 }
 
@@ -230,8 +237,12 @@ AUTO_SCALE_SCHEMA = {
 SPEARMAN_CORRELATION_SCHEMA = {
     cs.MetaKeys.Type: cs.types.NamedDict,
     cs.MetaKeys.Description: (
-        "The {sc} clustering is supporting multiple parameters."
-    ).format(sc=SPEARMAN_CORRELATION),
+        f"The {SPEARMAN_CORRELATION} clustering supports multiple parameters. The "
+        "the job will first run spearman correlation on the simulated data to create "
+        "a correlation matrix. Clustering is then performed on the correlation matrix "
+        "before the PCA is performed on the individual clusters. Observations in each "
+        "cluster are then scaled with the same value."
+    ),
     cs.MetaKeys.Content: {_FCLUSTER: _FCLUSTER_SCHEMA, _LINKAGE: _LINKAGE_SCHEMA},
 }
 
