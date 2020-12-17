@@ -57,7 +57,7 @@ setup(
         "stea",
         "pyscal>=0.4.0",
         "fmu-ensemble",
-        "segyio==1.9.3",
+        "segyio",
     ],
     include_package_data=True,
 )
