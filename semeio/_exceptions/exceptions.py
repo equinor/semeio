@@ -9,3 +9,7 @@ class ConfigurationError(Exception):
         for error in self.errors:
             msg += "\n{}".format(error)
         return msg
+
+
+class ValidationError(Exception):
+    pass

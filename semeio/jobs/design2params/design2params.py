@@ -4,6 +4,7 @@ import pandas as pd
 import warnings
 import logging
 
+from semeio._exceptions.exceptions import ValidationError
 
 # Filenames created/modified by this script.
 # Don't change unless you understand the consequences.
@@ -36,7 +37,10 @@ def run(
 
     design_matrix_sheet = _read_excel(xlsfilename, designsheetname)
 
-    _validate_design_matrix_header(design_matrix_sheet)
+    try:
+        _validate_design_matrix_header(design_matrix_sheet)
+    except ValueError as err:
+        raise ValidationError(f"Design matrix not valid, error: {str(err)}") from err
 
     if realization in _invalid_design_realizations(design_matrix_sheet):
         raise SystemExit("Design parameters invalid for current realization")
@@ -194,19 +198,19 @@ def _read_excel(file_name, sheet_name, header=0):
 def _validate_design_matrix_header(design_matrix):
     """
     Validate header in user inputted design matrix
-    :raises: SystemExit if design matrix contains empty headers
+    :raises: ValueError if design matrix contains empty headers
     """
     try:
         unnamed = design_matrix.loc[:, design_matrix.columns.str.contains("^Unnamed")]
     except ValueError as err:
         # We catch because int/floats as column headers
         # in xlsx gets read as int/float and is not valid to index by.
-        raise SystemExit(
+        raise ValueError(
             f"Invalid value in design matrix header, error: {str(err)}"
         ) from err
     column_indexes = [int(x.split(":")[1]) for x in unnamed.columns.values]
     if len(column_indexes) > 0:
-        raise SystemExit(
+        raise ValueError(
             "Column headers not present in column {}".format(column_indexes)
         )
 
