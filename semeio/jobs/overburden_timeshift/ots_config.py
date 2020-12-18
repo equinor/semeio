@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import configsuite
 import datetime
+from pathlib import Path
 
 from configsuite import MetaKeys as MK
 from configsuite import types
@@ -20,6 +21,21 @@ def _is_int_one(value):
 @configsuite.validator_msg("Vintages must contain at least an entry!")
 def _min_length(value):
     return len(value) > 1
+
+
+@configsuite.validator_msg("Eclbase must have an INIT file")
+def _init__exists(value):
+    return Path(f"{value}.INIT").exists()
+
+
+@configsuite.validator_msg("Eclbase must have an EGRID file")
+def _egrid__exists(value):
+    return Path(f"{value}.EGRID").exists()
+
+
+@configsuite.validator_msg("Eclbase must have a UNRST file")
+def _unrst_exists(value):
+    return Path(f"{value}.UNRST").exists()
 
 
 @configsuite.transformation_msg("Converting list of strings to list of dates")
@@ -91,6 +107,7 @@ def build_schema():
             },
             "eclbase": {
                 MK.Type: types.String,
+                MK.ElementValidators: (_init__exists, _egrid__exists, _unrst_exists),
                 MK.Description: "Path to the Eclipse case.",
             },
             "vintages_export_file": {
