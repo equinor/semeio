@@ -21,15 +21,13 @@ import configsuite
 import yaml
 
 
+# pylint: disable=consider-using-enumerate
 def extract_ots_context(configuration):
-
-    if configuration.eclbase is not None:
-        rstfile_path = Path(f"{configuration.eclbase}.UNRST")
-        if not rstfile_path.exists():
-            return []
-        dates = [d.date() for d in EclFile(str(rstfile_path)).dates]
-        return dates
-    return []
+    rstfile_path = Path(f"{configuration.eclbase}.UNRST")
+    if not rstfile_path.exists():
+        return []
+    dates = [d.date() for d in EclFile(str(rstfile_path)).dates]
+    return dates
 
 
 def ots_load_params(input_file):
