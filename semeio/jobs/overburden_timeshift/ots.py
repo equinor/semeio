@@ -2,6 +2,8 @@ import logging
 from collections import namedtuple
 import os.path
 from datetime import datetime as dt
+from pathlib import Path
+
 import numpy as np
 from scipy.interpolate import CloughTocher2DInterpolator
 
@@ -19,12 +21,13 @@ import configsuite
 import yaml
 
 
-# pylint: disable=consider-using-enumerate
 def extract_ots_context(configuration):
+
     if configuration.eclbase is not None:
-        rstfile_path = "{}.UNRST".format(configuration.eclbase)
-        rstfile = EclFile(rstfile_path)
-        dates = [d.date() for d in rstfile.dates]
+        rstfile_path = Path(f"{configuration.eclbase}.UNRST")
+        if not rstfile_path.exists():
+            return []
+        dates = [d.date() for d in EclFile(str(rstfile_path)).dates]
         return dates
     return []
 
