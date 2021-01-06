@@ -184,7 +184,8 @@ def _read_excel(file_name, sheet_name, header=0):
     :raises: SystemExit if file not loaded correctly
     """
     try:
-        return pd.read_excel(file_name, sheet_name, header=header, dtype=str)
+        df = pd.read_excel(file_name, sheet_name, header=header, dtype=str)
+        return df.dropna(axis=1, how="all")
     except IOError as err:
         raise SystemExit("File {} not found".format(file_name)) from err
     except Exception as err:
