@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
 import itertools
 import logging
-from scipy.cluster.hierarchy import fcluster, linkage
+
+from semeio.workflows.spearman_correlation_job.cluster_analysis import (
+    fcluster_analysis,
+)
 
 
 def spearman_job(
     measured_data,
     reporter,
+    cluster_function=fcluster_analysis,
     **cluster_args,
 ):
     """
@@ -21,7 +25,7 @@ def spearman_job(
     correlation_matrix = _calculate_correlation_matrix(simulated_data)
     reporter.publish_csv("correlation_matrix", correlation_matrix)
 
-    clusters = _cluster_analysis(correlation_matrix, **cluster_args)
+    clusters = cluster_function(correlation_matrix, **cluster_args)
 
     columns = correlation_matrix.columns
 
@@ -91,15 +95,3 @@ def _calculate_correlation_matrix(data):
     # of pandas (https://github.com/pandas-dev/pandas/pull/28151), for now this is
     # equivalent:
     return data.rank().corr(method="pearson")
-
-
-def _cluster_analysis(
-    correlation_matrix,
-    threshold=1.15,
-    criterion="inconsistent",
-    depth=2,
-    method="single",
-    metric="euclidean",
-):
-    a = linkage(correlation_matrix, method, metric)
-    return fcluster(a, threshold, criterion=criterion, depth=depth)

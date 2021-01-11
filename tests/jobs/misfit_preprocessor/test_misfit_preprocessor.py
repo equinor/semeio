@@ -147,16 +147,33 @@ def generate_measurements(num_polynomials, poly_states=None, ensemble_size=10000
     return observations, simulated
 
 
+@pytest.mark.parametrize("clustering_function", ["hierarchical", "kmeans"])
 @pytest.mark.parametrize("method", ["custom_scale", "auto_scale"])
 @pytest.mark.parametrize(
     "num_polynomials",
     tuple(range(1, 5)) + (20, 100),
 )
-def test_misfit_preprocessor_n_polynomials(num_polynomials, method):
+def test_misfit_preprocessor_n_polynomials(
+    num_polynomials, method, clustering_function
+):
     """
     The goal of this test is to create a data set of uncorrelated polynomials,
     meaning that there should be as many clusters as there are input polynomials.
     """
+
+    # If we are using kmeans where we have to specify the number of clusters,
+    # the default set up is not that viable, so we give the number
+    # of clusters.
+    if clustering_function == "kmeans" and method == "custom_scale":
+        sconfig = {"n_clusters": num_polynomials}
+    else:
+        sconfig = None
+
+    # The clustering functions for auto_scale are limited compared
+    # with custom_scale
+    if method == "auto_scale":
+        clustering_function = "limited_" + clustering_function
+
     state_size = 3
     poly_states = [range(1, state_size + 1) for _ in range(num_polynomials)]
 
@@ -169,14 +186,23 @@ def test_misfit_preprocessor_n_polynomials(num_polynomials, method):
     # We set the PCA threshold to 0.99 so a high degree of correlation is required
     # to have an impact. Setting it this way only has an impact for "auto_scale"
     obs_keys = measured_data.data.columns.get_level_values(0)
+    job_config = {
+        "workflow": {
+            "type": method,
+            "pca": {"threshold": 0.99},
+            "clustering": {"type": clustering_function},
+        }
+    }
+    if sconfig:
+        job_config["workflow"]["clustering"].update(sconfig)
     config = assemble_config(
-        {"workflow": {"type": method, "pca": {"threshold": 0.99}}},
+        job_config,
         list(obs_keys),
     )
     reporter_mock = Mock()
     configs = misfit_preprocessor.run(config, measured_data, reporter_mock)
     assert_homogen_clusters(configs)
-    assert num_polynomials == len(configs), configs
+    assert len(configs) == num_polynomials, configs
 
 
 @pytest.mark.parametrize("linkage", ["average", "single"])
@@ -268,6 +294,7 @@ def test_misfit_preprocessor_configuration_errors():
 
     expected_err_msg = (
         "Invalid configuration of misfit preprocessor\n"
+        "  - extra fields not permitted (workflow.clustering.threshold)\n"
         "  - extra fields not permitted (workflow.clustering.threshold)\n"
         "  - extra fields not permitted (unknown_key)\n"
     )

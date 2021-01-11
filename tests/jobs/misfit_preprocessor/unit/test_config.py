@@ -5,6 +5,7 @@ from semeio.workflows.misfit_preprocessor import workflow_config, hierarchical_c
 from semeio.workflows.misfit_preprocessor.exceptions import ValidationError
 from semeio.workflows import misfit_preprocessor
 from semeio.workflows.misfit_preprocessor.hierarchical_config import HierarchicalConfig
+from semeio.workflows.misfit_preprocessor.kmeans_config import KmeansClustering
 
 
 @pytest.mark.parametrize("workflow", ["custom_scale", "auto_scale"])
@@ -327,3 +328,66 @@ def test_config_workflow_valid(workflow):
     config_data = {"workflow": {"type": workflow}}
     config = workflow_config.MisfitConfig(**config_data)
     assert config.workflow.type == workflow
+
+
+@pytest.mark.parametrize(
+    "clustering_config",
+    [
+        {},
+        {"init": "random"},
+        {"init": "k-means++"},
+        {"n_init": 1},
+        {"n_init": 10000},
+        {"max_iter": 1},
+        {"max_iter": 10000},
+        {"random_state": 1},
+        {"random_state": 10000},
+        {"random_state": None},
+        {"n_clusters": 1},
+        {"n_clusters": 10000},
+    ],
+)
+def test_valid_kmeans_schema(clustering_config):
+    config = KmeansClustering(**clustering_config)
+    config = config.cluster_args()
+    for key, val in clustering_config.items():
+        assert config[key] == val
+
+
+@pytest.mark.parametrize(
+    "clustering_config, expected_error",
+    [
+        ({"init": "not_known"}, "given=not_known"),
+        ({"n_init": -1}, "ensure this value is greater than 0"),
+        ({"n_init": 0}, "ensure this value is greater than 0"),
+        ({"n_init": 1.0}, "value is not a valid integer"),
+        ({"max_iter": -1}, "ensure this value is greater than 0"),
+        ({"max_iter": 0}, "ensure this value is greater than 0"),
+        ({"max_iter": 1.0}, "value is not a valid integer"),
+        ({"random_state": -1}, "ensure this value is greater than 0"),
+        ({"random_state": 0}, "ensure this value is greater than 0"),
+        ({"random_state": 1.0}, "value is not a valid integer"),
+        ({"n_clusters": -1}, "ensure this value is greater than 0"),
+        ({"n_clusters": 0}, "ensure this value is greater than 0"),
+        ({"n_clusters": 1.0}, "value is not a valid integer"),
+    ],
+)
+def test_invalid_kmeans_schema(clustering_config, expected_error):
+    with pytest.raises(pydantic.ValidationError, match=expected_error):
+        KmeansClustering(**clustering_config)
+
+
+@pytest.mark.parametrize(
+    "clustering_config, expected_default",
+    [
+        ("init", "k-means++"),
+        ("n_init", 10),
+        ("max_iter", 300),
+        ("random_state", None),
+        ("n_clusters", 8),
+    ],
+)
+def test_kmeans_default(clustering_config, expected_default):
+    config = KmeansClustering()
+    config = config.cluster_args()
+    assert config[clustering_config] == expected_default
