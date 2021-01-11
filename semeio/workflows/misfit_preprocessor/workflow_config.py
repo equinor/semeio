@@ -11,6 +11,11 @@ from semeio.workflows.misfit_preprocessor.hierarchical_config import (
     LimitedHierarchicalConfig,
     BaseMisfitPreprocessorConfig,
 )
+from semeio.workflows.misfit_preprocessor.kmeans_config import (
+    KmeansClustering,
+    LimitedKmeansClustering,
+)
+
 
 #  pylint: disable=too-few-public-methods,no-self-argument
 
@@ -21,13 +26,15 @@ class PCAConfig(BaseMisfitPreprocessorConfig):
 
 class AutoScaleConfig(BaseMisfitPreprocessorConfig):
     type: Literal["auto_scale"] = "auto_scale"
-    clustering: LimitedHierarchicalConfig = LimitedHierarchicalConfig()
+    clustering: Union[
+        LimitedHierarchicalConfig, LimitedKmeansClustering
+    ] = LimitedHierarchicalConfig()
     pca: PCAConfig = PCAConfig()
 
 
 class CustomScaleConfig(BaseMisfitPreprocessorConfig):
     type: Literal["custom_scale"] = "custom_scale"
-    clustering: HierarchicalConfig = HierarchicalConfig()
+    clustering: Union[HierarchicalConfig, KmeansClustering] = HierarchicalConfig()
     pca: PCAConfig = PCAConfig()
 
 

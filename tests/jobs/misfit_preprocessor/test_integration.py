@@ -211,12 +211,14 @@ def test_misfit_preprocessor_invalid_config(test_data_root):
     expected_err_msg = (
         "Invalid configuration of misfit preprocessor\n"
         "  - extra fields not permitted (workflow.clustering.threshold)\n"
+        # There are two clustering functions, and this is invalid in both
+        "  - extra fields not permitted (workflow.clustering.threshold)\n"
         "  - extra fields not permitted (unknown_key)\n"
     )
     job = misfit_preprocessor.MisfitPreprocessorJob(ert)
     with pytest.raises(semeio.workflows.misfit_preprocessor.ValidationError) as err:
         job.run(config_file)
-    assert expected_err_msg == str(err.value)
+    assert str(err.value) == expected_err_msg
 
 
 @pytest.mark.usefixtures("setup_tmpdir")

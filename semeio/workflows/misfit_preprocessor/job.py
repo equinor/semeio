@@ -4,30 +4,23 @@ from semeio.workflows.spearman_correlation_job.job import spearman_job
 
 def run(config, measured_data, reporter):
     workflow = config.workflow
-    if workflow.type == "custom_scale":
-        sconfig = workflow.clustering.cluster_args()
-        scaling_configs = spearman_job(
-            measured_data,
-            reporter,
-            **sconfig,
-        )
-        pca_threshold = config.workflow.pca.threshold
-    elif workflow.type == "auto_scale":
+    sconfig = workflow.clustering.cluster_args()
+    if workflow.type == "auto_scale":
         job = ObservationScaleFactor(reporter, measured_data)
         nr_components, _ = job.perform_pca(workflow.pca.threshold)
-        sconfig = workflow.clustering.cluster_args()
-        scaling_configs = spearman_job(
-            measured_data,
-            reporter,
-            criterion="maxclust",
-            threshold=nr_components,
-            **sconfig,
-        )
-        pca_threshold = workflow.pca.threshold
-    else:
-        raise AssertionError(
-            "Unknown clustering method: {}".format(config.workflow.method)
-        )
+        if workflow.clustering.type == "limited_hierarchical":
+            sconfig["criterion"] = "maxclust"
+            sconfig["threshold"] = nr_components
+        elif workflow.clustering.type == "limited_kmeans":
+            sconfig["n_clusters"] = nr_components
+
+    scaling_configs = spearman_job(
+        measured_data,
+        reporter,
+        cluster_function=workflow.clustering._cluster_function,
+        **sconfig,
+    )
+    pca_threshold = workflow.pca.threshold
 
     scaling_params = {"threshold": pca_threshold}
     for scaling_config in scaling_configs:
