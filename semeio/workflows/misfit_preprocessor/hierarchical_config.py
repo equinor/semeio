@@ -11,8 +11,14 @@ from pydantic import (
     Extra,
     StrictFloat,
     StrictInt,
+    PyObject,
+    PrivateAttr,
 )
 import collections
+
+from semeio.workflows.spearman_correlation_job.cluster_analysis import (
+    fcluster_analysis,
+)
 
 #  pylint: disable=too-few-public-methods,no-self-argument
 
@@ -136,9 +142,11 @@ class HierarchicalConfig(AbstractClusteringConfig):
     type: Literal["hierarchical"] = "hierarchical"
     linkage: LinkageConfig = LinkageConfig()
     fcluster: FclusterConfig = FclusterConfig()
+    _cluster_function: PyObject = PrivateAttr(fcluster_analysis)
 
 
 class LimitedHierarchicalConfig(AbstractClusteringConfig):
     type: Literal["limited_hierarchical"] = "limited_hierarchical"
     linkage: LinkageConfig = LinkageConfig()
     fcluster: BaseFclusterConfig = BaseFclusterConfig()
+    _cluster_function: PyObject = PrivateAttr(fcluster_analysis)

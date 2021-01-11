@@ -53,6 +53,7 @@ setup(
         "numpy",
         "pandas>0.24",
         "pydantic",
+        "sklearn",
         "scipy",
         "xlrd<2",
         "stea",
