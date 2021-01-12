@@ -104,7 +104,9 @@ def test_valid_spearman_threshold(
         "workflow": {
             "spearman_correlation": {
                 "clustering": {
-                    "hierarchical": {"t": threshold, "criterion": criterion},
+                    "hierarchical": {
+                        "fcluster": {"t": threshold, "criterion": criterion}
+                    },
                 }
             },
         },
@@ -123,6 +125,7 @@ def test_valid_spearman_threshold(
             "spearman_correlation",
             "clustering",
             "hierarchical",
+            "fcluster",
         )
         expected_key_path += postfix_key_path
         assert expected_key_path == config.errors[0].key_path
@@ -143,7 +146,7 @@ def test_default_spearman_threshold(criterion, default_threshold):
         "workflow": {
             "spearman_correlation": {
                 "clustering": {
-                    "hierarchical": {"criterion": criterion},
+                    "hierarchical": {"fcluster": {"criterion": criterion}},
                 }
             },
         },
@@ -154,10 +157,8 @@ def test_default_spearman_threshold(criterion, default_threshold):
     )
 
     assert config.valid, config.errors
-    assert (
-        default_threshold
-        == config.snapshot.workflow.spearman_correlation.clustering.hierarchical.t
-    )
+    cluster_config = config.snapshot.workflow.spearman_correlation.clustering
+    assert default_threshold == cluster_config.hierarchical.fcluster.t
 
 
 @pytest.mark.parametrize(
@@ -176,7 +177,7 @@ def test_valid_spearman_depth(depth, expected_valid):
         "workflow": {
             "spearman_correlation": {
                 "clustering": {
-                    "hierarchical": {"depth": depth},
+                    "hierarchical": {"fcluster": {"depth": depth}},
                 }
             },
         },
@@ -196,6 +197,7 @@ def test_valid_spearman_depth(depth, expected_valid):
             "spearman_correlation",
             "clustering",
             "hierarchical",
+            "fcluster",
             "depth",
         )
         assert expected_key_path == config.errors[0].key_path
@@ -208,9 +210,8 @@ def test_default_spearman_depth():
     )
 
     assert config.valid, config.errors
-    assert (
-        2 == config.snapshot.workflow.spearman_correlation.clustering.hierarchical.depth
-    )
+    cluster_config = config.snapshot.workflow.spearman_correlation.clustering
+    assert 2 == cluster_config.hierarchical.fcluster.depth
 
 
 @pytest.mark.parametrize(
@@ -229,7 +230,9 @@ def test_default_spearman_depth():
 def test_valid_linkage_method(method, expected_valid):
     config_data = {
         "workflow": {
-            "spearman_correlation": {"clustering": {"hierarchical": {"method": method}}}
+            "spearman_correlation": {
+                "clustering": {"hierarchical": {"linkage": {"method": method}}}
+            }
         },
     }
     config = misfit_preprocessor.config.MisfitPreprocessorConfig(
@@ -246,6 +249,7 @@ def test_valid_linkage_method(method, expected_valid):
             "spearman_correlation",
             "clustering",
             "hierarchical",
+            "linkage",
             "method",
         )
         assert expected_key_path == config.errors[0].key_path
@@ -258,10 +262,8 @@ def test_default_linkage_method():
     )
 
     assert config.valid, config.errors
-    assert (
-        "average"
-        == config.snapshot.workflow.spearman_correlation.clustering.hierarchical.method
-    )
+    cluster_config = config.snapshot.workflow.spearman_correlation.clustering
+    assert "average" == cluster_config.hierarchical.linkage.method
 
 
 @pytest.mark.parametrize(
@@ -296,7 +298,9 @@ def test_default_linkage_method():
 def test_valid_linkage_metric(metric, expected_valid):
     config_data = {
         "workflow": {
-            "spearman_correlation": {"clustering": {"hierarchical": {"metric": metric}}}
+            "spearman_correlation": {
+                "clustering": {"hierarchical": {"linkage": {"metric": metric}}}
+            }
         },
     }
     config = misfit_preprocessor.config.MisfitPreprocessorConfig(
@@ -313,6 +317,7 @@ def test_valid_linkage_metric(metric, expected_valid):
             "spearman_correlation",
             "clustering",
             "hierarchical",
+            "linkage",
             "metric",
         )
         assert expected_key_path == config.errors[0].key_path
@@ -325,10 +330,8 @@ def test_default_linkage_metric():
     )
 
     assert config.valid, config.errors
-    assert (
-        "euclidean"
-        == config.snapshot.workflow.spearman_correlation.clustering.hierarchical.metric
-    )
+    cluster_config = config.snapshot.workflow.spearman_correlation.clustering
+    assert "euclidean" == cluster_config.hierarchical.linkage.metric
 
 
 @pytest.mark.parametrize(
@@ -397,7 +400,9 @@ def test_config_workflow():
         "workflow": {
             "spearman_correlation": {
                 "clustering": {
-                    "hierarchical": {"method": "complete", "metric": "jensenshannon"}
+                    "hierarchical": {
+                        "linkage": {"method": "complete", "metric": "jensenshannon"}
+                    }
                 },
                 "pca": {"threshold": 0.98},
             }
