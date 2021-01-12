@@ -12,12 +12,12 @@ def run(config, measured_data, reporter):
         sconfig = config.workflow.spearman_correlation.clustering
         scaling_configs = spearman_job(
             measured_data,
-            sconfig.hierarchical.t,
+            sconfig.hierarchical.fcluster.t,
             reporter,
-            criterion=sconfig.hierarchical.criterion,
-            depth=sconfig.hierarchical.depth,
-            method=sconfig.hierarchical.method,
-            metric=sconfig.hierarchical.metric,
+            criterion=sconfig.hierarchical.fcluster.criterion,
+            depth=sconfig.hierarchical.fcluster.depth,
+            method=sconfig.hierarchical.linkage.method,
+            metric=sconfig.hierarchical.linkage.metric,
         )
         pca_threshold = config.workflow.spearman_correlation.pca.threshold
     elif config.workflow.method == AUTO_SCALE:
@@ -30,8 +30,8 @@ def run(config, measured_data, reporter):
             nr_components,
             reporter,
             criterion="maxclust",
-            method=sconfig.hierarchical.method,
-            metric=sconfig.hierarchical.metric,
+            method=sconfig.hierarchical.linkage.method,
+            metric=sconfig.hierarchical.linkage.metric,
         )
         pca_threshold = auto_scale_config.pca.threshold
     else:

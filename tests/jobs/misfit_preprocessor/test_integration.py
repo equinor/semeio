@@ -40,7 +40,9 @@ def test_misfit_preprocessor_main_entry_point_gen_data(
     config = {
         "observations": [observation],
         "workflow": {
-            "spearman_correlation": {"clustering": {"hierarchical": {"t": 1.0}}},
+            "spearman_correlation": {
+                "clustering": {"hierarchical": {"fcluster": {"t": 1.0}}}
+            },
         },
     }
     config_file = "my_config_file.yaml"
@@ -130,7 +132,7 @@ def test_misfit_preprocessor_with_scaling(test_data_root):
         "workflow": {
             "spearman_correlation": {
                 "clustering": {
-                    "hierarchical": {"t": 1.0},
+                    "hierarchical": {"fcluster": {"t": 1.0}},
                 }
             },
         }
@@ -174,7 +176,9 @@ def test_misfit_preprocessor_skip_clusters_yielding_empty_data_matrixes(
     config = {
         "workflow": {
             "method": "spearman_correlation",
-            "spearman_correlation": {"clustering": {"hierarchical": {"t": 1.0}}},
+            "spearman_correlation": {
+                "clustering": {"hierarchical": {"fcluster": {"t": 1.0}}}
+            },
         }
     }
     config_file = "my_config_file.yaml"
