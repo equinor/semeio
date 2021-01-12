@@ -182,8 +182,6 @@ HIERARCHICAL_SCHEMA = {
                                 "Scalar threshold for the clustering. When a "
                                 "'{maxclust}' {criterion} is used, the scalar gives "
                                 "the maximum number of clusters to be formed."
-                                "This has a defaulted value for auto_scale "
-                                "and is not configurable for this workflow. "
                             ).format(maxclust=_MAXCLUST, criterion=_CRITERION),
                             cs.MetaKeys.ElementValidators: (
                                 _bounds_validator(lower=0, lower_inclusive=False),
@@ -193,10 +191,8 @@ HIERARCHICAL_SCHEMA = {
                             cs.MetaKeys.Type: cs.types.String,
                             cs.MetaKeys.Description: (
                                 "The criterion to use in forming flat clusters. "
-                                "Defaults to {default_criterion}."
-                                "This has a defaulted value for auto_scale "
-                                "and is not configurable for this workflow. "
-                            ).format(default_criterion=_INCONSISTENT),
+                                f"Defaults to {_INCONSISTENT}."
+                            ),
                             cs.MetaKeys.ElementValidators: (
                                 _one_of(
                                     _INCONSISTENT,
@@ -212,8 +208,7 @@ HIERARCHICAL_SCHEMA = {
                             cs.MetaKeys.Type: cs.types.Integer,
                             cs.MetaKeys.Description: (
                                 "The maximum depth to perform the {inconsistent} "
-                                "calculation. This has a defaulted value for "
-                                "auto_scale and is not configurable for this workflow."
+                                "calculation."
                             ).format(
                                 inconsistent=_INCONSISTENT,
                             ),
@@ -271,6 +266,7 @@ _CLUSTERING_SCHEMA = {
 }
 
 
+@cs.transformation_msg("Checking that workflow schema only has one method configured")
 def _insert_method(layer):
     if "method" in layer:
         if len(layer) == 1:
@@ -288,38 +284,25 @@ def _insert_method(layer):
     return layer
 
 
-def _check_linkage(config):
-    try:
-        invalid_options = []
-        for option in ["t", "criteria", "depth"]:
-            if option in config["auto_scale"]["clustering"]["hierarchical"]:
-                invalid_options.append(option)
-        if invalid_options:
-            raise ValueError(
-                f"{invalid_options} not configurable for auto_scale method."
-            )
-    except KeyError:
-        pass
-
-    return config
-
-
-@cs.transformation_msg(
-    "Checking that workflow schema only has one method configured and "
-    "that invalid options are not inserted."
-)
-def _double_transformation(config):
-    config = _insert_method(config)
-    config = _check_linkage(config)
-
-    return config
+# The only difference between the auto_scale and spearman_correlation
+# schema is the auto configuration of clustering method and number
+# of clusters. To make it easier to keep in sync we let that be
+# reflected here.
+_AUTO_SCALE_SCHEMA = copy.deepcopy(_CLUSTERING_SCHEMA)
+fcluster_schema = _AUTO_SCALE_SCHEMA[cs.MetaKeys.Content]["clustering"][
+    cs.MetaKeys.Content
+]["hierarchical"][cs.MetaKeys.Content]["fcluster"]
+for key in [cs.MetaKeys.ElementValidators, cs.MetaKeys.Transformation]:
+    del fcluster_schema[key]
+for key in ["t", "criterion"]:
+    del fcluster_schema[cs.MetaKeys.Content][key]
 
 
 _WORKFLOW_SCHEMA = {
     cs.MetaKeys.Type: cs.types.NamedDict,
-    cs.MetaKeys.LayerTransformation: _double_transformation,
+    cs.MetaKeys.LayerTransformation: _insert_method,
     cs.MetaKeys.Content: {
-        AUTO_SCALE: _CLUSTERING_SCHEMA,
+        AUTO_SCALE: _AUTO_SCALE_SCHEMA,
         SPEARMAN_CORRELATION: _CLUSTERING_SCHEMA,
         "method": {
             cs.MetaKeys.Description: (
