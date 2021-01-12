@@ -45,6 +45,9 @@ def run(
     if realization in _invalid_design_realizations(design_matrix_sheet):
         raise SystemExit("Design parameters invalid for current realization")
 
+    if designsheetname == defaultssheetname:
+        raise SystemExit("Design-sheet and defaults-sheet can not be the same")
+
     default_df = _read_defaultssheet(xlsfilename, defaultssheetname)
 
     try:
