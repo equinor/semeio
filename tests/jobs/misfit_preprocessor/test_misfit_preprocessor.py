@@ -206,7 +206,7 @@ def test_misfit_preprocessor_state_size(state_size, method, linkage):
         {
             "workflow": {
                 method: {
-                    "clustering": {"hierarchical": {"method": linkage}},
+                    "clustering": {"hierarchical": {"linkage": {"method": linkage}}},
                     "pca": {"threshold": 0.99},
                 }
             },
@@ -240,8 +240,10 @@ def test_misfit_preprocessor_state_uneven_size(state_size):
                 "spearman_correlation": {
                     "clustering": {
                         "hierarchical": {
-                            "t": num_polynomials + 1,
-                            "criterion": "maxclust",
+                            "fcluster": {
+                                "t": num_polynomials + 1,
+                                "criterion": "maxclust",
+                            }
                         }
                     },
                 }
