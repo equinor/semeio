@@ -530,6 +530,21 @@ def test_duplicated_designcolumns(paramset, tmpdir, caplog):
     assert "are probably duplicated" in caplog.text
 
 
+def test_equal_sheetargs(tmpdir):
+    """The dataframes for design sheet and defaults have a different structure
+    and cannot be allowed to be mixed"""
+    tmpdir.chdir()
+    write_design_xlsx(
+        "dummy.xlsx",
+        designdf=pd.DataFrame(columns=["COM", "FOO"], data=[[0, "BAR"]]),
+        designsheetname="foo",
+    )
+    with pytest.raises(SystemExit):
+        design2params.run(
+            0, "dummy.xlsx", designsheetname="foo", defaultssheetname="foo"
+        )
+
+
 def write_design_xlsx(
     filename,
     designdf=None,
