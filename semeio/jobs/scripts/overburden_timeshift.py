@@ -18,7 +18,7 @@ short_description = (
 )
 
 description = short_description + generate_rst_doc()
-category = "modeling.surface"
+category = "modelling.surface"
 
 
 def _get_args_parser():

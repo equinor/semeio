@@ -12,7 +12,7 @@ description = (
 )
 
 
-category = "modeling.financial"
+category = "modelling.financial"
 
 
 def _get_args_parser():
