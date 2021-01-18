@@ -88,7 +88,7 @@ examples = """
 """  # noqa
 
 
-category = "modeling.reservoir"
+category = "modelling.reservoir"
 
 
 def _get_args_parser():
