@@ -4,7 +4,7 @@ from semeio.workflows.spearman_correlation_job.job import spearman_job
 
 def run(config, measured_data, reporter):
     workflow = config.workflow
-    if workflow.type == "spearman_correlation":
+    if workflow.type == "custom_scale":
         sconfig = workflow.clustering.cluster_args()
         scaling_configs = spearman_job(
             measured_data,

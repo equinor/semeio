@@ -7,7 +7,7 @@ from semeio.workflows import misfit_preprocessor
 from semeio.workflows.misfit_preprocessor.hierarchical_config import HierarchicalConfig
 
 
-@pytest.mark.parametrize("workflow", ["spearman_correlation", "auto_scale"])
+@pytest.mark.parametrize("workflow", ["custom_scale", "auto_scale"])
 @pytest.mark.parametrize(
     "threshold",
     [
@@ -23,7 +23,7 @@ def test_valid_scaling_threshold(threshold, workflow):
     assert config.workflow.pca.threshold == threshold
 
 
-@pytest.mark.parametrize("workflow", ["spearman_correlation", "auto_scale"])
+@pytest.mark.parametrize("workflow", ["custom_scale", "auto_scale"])
 @pytest.mark.parametrize(
     "threshold, expected_error",
     [
@@ -44,7 +44,7 @@ def test_default_scaling_threshold():
     assert config.workflow.pca.threshold == 0.95
 
 
-@pytest.mark.parametrize("clustering_method", ["auto_scale", "spearman_correlation"])
+@pytest.mark.parametrize("clustering_method", ["auto_scale", "custom_scale"])
 def test_valid_clustering_method(clustering_method):
     config_data = {"workflow": {"type": clustering_method}}
     config = misfit_preprocessor.config.assemble_config(
@@ -311,7 +311,7 @@ def test_config_workflow():
     config_data = {
         "observations": ["WWPR"],
         "workflow": {
-            "type": "spearman_correlation",
+            "type": "custom_scale",
             "clustering": {
                 "linkage": {"method": "complete", "metric": "jensenshannon"}
             },
@@ -319,10 +319,10 @@ def test_config_workflow():
         },
     }
     config = workflow_config.MisfitConfig(**config_data)
-    assert config.workflow.type == "spearman_correlation"
+    assert config.workflow.type == "custom_scale"
 
 
-@pytest.mark.parametrize("workflow", ["spearman_correlation", "auto_scale"])
+@pytest.mark.parametrize("workflow", ["custom_scale", "auto_scale"])
 def test_config_workflow_valid(workflow):
     config_data = {"workflow": {"type": workflow}}
     config = workflow_config.MisfitConfig(**config_data)
