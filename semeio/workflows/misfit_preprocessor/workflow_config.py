@@ -26,7 +26,7 @@ class AutoScaleConfig(BaseMisfitPreprocessorConfig):
 
 
 class CustomScaleConfig(BaseMisfitPreprocessorConfig):
-    type: Literal["spearman_correlation"] = "spearman_correlation"
+    type: Literal["custom_scale"] = "custom_scale"
     clustering: HierarchicalConfig = HierarchicalConfig()
     pca: PCAConfig = PCAConfig()
 
@@ -71,7 +71,7 @@ class MisfitConfig(BaseMisfitPreprocessorConfig):
         workflow = value.get("type")
         if workflow == "auto_scale":
             return AutoScaleConfig(**value)
-        elif workflow == "spearman_correlation":
+        elif workflow == "custom_scale":
             return CustomScaleConfig(**value)
         else:
             raise ValueError(f"Unknown workflow {workflow}")
