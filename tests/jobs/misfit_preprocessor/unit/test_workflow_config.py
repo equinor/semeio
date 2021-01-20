@@ -11,7 +11,7 @@ def test_union_select_spearman(key, value):
     config = workflow_config.MisfitConfig(
         workflow={"clustering": {"fcluster": {key: value}}}
     )
-    assert config.workflow.type == "spearman_correlation"
+    assert config.workflow.type == "custom_scale"
 
 
 def test_union_select_auto_scale():
@@ -25,9 +25,9 @@ def test_union_select_auto_scale():
     "key, value",
     [["threshold", 0.010], ["criterion", "distance"], ["depth", 10]],
 )
-def test_spearman_correlation_valid_fcluster(key, value):
+def test_custom_scale_valid_fcluster(key, value):
     config_data = {
-        "type": "spearman_correlation",
+        "type": "custom_scale",
         "clustering": {"fcluster": {key: value}},
     }
     workflow_config.CustomScaleConfig(**config_data)
@@ -39,7 +39,7 @@ def test_spearman_correlation_valid_fcluster(key, value):
 )
 def test_workflow_custom(key, value):
     config_data = {
-        "type": "spearman_correlation",
+        "type": "custom_scale",
         "clustering": {"fcluster": {key: value}},
     }
     workflow_config.MisfitConfig(workflow=config_data)

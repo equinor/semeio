@@ -147,7 +147,7 @@ def generate_measurements(num_polynomials, poly_states=None, ensemble_size=10000
     return observations, simulated
 
 
-@pytest.mark.parametrize("method", ["spearman_correlation", "auto_scale"])
+@pytest.mark.parametrize("method", ["custom_scale", "auto_scale"])
 @pytest.mark.parametrize(
     "num_polynomials",
     tuple(range(1, 5)) + (20, 100),
@@ -180,7 +180,7 @@ def test_misfit_preprocessor_n_polynomials(num_polynomials, method):
 
 
 @pytest.mark.parametrize("linkage", ["average", "single"])
-@pytest.mark.parametrize("method", ["spearman_correlation", "auto_scale"])
+@pytest.mark.parametrize("method", ["custom_scale", "auto_scale"])
 @pytest.mark.parametrize(
     "state_size",
     [5 * [30], [5, 5, 5, 5, 100]],
@@ -236,7 +236,7 @@ def test_misfit_preprocessor_state_uneven_size(state_size):
     config = assemble_config(
         {
             "workflow": {
-                "type": "spearman_correlation",
+                "type": "custom_scale",
                 "clustering": {
                     "fcluster": {
                         "threshold": num_polynomials + 1,
@@ -259,7 +259,7 @@ def test_misfit_preprocessor_configuration_errors():
             {
                 "unknown_key": ["not in set"],
                 "workflow": {
-                    "type": "spearman_correlation",
+                    "type": "custom_scale",
                     "clustering": {"threshold": 1.0},
                 },
             },
@@ -295,7 +295,7 @@ def test_misfit_preprocessor_n_polynomials_w_correlation(num_polynomials):
     config = assemble_config(
         {
             "workflow": {
-                "type": "spearman_correlation",
+                "type": "custom_scale",
                 "pca": {"threshold": 0.99},
             }
         },
