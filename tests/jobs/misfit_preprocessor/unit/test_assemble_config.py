@@ -16,7 +16,7 @@ def test_assemble_config(input_observations, expected_result):
     config = assemble_config(
         {"observations": input_observations},
         ["a", "list", "of", "existing", "observations"],
-    ).snapshot
+    )
 
     assert expected_result == sorted(config.observations)
 
@@ -25,7 +25,7 @@ def test_assemble_config_default_observations():
     config = assemble_config(
         {},
         ["a", "list", "of", "existing", "observations"],
-    ).snapshot
+    )
 
     assert sorted(["a", "list", "of", "existing", "observations"]) == sorted(
         config.observations
@@ -41,6 +41,6 @@ def test_assemble_config_not_existing_obs():
 
     expected_err_msg = (
         "Invalid configuration of misfit preprocessor\n"
-        "  - Found no match for observation not_an_observation (observations.0)\n"
+        "  - Found no match for observation not_an_observation (observations)\n"
     )
-    assert expected_err_msg == str(ve.value)
+    assert str(ve.value) == expected_err_msg
