@@ -6,12 +6,8 @@ from scipy.cluster.hierarchy import fcluster, linkage
 
 def spearman_job(
     measured_data,
-    threshold,
     reporter,
-    criterion="inconsistent",
-    depth=2,
-    method="single",
-    metric="euclidean",
+    **cluster_args,
 ):
     """
     Given measured_data and threshold, it returns configurations that describe
@@ -25,9 +21,7 @@ def spearman_job(
     correlation_matrix = _calculate_correlation_matrix(simulated_data)
     reporter.publish_csv("correlation_matrix", correlation_matrix)
 
-    clusters = _cluster_analysis(
-        correlation_matrix, threshold, criterion, depth, method, metric
-    )
+    clusters = _cluster_analysis(correlation_matrix, **cluster_args)
 
     columns = correlation_matrix.columns
 
@@ -99,6 +93,13 @@ def _calculate_correlation_matrix(data):
     return data.rank().corr(method="pearson")
 
 
-def _cluster_analysis(correlation_matrix, threshold, criterion, depth, method, metric):
+def _cluster_analysis(
+    correlation_matrix,
+    threshold=1.15,
+    criterion="inconsistent",
+    depth=2,
+    method="single",
+    metric="euclidean",
+):
     a = linkage(correlation_matrix, method, metric)
     return fcluster(a, threshold, criterion=criterion, depth=depth)

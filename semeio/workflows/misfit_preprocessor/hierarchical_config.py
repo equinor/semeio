@@ -12,6 +12,7 @@ from pydantic import (
     StrictFloat,
     StrictInt,
 )
+import collections
 
 #  pylint: disable=too-few-public-methods,no-self-argument
 
@@ -113,18 +114,31 @@ class LinkageConfig(BaseMisfitPreprocessorConfig):
     ] = "euclidean"
 
 
-class HierarchicalConfig(BaseMisfitPreprocessorConfig):
+def _flatten(input_dict, result_dict=None):
+    if result_dict is None:
+        result_dict = {}
+    for key, value in input_dict.items():
+        if isinstance(value, collections.MutableMapping):
+            _flatten(value, result_dict=result_dict)
+        else:
+            if key in result_dict:
+                raise KeyError(f"{key} already in {result_dict}")
+            result_dict[key] = value
+    return result_dict
+
+
+class AbstractClusteringConfig(BaseMisfitPreprocessorConfig):
+    def cluster_args(self):
+        return _flatten(self.dict(exclude={"type"}))
+
+
+class HierarchicalConfig(AbstractClusteringConfig):
     type: Literal["hierarchical"] = "hierarchical"
     linkage: LinkageConfig = LinkageConfig()
     fcluster: FclusterConfig = FclusterConfig()
 
-    def dict(self):
-        cluster_args = self.linkage.dict()
-        cluster_args.update(self.fcluster.dict())
-        return cluster_args
 
-
-class LimitedHierarchicalConfig(BaseMisfitPreprocessorConfig):
+class LimitedHierarchicalConfig(AbstractClusteringConfig):
     type: Literal["limited_hierarchical"] = "limited_hierarchical"
     linkage: LinkageConfig = LinkageConfig()
     fcluster: BaseFclusterConfig = BaseFclusterConfig()
