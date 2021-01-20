@@ -1,5 +1,4 @@
 import yaml
-import configsuite
 
 from ert_data.measured import MeasuredData
 from ert_shared.libres_facade import LibresFacade
@@ -14,6 +13,7 @@ from semeio.workflows.correlated_observations_scaling.cos import (
 from semeio.workflows.correlated_observations_scaling.exceptions import (
     EmptyDatasetException,
 )
+from semeio.workflows.misfit_preprocessor.workflow_config import MisfitConfig
 
 
 class MisfitPreprocessorJob(SemeioScript):
@@ -22,7 +22,6 @@ class MisfitPreprocessorJob(SemeioScript):
         config_record = _fetch_config_record(args)
         observations = _get_observations(facade)
         config = assemble_config(config_record, observations)
-        config = config.snapshot
 
         measured_record = _load_measured_record(facade, config.observations)
         scaling_configs = misfit_preprocessor.run(
@@ -73,10 +72,30 @@ def _get_observations(facade):
     ]
 
 
+def _get_example(config_example):
+    example_string = yaml.dump(config_example, default_flow_style=False)
+    return "\n      ".join(example_string.split("\n"))
+
+
+_INTERIM_DESCRIPTION = f"""
+\n\nThe MisfitPreprocessor configuration is currently changing, and will be updated
+shortly. It is advised to just run the MISFIT_PREPROCESSOR without a config to
+get the default behavior, or a config with just a list of observations under
+the observations keyword.
+
+
+.. code-block:: yaml
+
+    {_get_example({"observations": ["FOPR", "W*"]})}
+
+"""
+
+
 @hook_implementation
 def legacy_ertscript_workflow(config):
     workflow = config.add_workflow(MisfitPreprocessorJob, "MISFIT_PREPROCESSOR")
-    _schema = misfit_preprocessor.config._SCHEMA
-    rst_doc = configsuite.docs.generate(_schema)
-    workflow.description = rst_doc
+    schema = MisfitConfig().schema(by_alias=False, ref_template="{model}")
+    docs = schema.get("description", "")
+    docs += _INTERIM_DESCRIPTION
+    workflow.description = docs
     workflow.category = "observations.correlation"

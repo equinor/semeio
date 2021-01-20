@@ -5,12 +5,8 @@ class ValidationError(ValueError):
         self.message = message
 
     def __str__(self):
-        msg = "{}\n".format(self.message)
+        msg = f"{self.message}\n"
         for error in self.errors:
-            path = (
-                ".".join((str(path) for path in error.key_path))
-                if len(error.key_path) > 0
-                else "root level"
-            )
-            msg += "  - {} ({})\n".format(error.msg, path)
+            path = ".".join((str(path) for path in error["loc"]))
+            msg += f"  - {error['msg']} ({path})\n"
         return msg
