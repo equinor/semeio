@@ -40,9 +40,8 @@ def test_misfit_preprocessor_main_entry_point_gen_data(
     config = {
         "observations": [observation],
         "workflow": {
-            "spearman_correlation": {
-                "clustering": {"hierarchical": {"fcluster": {"t": 1.0}}}
-            },
+            "type": "spearman_correlation",
+            "clustering": {"fcluster": {"threshold": 1.0}},
         },
     }
     config_file = "my_config_file.yaml"
@@ -81,7 +80,8 @@ def test_misfit_preprocessor_passing_scaling_parameters(monkeypatch, test_data_r
 
     config = {
         "workflow": {
-            "spearman_correlation": {"pca": {"threshold": 0.5}},
+            "type": "spearman_correlation",
+            "pca": {"threshold": 0.5},
         },
     }
 
@@ -130,10 +130,9 @@ def test_misfit_preprocessor_with_scaling(test_data_root):
 
     config = {
         "workflow": {
-            "spearman_correlation": {
-                "clustering": {
-                    "hierarchical": {"fcluster": {"t": 1.0}},
-                }
+            "type": "spearman_correlation",
+            "clustering": {
+                "fcluster": {"threshold": 1.0},
             },
         }
     }
@@ -175,11 +174,9 @@ def test_misfit_preprocessor_skip_clusters_yielding_empty_data_matrixes(
 
     config = {
         "workflow": {
-            "method": "spearman_correlation",
-            "spearman_correlation": {
-                "clustering": {"hierarchical": {"fcluster": {"t": 1.0}}}
-            },
-        }
+            "type": "spearman_correlation",
+            "clustering": {"fcluster": {"threshold": 1.0}},
+        },
     }
     config_file = "my_config_file.yaml"
     with open(config_file, "w") as f:
@@ -205,28 +202,21 @@ def test_misfit_preprocessor_invalid_config(test_data_root):
 
     config = {
         "unknown_key": [],
-        "workflow": {
-            "method": "spearman_correlation",
-            "spearman_correlation": {
-                "clustering": {"hierarchical": {"threshold": 1.0}}
-            },
-        },
+        "workflow": {"type": "spearman_correlation", "clustering": {"threshold": 1.0}},
     }
     config_file = "my_config_file.yaml"
     with open(config_file, "w") as f:
         yaml.dump(config, f)
 
-    job = misfit_preprocessor.MisfitPreprocessorJob(ert)
-    with pytest.raises(semeio.workflows.misfit_preprocessor.ValidationError) as ve:
-        job.run(config_file)
-
     expected_err_msg = (
         "Invalid configuration of misfit preprocessor\n"
-        "  - Unknown key: unknown_key (root level)\n"
-        "  - Unknown key: "
-        "threshold (workflow.spearman_correlation.clustering.hierarchical)\n"
+        "  - extra fields not permitted (workflow.clustering.threshold)\n"
+        "  - extra fields not permitted (unknown_key)\n"
     )
-    assert expected_err_msg == str(ve.value)
+    job = misfit_preprocessor.MisfitPreprocessorJob(ert)
+    with pytest.raises(semeio.workflows.misfit_preprocessor.ValidationError) as err:
+        job.run(config_file)
+    assert expected_err_msg == str(err.value)
 
 
 @pytest.mark.usefixtures("setup_tmpdir")
