@@ -27,7 +27,9 @@ class SpearmanCorrelationJob(SemeioScript):
         parser = spearman_job_parser()
         args = parser.parse_args(args)
 
-        scaling_configs = spearman_job(measured_data, args.threshold, self.reporter)
+        scaling_configs = spearman_job(
+            measured_data, self.reporter, threshold=args.threshold
+        )
 
         if not args.dry_run:
             try:
