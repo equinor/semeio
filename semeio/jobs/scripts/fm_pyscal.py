@@ -201,14 +201,18 @@ def run(
         sys.exit(1)
 
     if do_interpolation:
-        (int_param_wo, int_param_go) = _get_interpolation_values(
-            int_param_wo_name, int_param_go_name, parameters_file_name
-        )
+        try:
+            (int_param_wo, int_param_go) = _get_interpolation_values(
+                int_param_wo_name, int_param_go_name, parameters_file_name
+            )
+        except ValueError as e_msg:
+            _logger.error(str(e_msg))
+            sys.exit(1)
     else:
         int_param_wo = None
         int_param_go = None
 
-    if sheet_name in ["0", MAGIC_NONE]:
+    if sheet_name in ["", "0", MAGIC_NONE]:
         # Limitation: If the user names an xls sheet with the string "0"
         # and it is not the first sheet, it will not be accessible with this
         # forward model
@@ -225,9 +229,9 @@ def run(
             slgof=slgof == "slgof",
             family2=family == 2,
         )
-    except ValueError as e_msg:
+    except (OSError, ValueError) as e_msg:
         _logger.error(str(e_msg))
-        raise e_msg
+        sys.exit(1)
 
 
 def _get_interpolation_values(
@@ -249,8 +253,7 @@ def _get_interpolation_values(
     """
     # Read all key-value pairs from parameters.txt
     if not os.path.exists(parameters_file_name):
-        _logger.error("%s does not exists", parameters_file_name)
-        raise IOError
+        raise FileNotFoundError(f"{parameters_file_name} does not exist")
     with open(parameters_file_name) as parameters_file:
         parameters = parameters_file.readlines()
     parameter_dict = extract_key_value(parameters)
@@ -259,12 +262,14 @@ def _get_interpolation_values(
     # Add some magic parameters:
     parameter_dict.update(MAGIC_CASES)
     if int_param_wo_name not in parameter_dict:
-        _logger.error(
-            "Requested parameter name %s not found in %s",
-            int_param_wo_name,
-            parameters_file_name,
+        if int_param_wo_name.startswith("<") and int_param_wo_name.endswith(">"):
+            raise ValueError(
+                f"Do not include brackets in parameter name {int_param_wo_name}"
+            )
+        raise ValueError(
+            f"Requested parameter name {int_param_wo_name} "
+            f"not found in {parameters_file_name}"
         )
-        raise ValueError("Parameter name not found")
     int_param_wo = float(parameter_dict[int_param_wo_name])
     _logger.info(
         "Collected %s from parameter.txt with value %f",
@@ -273,12 +278,14 @@ def _get_interpolation_values(
     )
 
     if int_param_go_name not in parameter_dict:
-        _logger.error(
-            "Requested parameter name %s not found in %s",
-            int_param_go_name,
-            parameters_file_name,
+        if int_param_go_name.startswith("<") and int_param_go_name.endswith(">"):
+            raise ValueError(
+                f"Do not include brackets in parameter name {int_param_go_name}"
+            )
+        raise ValueError(
+            f"Requested parameter name {int_param_go_name} "
+            f"not found in {parameters_file_name}"
         )
-        raise ValueError("Parameter name not found")
     int_param_go = float(parameter_dict[int_param_go_name])
     if int_param_go_name != int_param_wo_name:
         _logger.info(
