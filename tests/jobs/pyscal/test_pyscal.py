@@ -111,11 +111,10 @@ def test_fm_pyscal_argparse(tmpdir, monkeypatch):
 
 
 @pytest.mark.parametrize(
-    "raises, dframe, runargs",
+    "dframe, runargs, err_str",
     [
         (
             # Writing to a file we don't have permission to write to
-            (OSError, IOError),
             EXAMPLE_STATIC_DFRAME,
             [
                 "relperm-input.csv",
@@ -126,25 +125,25 @@ def test_fm_pyscal_argparse(tmpdir, monkeypatch):
                 "sgof",
                 1,
             ],
+            "/relperm.inc",
         ),
         (
             # Reading a file that does not exist
-            (ValueError, SystemExit),
             None,
             ["not-existing.csv", "relperm.inc", "", "__NONE__", "__NONE__", "sgof", 1],
+            "not-existing",
         ),
         (
             # Specifying a sheet that does not exist
-            (Exception, SystemExit),
             # Pyscal 0.4.0 raises an UnboundLocalError in this case, but with correct
             # error messages upfront. The exact exception might improve, so just assert
             # anything is thrown:
             EXAMPLE_STATIC_DFRAME,
             ["file.xlsx", "rel.inc", "foo_sheet", "__NONE__", "__NONE__", "sgof", 1],
+            "foo_sheet",  # Don't test on the exact error message from xlrd/pandas
         ),
         (
             # GasOil-interpolation without WaterOil, this is not supported:
-            (ValueError, SystemExit),
             EXAMPLE_SCAL,
             [
                 "scal-input.csv",
@@ -155,10 +154,10 @@ def test_fm_pyscal_argparse(tmpdir, monkeypatch):
                 "sgof",
                 1,
             ],
+            "WaterOil interpolation parameter missing",
         ),
         (
             # Non-existing parameter name
-            (ValueError, SystemExit),
             EXAMPLE_SCAL,
             [
                 "scal-input.csv",
@@ -169,10 +168,10 @@ def test_fm_pyscal_argparse(tmpdir, monkeypatch):
                 "sgof",
                 1,
             ],
+            "FOOOO not found in parameters.txt",
         ),
         (
             # Non-existing parameter name
-            (ValueError, SystemExit),
             EXAMPLE_SCAL,
             [
                 "scal-input.csv",
@@ -183,10 +182,10 @@ def test_fm_pyscal_argparse(tmpdir, monkeypatch):
                 "sgof",
                 1,
             ],
+            "INTERPOLATE_GOOOOOO not found in parameters.txt",
         ),
         (
             # Wrong magic name for interpolation parameter
-            (ValueError, SystemExit),
             EXAMPLE_SCAL,
             [
                 "scal-input.csv",
@@ -197,10 +196,10 @@ def test_fm_pyscal_argparse(tmpdir, monkeypatch):
                 "sgof",
                 1,
             ],
+            "__OPTIM__ not found in parameters.txt",
         ),
         (
             # Wrong sgof type
-            (ValueError, SystemExit),
             EXAMPLE_SCAL,
             [
                 "scal-input.csv",
@@ -211,10 +210,10 @@ def test_fm_pyscal_argparse(tmpdir, monkeypatch):
                 "sgofffff",
                 1,
             ],
+            "Only supports sgof or slgof",
         ),
         (
             # Wrong family type
-            (ValueError, SystemExit),
             EXAMPLE_SCAL,
             [
                 "scal-input.csv",
@@ -225,12 +224,41 @@ def test_fm_pyscal_argparse(tmpdir, monkeypatch):
                 "sgof",
                 3,
             ],
+            "Family must be either 1 or 2",
+        ),
+        (
+            # Wrong usage of brackets in parameter names
+            EXAMPLE_SCAL,
+            [
+                "scal_input.csv",
+                "relperm.inc",
+                "__NONE__",
+                "<INTERPOLATE_WO>",
+                "INTERPOLATE_GO",
+                "sgof",
+                1,
+            ],
+            "Do not include brackets",
+        ),
+        (
+            # Wrong usage of brackets in parameter names
+            EXAMPLE_SCAL,
+            [
+                "scal_input.csv",
+                "relperm.inc",
+                "__NONE__",
+                "INTERPOLATE_WO",
+                "<INTERPOLATE_GO>",
+                "sgof",
+                1,
+            ],
+            "Do not include brackets",
         ),
     ],
 )
-def test_fm_pyscal_errors(raises, dframe, runargs, tmpdir):
-    """Test that fm_pyscal or pyscal gives correct errors to
-    common misusages"""
+def test_fm_pyscal_errors(dframe, runargs, err_str, tmpdir, caplog):
+    """Test that fm_pyscal sys.exits and gives a correct error message
+    to common mistakes"""
     tmpdir.chdir()
     if dframe is not None:
         if runargs[0].endswith("csv"):
@@ -241,5 +269,7 @@ def test_fm_pyscal_errors(raises, dframe, runargs, tmpdir):
         with open("parameters.txt", "w") as p_file:
             p_file.write("INTERPOLATE_WO 0.1\nINTERPOLATE_GO 0.5")
 
-    with pytest.raises(raises):
+    with pytest.raises(SystemExit):
         run(*runargs)
+
+    assert err_str in caplog.text
