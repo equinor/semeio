@@ -3,6 +3,8 @@ import yaml
 from ert_data.measured import MeasuredData
 from ert_shared.libres_facade import LibresFacade
 from ert_shared.plugins.plugin_manager import hook_implementation
+
+from semeio._docs_utils._json_schema_2_rst import _create_docs
 from semeio.communication import SemeioScript
 
 from semeio.workflows.misfit_preprocessor.config import assemble_config
@@ -96,7 +98,5 @@ the observations keyword.
 def legacy_ertscript_workflow(config):
     workflow = config.add_workflow(MisfitPreprocessorJob, "MISFIT_PREPROCESSOR")
     schema = MisfitConfig().schema(by_alias=False, ref_template="{model}")
-    docs = schema.get("description", "")
-    docs += _INTERIM_DESCRIPTION
-    workflow.description = docs
+    workflow.description = _create_docs(schema)
     workflow.category = "observations.correlation"
