@@ -9,18 +9,21 @@ from semeio.communication import SEMEIOSCRIPT_LOG_FILE, SemeioScript
 from unittest.mock import Mock
 
 
-def _ert_mock(config_path="config_path", user_config_file="config_file"):
+def _ert_mock(config_path="config_path", user_case_name="case_name"):
     resconfig_mock = Mock()
     resconfig_mock.config_path = config_path
-    resconfig_mock.user_config_file = user_config_file
-
-    return Mock(resConfig=Mock(return_value=resconfig_mock))
+    ert_mock = Mock()
+    fs_mock = Mock()
+    fs_mock.return_value.getCaseName.return_value = user_case_name
+    ert_mock.getEnkfFsManager.return_value.getCurrentFileSystem = fs_mock
+    ert_mock.resConfig.return_value = resconfig_mock
+    return ert_mock
 
 
 def test_semeio_script_publish(tmpdir):
     tmpdir.chdir()
-    config_path, user_config_file = "config_path", "config_file"
-    ert = _ert_mock(config_path, user_config_file)
+    config_path, user_case_name = "config_path", "case_name"
+    ert = _ert_mock(config_path, user_case_name)
 
     namespace = "arbitrary_data"
     data = [1, 2, 3, 4, "This is a very important string"]
@@ -35,7 +38,7 @@ def test_semeio_script_publish(tmpdir):
     expected_outputfile = os.path.join(
         config_path,
         "reports",
-        user_config_file,
+        user_case_name,
         MySuperScript.__name__,
         namespace + ".json",
     )
@@ -48,8 +51,8 @@ def test_semeio_script_publish(tmpdir):
 
 def test_semeio_script_logging(tmpdir):
     tmpdir.chdir()
-    config_path, user_config_file = "config_path", "config_file"
-    ert = _ert_mock(config_path, user_config_file)
+    config_path, user_case_name = "config_path", "config_file"
+    ert = _ert_mock(config_path, user_case_name)
 
     msg = "My logging msg"
 
@@ -63,7 +66,7 @@ def test_semeio_script_logging(tmpdir):
     expected_logfile = os.path.join(
         config_path,
         "reports",
-        user_config_file,
+        user_case_name,
         MySuperScript.__name__,
         SEMEIOSCRIPT_LOG_FILE,
     )
@@ -94,8 +97,8 @@ def assert_log(messages, log_file):
 )
 def test_semeio_script_multiple_logging(messages, tmpdir):
     tmpdir.chdir()
-    config_path, user_config_file = "config_path", "config_file"
-    ert = _ert_mock(config_path, user_config_file)
+    config_path, user_case_name = "config_path", "config_file"
+    ert = _ert_mock(config_path, user_case_name)
 
     class MySuperScript(SemeioScript):
         def run(self, *args):
@@ -109,7 +112,7 @@ def test_semeio_script_multiple_logging(messages, tmpdir):
     expected_logfile = os.path.join(
         config_path,
         "reports",
-        user_config_file,
+        user_case_name,
         MySuperScript.__name__,
         SEMEIOSCRIPT_LOG_FILE,
     )
@@ -122,8 +125,8 @@ def test_semeio_script_multiple_logging(messages, tmpdir):
 
 def test_semeio_script_post_logging(tmpdir):
     tmpdir.chdir()
-    config_path, user_config_file = "config_path", "config_file"
-    ert = _ert_mock(config_path, user_config_file)
+    config_path, user_case_name = "config_path", "config_file"
+    ert = _ert_mock(config_path, user_case_name)
 
     class MySuperScript(SemeioScript):
         def run(self, *args):
@@ -137,7 +140,7 @@ def test_semeio_script_post_logging(tmpdir):
     expected_logfile = os.path.join(
         config_path,
         "reports",
-        user_config_file,
+        user_case_name,
         MySuperScript.__name__,
         SEMEIOSCRIPT_LOG_FILE,
     )
@@ -150,8 +153,8 @@ def test_semeio_script_post_logging(tmpdir):
 
 def test_semeio_script_pre_logging(tmpdir):
     tmpdir.chdir()
-    config_path, user_config_file = "config_path", "config_file"
-    ert = _ert_mock(config_path, user_config_file)
+    config_path, user_case_name = "config_path", "config_file"
+    ert = _ert_mock(config_path, user_case_name)
 
     class MySuperScript(SemeioScript):
         def run(self, *args):
@@ -166,7 +169,7 @@ def test_semeio_script_pre_logging(tmpdir):
     expected_logfile = os.path.join(
         config_path,
         "reports",
-        user_config_file,
+        user_case_name,
         MySuperScript.__name__,
         SEMEIOSCRIPT_LOG_FILE,
     )
@@ -179,8 +182,8 @@ def test_semeio_script_pre_logging(tmpdir):
 
 def test_semeio_script_concurrent_logging(tmpdir):
     tmpdir.chdir()
-    config_path, user_config_file = "config_path", "config_file"
-    ert = _ert_mock(config_path, user_config_file)
+    config_path, user_case_name = "config_path", "config_file"
+    ert = _ert_mock(config_path, user_case_name)
 
     class MySuperScript(SemeioScript):
         def run(self, *args):
@@ -194,7 +197,7 @@ def test_semeio_script_concurrent_logging(tmpdir):
     expected_logfile = os.path.join(
         config_path,
         "reports",
-        user_config_file,
+        user_case_name,
         MySuperScript.__name__,
         SEMEIOSCRIPT_LOG_FILE,
     )
@@ -207,8 +210,8 @@ def test_semeio_script_concurrent_logging(tmpdir):
 
 def test_semeio_script_post_logging_exception(tmpdir):
     tmpdir.chdir()
-    config_path, user_config_file = "config_path", "config_file"
-    ert = _ert_mock(config_path, user_config_file)
+    config_path, user_case_name = "config_path", "config_file"
+    ert = _ert_mock(config_path, user_case_name)
 
     class MySuperScript(SemeioScript):
         def run(self, *args):
@@ -226,7 +229,7 @@ def test_semeio_script_post_logging_exception(tmpdir):
     expected_logfile = os.path.join(
         config_path,
         "reports",
-        user_config_file,
+        user_case_name,
         MySuperScript.__name__,
         SEMEIOSCRIPT_LOG_FILE,
     )
@@ -239,8 +242,8 @@ def test_semeio_script_post_logging_exception(tmpdir):
 
 def test_semeio_script_keyword_args(tmpdir):
     tmpdir.chdir()
-    config_path, user_config_file = "config_path", "config_file"
-    ert = _ert_mock(config_path, user_config_file)
+    config_path, user_case_name = "config_path", "config_file"
+    ert = _ert_mock(config_path, user_case_name)
 
     class MySuperScript(SemeioScript):
         def run(self, param_A, param_B):
@@ -253,7 +256,7 @@ def test_semeio_script_keyword_args(tmpdir):
     expected_outputfile = os.path.join(
         config_path,
         "reports",
-        user_config_file,
+        user_case_name,
         MySuperScript.__name__,
         SEMEIOSCRIPT_LOG_FILE,
     )

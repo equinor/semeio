@@ -3,7 +3,6 @@ import logging
 import os
 import threading
 from logging.handlers import BufferingHandler
-from pathlib import Path
 from types import MethodType
 
 from res.enkf import ErtScript
@@ -78,7 +77,9 @@ class SemeioScript(ErtScript):
         res_config = self.ert().resConfig()
         base_dir = res_config.config_path
         base_dir = os.path.realpath(base_dir)
-        sub_dir = Path(res_config.user_config_file).stem
+        sub_dir = str(
+            self.ert().getEnkfFsManager().getCurrentFileSystem().getCaseName()
+        )
         return os.path.join(
             base_dir,
             "reports",
