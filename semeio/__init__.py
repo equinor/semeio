@@ -20,7 +20,7 @@ std_out_handler.setFormatter(formatter)
 std_out_handler.setLevel(logging.INFO)
 logger.addHandler(std_out_handler)
 
-std_err_handler = logging.StreamHandler(sys.stdout)
+std_err_handler = logging.StreamHandler(sys.stderr)
 std_err_handler.setFormatter(formatter)
 std_err_handler.setLevel(logging.WARNING)
 logger.addHandler(std_err_handler)
