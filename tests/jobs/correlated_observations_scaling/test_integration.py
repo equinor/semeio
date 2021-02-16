@@ -134,7 +134,7 @@ def test_main_entry_point_gen_data(setup_ert):
         np.sqrt(3.0 / 2.0),
     )
 
-    svd_file = "reports/snake_oil/CorrelatedObservationsScalingJob/svd.json"
+    svd_file = "reports/default_0/CorrelatedObservationsScalingJob/svd.json"
     # Assert that data was published correctly
     with open(svd_file) as f:
         svd_reports = json.load(f)
@@ -150,7 +150,7 @@ def test_main_entry_point_gen_data(setup_ert):
             0.1,
         )
 
-    scale_file = "reports/snake_oil/CorrelatedObservationsScalingJob/scale_factor.json"
+    scale_file = "reports/default_0/CorrelatedObservationsScalingJob/scale_factor.json"
     with open(scale_file) as f:
         scalefactor_reports = json.load(f)
         assert len(scalefactor_reports) == 2

@@ -35,11 +35,11 @@ def test_main_entry_point_gen_data(monkeypatch, test_data_root):
     # again is a tuple containing the configuration which is a list of configs.
     assert len(list(run_mock.call_args)[0][0]) == 47, "wrong number of clusters"
 
-    cor_matrix_file = "reports/snake_oil/SpearmanCorrelationJob/correlation_matrix.csv"
+    cor_matrix_file = "reports/default_0/SpearmanCorrelationJob/correlation_matrix.csv"
 
     pd.read_csv(cor_matrix_file, index_col=[0, 1], header=[0, 1])
 
-    clusters_file = "reports/snake_oil/SpearmanCorrelationJob/clusters.json"
+    clusters_file = "reports/default_0/SpearmanCorrelationJob/clusters.json"
     with open(clusters_file) as f:
         cluster_reports = json.load(f)
         assert len(cluster_reports) == 1
@@ -128,14 +128,17 @@ def test_main_entry_point_syn_data(monkeypatch, facade, measured_data):
 
     resconfig_mock = Mock()
     resconfig_mock.config_path = "config_path"
-    resconfig_mock.user_config_file = "user_config_file"
 
-    ert_mock = Mock(resConfig=Mock(return_value=resconfig_mock))
+    ert_mock = Mock()
+    fs_mock = Mock()
+    fs_mock.return_value.getCaseName.return_value = "user_case_name"
+    ert_mock.getEnkfFsManager.return_value.getCurrentFileSystem = fs_mock
+    ert_mock.resConfig.return_value = resconfig_mock
 
     sc.SpearmanCorrelationJob(ert_mock).run(*["-t", "1.0"])
 
     cor_matrix_file = (
-        "config_path/reports/user_config_file/"
+        "config_path/reports/user_case_name/"
         "SpearmanCorrelationJob/correlation_matrix.csv"
     )
 
@@ -154,7 +157,7 @@ def test_main_entry_point_syn_data(monkeypatch, facade, measured_data):
 
     assert (expected_corr_matrix == corr_matrix.values).all()
     clusters_file = (
-        "config_path/reports/user_config_file/SpearmanCorrelationJob/clusters.json"
+        "config_path/reports/user_case_name/SpearmanCorrelationJob/clusters.json"
     )
     with open(clusters_file) as f:
         cluster_reports = json.load(f)
