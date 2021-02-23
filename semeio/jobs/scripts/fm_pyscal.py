@@ -71,7 +71,7 @@ client upfront:
 
 .. code-block:: bash
 
-  $ pyscal -o relperm.inc --int_param_wo 0 scalinput.xlsx
+  $ pyscal --int_param_wo 0 --output relperm.inc scalinput.xlsx
 
 Run ``pyscal --help`` for syntax.
 """
