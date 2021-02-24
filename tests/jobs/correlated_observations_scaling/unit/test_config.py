@@ -122,7 +122,11 @@ def test_valid_config_setup(valid_config):
                 "UPDATE_KEYS": {"keys": [{"index": [-1, 2, 3], "key": "first_key"}]},
             },
             [
-                "Elements can not be negative",
+                (
+                    "'Will go through the input and try to convert to list of int' "
+                    "failed on input '[-1, 2, 3]' with error 'Elements can not be "
+                    "negative, neither singletons nor in range, got: -1'"
+                ),
                 "Minimum value of index must be >= 0 is false on input '-1'",
             ],
             id="invalid_negative_index",
@@ -151,8 +155,7 @@ def test_invalid_config_setup(test_input, expected_errors):
     assert not config.valid
 
     msgs = [e.msg for e in config.errors]
-    assert len(expected_errors) == len(msgs)
-    assert all([any(exp in msg for msg in msgs) for exp in expected_errors])
+    assert sorted(expected_errors) == sorted(msgs)
 
 
 def test_valid_configuration():
