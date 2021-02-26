@@ -2,6 +2,7 @@ import datetime
 import logging
 import os
 import threading
+from pathlib import Path
 from logging.handlers import BufferingHandler
 from types import MethodType
 
@@ -75,8 +76,7 @@ class SemeioScript(ErtScript):
 
     def _get_output_dir(self):
         res_config = self.ert().resConfig()
-        base_dir = res_config.config_path
-        base_dir = os.path.realpath(base_dir)
+        base_dir = Path(res_config.model_config.getEnspath()).parent.absolute()
         sub_dir = str(
             self.ert().getEnkfFsManager().getCurrentFileSystem().getCaseName()
         )

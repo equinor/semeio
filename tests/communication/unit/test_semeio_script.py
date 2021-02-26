@@ -9,9 +9,9 @@ from semeio.communication import SEMEIOSCRIPT_LOG_FILE, SemeioScript
 from unittest.mock import Mock
 
 
-def _ert_mock(config_path="config_path", user_case_name="case_name"):
+def _ert_mock(ensemble_path="storage", user_case_name="case_name"):
     resconfig_mock = Mock()
-    resconfig_mock.config_path = config_path
+    resconfig_mock.model_config.getEnspath.return_value = ensemble_path
     ert_mock = Mock()
     fs_mock = Mock()
     fs_mock.return_value.getCaseName.return_value = user_case_name
@@ -22,8 +22,8 @@ def _ert_mock(config_path="config_path", user_case_name="case_name"):
 
 def test_semeio_script_publish(tmpdir):
     tmpdir.chdir()
-    config_path, user_case_name = "config_path", "case_name"
-    ert = _ert_mock(config_path, user_case_name)
+    ensemble_path, user_case_name = "storage", "case_name"
+    ert = _ert_mock(ensemble_path, user_case_name)
 
     namespace = "arbitrary_data"
     data = [1, 2, 3, 4, "This is a very important string"]
@@ -36,7 +36,6 @@ def test_semeio_script_publish(tmpdir):
     my_super_script.run()
 
     expected_outputfile = os.path.join(
-        config_path,
         "reports",
         user_case_name,
         MySuperScript.__name__,
@@ -51,8 +50,8 @@ def test_semeio_script_publish(tmpdir):
 
 def test_semeio_script_logging(tmpdir):
     tmpdir.chdir()
-    config_path, user_case_name = "config_path", "config_file"
-    ert = _ert_mock(config_path, user_case_name)
+    ensemble_path, user_case_name = "storage", "config_file"
+    ert = _ert_mock(ensemble_path, user_case_name)
 
     msg = "My logging msg"
 
@@ -64,7 +63,6 @@ def test_semeio_script_logging(tmpdir):
     my_super_script.run()
 
     expected_logfile = os.path.join(
-        config_path,
         "reports",
         user_case_name,
         MySuperScript.__name__,
@@ -97,8 +95,8 @@ def assert_log(messages, log_file):
 )
 def test_semeio_script_multiple_logging(messages, tmpdir):
     tmpdir.chdir()
-    config_path, user_case_name = "config_path", "config_file"
-    ert = _ert_mock(config_path, user_case_name)
+    ensemble_path, user_case_name = "storage", "config_file"
+    ert = _ert_mock(ensemble_path, user_case_name)
 
     class MySuperScript(SemeioScript):
         def run(self, *args):
@@ -110,7 +108,6 @@ def test_semeio_script_multiple_logging(messages, tmpdir):
                 assert_log(posted_messages, expected_logfile)
 
     expected_logfile = os.path.join(
-        config_path,
         "reports",
         user_case_name,
         MySuperScript.__name__,
@@ -125,8 +122,8 @@ def test_semeio_script_multiple_logging(messages, tmpdir):
 
 def test_semeio_script_post_logging(tmpdir):
     tmpdir.chdir()
-    config_path, user_case_name = "config_path", "config_file"
-    ert = _ert_mock(config_path, user_case_name)
+    ensemble_path, user_case_name = "storage", "config_file"
+    ert = _ert_mock(ensemble_path, user_case_name)
 
     class MySuperScript(SemeioScript):
         def run(self, *args):
@@ -138,7 +135,6 @@ def test_semeio_script_post_logging(tmpdir):
     logging.error("A second message - not from MySuperScript")
 
     expected_logfile = os.path.join(
-        config_path,
         "reports",
         user_case_name,
         MySuperScript.__name__,
@@ -153,8 +149,8 @@ def test_semeio_script_post_logging(tmpdir):
 
 def test_semeio_script_pre_logging(tmpdir):
     tmpdir.chdir()
-    config_path, user_case_name = "config_path", "config_file"
-    ert = _ert_mock(config_path, user_case_name)
+    ensemble_path, user_case_name = "storage", "config_file"
+    ert = _ert_mock(ensemble_path, user_case_name)
 
     class MySuperScript(SemeioScript):
         def run(self, *args):
@@ -167,7 +163,6 @@ def test_semeio_script_pre_logging(tmpdir):
     my_super_script.run()
 
     expected_logfile = os.path.join(
-        config_path,
         "reports",
         user_case_name,
         MySuperScript.__name__,
@@ -182,8 +177,8 @@ def test_semeio_script_pre_logging(tmpdir):
 
 def test_semeio_script_concurrent_logging(tmpdir):
     tmpdir.chdir()
-    config_path, user_case_name = "config_path", "config_file"
-    ert = _ert_mock(config_path, user_case_name)
+    ensemble_path, user_case_name = "storage", "config_file"
+    ert = _ert_mock(ensemble_path, user_case_name)
 
     class MySuperScript(SemeioScript):
         def run(self, *args):
@@ -195,7 +190,6 @@ def test_semeio_script_concurrent_logging(tmpdir):
     MySuperScript(ert).run()
 
     expected_logfile = os.path.join(
-        config_path,
         "reports",
         user_case_name,
         MySuperScript.__name__,
@@ -210,8 +204,8 @@ def test_semeio_script_concurrent_logging(tmpdir):
 
 def test_semeio_script_post_logging_exception(tmpdir):
     tmpdir.chdir()
-    config_path, user_case_name = "config_path", "config_file"
-    ert = _ert_mock(config_path, user_case_name)
+    ensemble_path, user_case_name = "storage", "config_file"
+    ert = _ert_mock(ensemble_path, user_case_name)
 
     class MySuperScript(SemeioScript):
         def run(self, *args):
@@ -227,7 +221,6 @@ def test_semeio_script_post_logging_exception(tmpdir):
     logging.error("A second message - not from MySuperScript")
 
     expected_logfile = os.path.join(
-        config_path,
         "reports",
         user_case_name,
         MySuperScript.__name__,
@@ -242,8 +235,8 @@ def test_semeio_script_post_logging_exception(tmpdir):
 
 def test_semeio_script_keyword_args(tmpdir):
     tmpdir.chdir()
-    config_path, user_case_name = "config_path", "config_file"
-    ert = _ert_mock(config_path, user_case_name)
+    ensemble_path, user_case_name = "storage", "config_file"
+    ert = _ert_mock(ensemble_path, user_case_name)
 
     class MySuperScript(SemeioScript):
         def run(self, param_A, param_B):
@@ -254,7 +247,6 @@ def test_semeio_script_keyword_args(tmpdir):
     my_super_script.run(param_B="param_B", param_A="param_A")
 
     expected_outputfile = os.path.join(
-        config_path,
         "reports",
         user_case_name,
         MySuperScript.__name__,
