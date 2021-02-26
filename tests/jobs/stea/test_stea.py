@@ -1,10 +1,12 @@
+import json
 import sys
-from unittest.mock import patch
+from unittest import mock
 import pytest
-from semeio.jobs.scripts.fm_stea import main_entry_point
+from semeio.jobs.scripts import fm_stea
 import shutil
 import os
 from stea import SteaResult, SteaKeys
+import stea
 
 
 TEST_STEA_PATH, _ = os.path.split(os.path.abspath(__file__))
@@ -31,13 +33,49 @@ def calculate_patch(stea_input):
     )
 
 
-@patch("stea.calculate")
-@pytest.mark.usefixtures("setup_stea")
-def test_stea(mock_stea, monkeypatch):
-    monkeypatch.setattr(sys, "argv", ["script_name", "-c", "stea_input.yml"])
+@pytest.fixture(autouse=True)
+def mock_project(monkeypatch):
+    project = {
+        SteaKeys.PROJECT_ID: 1,
+        SteaKeys.PROJECT_VERSION: 1,
+        SteaKeys.PROFILES: [
+            {
+                SteaKeys.PROFILE_ID: "a_very_long_string",
+            },
+        ],
+    }
+    mocked_project = mock.MagicMock(return_value=stea.SteaProject(project))
+    monkeypatch.setattr(stea.SteaClient, "get_project", mocked_project)
+    yield mocked_project
+
+
+@pytest.fixture(autouse=True)
+def mock_calculate(monkeypatch):
+    mock_stea = mock.MagicMock()
     mock_stea.side_effect = calculate_patch
-    main_entry_point()
-    mock_stea.assert_called_once()
+    monkeypatch.setattr(stea, "calculate", mock_stea)
+    yield mock_stea
+
+
+@pytest.mark.usefixtures("setup_stea")
+def test_stea(mock_calculate, monkeypatch):
+    monkeypatch.setattr(sys, "argv", ["script_name", "-c", "stea_input.yml"])
+    fm_stea.main_entry_point()
+    mock_calculate.assert_called_once()
     files = os.listdir(os.getcwd())
     # the resulting file i.e. key is defined in the input config file: stea_input.yml
     assert "NPV_0" in files
+    assert "stea_response.json" in files
+
+
+@pytest.mark.usefixtures("setup_stea")
+def test_stea_response(monkeypatch):
+    expected_result = {
+        "response": [{"TaxMode": "Corporate", "Values": {"NPV": 30}}],
+        "profiles": {"a_very_long_string": {"Id": "a_very_long_string"}},
+    }
+    monkeypatch.setattr(sys, "argv", ["script_name", "-c", "stea_input.yml"])
+    fm_stea.main_entry_point()
+    with open("stea_response.json", "r") as fin:
+        result = json.load(fin)
+    assert result == expected_result
