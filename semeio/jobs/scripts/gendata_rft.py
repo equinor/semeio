@@ -15,14 +15,14 @@ from semeio.jobs.rft.zonemap import ZoneMap
 logger = logging.getLogger(__name__)
 
 description = """
-The gendata_rft application is used to extract RFT data (pressure and
+The GENDATA_RFT forward model is used to extract RFT data (pressure and
 saturation) for specific points in the reservoir (typically along well
 trajectories) from an Eclipse output (or equivalent data format), given a file
 containing relevant well names and their corresponding dates. It is also
 possible to specify a zonemap that validates each zone specified in the
 trajectory files.
 
-Pressure data is ouputted to files like ``RFT_A-1_0`` in the selected
+Pressure data is ouputted to files like ``RFT_A-1_0`` to a selected
 directory, this would correspond to well A-1 at report step 0. Saturation data
 if available would be exported to ``RFT_A-1_SWAT_0``, and similarly for SGAS
 and SOIL.
@@ -32,7 +32,7 @@ available for the well(s) at the date(s).
 
 A CSV file is prepared with all extracted data. This can be further used for
 visualization in Webviz. In order to merge this CSV with observed values, see
-merge_rft_ertobs from subscript.
+`` merge_rft_ertobs``  from subscript.
 
 The pressure or saturation data is set to -1 and the inactive value to 0 if any
 of the following applies:
@@ -41,6 +41,9 @@ of the following applies:
 * There is no RFT data for the cell
 * The zone mapping is invalid.
 
+For setting up the input to this forward model, the tool ``create_rft_ertobs``
+from fmu.tools can be used, called from within RMS. See
+https://equinor.github.io/fmu-tools/create_rft_ertobs.html
 """
 
 examples = """
@@ -70,11 +73,11 @@ named ``layer_zone_table.txt``::
 In the ert config, after running the Eclipse (or similiar) forward model, add::
 
     DEFINE RFT_INPUT <CONFIG_PATH>/../input/observations/rft
-    FORWARD_MODEL GENDATA_RFT(<PATH_TO_TRAJECTORY_FILES>=<RFT_INPUT>/rft/, <WELL_AND_TIME_FILE>=<RFT_INPUT>/well_date_rft.txt, <ZONEMAP>=<RFT_INPUT>/layer_zone_table.txt)
+    FORWARD_MODEL GENDATA_RFT(<PATH_TO_TRAJECTORY_FILES>=<RFT_INPUT>/rft/, <WELL_AND_TIME_FILE>=<RFT_INPUT>/well_date_rft.txt, <ZONEMAP>=<RFT_INPUT>/layer_zone_table.txt, <OUTPUTDIRECTORY>=gendata_rft)
 
 For assisted history matching, add ``GEN_DATA`` statements to the ert config::
 
-    GEN_DATA A-1 RESULT_FILE:RFT_A-1_%d INPUT_FORMAT:ASCII REPORT_STEPS:0
+    GEN_DATA A-1 RESULT_FILE:gendata_rft/RFT_A-1_%d INPUT_FORMAT:ASCII REPORT_STEPS:0
 
 """  # noqa
 category = "utility.transformation"
