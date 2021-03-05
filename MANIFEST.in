@@ -1,2 +1,1 @@
 include semeio/jobs/config_jobs/*
-include semeio/jobs/config_workflow_jobs/*
