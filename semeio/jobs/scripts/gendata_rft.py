@@ -73,6 +73,7 @@ named ``layer_zone_table.txt``::
 In the ert config, after running the Eclipse (or similiar) forward model, add::
 
     DEFINE RFT_INPUT <CONFIG_PATH>/../input/observations/rft
+    FORWARD_MODEL MAKE_DIRECTORY(<DIRECTORY>=gendata_rft)
     FORWARD_MODEL GENDATA_RFT(<PATH_TO_TRAJECTORY_FILES>=<RFT_INPUT>/rft/, <WELL_AND_TIME_FILE>=<RFT_INPUT>/well_date_rft.txt, <ZONEMAP>=<RFT_INPUT>/layer_zone_table.txt, <OUTPUTDIRECTORY>=gendata_rft)
 
 For assisted history matching, add ``GEN_DATA`` statements to the ert config::
