@@ -1,5 +1,6 @@
 import argparse
 import sys
+from pathlib import Path
 
 import pandas as pd
 from ert_shared.plugins.plugin_manager import hook_implementation
@@ -76,9 +77,14 @@ def csv_exporter(runpathfile, time_index, outputfile, column_keys=None):
 
     The EnsembleSet is described by a runpathfile which must exists
     and point to realizations"""
-    ensemble_set = ensemble.EnsembleSet(
-        name="ERT EnsembleSet for CSV_EXPORT2", runpathfile=runpathfile
-    )
+    if Path(runpathfile).exists():
+        ensemble_set = ensemble.EnsembleSet(
+            name="ERT EnsembleSet for CSV_EXPORT2", runpathfile=runpathfile
+        )
+    else:
+        ensemble_set = ensemble.EnsembleSet(
+            name="ad-hoc filesystem EnsembleSet", frompath=runpathfile
+        )
     summary = ensemble_set.load_smry(time_index=time_index, column_keys=column_keys)
     try:  # try/except is needed for fmu-ensemble<=1.3.0
         parameters = ensemble_set.parameters
@@ -118,7 +124,9 @@ def csv_export_parser():
         type=str,
         help=(
             "Path to ERT RUNPATH-file, "
-            "usually the ERT magic variable <RUNPATH> can be used"
+            "usually the ERT magic variable <RUNPATH> can be used. "
+            "Alternatively a wildcard path to realizations, enclosed "
+            "in quotes."
         ),
     )
     parser.add_argument(

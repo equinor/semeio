@@ -42,7 +42,7 @@ def ert_statoil_test_data(tmpdir):
     os.chdir(cwd)
 
 
-def mock_norne_data(reals, iters, parameters=True):
+def mock_norne_data(reals, iters, parameters=True, ecldir="."):
     """From a single UNSMRY file, produce arbitrary sized ensembles.
 
     Summary data will be equivalent over realizations, but the
@@ -54,6 +54,7 @@ def mock_norne_data(reals, iters, parameters=True):
         reals (list): integers with realization indices wanted
         iters (list): integers with iter indices wanted
         parameters (bool): Whether to write parameters.txt in each runpath
+        ecldir (str): Directory to put Eclipse files in.
     """
     for real in reals:
         for iteration in iters:
@@ -63,14 +64,20 @@ def mock_norne_data(reals, iters, parameters=True):
 
             os.makedirs(runpath, exist_ok=True)
 
+            os.makedirs(os.path.join(runpath, ecldir), exist_ok=True)
+
             os.symlink(
                 os.path.join(NORNE_DIR, "NORNE_ATW2013.UNSMRY"),
-                os.path.join(runpath, "NORNE_{}.UNSMRY".format(real)),
+                os.path.join(runpath, ecldir, "NORNE_{}.UNSMRY".format(real)),
             )
             os.symlink(
                 os.path.join(NORNE_DIR, "NORNE_ATW2013.SMSPEC"),
-                os.path.join(runpath, "NORNE_{}.SMSPEC".format(real)),
+                os.path.join(runpath, ecldir, "NORNE_{}.SMSPEC".format(real)),
             )
+            with open(
+                os.path.join(runpath, ecldir, "NORNE_{}.DATA".format(real)), "w"
+            ) as datafile_h:
+                datafile_h.write("-- Placeholder")
             if parameters:
                 with open(os.path.join(runpath, "parameters.txt"), "w") as p_fileh:
                     p_fileh.write("FOO 1{}{}".format(real, iteration))
@@ -92,6 +99,11 @@ def mock_norne_data(reals, iters, parameters=True):
 @pytest.fixture()
 def norne_mocked_ensembleset(setup_tmpdir):
     mock_norne_data(reals=[0, 1], iters=[0, 1], parameters=True)
+
+
+@pytest.fixture()
+def norne_mocked_ensembleset_ecldir(setup_tmpdir):
+    mock_norne_data(reals=[0, 1], iters=[0, 1], parameters=True, ecldir="eclipse/model")
 
 
 @pytest.fixture()
