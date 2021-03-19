@@ -3,8 +3,10 @@
 Only works on-prem.
 """
 from pathlib import Path
+import sys
 import subprocess
 import shutil
+import requests
 
 import pytest
 
@@ -15,9 +17,30 @@ try:
 except ImportError:
     HAVE_STEA = False
 
+
+def on_prem():
+    try:
+        stea_server = "https://ws2291.statoil.net"  # From stea/stea_input.py
+        requests.get(stea_server, verify=False)
+        return True
+    except requests.exceptions.ConnectionError:
+        return False
+
+
 ECLDIR_NORNE = Path(__file__).absolute().parent.parent.parent / "test_data" / "norne"
 
 
+@pytest.mark.skipif(
+    not on_prem(), reason="Integration with STEA server can only be tested on-prem"
+)
+@pytest.mark.skipif(
+    sys.platform == "darwin",
+    reason=(
+        "Forward models have same name as executable and "
+        "libres will find wrong exe on case insensitive system "
+        "bug report here: https://github.com/equinor/libres/issues/1053"
+    ),
+)
 @pytest.mark.skipif(HAVE_STEA is False, reason="STEA library not installed")
 def test_stea_fm_single_real(tmpdir):
     tmpdir.chdir()
