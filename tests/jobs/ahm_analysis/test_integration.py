@@ -32,9 +32,8 @@ def test_ahmanalysis_run(test_data_root):
     ahmanalysis.AhmAnalysisJob(ert).run(prior_name="default_0")
 
     # assert that this returns/generates a KS csv file
-    output_path = "share/output_analysis/"
-    output_ks = (
-        "storage/snake_oil/runpath/" + output_path + "scalar_analysis_case/ks.csv"
+    output_ks = os.path.join(
+        "storage", "snake_oil", "reports", "default_0", "AhmAnalysisJob", "ks.csv"
     )
     assert os.path.isfile(output_ks)
     ks_df = pd.read_csv(output_ks)
@@ -83,18 +82,20 @@ def test_ahmanalysis_run_field(test_data_root):
     gen_obs_list = GenDataObservationCollector.getAllObservationKeys(ert)
     summary_obs_list = SummaryObservationCollector.getAllObservationKeys(ert)
     obs_keys = gen_obs_list + summary_obs_list
-    output_path = "share/output_analysis/"
-    output_deltafield = (
-        "storage/snake_oil_field/runpath/"
-        + output_path
-        + "field_analysis_case/delta_fieldPERMX.csv"
+    output_deltafield = os.path.join(
+        "storage",
+        "snake_oil_field",
+        "reports",
+        "default",
+        "AhmAnalysisJob",
+        "delta_fieldPERMX.csv",
     )
     assert os.path.isfile(output_deltafield)
     delta_df = pd.read_csv(output_deltafield, index_col=0)
     assert len(delta_df.columns) == 8 + (len(obs_keys) * 2) + 1
     # check field parameter is present and not empty in the final KS matrix
-    output_ks = (
-        "storage/snake_oil_field/runpath/" + output_path + "scalar_analysis_case/ks.csv"
+    output_ks = os.path.join(
+        "storage", "snake_oil_field", "reports", "default", "AhmAnalysisJob", "ks.csv"
     )
     ks_df = pd.read_csv(output_ks, index_col=0)
     assert not ks_df.empty

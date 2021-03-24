@@ -1,6 +1,4 @@
 import os
-import shutil
-import statistics
 
 import cwrap
 import pytest
@@ -9,16 +7,11 @@ import numpy as np
 
 import semeio.workflows.ahm_analysis.ahmanalysis as ahmanalysis
 
-from res.enkf import (
-    EnKFMain,
-    ResConfig,
-)
 
 from scipy import stats
 from ecl import EclDataType
 from ecl.eclfile import EclKW
 from ecl.grid import EclGridGenerator
-from ecl.util.util import RandomNumberGenerator
 
 
 @pytest.mark.usefixtures("setup_tmpdir")
@@ -46,30 +39,24 @@ def test_make_update_log_df(test_data_root):
     ).all()
 
 
+@pytest.mark.parametrize(
+    "input_dir, obs_key, expected_result",
+    [
+        ("update_log/oneobs", "RWI_3_OBS", "2 active/3"),
+        ("update_log/allobs", "ALL_OBS", "41 active/47"),
+        ("update_log/noactive", "RWI_2_OBS", "0 active/3"),
+    ],
+)
 @pytest.mark.usefixtures("setup_tmpdir")
-def test_list_active_observations(test_data_root):
+def test_list_active_observations(test_data_root, input_dir, expected_result, obs_key):
     """test function creates a dataframe reporting active observations during update"""
-    test_data_dir = os.path.join(test_data_root, "update_log/oneobs")
-    test_data_dirsmry = os.path.join(test_data_root, "update_log/allobs")
-    test_data_noactiv = os.path.join(test_data_root, "update_log/noactive")
-    output_path = test_data_dir.replace("update_log", "scalar_")
-    output_pathsmry = test_data_dirsmry.replace("update_log", "scalar_")
-    output_pathnoactiv = test_data_noactiv.replace("update_log", "scalar_")
-    key_obs = "RWI_3_OBS"
-    key_obssmry = "ALL_OBS"
-    key_noactiv = "RWI_2_OBS"
+    test_data_dir = os.path.join(test_data_root, input_dir)
     active_obs = pd.DataFrame()
-    active_obs = ahmanalysis.list_active_observations(key_obs, active_obs, output_path)
-    assert active_obs.at["ratio", "RWI_3_OBS"] == "2 active/3"
+    df_update_log = ahmanalysis.make_update_log_df(test_data_dir, obs_key)
     active_obs = ahmanalysis.list_active_observations(
-        key_obssmry, active_obs, output_pathsmry
+        obs_key, active_obs, df_update_log
     )
-    assert active_obs.at["ratio", "ALL_OBS"] == "41 active/47"
-    active_obs = ahmanalysis.list_active_observations(
-        key_noactiv, active_obs, output_pathnoactiv
-    )
-    assert active_obs.at["ratio", "RWI_2_OBS"] == "0 active/3"
-    assert (active_obs.columns == ["RWI_3_OBS", "ALL_OBS", "RWI_2_OBS"]).all()
+    assert active_obs.at["ratio", obs_key] == expected_result
 
 
 @pytest.mark.usefixtures("setup_tmpdir")
@@ -87,89 +74,73 @@ def test_create_path(test_data_root):
     assert target_name in outputpath2
 
 
-@pytest.mark.usefixtures("setup_tmpdir")
-def test_list_observations_misfit(test_data_root):
+@pytest.mark.parametrize(
+    "input_obs, expected_result, update_log",
+    [
+        (["RWI_3_OBS"], [2.0], {"status": {0: "Active", 1: "Inactive", 2: "Active"}}),
+        (
+            ["RWI_3_OBS", "OP_3_WWCT1"],
+            [3.5 / 4.0],
+            {"status": {0: "Active", 1: "Inactive", 2: "Active", 3: "Active"}},
+        ),
+        (["OP_3_WWCT1"], [1.0], {"status": {0: "Active"}}),
+    ],
+)
+def test_list_observations_misfit(input_obs, expected_result, update_log):
     """test function creates a dataframe
     reporting misfit data for each obs vector except the ones with All_obs-"""
     misfit_df = pd.DataFrame(
         {
             "MISFIT:RWI_3_OBS": [6],
-            "MISFIT:OP_3_WWCT1": [0.05],
+            "MISFIT:OP_3_WWCT1": [1],
             "MISFIT:OP_3_WWCT2": [0.15],
             "MISFIT:OP_3_WWCT3": [0.25],
         }
     )
-    test_data_dir = os.path.join(test_data_root, "update_log/oneobs")
-    test_data_dirsmry = os.path.join(test_data_root, "update_log/allobs")
-    test_data_noactiv = os.path.join(test_data_root, "update_log/noactive")
-    test_data_activsmry = os.path.join(test_data_root, "update_log/smry")
-    output_path = test_data_dir.replace("update_log", "scalar_")
-    output_path_allsmry = test_data_dirsmry.replace("update_log", "scalar_")
-    output_path_noactiv = test_data_noactiv.replace("update_log", "scalar_")
-    output_path_activsmry = test_data_activsmry.replace("update_log", "scalar_")
-    gen_obs_list = ["RWI_3_OBS", "RWI_2_OBS"]
-    key_obs = ["RWI_3_OBS", "All_obs-RWI_3_OBS", "OP_3_WWCT", "RWI_2_OBS"]
-    misfitval = pd.DataFrame()
+    update_log_df = pd.DataFrame(update_log)
     misfitval = ahmanalysis.list_observations_misfit(
-        key_obs[0], misfitval, gen_obs_list, output_path, misfit_df
+        input_obs, update_log_df, misfit_df
     )
-    assert misfitval.at["misfit", "RWI_3_OBS"] == 2.0
-    misfitval = ahmanalysis.list_observations_misfit(
-        key_obs[1], misfitval, gen_obs_list, output_path_allsmry, misfit_df
-    )
-    assert misfitval.at["misfit", "All_obs-RWI_3_OBS"] == "None"
-    misfitval = ahmanalysis.list_observations_misfit(
-        key_obs[2], misfitval, gen_obs_list, output_path_activsmry, misfit_df
-    )
-    assert misfitval.at["misfit", "OP_3_WWCT"] == statistics.mean([0.15, 0.05])
-    misfitval = ahmanalysis.list_observations_misfit(
-        key_obs[3], misfitval, gen_obs_list, output_path_noactiv, misfit_df
-    )
-    assert misfitval.at["misfit", "RWI_2_OBS"] == "None"
+    assert misfitval == expected_result
 
 
+@pytest.mark.parametrize(
+    "input_parameter, expected_result",
+    [
+        ("PORO", [np.array(8 * [float(nr)]) for nr in range(5, 10)]),
+        ("PERMX", [np.array(8 * [float(nr)]) for nr in range(5)]),
+    ],
+)
 @pytest.mark.usefixtures("setup_tmpdir")
-def test_get_input_state_df(test_data_root):
+def test_import_field_param(input_parameter, expected_result):
     """test function reads field parameter files and creates a dataframe from it"""
-    test_data_dir = os.path.join(test_data_root, "snake_oil")
 
-    shutil.copytree(test_data_dir, "test_data")
-    os.chdir(os.path.join("test_data"))
-    grid = EclGridGenerator.createRectangular((10, 12, 5), (1, 1, 1))
-    rng = RandomNumberGenerator()
-    rng.setState("ABCD6375ejascEFGHIJ")
+    def flatten(regular_list):
+        return [item for sublist in regular_list for item in sublist]
+
+    grid = EclGridGenerator.createRectangular((2, 2, 2), (1, 1, 1))
+    grid.save_EGRID("MY_GRID.EGRID")
+
     for iens in range(5):
         permx = EclKW("PERMX", grid.getGlobalSize(), EclDataType.ECL_FLOAT)
-        permx.assign(rng.getDouble())
+        permx.assign(iens)
 
         poro = EclKW("PORO", grid.getGlobalSize(), EclDataType.ECL_FLOAT)
-        poro.assign(rng.getDouble())
+        poro.assign(iens + 5)
 
-        if not os.path.isdir("field_out"):
-            os.makedirs("field_out")
-
-        with cwrap.open("field_out/%d_PERMX_field.grdecl" % iens, "w") as f:
+        with cwrap.open("%d_PERMX_field.grdecl" % iens, "w") as f:
             permx.write_grdecl(f)
 
-        with cwrap.open("field_out/%d_PORO_field.grdecl" % iens, "w") as f:
+        with cwrap.open("%d_PORO_field.grdecl" % iens, "w") as f:
             poro.write_grdecl(f)
-
-    data_dir = "field_out/"
-    ext = "grdecl"
-    #    ext2 = "roff"
-    input_grid = os.path.join(test_data_root, "snake_oil/grid/SNAKE_OIL_FIELD.EGRID")
-    all_input = ahmanalysis.get_input_state_df(ext, input_grid, 5, data_dir, "PERMX")
-    assert len(all_input[0]) == 10 * 12 * 5
-    assert len(all_input[4]) == 10 * 12 * 5
-    assert len(all_input) == 5
-    all_input2 = ahmanalysis.get_input_state_df(ext, input_grid, 5, data_dir, "PORO")
-    assert len(all_input2) == 5
-    assert len(all_input2[0]) == 10 * 12 * 5
-    assert len(all_input2[4]) == 10 * 12 * 5
+    files = [f"{ens_nr}_{input_parameter}_field.grdecl" for ens_nr in range(5)]
+    result = ahmanalysis._import_field_param("MY_GRID", input_parameter, files)
+    assert flatten(result) == flatten(expected_result)
 
 
 def test_calc_delta_grid():
-    """test function creates a dataframe reporting mean delta grids for field parameters"""
+    """test function creates a dataframe reporting mean
+    delta grids for field parameters"""
     all_input_post = [
         [1 + i for i in range(8)]
         + [10 + i for i in range(8)]
@@ -358,31 +329,38 @@ def test_initialize_emptydf():
     assert df3.empty
 
 
-# def test_save_to_csv():
-
-
-@pytest.mark.usefixtures("setup_tmpdir")
-def test_make_obs_groups(test_data_root):
-    """test function creates a list of observation vectors"""
-    test_data_dir = os.path.join(test_data_root, "snake_oil")
-
-    shutil.copytree(test_data_dir, "test_data")
-    os.chdir(os.path.join("test_data"))
-
-    res_config = ResConfig("snake_oil.ert")
-    res_config.convertToCReference(None)
-    ert = EnKFMain(res_config)
-
-    obs_keys = ["FOPR", "WOPR:OP1", "WPR_DIFF_1"]
-    obs_key_fail = ["All_obs"]
-    dfobs = ahmanalysis.make_obs_groups(obs_keys, ert.getObservations())
-    assert len(dfobs) == (len(obs_keys) * 2) + 1
-    assert len(dfobs["All_obs"]) == 8
-    assert len(dfobs["All_obs-WOPR_OP1"]) == 2
-    assert all(item in dfobs.keys() for item in ["FOPR", "WOPR_OP1", "WPR_DIFF_1"])
-    # check that it  fails if one observation is named "All_obs"
-    with pytest.raises(Exception):
-        ahmanalysis.make_obs_groups(obs_key_fail, ert.getObservations())
+@pytest.mark.parametrize(
+    "input_map, expected_keys",
+    [
+        (
+            {"data_key_1": ["obs_1", "obs_2", "obs_3"]},
+            ["data_key_1"],
+        ),
+        (
+            {"data_key_1": ["obs_1", "obs_2", "obs_3"], "data_key_2": ["obs_4"]},
+            ["data_key_1", "data_key_2", "All_obs"],
+        ),
+        (
+            {
+                "data_key_1": ["obs_1", "obs_2", "obs_3"],
+                "data_key_2": ["obs_4"],
+                "data_key_3": ["obs_6"],
+            },
+            [
+                "data_key_1",
+                "data_key_2",
+                "data_key_3",
+                "All_obs-data_key_3",
+                "All_obs-data_key_2",
+                "All_obs-data_key_1",
+                "All_obs",
+            ],
+        ),
+    ],
+)
+def test_make_obs_groups(input_map, expected_keys):
+    result = ahmanalysis.make_obs_groups(input_map)
+    assert list(result.keys()) == expected_keys
 
 
 @pytest.mark.usefixtures("setup_tmpdir")
@@ -433,7 +411,6 @@ def test_get_updated_parameters():
             "SNAKE_OIL_PARAM:OP1_OFFSET": [0, 0, 0],
             "SNAKE_OIL_PRES:BPR_138_PERSISTENCE": [0, 1, 2],
             "LOG10_SNAKE_OIL_PARAM:OP1_PERSISTENCE": [0, 1, 2],
-            "SNAKE_OIL_PARAM:OP1_OFFSET": [0, 0, 0],
         }
     )
     p_keysf2 = ahmanalysis.get_updated_parameters(prior_data2, scalar_parameters)

@@ -1,11 +1,10 @@
+import tempfile
+import glob
 import argparse
-import sys
 import os
-import re
 import itertools
 import numpy as np
 import pandas as pd
-import glob
 
 from scipy.stats.stats import ks_2samp
 from sklearn.decomposition import PCA
@@ -13,25 +12,22 @@ from sklearn.preprocessing import StandardScaler
 
 from xtgeo.grid3d import Grid
 from xtgeo.grid3d import GridProperty
-from res.enkf import ErtScript
+from semeio.communication import SemeioScript
 from res.enkf import (
     ErtImplType,
     EnkfNode,
-    EnKFMain,
 )
 from res.enkf import (
     ESUpdate,
     ErtRunContext,
-    ResConfig,
 )
 from res.enkf.export import (
     GenKwCollector,
-    SummaryObservationCollector,
-    GenDataObservationCollector,
     MisfitCollector,
 )
 
-from ert_shared.plugins.plugin_manager import ErtPluginContext
+from ert_shared.libres_facade import LibresFacade
+import collections
 
 
 DESCRIPTION = """
@@ -46,34 +42,38 @@ update (ahm) calculation
 """
 
 
-class AhmAnalysisJob(ErtScript):  # pylint: disable=too-few-public-methods
+class AhmAnalysisJob(SemeioScript):  # pylint: disable=too-few-public-methods
     """ Define ERT workflow to evaluate change of parameters for each observation"""
 
     def run(self, target_name="analysis_case", prior_name=None):
         """Perform analysis of parameters change per obs group
         prior to posterior of ahm"""
         ert = self.ert()
+        facade = LibresFacade(self.ert())
+
+        obs_keys = [
+            facade.get_observation_key(nr)
+            for nr, _ in enumerate(facade.get_observations())
+        ]
+
+        key_map = collections.defaultdict(list)
+        for group_name in obs_keys:
+            data_key = facade.get_data_key_for_obs_key(group_name)
+            key_map[data_key].append(group_name)
+
         prior_name, target_name = check_names(
-            ert.getEnkfFsManager().getCurrentFileSystem().getCaseName(),
+            facade.get_current_case_name(),
             prior_name,
             target_name,
         )
         # Get the prior scalar parameter distributions
         prior_data = check_inputs(
             MisfitCollector.loadAllMisfitData(ert, prior_name),
-            GenKwCollector.loadAllGenKwData(ert, prior_name)
+            GenKwCollector.loadAllGenKwData(ert, prior_name),
         )
 
-        output_path = create_path(
-            ert.getModelConfig().getRunpathAsString(), target_name
-        )
-
-        gen_obs_list = GenDataObservationCollector.getAllObservationKeys(ert)
         # create dataframe with observations vectors (1 by 1 obs and also all_obs)
-        obs_groups = make_obs_groups(
-            gen_obs_list + SummaryObservationCollector.getAllObservationKeys(ert),
-            ert.getObservations(),
-        )
+        combinations = make_obs_groups(key_map)
         # setup dataframe for calculated data
         ks_data, active_obs, misfitval = initialize_emptydf()
 
@@ -83,88 +83,50 @@ class AhmAnalysisJob(ErtScript):  # pylint: disable=too-few-public-methods
         scalar_parameters = sorted(
             ert.ensembleConfig().getKeylistFromImplType(ErtImplType.GEN_KW)
         )
-        # identify the set of actual parameters that was updated
-        # for now just go through scalar parameters 
-        # but in future if easier acces to field parameter updates should also include field parameters
-        dkeysf = get_updated_parameters(
-            prior_data, scalar_parameters
-        )
+        # identify the set of actual parameters that was updated for now just go
+        # through scalar parameters but in future if easier access to field parameter
+        # updates should also include field parameters
+        dkeysf = get_updated_parameters(prior_data, scalar_parameters)
 
         # loop over keys and calculate the KS metric,
         # conditioning one parameter at the time.
-        for key in obs_groups:
-            print("Processing:", key)
-            # Create a localization scheme
+        field_output = {}
+        for group_name, obs_group in combinations.items():
+            print("Processing:", group_name)
 
-            #    """ Use localization to evaluate change of parameters for each observation"""
+            #  Use localization to evaluate change of parameters for each observation
+            update_log_path = create_path(
+                ert.getModelConfig().getRunpathAsString(), target_name
+            ).replace("scalar_", "update_log")
 
-            # Reset internal local config structure, in order to make your own
-            ert.getLocalConfig().clear()
-
-            # A ministep is used to link betwen data and observations.
-            # Make more ministeps to condition different groups together
-            ministep = ert.getLocalConfig().createMinistep("MINISTEP")
-            # Add all dataset to localize
-            data_all = ert.getLocalConfig().createDataset("DATASET")
-            for data in field_parameters + scalar_parameters:
-                data_all.addNode(data)
-            # Add all obs to be used in this updating scheme
-            obsdata = ert.getLocalConfig().createObsdata("OBS")
-            for obs in obs_groups[key]:
-                obsdata.addNode(obs.getObservationKey())
-            # Attach the created dataset and obsset to the ministep
-            ministep.attachDataset(data_all)
-            ministep.attachObsset(obsdata)
-            # Then attach the ministep to the update step
-            ert.getLocalConfig().getUpdatestep().attachMinistep(ministep)
-
-            # Perform update analysis
-            ert.analysisConfig().set_log_path(
-                output_path.replace("scalar_", "update_log/")
+            _run_ministep(
+                ert,
+                facade,
+                obs_group,
+                field_parameters + scalar_parameters,
+                prior_name,
+                target_name,
+                update_log_path,
             )
-            run_context = ErtRunContext.ensemble_smoother_update(
-                ert.getEnkfFsManager().getFileSystem(prior_name),
-                ert.getEnkfFsManager().getFileSystem(target_name),
-            )
-            ESUpdate(ert).smootherUpdate(run_context)
-
             # Get the updated scalar parameter distributions
-
-            GenKwCollector.loadAllGenKwData(ert, target_name).to_csv(
-                output_path + key + ".csv"
+            self.reporter.publish_csv(
+                "gen_kw", GenKwCollector.loadAllGenKwData(ert, target_name)
             )
 
             # Get the inactive vs total observation info
+            df_update_log = make_update_log_df(update_log_path, group_name)
+
             active_obs = list_active_observations(
-                key,
+                group_name,
                 active_obs,
-                output_path,
+                df_update_log,
             )
             # Get misfit values
-            misfitval = list_observations_misfit(
-                key,
-                misfitval,
-                gen_obs_list,
-                output_path,
+            misfitval.at["misfit", group_name] = list_observations_misfit(
+                obs_group,
+                df_update_log,
                 MisfitCollector.loadAllMisfitData(ert, prior_name),
             )
-            if field_parameters != []:
-                for fieldparam in field_parameters:
-                    # Get/export the updated Field parameters
-                    out_file = (
-                        ert.ensembleConfig()[fieldparam]
-                        .get_enkf_outfile()
-                        .rsplit(".")[-1]
-                    )
-                    EnkfNode.exportMany(
-                        ert.ensembleConfig()[fieldparam],
-                        os.path.join(
-                            output_path.replace("scalar_", "field_") + key + "/",
-                            "%d_" + fieldparam + "_field." + out_file,
-                        ),
-                        ert.getEnkfFsManager().getFileSystem(target_name),
-                        np.arange(0, ert.getEnkfFsManager().getEnsembleSize()),
-                    )
 
             # Calculate Ks matrix for scalar parameters
             ks_data = calc_ks(
@@ -172,81 +134,134 @@ class AhmAnalysisJob(ErtScript):  # pylint: disable=too-few-public-methods
                 dkeysf,
                 prior_data,
                 GenKwCollector.loadAllGenKwData(ert, target_name),
-                key,
+                group_name,
+            )
+            field_output[group_name] = _get_field_params(
+                ert, facade.get_ensemble_size(), field_parameters, target_name
             )
 
         # Calculate Ks matrix for Fields parameters
-        if field_parameters != []:
+        if field_parameters:
             # Get grid characteristics to be able to plot field avg maps
             mygrid_ok = get_field_grid_char(ert.eclConfig().get_gridfile())
+            all_input_prior = _get_field_params(
+                ert, facade.get_ensemble_size(), field_parameters, prior_name
+            )
 
-            # Get//Export/import the prior Field parameters
             for fieldparam in field_parameters:
-                out_file = (
-                    ert.ensembleConfig()[fieldparam].get_enkf_outfile().rsplit(".")[-1]
-                )
-                EnkfNode.exportMany(
-                    ert.ensembleConfig()[fieldparam],
-                    os.path.join(
-                        output_path.replace("scalar_", "field_") + "prior",
-                        "%d_" + fieldparam + "_field." + out_file,
-                    ),
-                    ert.getEnkfFsManager().getFileSystem(prior_name),
-                    np.arange(0, ert.getEnkfFsManager().getEnsembleSize()),
-                )
-                # Read/import
-                all_input_prior = get_input_state_df(
-                    out_file,
-                    ert.eclConfig().get_gridfile(),
-                    ert.getEnkfFsManager().getEnsembleSize(),
-                    output_path.replace("scalar_", "field_") + "prior/",
-                    fieldparam,
-                )
                 scaler = StandardScaler()
-                scaler.fit(all_input_prior)
-                pca = PCA(0.98).fit(pd.DataFrame(scaler.transform(all_input_prior)))
-                #                print("Number of PCA:", fieldparam, " ", pca.n_components_)
+                scaler.fit(all_input_prior[fieldparam])
+                pca = PCA(0.98).fit(
+                    pd.DataFrame(scaler.transform(all_input_prior[fieldparam]))
+                )
                 pc_fieldprior_df = pd.DataFrame(
-                    data=pca.transform(scaler.transform(all_input_prior))
+                    data=pca.transform(scaler.transform(all_input_prior[fieldparam]))
                 )
                 all_ks = pd.DataFrame()
                 # Get the posterior Field parameters
                 mygrid_ok_short = mygrid_ok[mygrid_ok["KZ"] == 1].copy().reset_index()
-                for key in obs_groups:
-                    all_input_post = get_input_state_df(
-                        out_file,
-                        ert.eclConfig().get_gridfile(),
-                        ert.getEnkfFsManager().getEnsembleSize(),
-                        output_path.replace("scalar_", "field_") + key + "/",
-                        fieldparam,
-                    )
+                for group_name in combinations.keys():
+
                     mygrid_ok_short = calc_delta_grid(
-                        all_input_post,
-                        all_input_prior,
+                        field_output[group_name][fieldparam],
+                        all_input_prior[fieldparam],
                         mygrid_ok,
-                        key,
+                        group_name,
                         mygrid_ok_short,
                     )
                     pc_fieldpost_df = pd.DataFrame(
-                        data=pca.transform(scaler.transform(all_input_post))
+                        data=pca.transform(
+                            scaler.transform(field_output[group_name][fieldparam])
+                        )
                     )
                     all_ks = calc_ks(
                         all_ks,
                         pc_fieldpost_df,
                         pc_fieldprior_df,
                         pc_fieldpost_df,
-                        key,
+                        group_name,
                     )
                 # add the field max Ks to the scalar Ks matrix
                 ks_data.loc["FIELD_" + fieldparam] = all_ks.max()
-                mygrid_ok_short.to_csv(
-                    output_path.replace("scalar_", "field_")
-                    + "delta_field"
-                    + fieldparam
-                    + ".csv"
-                )
+                self.reporter.publish_csv("delta_field" + fieldparam, mygrid_ok_short)
         # save/export the Ks matrix, active_obs, misfitval and prior data
-        save_to_csv(ks_data, active_obs, misfitval, prior_data, output_path)
+        self.reporter.publish_csv("ks", ks_data)
+        self.reporter.publish_csv("active_obs_info", active_obs)
+        self.reporter.publish_csv("misfit_obs_info", misfitval)
+        self.reporter.publish_csv("prior", prior_data)
+
+
+def _run_ministep(
+    ert, facade, obs_group, data_parameters, prior_name, target_name, output_path
+):
+    # Reset internal local config structure, in order to make your own
+    ert.getLocalConfig().clear()
+
+    # A ministep is used to link betwen data and observations.
+    # Make more ministeps to condition different groups together
+    ministep = ert.getLocalConfig().createMinistep("MINISTEP")
+    # Add all dataset to localize
+    data_all = ert.getLocalConfig().createDataset("DATASET")
+    for data in data_parameters:
+        data_all.addNode(data)
+    # Add all obs to be used in this updating scheme
+    obsdata = ert.getLocalConfig().createObsdata("OBS")
+    for obs in obs_group:
+        obsdata.addNode(obs)
+    # Attach the created dataset and obsset to the ministep
+    ministep.attachDataset(data_all)
+    ministep.attachObsset(obsdata)
+    # Then attach the ministep to the update step
+    facade.get_update_step().attachMinistep(ministep)
+
+    # Perform update analysis
+    ert.analysisConfig().set_log_path(output_path)
+    run_context = ErtRunContext.ensemble_smoother_update(
+        ert.getEnkfFsManager().getFileSystem(prior_name),
+        ert.getEnkfFsManager().getFileSystem(target_name),
+    )
+    ESUpdate(ert).smootherUpdate(run_context)
+
+
+def _get_field_params(ert, ensemble_size, field_parameters, target_name):
+    """
+    Because the FIELD parameters are not exposed in the Python API we have to
+    export them to file and read them back again. When they are exposed in the API
+    this function should be updated.
+    """
+    field_data = {}
+    file_system = ert.getEnkfFsManager().getFileSystem(target_name)
+    with tempfile.TemporaryDirectory() as fout:
+        for field_param in field_parameters:
+            config_node = ert.ensembleConfig()[field_param]
+            ext = config_node.get_enkf_outfile().rsplit(".")[-1]
+            file_path = os.path.join(fout, "%d_" + field_param + "." + ext)
+            _export_field_param(config_node, file_system, ensemble_size, file_path)
+            fnames = glob.glob(os.path.join(fout, "*" + field_param + "*"))
+            field_data[field_param] = _import_field_param(
+                ert.eclConfig().get_gridfile(), field_param, fnames
+            )
+    return field_data
+
+
+def _import_field_param(input_grid, param_name, files):
+    mygrid_char = Grid(input_grid.rsplit(".", 1)[0], fformat="eclipserun")
+    all_input = []
+    for file_path in files:
+        proproff = GridProperty(file_path, name=param_name, grid=mygrid_char)
+        array_nb = proproff.get_npvalues1d(activeonly=False, fill_value=0, order="C")
+        all_input.append(array_nb)
+    return all_input
+
+
+def _export_field_param(config_node, file_system, ensemble_size, output_path):
+    # Get/export the updated Field parameters
+    EnkfNode.exportMany(
+        config_node,
+        output_path,
+        file_system,
+        np.arange(0, ensemble_size),
+    )
 
 
 def initialize_emptydf():
@@ -262,7 +277,7 @@ def make_update_log_df(update_log_file, key):
         os.path.join(update_log_file, f) for f in os.listdir(update_log_file)
     ]
     if len(list_of_files) > 1:
-        print("Warning more than one update_log_file.")
+        raise OSError("Warning more than one update_log_file.")
     # read file
     updatelog = pd.read_csv(
         list_of_files[0],
@@ -295,47 +310,37 @@ def make_update_log_df(update_log_file, key):
     return updatelog
 
 
-def make_obs_groups(obs_keys, local_obs):
-    """create dataframe with grouped observations
-    as appearing in Observations on Ert gui"""
-    obs_groups = {}
-    for key in obs_keys:
-        nkey = re.sub(":", "_", key)
-        obs_groups[nkey] = []
-    if "All_obs" in obs_groups:
-        raise Exception(
-            "All_obs observation vector already exists, consider renaming this vector to be able to run the script."
-        )
-    obs_groups["All_obs"] = []
-    for obs in local_obs:
-        obs_dkey_o = obs.getDataKey()
-        obs_key = obs.getObservationKey()
-        obs_dkey = re.sub(":", "_", obs_dkey_o)
-        if obs_dkey in obs_groups:
-            obs_groups[obs_dkey].append(obs)
-        else:
-            obs_groups[obs_key].append(obs)
-        obs_groups["All_obs"].append(obs)
-    inact_obs = 0
-    for ggkeys in obs_keys:
-        gkeys = re.sub(":", "_", ggkeys)
-        obs_groups["All_obs-" + gkeys] = []
-        for obs in local_obs:
-            obs_dkey_o = obs.getDataKey()
-            obs_key = obs.getObservationKey()
-            obs_dkey = re.sub(":", "_", obs_dkey_o)
-            if gkeys in (obs_dkey, obs_key):
-                inact_obs += 1
+def make_obs_groups(key_map):
+    """Create a mapping of observation groups, the names will be:
+    data_key -> [obs_keys] and All_obs-{missing_obs} -> [obs_keys]
+    and All_obs -> [all_obs_keys]
+    """
+    combinations = key_map.copy()
+    if len(combinations) == 1:
+        return combinations
+    # We want all observations and all observations
+    # minus individual observations:
+    for combination_length in (len(key_map.keys()) - 1, len(key_map.keys())):
+        if combination_length == 1:
+            # We have hit a case with two observation groups, now we only
+            # need individual group and all obs.
+            continue
+        for subset in itertools.combinations(key_map.keys(), combination_length):
+            obs_group = list(
+                itertools.chain.from_iterable([key_map[key] for key in subset])
+            )
+            if combination_length == len(key_map.keys()) - 1:
+                missing_obs = [x for x in key_map.keys() if x not in set(subset)]
+                assert len(missing_obs) == 1
+                name = f"All_obs-{missing_obs[0]}"
             else:
-                obs_groups["All_obs-" + gkeys].append(obs)
-    return obs_groups
+                name = "All_obs"
+            combinations[name.replace(":", "_")] = obs_group
+    return combinations
 
 
-# def list_active_observations(key, active_obs, gen_obs_list, output_path, misfit_df):
-def list_active_observations(key, active_obs, output_path):
+def list_active_observations(key, active_obs, df_update_log):
     """To get the inactive vs total observation info."""
-    update_log_path = output_path.replace("scalar_", "update_log/")
-    df_update_log = make_update_log_df(update_log_path, key)
     df_active = df_update_log[(df_update_log["status"] == "Active")]
     active_obs.at["ratio", key] = (
         str(len(df_active)) + " active/" + str(len(df_update_log.index))
@@ -358,46 +363,14 @@ def create_path(runpathdf, target_name):
     return output_path
 
 
-def list_observations_misfit(key, misfitval, gen_obs_list, output_path, misfit_df):
+def list_observations_misfit(obs_keys, df_update_log, misfit_df):
     """To get the misfit for total observations (active/inactive)."""
-    update_log_path = output_path.replace("scalar_", "update_log/")
-    list_kobs = []
-    if key in gen_obs_list:
+    misfit_values = []
+    total_obs_nr = len(df_update_log[df_update_log.status.isin(["Active", "Inactive"])])
+    for key in obs_keys:
         misfit_name = "MISFIT:" + key
-        if misfit_name not in misfit_df.keys():
-            misfitval.at["misfit", key] = "None"
-        else:
-            df_update_log = make_update_log_df(update_log_path, key)
-            df_filter = df_update_log[df_update_log.status.isin(["Active", "Inactive"])]
-            if "All_obs" in key:
-                misfitval.at["misfit", key] = "None"
-            else:
-                misfitval.at["misfit", key] = misfit_df[misfit_name].mean() / (
-                    len(df_filter.index)
-                )
-    else:
-        df_update_log = make_update_log_df(update_log_path, key)
-        df_active = df_update_log[(df_update_log["status"] == "Active")]
-        if "All_obs" in key:
-            misfitval.at["misfit", key] = "None"
-        else:
-            for keys_obs in df_active["obs_key"]:
-                list_kobs.append("MISFIT:" + keys_obs)
-            misfitval.at["misfit", key] = misfit_df[list_kobs].mean(axis=1).mean()
-    return misfitval
-
-
-def get_input_state_df(ext, input_grid, iensnb, df_path_state, fieldparam):
-    """create input prior and posterior dataframe"""
-    mygrid_char = Grid(input_grid.rsplit(".", 1)[0], fformat="eclipserun")
-    all_input = []
-    for real in range(iensnb):
-        inputdata = df_path_state + str(real) + "_" + fieldparam + "_field." + ext
-        array_nb = []
-        proproff = GridProperty(inputdata, name=fieldparam, grid=mygrid_char)
-        array_nb = proproff.get_npvalues1d(activeonly=False, fill_value=0, order="C")
-        all_input.append(array_nb)
-    return all_input
+        misfit_values.append(misfit_df[misfit_name].mean())
+    return np.mean(misfit_values) / total_obs_nr
 
 
 def get_field_grid_char(input_grid):
@@ -428,7 +401,6 @@ def get_updated_parameters(prior_data, parameters):
     (excluding duplicate transformed parameters)
     """
     transfp_keys = []
-    p_keys = []
     p_keysf = []
     for paramet in parameters:
         for key in prior_data.keys():
@@ -468,19 +440,12 @@ def check_names(ert_currentname, prior_name, target_name):
 
 def check_inputs(misfitdata, prior_data):
     """Check input ensemble prior is not empty
-       and if ensemble contains parameters for hm"""
+    and if ensemble contains parameters for hm"""
     if misfitdata.empty:
         raise Exception("Empty prior ensemble")
     if prior_data.empty:
         raise Exception("Empty parameters set for History Matching")
     return prior_data
-
-
-def save_to_csv(ks_data, active_obs, misfitval, prior_data, output_path):
-    ks_data.to_csv(output_path + "ks.csv")
-    active_obs.to_csv(output_path + "active_obs_info.csv")
-    misfitval.to_csv(output_path + "misfit_obs_info.csv")
-    prior_data.to_csv(output_path + "prior.csv")
 
 
 def create_parser():
