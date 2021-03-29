@@ -1,3 +1,0 @@
-Could not import pylint module - lint based testing will be skipped
-/prog/res/komodo/2020.09.00-py36/root/lib/python3.6/site-packages/ecl/util/test/import_test_case.py:23: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
-  import imp
