@@ -1,6 +1,5 @@
 import tempfile
 import glob
-import argparse
 import os
 import itertools
 import numpy as np
@@ -446,27 +445,3 @@ def check_inputs(misfitdata, prior_data):
     if prior_data.empty:
         raise Exception("Empty parameters set for History Matching")
     return prior_data
-
-
-def create_parser():
-    """Create parser"""
-    parser = argparse.ArgumentParser(description=DESCRIPTION)
-
-    parser.add_argument(
-        "ert_config",
-        type=str,
-        help="ert config file (could include path to the file)",
-    )
-    parser.add_argument(
-        "--case_update",
-        type=str,
-        help="name of ert case used for update calculation(default:analysis_case)",
-        default="analysis_case",
-    )
-    parser.add_argument(
-        "--case_prior",
-        type=str,
-        help="name of ert case used as prior (default is ert current_case)",
-        default=None,
-    )
-    return parser
