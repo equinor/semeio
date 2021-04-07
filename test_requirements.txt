@@ -3,3 +3,4 @@ openpyxl
 rstcheck
 pytest-console-scripts
 pytest-httpserver
+hypothesis
