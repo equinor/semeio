@@ -1,0 +1,64 @@
+-- ==============================================================================
+-- References:
+-- ERT wiki: https://wiki.statoil.no/wiki/index.php/ERT_main_page
+-- FMU wiki: https://wiki.statoil.no/wiki/index.php/FMU_portal_home
+--
+-- ==============================================================================
+
+
+-----------------------------------------------------
+-- SECTION: Internal variables
+-----------------------------------------------------|
+JOBNAME scalar_local_%d
+DEFINE  <USER>            $USER
+DEFINE  <SCRATCH>         /scratch/fmu
+DEFINE  <CASE_DIR>        scalar_local
+
+----------------------------------------------------
+-- SECTION: Eclipse, runpath and storage settings
+-----------------------------------------------------
+
+RUNPATH                 <SCRATCH>/<USER>/<CASE_DIR>/realization-%d/iter-%d/   -- Runpath from where all realizations are run
+ENSPATH                 output/storage/<CASE_DIR>                       -- Path for internal ERT data
+LOG_FILE                output/log/<CASE_DIR>.log                          -- Ert log file
+UPDATE_LOG_PATH        output/update_log/<CASE_DIR>                       -- Storage of update log (list of active and inactive data points)
+RUNPATH_FILE            output/run_path_file/.ert-runpath-list_<CASE_DIR>  -- Resulting list of runpaths for the simulations
+
+ -----------------------------------------------------
+-- SECTION: LSF settings, HM configuration etc.
+-----------------------------------------------------
+
+NUM_REALIZATIONS    100                  -- Number of realizations to run
+MAX_RUNTIME         1800                     -- Maximum allowed run time (in seconds)
+MIN_REALIZATIONS    5                      -- Minimum number of realizations that must have succeeded for /
+                                                                 -- the ensemble to be regarded a success
+
+QUEUE_SYSTEM        LOCAL
+QUEUE_OPTION        LOCAL MAX_RUNNING 8 
+
+-- QUEUE_SYSTEM  LSF                     -- Use the LSF cluster to run simulations
+-- QUEUE_OPTION  LSF   LSF_SERVER   $ERT_LSF_SERVER
+-- QUEUE_OPTION  LSF   LSF_QUEUE     mr   -- Use Redhat 7 queue for RMS12
+-- QUEUE_OPTION  LSF   MAX_RUNNING 100     -- Choke the number of simultaneous run
+MAX_SUBMIT          1                       -- How many times should the queue system retry failed /
+                                                           -- simulations. Default = 2 (use 1 when debugging)
+
+
+-----------------------------------------------------
+-- SECTION: Install jobs and workflows needed
+-----------------------------------------------------
+LOAD_WORKFLOW_JOB  local_config_job LOCALISATION_JOB
+LOAD_WORKFLOW          local_config_workflow LOCALISATION_WORKFLOW 
+HOOK_WORKFLOW         LOCALISATION_WORKFLOW  PRE_SIMULATION
+
+INSTALL_JOB EVALUATE_SCALAR evaluate_scalar_job
+
+GEN_KW PARAM      param.tmpl   param.dat   param.dist
+
+FORWARD_MODEL EVALUATE_SCALAR
+
+
+GEN_DATA RESULT_1      RESULT_FILE:RESULT_1_%d.dat    REPORT_STEPS:0 INPUT_FORMAT:ASCII OUTPUT_FORMAT:ASCII 
+GEN_DATA RESULT_2      RESULT_FILE:RESULT_2_%d.dat    REPORT_STEPS:0 INPUT_FORMAT:ASCII OUTPUT_FORMAT:ASCII 
+OBS_CONFIG  observations/observations.txt
+TIME_MAP time_map.txt

@@ -1,0 +1,10 @@
+GENERAL_OBSERVATION OBS_NODE_1 {
+     DATA       = RESULT_1;
+     RESTART    = 0;
+     OBS_FILE   = obs_data/obs_file_1.txt;
+};
+GENERAL_OBSERVATION OBS_NODE_2 {
+     DATA       = RESULT_2;
+     RESTART    = 0;
+     OBS_FILE   = obs_data/obs_file_2.txt;
+};
