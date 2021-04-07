@@ -7,9 +7,7 @@ from ert_data.measured import MeasuredData
 from ert_shared.libres_facade import LibresFacade
 from ert_shared.plugins.plugin_manager import hook_implementation
 from semeio.communication import SemeioScript
-from semeio.workflows.correlated_observations_scaling import (
-    ObservationScaleFactor,
-)
+from semeio.workflows.correlated_observations_scaling import ObservationScaleFactor
 from semeio.workflows.correlated_observations_scaling.update_scaling import (
     scale_observations,
 )
