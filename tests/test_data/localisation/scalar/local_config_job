@@ -1,0 +1,3 @@
+INTERNAL  True
+SCRIPT  ../../../../semeio/workflows/localisation/local_config_scalar.py
+MAX_ARG 0

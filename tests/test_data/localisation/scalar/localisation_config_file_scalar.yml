@@ -1,0 +1,89 @@
+# localisation configuration file
+# Specification:
+# Specify one or more ministeps which define what model parameter group and observation group to couple together so that they can be correlated.
+# All combinations of observations and model parameters that are not specified by a ministep will per definition be uncorrelated.
+# A model parameter group consists of one or more model parameter nodes. It is best that these model parameter nodes are of the same type
+# and create different model parameter groups for different model parameter node types.
+# A model parameter node consists of one or more model parameters.
+# An observation group consists of one or more observation nodes.
+# An observation node consists of one or more observations.
+#
+# Localisation is specified by only including pairs of observation groups and model parameter groups that should be correlated.
+# Reduced correlation can be introduced for such pairs of observation groups and model parameter groups by using row_scaling
+# function for a model parameter node when this node belongs to a model parameter group that is coupled to an observation group.
+# In order to be able to specify different correlation reduction factors between a model parameter node and two or more different observation nodes,
+# it is necessary to specify a new version of the model parameter group for each of the obsrvation nodes where each new version of the model parameter group
+# has a model parameter node with an different scaling factor defined by the row_scaling function.
+
+
+localisation:
+  config_path: './'
+
+  ministeps:
+    ministep1:
+      obs_group: OBS_GROUP_1
+      model_group: SCALAR_GROUP_1
+    ministep2:
+      obs_group: OBS_GROUP_2
+      model_group: SCALAR_GROUP_2
+    ministep3:
+      obs_group: OBS_GROUP_1
+      model_group: SCALAR_GROUP_3
+    ministep4:
+      obs_group: OBS_GROUP_2 
+      model_group: SCALAR_GROUP_3
+    ministep5:
+      obs_group: OBS_GROUP_1 
+      model_group: SCALAR_GROUP_2
+    ministep6:
+      obs_group: OBS_GROUP_2 
+      model_group: SCALAR_GROUP_1
+
+  defined_scalar_parameters:
+    PARAM:
+      parameter_distribution_file: param.dist
+          
+  model_param_groups:
+    SCALAR_GROUP_1:
+      type: Scalar
+      nodes:
+        PARAM:
+          KW1_NAME1:  ON
+          KW1_NAME2:  OFF
+          KW1_NAME3:  ON
+
+    SCALAR_GROUP_2:
+      type: Scalar
+      nodes:
+        PARAM:
+          KW2_NAME1:  ON
+          KW2_NAME2:  ON
+          KW2_NAME3:  OFF
+
+
+    SCALAR_GROUP_3:
+      type: Scalar
+      nodes:
+        PARAM:
+          KW3_00: OFF
+          KW3_01: ON
+          KW3_02: ON
+          KW3_10: ON
+          KW3_11: ON
+          KW3_12: ON
+          KW3_20: ON
+          KW3_21: ON
+          KW3_22: ON
+
+  obs_groups:
+    OBS_GROUP_1:
+      nodes:
+        - OBS_NODE_1
+        
+    OBS_GROUP_2:
+      nodes:
+        - OBS_NODE_2
+        
+
+        
+      
