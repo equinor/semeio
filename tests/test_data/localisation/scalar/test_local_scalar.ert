@@ -34,7 +34,7 @@ MIN_REALIZATIONS    5                      -- Minimum number of realizations tha
                                                                  -- the ensemble to be regarded a success
 
 QUEUE_SYSTEM        LOCAL
-QUEUE_OPTION        LOCAL MAX_RUNNING 8 
+QUEUE_OPTION        LOCAL MAX_RUNNING 8
 
 -- QUEUE_SYSTEM  LSF                     -- Use the LSF cluster to run simulations
 -- QUEUE_OPTION  LSF   LSF_SERVER   $ERT_LSF_SERVER
@@ -48,17 +48,30 @@ MAX_SUBMIT          1                       -- How many times should the queue s
 -- SECTION: Install jobs and workflows needed
 -----------------------------------------------------
 LOAD_WORKFLOW_JOB  local_config_job LOCALISATION_JOB
-LOAD_WORKFLOW          local_config_workflow LOCALISATION_WORKFLOW 
-HOOK_WORKFLOW         LOCALISATION_WORKFLOW  PRE_SIMULATION
+LOAD_WORKFLOW          local_config_workflow LOCALISATION_WORKFLOW
+-- HOOK_WORKFLOW         LOCALISATION_WORKFLOW  PRE_SIMULATION
 
 INSTALL_JOB EVALUATE_SCALAR evaluate_scalar_job
+-- PARAM1 and PARAM3 has effect on RESULT_1
+-- PARAM2 and PARAM3 has effect on RESULT_2
+-- PARAM1B and PARAM3 has effect on RESULT_1B
+-- PARAM2B and PARAM3 has effect on RESULT_2B
 
-GEN_KW PARAM      param.tmpl   param.dat   param.dist
+
+GEN_KW PARAM1      param1.tmpl   param1.dat   param1.dist
+GEN_KW PARAM2      param2.tmpl   param2.dat   param2.dist
+GEN_KW PARAM3      param3.tmpl   param3.dat   param3.dist
+
+GEN_KW PARAM1B      param1b.tmpl   param1b.dat   param1b.dist
+GEN_KW PARAM2B      param2b.tmpl   param2b.dat   param2b.dist
+
 
 FORWARD_MODEL EVALUATE_SCALAR
 
 
-GEN_DATA RESULT_1      RESULT_FILE:RESULT_1_%d.dat    REPORT_STEPS:0 INPUT_FORMAT:ASCII OUTPUT_FORMAT:ASCII 
-GEN_DATA RESULT_2      RESULT_FILE:RESULT_2_%d.dat    REPORT_STEPS:0 INPUT_FORMAT:ASCII OUTPUT_FORMAT:ASCII 
+GEN_DATA RESULT_1      RESULT_FILE:RESULT_1_%d.dat    REPORT_STEPS:0 INPUT_FORMAT:ASCII OUTPUT_FORMAT:ASCII
+GEN_DATA RESULT_2      RESULT_FILE:RESULT_2_%d.dat    REPORT_STEPS:0 INPUT_FORMAT:ASCII OUTPUT_FORMAT:ASCII
+GEN_DATA RESULT_1B   RESULT_FILE:RESULT_1b_%d.dat    REPORT_STEPS:0 INPUT_FORMAT:ASCII OUTPUT_FORMAT:ASCII
+GEN_DATA RESULT_2B   RESULT_FILE:RESULT_2b_%d.dat    REPORT_STEPS:0 INPUT_FORMAT:ASCII OUTPUT_FORMAT:ASCII
 OBS_CONFIG  observations/observations.txt
 TIME_MAP time_map.txt

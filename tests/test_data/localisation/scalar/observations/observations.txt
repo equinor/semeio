@@ -8,3 +8,13 @@ GENERAL_OBSERVATION OBS_NODE_2 {
      RESTART    = 0;
      OBS_FILE   = obs_data/obs_file_2.txt;
 };
+GENERAL_OBSERVATION OBS_NODE_1B {
+     DATA       = RESULT_1B;
+     RESTART    = 0;
+     OBS_FILE   = obs_data/obs_file_1b.txt;
+};
+GENERAL_OBSERVATION OBS_NODE_2B {
+     DATA       = RESULT_2B;
+     RESTART    = 0;
+     OBS_FILE   = obs_data/obs_file_2b.txt;
+};
