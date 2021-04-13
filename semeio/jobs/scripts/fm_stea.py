@@ -32,13 +32,21 @@ def _get_args_parser():
         help="STEA response, json format",
         default="stea_response.json",
     )
+    parser.add_argument(
+        "-e",
+        "--ecl_case",
+        help="Case name, will overwrite the value in the config if provided",
+        default=None,
+    )
     return parser
 
 
 def main_entry_point():
     parser = _get_args_parser()
     options = parser.parse_args()
-    stea_input = stea.SteaInput([options.config])
+    if options.ecl_case == "__NONE__":  # This is because ert cant handle optionals
+        options.ecl_case = None
+    stea_input = stea.SteaInput([options.config, "--ecl_case", options.ecl_case])
     result = stea.calculate(stea_input)
     for res, value in result.results(stea.SteaKeys.CORPORATE).items():
         with open("{}_0".format(res), "w") as ofh:
