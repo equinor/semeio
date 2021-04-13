@@ -79,3 +79,42 @@ def test_stea_response(monkeypatch):
     with open("stea_response.json", "r") as fin:
         result = json.load(fin)
     assert result == expected_result
+
+
+@pytest.mark.usefixtures("setup_stea")
+def test_stea_ecl_case_overwrite(monkeypatch):
+    """
+    We want to verify that the ecl_case argument is properly forwarded to stea, but
+    there is no ecl_case, so we just assert that we fail with our custom file missing
+    """
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        ["script_name", "-c", "stea_input.yml", "--ecl_case", "custom_ecl_case"],
+    )
+    with pytest.raises(
+        OSError, match="Failed to create summary instance from argument:custom_ecl_case"
+    ):
+        fm_stea.main_entry_point()
+
+
+@pytest.mark.usefixtures("setup_stea")
+def test_stea_default_ert_args(monkeypatch):
+    """
+    We want to verify that the default ert args are correct, so basically that the
+    script does not fail.
+    """
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "script_name",
+            "-c",
+            "stea_input.yml",
+            "-e",
+            "__NONE__",
+            "-r",
+            "stea_response.json",
+        ],
+    )
+    fm_stea.main_entry_point()
