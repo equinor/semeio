@@ -2,7 +2,7 @@ from semeio.jobs.overburden_timeshift.ots import ots_run
 from ecl.util.geometry import Surface
 from ecl.grid import EclGrid
 import pytest
-from ots_util import mock_segy
+from .ots_util import mock_segy
 import yaml
 import numpy as np
 import os

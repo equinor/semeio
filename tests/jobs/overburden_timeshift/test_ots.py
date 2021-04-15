@@ -8,7 +8,7 @@ from ecl.util.geometry import Surface
 import segyio
 
 from semeio.jobs.overburden_timeshift.ots import OverburdenTimeshift
-from ots_util import create_init, create_restart, create_segy_file
+from .ots_util import create_init, create_restart, create_segy_file
 
 parms = namedtuple(
     "Parms",
