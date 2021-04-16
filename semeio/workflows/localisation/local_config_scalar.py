@@ -18,6 +18,7 @@ from res.enkf import ErtScript
 # from ecl.eclfile import EclKW, Ecl3DKW
 # from ecl.ecl_type import EclDataType
 # from ecl.util.util import IntVector
+from ert_shared.plugins.plugin_manager import hook_implementation
 
 
 # Global variables
@@ -523,3 +524,10 @@ class LocalisationConfigJob(ErtScript):
             localisation_setup_remove_correlations(
                 ert, all_kw, defined_scalar_parameter_nodes, defined_ert_obs_list
             )
+
+
+@hook_implementation
+def legacy_ertscript_workflow(config):
+    workflow = config.add_workflow(LocalisationConfigJob, "LOCALISATION_JOB")
+    workflow.description = "test"
+    workflow.category = "observations.correlation"

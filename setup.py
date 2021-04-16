@@ -19,6 +19,7 @@ setup(
             "CorrelatedObsScaling = semeio.workflows.correlated_observations_scaling.cos",  # noqa
             "CsvExport2Job = semeio.workflows.csv_export2.csv_export2",
             "AhmAnalysisJob = semeio.workflows.ahm_analysis.ahmanalysis",
+            "LocalisationConfigJob = semeio.workflows.localisation.local_config_scalar",  # noqa
         ],
         "console_scripts": [
             "csv_export2=semeio.workflows.csv_export2.csv_export2:cli",
