@@ -3,6 +3,7 @@
 import os
 import semeio.hook_implementations.jobs
 
+from semeio.workflows.localisation import local_config_scalar
 from semeio.workflows.misfit_preprocessor import misfit_preprocessor
 from semeio.workflows.spearman_correlation_job import spearman_correlation
 from semeio.workflows.correlated_observations_scaling import cos
@@ -20,6 +21,7 @@ def test_hook_implementations():
             cos,
             csv_export2,
             ahmanalysis,
+            local_config_scalar,
         ]
     )
 
@@ -46,6 +48,7 @@ def test_hook_implementations():
         "CSV_EXPORT2",
         "MISFIT_PREPROCESSOR",
         "AHM_ANALYSIS",
+        "LOCALISATION_JOB",
     ]
     installable_workflow_jobs = pm.get_installable_workflow_jobs()
     for wf_name, wf_location in installable_workflow_jobs.items():
