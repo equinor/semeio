@@ -47,9 +47,10 @@ MAX_SUBMIT          1                       -- How many times should the queue s
 -----------------------------------------------------
 -- SECTION: Install jobs and workflows needed
 -----------------------------------------------------
-LOAD_WORKFLOW_JOB  local_config_job LOCALISATION_JOB
-LOAD_WORKFLOW          local_config_workflow LOCALISATION_WORKFLOW
--- HOOK_WORKFLOW         LOCALISATION_WORKFLOW  PRE_SIMULATION
+-- LOAD_WORKFLOW_JOB  local_config_job LOCALISATION_JOB
+LOAD_WORKFLOW          local_config_workflow_add LOCALISATION_WORKFLOW
+-- LOAD_WORKFLOW          local_config_workflow_remove LOCALISATION_WORKFLOW
+HOOK_WORKFLOW         LOCALISATION_WORKFLOW  PRE_FIRST_UPDATE
 
 INSTALL_JOB EVALUATE_SCALAR evaluate_scalar_job
 -- PARAM1 and PARAM3 has effect on RESULT_1
