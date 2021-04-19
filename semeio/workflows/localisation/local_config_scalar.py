@@ -30,7 +30,12 @@ def debug_print(text):
         print(text)
 
 
-def read_localisation_config(specification_file_name):
+def read_localisation_config(args):
+    if len(args) == 1:
+        specification_file_name = args[0]
+    else:
+        raise ValueError(f"Expecting a single argument. Got {args} arguments.")
+
     debug_print("\n" f"Localisation config file: {specification_file_name}")
     with open(specification_file_name, "r") as yml_file:
         localisation_yml = yaml.safe_load(yml_file)
@@ -478,12 +483,11 @@ def localisation_setup_remove_correlations(
 
 
 class LocalisationConfigJob(ErtScript):
-    def run(self):
+    def run(self, *args):
         ert = self.ert()
 
         # Read yml file with specifications
-        spec_file_name = "local_config_scalar.yml"
-        all_kw = read_localisation_config(spec_file_name)
+        all_kw = read_localisation_config(args)
 
         # Path to configuration setup
         #        config_path = all_kw["config_path"]
@@ -500,9 +504,9 @@ class LocalisationConfigJob(ErtScript):
             debug_print(" -- Correlation mode: Remove correlations")
         else:
             raise KeyError(
-                f"Missing specification of either keyword 'add_correlation' or "
-                f"'remove_correlation' in file {spec_file_name} or "
-                "both are specified. Only one of them should be used."
+                "Missing specification of either keyword 'add_correlation' or "
+                "'remove_correlation' or both are specified. "
+                "Only one of them should be used."
             )
 
         # Get a dictionary of node names with associated scalar parameter names from
