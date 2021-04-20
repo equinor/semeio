@@ -56,83 +56,78 @@ localisation:
   config_path: './'
 
   remove_correlations:
-    CORRELATION_GROUP1:
+    - name: CORRELATION_GROUP1
       obs_group: OBS_GROUP_1
       model_group: SCALAR_GROUP_2
-    CORRELATION_GROUP2:
+    - name: CORRELATION_GROUP2
       obs_group: OBS_GROUP_2
       model_group: SCALAR_GROUP_1
-#    CORRELATION_GROUP3:
-#      obs_group: OBS_GROUP_1B
-#      model_group: SCALAR_GROUP_2B
-#    CORRELATION_GROUP4:
-#      obs_group: OBS_GROUP_2B
-#      model_group: SCALAR_GROUP_1B
 
   defined_scalar_parameters:
-    PARAM1:
+    - name: PARAM1
       parameter_distribution_file: param1.dist
-    PARAM2:
+    - name: PARAM2
       parameter_distribution_file: param2.dist
-    PARAM3:
+    - name: PARAM3
       parameter_distribution_file: param3.dist
-    PARAM1B:
+    - name: PARAM1B
       parameter_distribution_file: param1b.dist
-    PARAM2B:
+    - name: PARAM2B
       parameter_distribution_file: param2b.dist
 
+
   model_param_groups:
-    SCALAR_GROUP_1:
+    - name: SCALAR_GROUP_1
       type: Scalar
       nodes:
-        PARAM1:
+        - name: PARAM1
           all_active: YES
 
-    SCALAR_GROUP_2:
+    - name: SCALAR_GROUP_2
       type: Scalar
       nodes:
-        PARAM2:
+        - name: PARAM2
           all_active: YES
 
-    SCALAR_GROUP_3:
+    - name: SCALAR_GROUP_3
       type: Scalar
       nodes:
-        PARAM3:
+        - name: PARAM3
           all_active: YES
 
-    SCALAR_GROUP_1B:
+    - name: SCALAR_GROUP_1B
       type: Scalar
       nodes:
-        PARAM1B:
+        - name: PARAM1B
           all_active: NO
           active:
-            KW1B_NAME1:  OFF
-            KW1B_NAME2:  ON
+            KW1B_NAME1:  ON
+            KW1B_NAME2:  OFF
             KW1B_NAME3:  ON
 
-    SCALAR_GROUP_2B:
+    - name: SCALAR_GROUP_2B
       type: Scalar
       nodes:
-        PARAM2B:
+        - name: PARAM2B
           all_active: NO
           active:
-            KW2B_NAME1:  OFF
-            KW2B_NAME2:  ON
+            KW2B_NAME1:  ON
+            KW2B_NAME2:  OFF
             KW2B_NAME3:  ON
 
   obs_groups:
-    OBS_GROUP_1:
+    - name: OBS_GROUP_1
       nodes:
         - OBS_NODE_1
 
-    OBS_GROUP_2:
+    - name: OBS_GROUP_2
       nodes:
         - OBS_NODE_2
 
-    OBS_GROUP_1B:
+    - name: OBS_GROUP_1B
       nodes:
         - OBS_NODE_1B
 
-    OBS_GROUP_2B:
+    - name: OBS_GROUP_2B
       nodes:
         - OBS_NODE_2B
