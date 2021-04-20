@@ -63,7 +63,8 @@ def get_defined_scalar_parameters(ert, all_kw):
 
     node_with_scalar_params = {}
     if defined_scalar_parameter_names is not None:
-        for node_name, param_definition in defined_scalar_parameter_names.items():
+        for item in defined_scalar_parameter_names:
+            node_name = item["name"]
             # Check if node name specified in localisation config file exist in
             # ert configuration
             if node_name not in ens_config:
@@ -73,7 +74,7 @@ def get_defined_scalar_parameters(ert, all_kw):
 
             # Get list of defined parameter names for this node by reading the
             # distribution file for model parameters for this node
-            file_name = param_definition["parameter_distribution_file"]
+            file_name = item["parameter_distribution_file"]
             parameter_names = []
             debug_print(
                 f" -- Define model parameter node: {node_name}\n"
@@ -90,6 +91,16 @@ def get_defined_scalar_parameters(ert, all_kw):
                 debug_print(f"      {name}")
             debug_print("\n")
     return node_with_scalar_params
+
+
+def get_list_item_name(name, item_list):
+    item = None
+    key = "name"
+    for item in item_list:
+        if key in item.keys():
+            if name == item[key]:
+                return item
+    return item
 
 
 def set_active_parameters_for_node(
@@ -134,7 +145,7 @@ def initialize_model_group_scalar(
     local_config,
     model_group_name,
     mini_step_name,
-    node_names_for_group,
+    node_names_for_group_list,
     defined_scalar_parameter_nodes,
     remove_nodes=False,
 ):
@@ -155,8 +166,9 @@ def initialize_model_group_scalar(
         )
         all_reduced = local_config.copyDataset("ALL_DATA", all_reduced_name)
 
-        for node_name, node_spec_dict in node_names_for_group.items():
+        for item in node_names_for_group_list:
             # Check that it is defined in ERT before initializing it
+            node_name = item["name"]
             if node_name not in defined_scalar_parameter_nodes.keys():
                 raise ValueError(
                     f"The node with name: {node_name}  found under model param group "
@@ -166,7 +178,7 @@ def initialize_model_group_scalar(
             # Remove the model parameter nodes for the current model parameter group
             debug_print(f" -- Remove node {node_name} from {all_reduced_name}")
             del all_reduced[node_name]
-            all_active = node_spec_dict["all_active"]
+            all_active = item["all_active"]
             if all_active:
                 # This means that all model parameters for this node should be removed
                 # from correlation. Nothing more to do here
@@ -179,7 +191,7 @@ def initialize_model_group_scalar(
                     f"parameters to {all_reduced_name}"
                 )
                 all_reduced.addNode(node_name)
-                specified_active_param_dict = node_spec_dict["active"]
+                specified_active_param_dict = item["active"]
                 set_active_parameters_for_node(
                     all_reduced,
                     node_name,
@@ -195,7 +207,8 @@ def initialize_model_group_scalar(
         debug_print(f" -- Create model parameter group: {model_group_name}")
         model_param_group = local_config.createDataset(model_group_name)
         new_model_group_name = model_group_name
-        for node_name, node_spec_dict in node_names_for_group.items():
+        for item in node_names_for_group_list:
+            node_name = item["name"]
             # Check that it is defined in ERT before initializing it
             if node_name not in defined_scalar_parameter_nodes.keys():
                 raise ValueError(
@@ -203,7 +216,7 @@ def initialize_model_group_scalar(
                     f"{model_group_name}\n"
                     f"is  not defined in keyword: 'defined_scalar_parameters' "
                 )
-            all_active = node_spec_dict["all_active"]
+            all_active = item["all_active"]
             debug_print(f" -- Add node: {node_name} in group: {model_group_name}")
             model_param_group.addNode(node_name)
 
@@ -214,7 +227,7 @@ def initialize_model_group_scalar(
                     f" -- Some or no parameters for node {node_name} are active"
                 )
             if not all_active:
-                specified_active_param_dict = node_spec_dict["active"]
+                specified_active_param_dict = item["active"]
                 set_active_parameters_for_node(
                     model_param_group,
                     node_name,
@@ -242,13 +255,17 @@ def get_obs_from_ert_config(obs_data_from_ert_config):
 def define_obs_group(
     local_config,
     obs_group_name,
-    obs_groups_spec,
+    obs_groups_list,
     ert_obs_node_list,
 ):
     # Create new obs group
     obs_group = local_config.createObsdata(obs_group_name)
-    obs_group_spec = obs_groups_spec[obs_group_name]
-    obs_nodes_list = obs_group_spec["nodes"]
+    obs_group_item = get_list_item_name(obs_group_name, obs_groups_list)
+    if obs_group_item is None:
+        raise ValueError(
+            f"Observation group {obs_group_name} " "is not found in 'obs_groups'"
+        )
+    obs_nodes_list = obs_group_item["nodes"]
     for obs_node_name in obs_nodes_list:
         debug_print(f" -- Add node: {obs_node_name} in  group: {obs_group_name}")
 
@@ -262,16 +279,21 @@ def define_obs_group(
     return obs_group
 
 
-def remove_obs_groups(all_obs_groups, mini_steps_spec, obs_groups_spec):
+def remove_obs_groups(all_obs_groups, mini_step_list, obs_groups_list):
     """
     Remove all obs_groups containing nodes that have some or all model parameters
     not to be correlated to any model parameter group
     """
     removed_node_name_list = []
-    for mini_step_name, mini_step_spec in mini_steps_spec.items():
-        obs_group_name = mini_step_spec["obs_group"]
-        obs_group_spec = obs_groups_spec[obs_group_name]
-        obs_nodes_list = obs_group_spec["nodes"]
+    for ministep_item in mini_step_list:
+        obs_group_name = ministep_item["obs_group"]
+        obs_group_item = get_list_item_name(obs_group_name, obs_groups_list)
+        if obs_group_item is None:
+            raise ValueError(
+                f"Observation group {obs_group_name} is not defined in 'obs_groups'"
+            )
+
+        obs_nodes_list = obs_group_item["nodes"]
         for obs_node_name in obs_nodes_list:
             if obs_node_name not in removed_node_name_list:
                 debug_print(
@@ -305,14 +327,15 @@ def localisation_setup_add_correlations(
     updatestep = local_config.getUpdatestep()
 
     # Loop over all mini step specifications and setup the ministeps
-    mini_steps_spec = all_kw["add_correlations"]
-    model_param_groups_spec = all_kw["model_param_groups"]
-    obs_groups_spec = all_kw["obs_groups"]
+    mini_step_list = all_kw["add_correlations"]
+    model_param_group_list = all_kw["model_param_groups"]
+    obs_groups_list = all_kw["obs_groups"]
     model_param_group_used = {}
     obs_group_used = {}
-    for mini_step_name, mini_step_specs in mini_steps_spec.items():
-        model_group_name = mini_step_specs["model_group"]
-        obs_group_name = mini_step_specs["obs_group"]
+    for ministep_item in mini_step_list:
+        mini_step_name = ministep_item["name"]
+        model_group_name = ministep_item["model_group"]
+        obs_group_name = ministep_item["obs_group"]
         debug_print(
             f" -- Get specification of ministep: {mini_step_name}\n"
             f" -- Use model group:  {model_group_name}  and obs group: "
@@ -322,17 +345,24 @@ def localisation_setup_add_correlations(
         # Define model_group
         model_param_group = None
         if model_group_name not in model_param_group_used.keys():
-            model_param_group_spec = model_param_groups_spec[model_group_name]
-            group_type = model_param_group_spec["type"]
+            model_param_group_item = get_list_item_name(
+                model_group_name, model_param_group_list
+            )
+            if model_param_group_item is None:
+                raise ValueError(
+                    f"Model parameter group {model_group_name} "
+                    "is not defined in 'model_param_groups'"
+                )
+            group_type = model_param_group_item["type"]
             if group_type == "Scalar":
-                node_names_for_group = model_param_group_spec["nodes"]
+                node_names_for_group_list = model_param_group_item["nodes"]
                 # model_param_group is assigned the specified nodes and
                 # parameters for each node is set active or inactive
                 model_param_group, new_model_group_name = initialize_model_group_scalar(
                     local_config,
                     model_group_name,
                     mini_step_name,
-                    node_names_for_group,
+                    node_names_for_group_list,
                     defined_scalar_parameter_nodes,
                     remove_nodes=False,
                 )
@@ -347,7 +377,7 @@ def localisation_setup_add_correlations(
         # Define obs group
         if obs_group_name not in obs_group_used.keys():
             obs_group = define_obs_group(
-                local_config, obs_group_name, obs_groups_spec, defined_ert_obs_list
+                local_config, obs_group_name, obs_groups_list, defined_ert_obs_list
             )
             obs_group_used[obs_group_name] = obs_group
         else:
@@ -395,15 +425,16 @@ def localisation_setup_remove_correlations(
 
     # Loop over all correlations to be removed and create a list of the
     # observation nodes
-    mini_steps_spec = all_kw["remove_correlations"]
-    model_param_groups_spec = all_kw["model_param_groups"]
-    obs_groups_spec = all_kw["obs_groups"]
+    mini_step_list = all_kw["remove_correlations"]
+    model_param_group_list = all_kw["model_param_groups"]
+    obs_groups_list = all_kw["obs_groups"]
     model_param_group_used = {}
     inverted_model_group_name = {}
     obs_group_used = {}
-    for mini_step_name, mini_step_spec in mini_steps_spec.items():
-        model_group_name = mini_step_spec["model_group"]
-        obs_group_name = mini_step_spec["obs_group"]
+    for ministep_item in mini_step_list:
+        mini_step_name = ministep_item["name"]
+        model_group_name = ministep_item["model_group"]
+        obs_group_name = ministep_item["obs_group"]
         debug_print(
             f"\n -- Get specification of correlation to remove: {mini_step_name}\n"
             f" -- Use model group:  {model_group_name}  and obs group: "
@@ -413,17 +444,24 @@ def localisation_setup_remove_correlations(
         # Define model_group to correlate with obs group
         model_param_group = None
         if model_group_name not in model_param_group_used.keys():
-            model_param_group_spec = model_param_groups_spec[model_group_name]
-            group_type = model_param_group_spec["type"]
+            model_param_group_item = get_list_item_name(
+                model_group_name, model_param_group_list
+            )
+            if model_param_group_item is None:
+                raise ValueError(
+                    f"Model parameter group {model_group_name} "
+                    "is not defined in 'model_param_groups'"
+                )
+            group_type = model_param_group_item["type"]
             if group_type == "Scalar":
-                node_names_for_group = model_param_group_spec["nodes"]
+                node_names_for_group_list = model_param_group_item["nodes"]
                 # model_param_group is assigned the specified nodes and
                 # parameters for each node is set active or inactive
                 model_param_group, new_model_group_name = initialize_model_group_scalar(
                     local_config,
                     model_group_name,
                     mini_step_name,
-                    node_names_for_group,
+                    node_names_for_group_list,
                     defined_scalar_parameter_nodes,
                     remove_nodes=True,
                 )
@@ -444,7 +482,7 @@ def localisation_setup_remove_correlations(
             obs_group = define_obs_group(
                 local_config,
                 obs_group_name,
-                obs_groups_spec,
+                obs_groups_list,
                 defined_ert_obs_list,
             )
             obs_group_used[obs_group_name] = obs_group
@@ -469,7 +507,7 @@ def localisation_setup_remove_correlations(
 
     # Remove all obs_groups containing nodes that have some or all model parameters
     # not to be correlated to any model parameter group
-    remove_obs_groups(all_obs_groups, mini_steps_spec, obs_groups_spec)
+    remove_obs_groups(all_obs_groups, mini_step_list, obs_groups_list)
 
     # Define mini step object to correlate all model parameters with all obs that is not
     # specified to have no correlations with model parameters
