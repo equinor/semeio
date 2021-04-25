@@ -113,8 +113,10 @@ def set_active_parameters_for_node(
     """
     Go through the list of specified parameter names for this node,
     check that it is defined and set the parameters active or inactive.
-    There are two modes, normal and inverse where normal means
-    whether it is active or not.
+    There are two modes, normal where invert_active = False
+    and inverse mode where invert_active = True. Normal node is
+    used when adding active correlations and inverse mode
+    when removing active correlations.
     """
     active_param_list = model_group.getActiveList(node_name)
     defined_parameter_names = defined_scalar_parameter_nodes[node_name]
@@ -306,10 +308,10 @@ def remove_obs_groups(all_obs_groups, mini_step_list, obs_groups_list):
 
 def create_ministep(local_config, mini_step_name, model_group, obs_group, updatestep):
     ministep = local_config.createMinistep(mini_step_name)
-    debug_print(f" -- Attach {model_group.name()} to {mini_step_name}")
+    debug_print(f" -- Attach {model_group.name()} to ministep {mini_step_name}")
     ministep.attachDataset(model_group)
 
-    debug_print(f" -- Attach {obs_group.name()} to {mini_step_name}")
+    debug_print(f" -- Attach {obs_group.name()} to ministep {mini_step_name}")
     ministep.attachObsset(obs_group)
 
     debug_print(f" -- Add {mini_step_name} to update step\n")
@@ -389,7 +391,7 @@ def localisation_setup_add_correlations(
         )
 
 
-def localisation_setup_remove_correlations(
+def localisation_setup_remove_correlations_old_and_wrong_version(
     ert, all_kw, defined_scalar_parameter_nodes, defined_ert_obs_list
 ):
     """
@@ -437,7 +439,7 @@ def localisation_setup_remove_correlations(
         obs_group_name = ministep_item["obs_group"]
         debug_print(
             f"\n -- Get specification of correlation to remove: {mini_step_name}\n"
-            f" -- Use model group:  {model_group_name}  and obs group: "
+            f" -- Remove correlation between:  {model_group_name}  and "
             f"{obs_group_name}"
         )
 
@@ -518,6 +520,221 @@ def localisation_setup_remove_correlations(
         )
     else:
         debug_print(" -- No observations are correlated to all model parameters")
+
+
+def get_obs_groups_with_reduced_correlations(remove_correlation_spec):
+    """
+    Loop over all correlations specified to be removed.
+    Find which observation groups don't have correlations to all
+    model parameter groups, but only to some or no model parameter groups.
+    Return a dictionary with observation group name as key and a list of
+    model parameter groups the observation group is not or only parly correlated to.
+    """
+    remove_correlation_dict = {}
+    for item in remove_correlation_spec:
+        correlation_name = item["name"]
+        model_group_name = item["model_group"]
+        obs_group_name = item["obs_group"]
+        debug_print(
+            f"\n -- Get specification of correlation to remove: {correlation_name}\n"
+            f" -- Use model group:  {model_group_name}  and obs group: "
+            f"{obs_group_name}"
+        )
+        list_of_model_groups_per_obs_group = []
+        if obs_group_name in remove_correlation_dict.keys():
+            list_of_model_groups_per_obs_group = remove_correlation_dict[obs_group_name]
+            list_of_model_groups_per_obs_group.append(model_group_name)
+        else:
+            list_of_model_groups_per_obs_group.append(model_group_name)
+            remove_correlation_dict[obs_group_name] = list_of_model_groups_per_obs_group
+    return remove_correlation_dict
+
+
+def create_ministep_for_obs_and_model_groups_with_full_correlation(
+    remove_correlation_spec, obs_groups_list, local_config, updatestep
+):
+    """
+    All observation groups that have correlations to all model parameters are
+    defined as one observation group. This observation group is attached to a ministep
+    together with a model parameter group containing all model parameters.
+    These observations are all the observations not specified in
+    keyword 'remove_correlations' but specified in 'obs_groups'.
+    """
+    all_obs_groups_name = "ALL_OBS_GROUPS"
+    debug_print(f" -- Create obs group {all_obs_groups_name} with all obs nodes")
+    all_obs_groups = local_config.copyObsdata("ALL_OBS", all_obs_groups_name)
+
+    all_model_groups_name = "ALL_MODEL_GROUPS"
+    debug_print(
+        f" -- Create model group  {all_model_groups_name} "
+        f"with all model parameter nodes"
+    )
+    all_model_groups = local_config.copyDataset("ALL_DATA", all_model_groups_name)
+
+    # Remove all obs_groups containing nodes that have some or all model parameters
+    # not to be correlated to any model parameter group
+    remove_obs_groups(all_obs_groups, remove_correlation_spec, obs_groups_list)
+
+    # Define mini step object to correlate all model parameters with all obs that is not
+    # specified to have no correlations with model parameters
+    if len(all_obs_groups) > 0:
+        mini_step_name = "ALL_CORRELATION_REDUCED"
+        create_ministep(
+            local_config, mini_step_name, all_model_groups, all_obs_groups, updatestep
+        )
+    else:
+        debug_print(" -- No observations are correlated to all model parameters")
+
+
+def localisation_setup_remove_correlations(
+    ert, all_kw, defined_scalar_parameter_nodes, defined_ert_obs_list
+):
+    """
+     In this case the specification in keyword 'remove_correlations' is interpreted
+     as correlations to remove.
+     Algorithm:
+     1. Find all observation groups that are specified not to be correlated with some
+         or all model parameter groups.
+     2. For each such observation group, find all model parameter groups that are
+         specified not to be correlated with the observation group and make a
+         dictionary with observation group as key and a list of model parameter group
+         names as the value.
+     3. For each observation group look up and get the list of model parameter groups
+     4.    Create a model parameter group ALL_MODEL_GROUPS as copy
+            of ALL_DATA containing all model parameter nodes.
+     5.    For each model parameter group in the list,
+            get the list of model parameter nodes
+     6.       For each model parameter node in the model parameter group
+     7.            Delete the node from the ALL_MODEL_GROUPS
+     8.            Add the node again if not all model parameters in the node
+                    should be disabled from having correlation to the observation group.
+     9.            Set active the model parameters in the node that should be active.
+    10.    Attach the reduced model parameter group ALL_MODEL_GROUPS
+             where the unwanted parameter nodes/variables are disabled or removed
+             to a new ministep.
+    11.    Attach the observation group to the same ministep.
+    12.    Attach the ministep to the updatestep.
+    13. Repeat from step 3 untill a ministep is defined for all observations
+          having correlations with a reduced set of model parameter groups is defined.
+    14. Define an observation group containing all the observations having
+          correlations with all model parameter groups.
+    15.  Attach this observation group to a new ministep.
+    16.  Define a model parameter group containing ALL model parameter groups.
+    17.  Attach this model parametr group to the same ministep.
+    18.  Attach thus new ministep to the update step.
+
+    """
+    local_config = ert.getLocalConfig()
+
+    # Clear all correlations
+    local_config.clear()
+    updatestep = local_config.getUpdatestep()
+
+    remove_correlation_spec = all_kw["remove_correlations"]
+    model_param_group_list = all_kw["model_param_groups"]
+    obs_groups_list = all_kw["obs_groups"]
+
+    # Loop over all correlations to be removed and find the observation groups
+    # that are specified. Create a list of model parameter groups for
+    # each observation group.
+    remove_correlation_dict = get_obs_groups_with_reduced_correlations(
+        remove_correlation_spec
+    )
+
+    # Remove the model parameter nodes from the object containing all nodes
+    ministep_number = 1
+    for obs_group_name, model_group_names in remove_correlation_dict.items():
+        if debug_level > 0:
+            print(
+                f" -- List of model group nodes not to correlate to {obs_group_name}:"
+            )
+            for name in model_group_names:
+                print(f"          {name}")
+
+        # Create a group containing all model parameters
+        all_reduced_name = "ALL_MODEL_GROUPS_NOT_CORRELATED_WITH_" + obs_group_name
+        debug_print(
+            f" -- Create model group {all_reduced_name} containing "
+            "ALL model parameter"
+        )
+        all_reduced = local_config.copyDataset("ALL_DATA", all_reduced_name)
+        for model_group_name in model_group_names:
+            model_param_group_item = get_list_item_name(
+                model_group_name, model_param_group_list
+            )
+            if model_param_group_item is None:
+                raise ValueError(
+                    f"Model parameter group {model_group_name} "
+                    "is not defined in 'model_param_groups'"
+                )
+            # Get the list of model param nodes for this group
+            group_type = model_param_group_item["type"]
+            node_names_for_group_list = None
+            if group_type == "Scalar":
+                node_names_for_group_list = model_param_group_item["nodes"]
+            else:
+                raise ValueError("Nodes that are not scalars are not yet implemented")
+
+            # Remove the node from the model param group with all
+            # model parameter nodes
+            for item in node_names_for_group_list:
+                # Check that it is defined in ERT
+                node_name = item["name"]
+                if node_name not in defined_scalar_parameter_nodes.keys():
+                    raise ValueError(
+                        f"The node with name: {node_name}  found under "
+                        f"model param group {model_group_name}\n"
+                        f"is  not defined in keyword: 'defined_scalar_parameters' "
+                    )
+                debug_print(f" -- Remove node {node_name} from {all_reduced_name}")
+                del all_reduced[node_name]
+                all_active = item["all_active"]
+                if all_active:
+                    # This means that all model parameters for this node should be
+                    # removed from correlation. Nothing more to do here
+                    pass
+                else:
+                    # Only a sub set of all model parameters for this node should be
+                    # removed from correlation
+                    debug_print(
+                        f" -- Add node {node_name} with selected active "
+                        f"parameters to {all_reduced_name}"
+                    )
+                    all_reduced.addNode(node_name)
+                    specified_active_param_dict = item["active"]
+                    set_active_parameters_for_node(
+                        all_reduced,
+                        node_name,
+                        specified_active_param_dict,
+                        defined_scalar_parameter_nodes,
+                        invert_active=True,
+                    )
+
+        model_param_group = all_reduced
+
+        # Define obs group
+        obs_group = define_obs_group(
+            local_config,
+            obs_group_name,
+            obs_groups_list,
+            defined_ert_obs_list,
+        )
+
+        # Define mini step object
+        mini_step_name = "CORRELATION_" + str(ministep_number)
+        create_ministep(
+            local_config, mini_step_name, model_param_group, obs_group, updatestep
+        )
+        ministep_number = ministep_number + 1
+
+    # All observation groups that have correlations to all model parameters are
+    # defined as one observation group. This observation group is attached to a ministep
+    # together with a model parameter group containing all model parameters.
+    # These observations are all the observations not specified in
+    # keyword 'remove_correlations' but specified in 'obs_groups'.
+    create_ministep_for_obs_and_model_groups_with_full_correlation(
+        remove_correlation_spec, obs_groups_list, local_config, updatestep
+    )
 
 
 class LocalisationConfigJob(ErtScript):
