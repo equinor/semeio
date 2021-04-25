@@ -11,7 +11,7 @@
 -----------------------------------------------------|
 JOBNAME scalar_local_%d
 DEFINE  <USER>            $USER
-DEFINE  <SCRATCH>         /scratch/fmu
+DEFINE  <SCRATCH>         scratch
 DEFINE  <CASE_DIR>        scalar_local
 
 ----------------------------------------------------
@@ -33,13 +33,13 @@ MAX_RUNTIME         1800                     -- Maximum allowed run time (in sec
 MIN_REALIZATIONS    5                      -- Minimum number of realizations that must have succeeded for /
                                                                  -- the ensemble to be regarded a success
 
-QUEUE_SYSTEM        LOCAL
-QUEUE_OPTION        LOCAL MAX_RUNNING 8
+-- QUEUE_SYSTEM        LOCAL
+-- QUEUE_OPTION        LOCAL MAX_RUNNING 8
 
--- QUEUE_SYSTEM  LSF                     -- Use the LSF cluster to run simulations
--- QUEUE_OPTION  LSF   LSF_SERVER   $ERT_LSF_SERVER
--- QUEUE_OPTION  LSF   LSF_QUEUE     mr   -- Use Redhat 7 queue for RMS12
--- QUEUE_OPTION  LSF   MAX_RUNNING 100     -- Choke the number of simultaneous run
+QUEUE_SYSTEM  LSF                     -- Use the LSF cluster to run simulations
+QUEUE_OPTION  LSF   LSF_SERVER   $ERT_LSF_SERVER
+QUEUE_OPTION  LSF   LSF_QUEUE     mr   -- Use Redhat 7 queue for RMS12
+QUEUE_OPTION  LSF   MAX_RUNNING 100     -- Choke the number of simultaneous run
 MAX_SUBMIT          1                       -- How many times should the queue system retry failed /
                                                            -- simulations. Default = 2 (use 1 when debugging)
 
@@ -47,32 +47,33 @@ MAX_SUBMIT          1                       -- How many times should the queue s
 -----------------------------------------------------
 -- SECTION: Install jobs and workflows needed
 -----------------------------------------------------
--- LOAD_WORKFLOW_JOB  local_config_job LOCALISATION_JOB
-LOAD_WORKFLOW          local_config_workflow_add LOCALISATION_WORKFLOW
+-- LOAD_WORKFLOW          local_config_workflow_add LOCALISATION_WORKFLOW
 -- LOAD_WORKFLOW          local_config_workflow_remove LOCALISATION_WORKFLOW
+LOAD_WORKFLOW          local_config_workflow_remove_2 LOCALISATION_WORKFLOW
+-- LOAD_WORKFLOW          local_config_workflow_add_2 LOCALISATION_WORKFLOW
 HOOK_WORKFLOW         LOCALISATION_WORKFLOW  PRE_FIRST_UPDATE
 
 INSTALL_JOB EVALUATE_SCALAR evaluate_scalar_job
--- PARAM1 and PARAM3 has effect on RESULT_1
--- PARAM2 and PARAM3 has effect on RESULT_2
--- PARAM1B and PARAM3 has effect on RESULT_1B
--- PARAM2B and PARAM3 has effect on RESULT_2B
+-- MULTX1 and PERM has effect on RESULT_X
+-- MULTY1 and PERM has effect on RESULT_Y
+-- MULTX2 and PERM has effect on RESULT2_X
+-- MULTY2 and PERM has effect on RESULT2_Y
 
 
-GEN_KW PARAM1      param1.tmpl   param1.dat   param1.dist
-GEN_KW PARAM2      param2.tmpl   param2.dat   param2.dist
-GEN_KW PARAM3      param3.tmpl   param3.dat   param3.dist
+GEN_KW MULTX1      multx1.tmpl   multx1.dat   multx1.dist
+GEN_KW MULTY1      multy1.tmpl   multy1.dat   multy1.dist
+GEN_KW PERM           perm.tmpl   perm.dat     perm.dist
 
-GEN_KW PARAM1B      param1b.tmpl   param1b.dat   param1b.dist
-GEN_KW PARAM2B      param2b.tmpl   param2b.dat   param2b.dist
+GEN_KW MULTX2      multx2.tmpl   multx2.dat   multx2.dist
+GEN_KW MULTY2      multy2.tmpl   multy2.dat   multy2.dist
 
 
 FORWARD_MODEL EVALUATE_SCALAR
 
 
-GEN_DATA RESULT_1      RESULT_FILE:RESULT_1_%d.dat    REPORT_STEPS:0 INPUT_FORMAT:ASCII OUTPUT_FORMAT:ASCII
-GEN_DATA RESULT_2      RESULT_FILE:RESULT_2_%d.dat    REPORT_STEPS:0 INPUT_FORMAT:ASCII OUTPUT_FORMAT:ASCII
-GEN_DATA RESULT_1B   RESULT_FILE:RESULT_1b_%d.dat    REPORT_STEPS:0 INPUT_FORMAT:ASCII OUTPUT_FORMAT:ASCII
-GEN_DATA RESULT_2B   RESULT_FILE:RESULT_2b_%d.dat    REPORT_STEPS:0 INPUT_FORMAT:ASCII OUTPUT_FORMAT:ASCII
+GEN_DATA RESULT_X      RESULT_FILE:RESULT_X_%d.dat    REPORT_STEPS:0 INPUT_FORMAT:ASCII OUTPUT_FORMAT:ASCII
+GEN_DATA RESULT_Y      RESULT_FILE:RESULT_Y_%d.dat    REPORT_STEPS:0 INPUT_FORMAT:ASCII OUTPUT_FORMAT:ASCII
+GEN_DATA RESULT2_X   RESULT_FILE:RESULT2_X_%d.dat    REPORT_STEPS:0 INPUT_FORMAT:ASCII OUTPUT_FORMAT:ASCII
+GEN_DATA RESULT2_Y   RESULT_FILE:RESULT2_Y_%d.dat    REPORT_STEPS:0 INPUT_FORMAT:ASCII OUTPUT_FORMAT:ASCII
 OBS_CONFIG  observations/observations.txt
 TIME_MAP time_map.txt

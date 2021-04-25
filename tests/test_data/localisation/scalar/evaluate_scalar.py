@@ -98,7 +98,7 @@ def read_perm(filename, nx, ny):
 
 
 def arithmetic_harmonic_upscaling(perm, multx, multy, nx, ny, direction):
-    if direction == "x":
+    if direction.upper() == "X":
         sum_inv_avg_col = 0.0
         for n in range(nx):
             sumcol = 0.0
@@ -133,36 +133,36 @@ def run():
     ny = 3
 
     # Get values for multx (3 values)
-    param_file = "param1.dat"
+    param_file = "multx1.dat"
     multx = read_mult_values(param_file, nx)
     print(f" -- MULTX: {multx}")
 
     # Get values for multy (3 values)
-    param_file = "param2.dat"
+    param_file = "multy1.dat"
     multy = read_mult_values(param_file, ny)
     print(f" -- MULTY: {multy}")
 
     # Get values for multx2 (3 values)
-    param_file = "param1b.dat"
+    param_file = "multx2.dat"
     multx2 = read_mult_values(param_file, nx)
     print(f" -- MULTX2: {multx2}")
 
     # Get values for multy2 (3 values)
-    param_file = "param2b.dat"
+    param_file = "multy2.dat"
     multy2 = read_mult_values(param_file, ny)
     print(f" -- MULTY2: {multy2}")
 
     # Get values for perm (3x3 values)
-    param_file = "param3.dat"
+    param_file = "perm.dat"
     perm = read_perm(param_file, nx, ny)
     print(f" -- PERM:\n {perm[:, :]}")
 
     # Calculate response variables (predictions of the observations
     # ArithmeticHarmonic upscaling of 3x3 grid with perm values andmultx and multy
-    upscaledx1 = arithmetic_harmonic_upscaling(perm, multx, multy, nx, ny, "x")
-    upscaledx2 = arithmetic_harmonic_upscaling(perm, multx2, multy2, nx, ny, "x")
-    upscaledy1 = arithmetic_harmonic_upscaling(perm, multx, multy, nx, ny, "y")
-    upscaledy2 = arithmetic_harmonic_upscaling(perm, multx2, multy2, nx, ny, "y")
+    upscaledx1 = arithmetic_harmonic_upscaling(perm, multx, multy, nx, ny, "X")
+    upscaledy1 = arithmetic_harmonic_upscaling(perm, multx, multy, nx, ny, "Y")
+    upscaledx2 = arithmetic_harmonic_upscaling(perm, multx2, multy2, nx, ny, "X")
+    upscaledy2 = arithmetic_harmonic_upscaling(perm, multx2, multy2, nx, ny, "Y")
 
     print(f"Upscaled x direction for case1: {upscaledx1}")
     print(f"Upscaled y direction for case1: {upscaledy1}")
@@ -170,16 +170,16 @@ def run():
     print(f"Upscaled y direction for case2: {upscaledy2}")
 
     # Write file with upscaled values
-    resultfile = "RESULT_1_0.dat"
+    resultfile = "RESULT_X_0.dat"
     write_result(resultfile, upscaledx1)
 
-    resultfile = "RESULT_2_0.dat"
+    resultfile = "RESULT_Y_0.dat"
     write_result(resultfile, upscaledy1)
 
-    resultfile = "RESULT_1b_0.dat"
+    resultfile = "RESULT2_X_0.dat"
     write_result(resultfile, upscaledx2)
 
-    resultfile = "RESULT_2b_0.dat"
+    resultfile = "RESULT2_Y_0.dat"
     write_result(resultfile, upscaledy2)
 
 
