@@ -28,7 +28,7 @@ RUNPATH_FILE            output/run_path_file/.ert-runpath-list_<CASE_DIR>  -- Re
 -- SECTION: LSF settings, HM configuration etc.
 -----------------------------------------------------
 
-NUM_REALIZATIONS    100                  -- Number of realizations to run
+NUM_REALIZATIONS    1000                  -- Number of realizations to run
 MAX_RUNTIME         1800                     -- Maximum allowed run time (in seconds)
 MIN_REALIZATIONS    5                      -- Minimum number of realizations that must have succeeded for /
                                                                  -- the ensemble to be regarded a success
@@ -49,9 +49,11 @@ MAX_SUBMIT          1                       -- How many times should the queue s
 -----------------------------------------------------
 -- LOAD_WORKFLOW          local_config_workflow_add LOCALISATION_WORKFLOW
 -- LOAD_WORKFLOW          local_config_workflow_remove LOCALISATION_WORKFLOW
-LOAD_WORKFLOW          local_config_workflow_remove_2 LOCALISATION_WORKFLOW
--- LOAD_WORKFLOW          local_config_workflow_add_2 LOCALISATION_WORKFLOW
-HOOK_WORKFLOW         LOCALISATION_WORKFLOW  PRE_FIRST_UPDATE
+-- LOAD_WORKFLOW          local_config_workflow_remove_2 LOCALISATION_WORKFLOW
+-- LOAD_WORKFLOW          local_config_workflow_remove_3 LOCALISATION_WORKFLOW
+LOAD_WORKFLOW          local_config_workflow_add_2 LOCALISATION_WORKFLOW
+-- LOAD_WORKFLOW          local_config_workflow_add_3 LOCALISATION_WORKFLOW
+-- HOOK_WORKFLOW         LOCALISATION_WORKFLOW  PRE_FIRST_UPDATE
 
 INSTALL_JOB EVALUATE_SCALAR evaluate_scalar_job
 -- MULTX1 and PERM has effect on RESULT_X
