@@ -1,0 +1,159 @@
+# localisation configuration file
+# Specification:
+# Specify one or more ministeps which define what model parameter group and observation
+# group to couple together so that they can be correlated.  All combinations of observations
+# and model parameters that are not specified by a ministep will per definition be uncorrelated.
+# A model parameter group consists of one or more model parameter nodes.
+# It is best that these model parameter nodes are of the same type and create different model
+# parameter groups for different model parameter node types.
+# A model parameter node consists of one or more model parameters.
+# An observation group consists of one or more observation nodes.
+# An observation node consists of one or more observations.
+#
+# Localisation is specified by only including pairs of observation groups and model parameter groups
+# that should be correlated. Reduced correlation can be introduced for such pairs of observation groups
+# and model parameter groups by using the row_scaling function for a model parameter node
+# when this node belongs to a model parameter group that is coupled to an observation group.
+# In order to be able to specify different correlation reduction factors between a model parameter node
+# and two or more different observation nodes, it is necessary to specify a new version of the
+# model parameter group for each of the observation nodes where each new version of the model parameter group
+# has a model parameter node with an different scaling factor defined by the row_scaling function.
+
+# Description of configuration file:
+# Name of model parameter groups or observation groups are specified with UPPER CASE letters.
+# Name of model parameter nodes or observation nodes must be identical to the names used in the ERT config file.
+# Keywords are specified with lower case letters and are predefined reserved words with specific meaning.
+# No user specified names should use names equal to a keyword not to make confusion for the user.
+# Note the indentations which are important as usual in YAML formatted files!'
+# About the keywords:
+#     "add_correlations"   or  alternatively   "remove_correlations"   define correlations to include or exclude.
+#     This keyword define the ministep objects in the python code
+#     "defined_scalar_parameters" specify the name of the ERT ID (names) of model parameter nodes.
+#     and associated distribution files where the individual model parameters for the nodes are specified.
+#     "config_path"  specify the path to where the FMU project is located in the same way as in ERT config files.
+#     "model_param_groups" specify groups of model parameters nodes, type of node (scalar, field,..),
+#     and which model parameters are active or not in each node. Note that model parameter nodes must be defined
+#     in the keyword "defined_scalar_parameters" when working with scalar parameter nodes. They will also be
+#     checked to be consistent with the ERT configuration. For scalar parameter type, the user specify if
+#     all or only a subset of all model parameter of a node is to be defined as active and used.
+#     "obs_groups" specify observation groups of observation nodes.
+#     Observation nodes will be checked to be consistent with the ERT configuration.
+#
+# About the "remove_correlations" keyword that can be specified as an alternative to "add_correlations":
+#     Either "add_correlations" or "remove_correlations" can be specified, not both.
+#     The "add_correlations" is used when the user wants to start with no active correlations and add or enable correlations.
+#     For each specified correlation in add_correlation a ministep is created and added to the updatestep in the
+#     python localisation configuration script that read this localisation configuration file.
+#     For each specified correlation in remove_correlation the effect is the opposite. In this case all correlations are enabled
+#     from the beginning as if no localisation is specified at all. Each specified correlation group specified in teh "remove_correlations"
+#     keyword is interpreted as correlations to be removed. Note that this means in particular that model parameters
+#     belonging to nodes belonging to model parameter groups also here can be specified to be active or inactive.
+#     Here INACTIVE means the model parameter should NOT be removed while the model parameters specified as active
+#     should be removed. So here it is important to specify at least all the model parameters that are inactive
+#     since the default will be (if not specified), that they are active and will be removed from correlations.
+
+localisation:
+  config_path: './'
+
+  remove_correlations:
+    - name: NOT_CORRELATE_1
+      obs_group: OBS_GROUP_X1
+      model_group: PARAM_GROUP_MULT_Y1
+    - name: NOT_CORRELATE_2
+      obs_group: OBS_GROUP_X1
+      model_group: PARAM_GROUP_MULT_X2
+    - name: NOT_CORRELATE_3
+      obs_group: OBS_GROUP_X1
+      model_group: PARAM_GROUP_MULT_Y2
+
+    - name: NOT_CORRELATE_4
+      obs_group: OBS_GROUP_Y1
+      model_group: PARAM_GROUP_MULT_X1
+    - name: NOT_CORRELATE_5
+      obs_group: OBS_GROUP_Y1
+      model_group: PARAM_GROUP_MULT_X2
+    - name: NOT_CORRELATE_6
+      obs_group: OBS_GROUP_Y1
+      model_group: PARAM_GROUP_MULT_Y2
+
+    - name: NOT_CORRELATE_7
+      obs_group: OBS_GROUP_X2
+      model_group: PARAM_GROUP_MULT_Y2
+    - name: NOT_CORRELATE_8
+      obs_group: OBS_GROUP_X2
+      model_group: PARAM_GROUP_MULT_X1
+    - name: NOT_CORRELATE_9
+      obs_group: OBS_GROUP_X2
+      model_group: PARAM_GROUP_MULT_Y1
+
+    - name: NOT_CORRELATE_10
+      obs_group: OBS_GROUP_Y2
+      model_group: PARAM_GROUP_MULT_X2
+    - name: NOT_CORRELATE_11
+      obs_group: OBS_GROUP_Y2
+      model_group: PARAM_GROUP_MULT_X1
+    - name: NOT_CORRELATE_12
+      obs_group: OBS_GROUP_Y2
+      model_group: PARAM_GROUP_MULT_Y1
+
+
+  defined_scalar_parameters:
+    - name: MULTX1
+      parameter_distribution_file: multx1.dist
+    - name: MULTY1
+      parameter_distribution_file: multy1.dist
+    - name: PERM
+      parameter_distribution_file: perm.dist
+    - name: MULTX2
+      parameter_distribution_file: multx2.dist
+    - name: MULTY2
+      parameter_distribution_file: multy2.dist
+
+
+  model_param_groups:
+    - name: PARAM_GROUP_MULT_X1
+      type: Scalar
+      nodes:
+        - name: MULTX1
+          all_active: YES
+
+    - name: PARAM_GROUP_MULT_Y1
+      type: Scalar
+      nodes:
+        - name: MULTY1
+          all_active: YES
+
+    - name: PARAM_GROUP_PERM
+      type: Scalar
+      nodes:
+        - name: PERM
+          all_active: YES
+
+    - name: PARAM_GROUP_MULT_X2
+      type: Scalar
+      nodes:
+        - name: MULTX2
+          all_active: YES
+
+    - name: PARAM_GROUP_MULT_Y2
+      type: Scalar
+      nodes:
+        - name: MULTY2
+          all_active: YES
+
+  obs_groups:
+    - name: OBS_GROUP_X1
+      nodes:
+        - OBS_NODE_X1
+
+    - name: OBS_GROUP_Y1
+      nodes:
+        - OBS_NODE_Y1
+
+    - name: OBS_GROUP_X2
+      nodes:
+        - OBS_NODE_X2
+
+    - name: OBS_GROUP_Y2
+      nodes:
+        - OBS_NODE_Y2
