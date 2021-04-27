@@ -74,7 +74,7 @@ Three optional inputs can be given:
 EXAMPLES = """
 Example:
 --------
-Add a file named e.g. :code:`ert/bin/workflows/AHM_ANALYSIS` with the contents:
+Add a file named e.g. :code:`AHM_ANALYSIS` with the contents:
 
 ::
 
@@ -82,7 +82,7 @@ Add a file named e.g. :code:`ert/bin/workflows/AHM_ANALYSIS` with the contents:
 
 then all optional inputs have default values
 (:code:`target_name="analysis_case"`, prior_name is from current case selected
-in teh ERT GUI and :code:`group_by="data_key"` (list of observations as listed
+in the ERT GUI and :code:`group_by="data_key"` (list of observations as listed
 in the ERT GUI Configuration summary part))
 
 Add to your ERT config to have the workflow available for execution through Run
@@ -90,8 +90,8 @@ Workflow button on ERT GUI
 
 ::
 
-          --Perform the AHM analysis LOAD_WORKFLOW
-          ../bin/workflows/AHM_ANALYSIS
+          --Perform the AHM analysis
+          LOAD_WORKFLOW AHM_ANALYSIS
 
 
 To use the optional inputs, in the file named
@@ -99,7 +99,7 @@ To use the optional inputs, in the file named
 <ANALYSIS_CASE_NAME> <PRIOR_CASE_NAME> obs_key`
 
 where :code:`<ANALYSIS_CASE_NAME>` and :code:`<PRIOR_CASE_NAME>` are defined in
-the ERT config And add to your ERT config to have the workflow available for
+the ERT config and add to your ERT config to have the workflow available for
 execution through Run Workflow button on ERT GUI
 
 ::
@@ -107,7 +107,7 @@ execution through Run Workflow button on ERT GUI
           --Perform the AHM analysis
           DEFINE <ANALYSIS_CASE_NAME> sens_ahm_analysis
           DEFINE <PRIOR_CASE_NAME> default
-          LOAD_WORKFLOW ../bin/workflows/AHM_ANALYSIS
+          LOAD_WORKFLOW AHM_ANALYSIS
 
 """
 
