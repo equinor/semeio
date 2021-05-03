@@ -84,8 +84,9 @@ def get_defined_scalar_parameters(ert, all_kw):
                 lines = file.readlines()
             for line in lines:
                 words = line.split()
-                parameter_names.append(words[0])
-                node_with_scalar_params[node_name] = parameter_names
+                if len(words) > 0:
+                    parameter_names.append(words[0])
+                    node_with_scalar_params[node_name] = parameter_names
             debug_print(f" -- Parameter names for node {node_name}:")
             for name in parameter_names:
                 debug_print(f"      {name}")
