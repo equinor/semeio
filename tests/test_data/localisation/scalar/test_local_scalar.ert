@@ -53,7 +53,7 @@ MAX_SUBMIT          1                       -- How many times should the queue s
 -- LOAD_WORKFLOW          local_config_workflow_remove_3 LOCALISATION_WORKFLOW
 LOAD_WORKFLOW          local_config_workflow_add_2 LOCALISATION_WORKFLOW
 -- LOAD_WORKFLOW          local_config_workflow_add_3 LOCALISATION_WORKFLOW
--- HOOK_WORKFLOW         LOCALISATION_WORKFLOW  PRE_FIRST_UPDATE
+HOOK_WORKFLOW         LOCALISATION_WORKFLOW  PRE_FIRST_UPDATE
 LOAD_WORKFLOW_JOB  test_list_obs_model_param_job LIST_JOB
 LOAD_WORKFLOW          test_list_obs_model_param_workflow LIST_WORKFLOW
 
