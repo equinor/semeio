@@ -28,14 +28,12 @@
 # About the keywords:
 #     "add_correlations"   or  alternatively   "remove_correlations"   define correlations to include or exclude.
 #     This keyword define the ministep objects in the python code
-#     "defined_scalar_parameters" specify the name of the ERT ID (names) of model parameter nodes.
-#     and associated distribution files where the individual model parameters for the nodes are specified.
 #     "config_path"  specify the path to where the FMU project is located in the same way as in ERT config files.
 #     "model_param_groups" specify groups of model parameters nodes, type of node (scalar, field,..),
 #     and which model parameters are active or not in each node. Note that model parameter nodes must be defined
-#     in the keyword "defined_scalar_parameters" when working with scalar parameter nodes. They will also be
-#     checked to be consistent with the ERT configuration. For scalar parameter type, the user specify if
-#     all or only a subset of all model parameter of a node is to be defined as active and used.
+#     in the ert config file in the GEN_KW keyword when working with scalar parameter nodes.
+#     For scalar parameter type, the user specify if  all or only a subset of all model parameter of a node is
+#     to be defined as active and used.
 #     "obs_groups" specify observation groups of observation nodes.
 #     Observation nodes will be checked to be consistent with the ERT configuration.
 #
@@ -45,7 +43,7 @@
 #     For each specified correlation in add_correlation a ministep is created and added to the updatestep in the
 #     python localisation configuration script that read this localisation configuration file.
 #     For each specified correlation in remove_correlation the effect is the opposite. In this case all correlations are enabled
-#     from the beginning as if no localisation is specified at all. Each specified correlation group specified in teh "remove_correlations"
+#     from the beginning as if no localisation is specified at all. Each specified correlation group specified in the "remove_correlations"
 #     keyword is interpreted as correlations to be removed. Note that this means in particular that model parameters
 #     belonging to nodes belonging to model parameter groups also here can be specified to be active or inactive.
 #     Here INACTIVE means the model parameter should NOT be removed while the model parameters specified as active
@@ -80,20 +78,6 @@ localisation:
     - name: CORRELATION_GROUP4B
       obs_group: OBS_GROUP_2B
       model_group: SCALAR_GROUP_3
-
-
-  defined_scalar_parameters:
-    - name: PARAM1
-      parameter_distribution_file: param1.dist
-    - name: PARAM2
-      parameter_distribution_file: param2.dist
-    - name: PARAM3
-      parameter_distribution_file: param3.dist
-    - name: PARAM1B
-      parameter_distribution_file: param1b.dist
-    - name: PARAM2B
-      parameter_distribution_file: param2b.dist
-
 
   model_param_groups:
     - name: SCALAR_GROUP_1

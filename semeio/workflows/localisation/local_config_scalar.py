@@ -12,6 +12,7 @@ import yaml
 
 # import cwrap
 from res.enkf import ErtScript
+from res.enkf.enums.ert_impl_type_enum import ErtImplType
 
 # from res.enkf import EnkfObs
 # from ecl.grid import EclRegion, EclGrid
@@ -36,7 +37,9 @@ def read_localisation_config(args):
     else:
         raise ValueError(f"Expecting a single argument. Got {args} arguments.")
 
-    debug_print("\n" f"Localisation config file: {specification_file_name}")
+    print(
+        "\n" f"Define localisation setup using config file: {specification_file_name}"
+    )
     with open(specification_file_name, "r") as yml_file:
         localisation_yml = yaml.safe_load(yml_file)
     all_keywords = localisation_yml["localisation"]
@@ -45,53 +48,17 @@ def read_localisation_config(args):
     return all_keywords
 
 
-def get_defined_scalar_parameters(ert, all_kw):
+def get_param_nodes_from_gen_kw(ert):
     ens_config = ert.ensembleConfig()
-    keylist = ens_config.alloc_keylist()
-    debug_print(
-        "\n -- Node names for model parameters and measure data found in "
-        "ERT configuration:"
-    )
-    for node_name in keylist:
-        debug_print(f"      {node_name}")
-    debug_print("\n")
-    key = "defined_scalar_parameters"
-    if key in all_kw.keys():
-        defined_scalar_parameter_names = all_kw[key]
-    else:
-        defined_scalar_parameter_names = None
-
-    node_with_scalar_params = {}
-    if defined_scalar_parameter_names is not None:
-        for item in defined_scalar_parameter_names:
-            node_name = item["name"]
-            # Check if node name specified in localisation config file exist in
-            # ert configuration
-            if node_name not in ens_config:
-                raise ValueError(
-                    f"Node name {node_name} is not defined in ERT config file\n"
-                )
-
-            # Get list of defined parameter names for this node by reading the
-            # distribution file for model parameters for this node
-            file_name = item["parameter_distribution_file"]
-            parameter_names = []
-            debug_print(
-                f" -- Define model parameter node: {node_name}\n"
-                f" -- Read file: {file_name}"
-            )
-            with open(file_name, "r") as file:
-                lines = file.readlines()
-            for line in lines:
-                words = line.split()
-                if len(words) > 0:
-                    parameter_names.append(words[0])
-                    node_with_scalar_params[node_name] = parameter_names
-            debug_print(f" -- Parameter names for node {node_name}:")
-            for name in parameter_names:
-                debug_print(f"      {name}")
-            debug_print("\n")
-    return node_with_scalar_params
+    keylist = ens_config.getKeylistFromImplType(ErtImplType.GEN_KW)
+    parameters_for_node = {}
+    for key in keylist:
+        node = ens_config.getNode(key)
+        impl_type = node.getImplementationType()
+        if impl_type == ErtImplType.GEN_KW:
+            kw_config_model = node.getKeywordModelConfig()
+            parameters_for_node[key] = kw_config_model.getKeyWords()
+    return parameters_for_node
 
 
 def get_list_item_name(name, item_list):
@@ -769,7 +736,14 @@ class LocalisationConfigJob(ErtScript):
         # ERT configuration if it is specified. This is specified by keyword
         # defined_scalar_parameters and the parameter  names are read from
         # the GEN_KW distribution file for the parameters.
-        defined_scalar_parameter_nodes = get_defined_scalar_parameters(ert, all_kw)
+        defined_scalar_parameter_nodes = get_param_nodes_from_gen_kw(ert)
+        debug_print(" -- Parameter nodes from GEN_KW:")
+        for node_name, parameter_list in defined_scalar_parameter_nodes.items():
+            if debug_level > 0:
+                print(f" -- Parameter node: {node_name}")
+                print(" --   Parameter names:")
+                for name in parameter_list:
+                    print(f"           {name}")
 
         # Get list of observation nodes from ERT config to be used in consistency check
         ert_obs = ert.getObservations()
