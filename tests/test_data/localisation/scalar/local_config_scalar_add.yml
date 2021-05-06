@@ -55,92 +55,64 @@ localisation:
 
   add_correlations:
     - name: CORRELATION_GROUP1
-      obs_group: OBS_GROUP_1
-      model_group: SCALAR_GROUP_1
+      obs_group: OBS_GROUP_X1
+      model_group: PARAM_GROUP_MULT_X1
     - name: CORRELATION_GROUP2
-      obs_group: OBS_GROUP_2
-      model_group: SCALAR_GROUP_2
+      obs_group: OBS_GROUP_Y1
+      model_group: PARAM_GROUP_MULT_Y1
     - name: CORRELATION_GROUP3
-      obs_group: OBS_GROUP_1
-      model_group: SCALAR_GROUP_3
+      obs_group: OBS_GROUP_X1
+      model_group: PARAM_GROUP_PERM
     - name: CORRELATION_GROUP4
-      obs_group: OBS_GROUP_2
-      model_group: SCALAR_GROUP_3
-    - name: CORRELATION_GROUP1B
-      obs_group: OBS_GROUP_1B
-      model_group: SCALAR_GROUP_1B
-    - name: CORRELATION_GROUP2B
-      obs_group: OBS_GROUP_2B
-      model_group: SCALAR_GROUP_2B
-    - name: CORRELATION_GROUP3B
-      obs_group: OBS_GROUP_1B
-      model_group: SCALAR_GROUP_3
-    - name: CORRELATION_GROUP4B
-      obs_group: OBS_GROUP_2B
-      model_group: SCALAR_GROUP_3
+      obs_group: OBS_GROUP_Y1
+      model_group: PARAM_GROUP_PERM
 
   model_param_groups:
-    - name: SCALAR_GROUP_1
+    - name: PARAM_GROUP_MULT_X1
       type: Scalar
       nodes:
-        - name: PARAM1
-          all_active: NO
-          active:
-            KW1_NAME1:  ON
-            KW1_NAME2:  OFF
-            KW1_NAME3:  ON
-
-    - name: SCALAR_GROUP_2
-      type: Scalar
-      nodes:
-        - name: PARAM2
-          all_active: NO
-          active:
-            KW2_NAME1:  ON
-            KW2_NAME2:  OFF
-            KW2_NAME3:  ON
-
-
-    - name: SCALAR_GROUP_3
-      type: Scalar
-      nodes:
-        - name: PARAM3
+        - name: MULTX1
           all_active: YES
 
-    - name: SCALAR_GROUP_1B
+    - name: PARAM_GROUP_MULT_Y1
       type: Scalar
       nodes:
-        - name: PARAM1B
-          all_active: NO
-          active:
-            KW1B_NAME1:  ON
-            KW1B_NAME2:  OFF
-            KW1B_NAME3:  ON
+        - name: MULTY1
+          all_active: YES
 
-    - name: SCALAR_GROUP_2B
+
+    - name: PARAM_GROUP_PERM
       type: Scalar
       nodes:
-        - name: PARAM2B
-          all_active: NO
-          active:
-            KW2B_NAME1:  ON
-            KW2B_NAME2:  OFF
-            KW2B_NAME3:  ON
+        - name: PERM
+          all_active: YES
+
+    - name: PARAM_GROUP_MULT_X2
+      type: Scalar
+      nodes:
+        - name: MULTX2
+          all_active: YES
+
+    - name: PARAM_GROUP_MULT_Y2
+      type: Scalar
+      nodes:
+        - name: MULTY2
+          all_active: YES
 
 
   obs_groups:
-    - name: OBS_GROUP_1
+    - name: OBS_GROUP_X1
       nodes:
-        - OBS_NODE_1
+        - OBS_NODE_X1
 
-    - name: OBS_GROUP_2
+    - name: OBS_GROUP_Y1
       nodes:
-        - OBS_NODE_2
+        - OBS_NODE_Y1
 
-    - name: OBS_GROUP_1B
+    - name: OBS_GROUP_X2
       nodes:
-        - OBS_NODE_1B
+        - OBS_NODE_X2
 
-    - name: OBS_GROUP_2B
+    - name: OBS_GROUP_Y2
       nodes:
-        - OBS_NODE_2B
+        - OBS_NODE_Y2
