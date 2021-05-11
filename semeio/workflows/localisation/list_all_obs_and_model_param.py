@@ -11,6 +11,29 @@ def debug_print(text):
         print(text)
 
 
+def get_obs_names_for_node(obs_group, ert):
+    ert_obs = ert.getObservations()
+    obs_data_from_ert_config = ert_obs.getAllActiveLocalObsdata()
+    obs_names = []
+    for obs_object in obs_data_from_ert_config:
+        if obs_object in obs_group:
+            obs_names.append(obs_object.key())
+    return obs_names
+
+
+def get_param_names_for_node(param_node_name, ert):
+    ens_config = ert.ensembleConfig()
+    node = ens_config.getNode(param_node_name)
+    impl_type = node.getImplementationType()
+    parameter_names_for_node = []
+    if impl_type == ErtImplType.GEN_KW:
+        kw_config_model = node.getKeywordModelConfig()
+        parameter_names_for_node = kw_config_model.getKeyWords()
+    else:
+        print(f"Node with type {impl_type} is not yet implemented. Ignore this.")
+    return parameter_names_for_node
+
+
 def get_obs_from_ert(obs_data_from_ert_config):
     obs_node_names = []
     for obs_node in obs_data_from_ert_config:
