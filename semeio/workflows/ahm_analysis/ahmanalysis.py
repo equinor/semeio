@@ -40,9 +40,11 @@ observations during the history matching process in ERT.
 
 Results will be exported in csv files which can be used in Webviz to perform
 analysis of the AHM through the AhmAnalysis plugin. CSV files will be stored
-under a folder named :code:`ert/output/storage/reports/prior_name/AhmAnalysisJob/`.
+under a folder named :code:`ENSPATH/../reports/prior_name/AhmAnalysisJob/`.
 prior_name will be the name of the case selected in current case on the ERT GUI
-(often :code:`default`)or given as optional input to the workflow. Files generated are:
+(often :code:`default`)or given as optional input to the workflow. Note that
+depending on the setup of ENSPATH, files may be overwritten when the workflow
+is run for different ert cases. Files generated are:
 
  - One csv file per observation group with posterior distribution of the
    different parameters for each observation group included in the update.
