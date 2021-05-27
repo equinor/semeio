@@ -1,6 +1,14 @@
+from unittest.mock import Mock
+import os
+import shutil
+
+import yaml
+import pytest
+from res.enkf import EnKFMain, ResConfig
+
+import semeio.workflows.localisation as localisation
 from semeio.workflows.localisation.local_config_scalar import create_ministep
 import semeio.workflows.localisation.local_script_lib as local
-from unittest.mock import Mock
 
 
 def test_create_ministep():
@@ -29,6 +37,69 @@ def test_create_ministep():
     assert mock_ministep.attachDataset.called_once_with(para)
     assert mock_ministep.attachObsset.called_once_with(obs)
     assert mock_update_step.attachMinistep.called_once_with(mock_ministep)
+
+
+@pytest.mark.parametrize(
+    "obs_group_to_add,expected",
+    [
+        (["OBS1", "OBS2"], ["OBS1", "OBS2"]),
+        (["OBS1"], ["OBS1"]),
+        (["OBS*"], ["OBS1", "OBS2"]),
+        ([], []),
+        ("All", ["OBS1", "OBS2"]),
+    ],
+)
+def test_read_obs_add_group(obs_group_to_add, expected):
+    obs_list = ["OBS1", "OBS2"]
+    obs_group = {"obs_groups": [{"name": "OBS_GROUP", "add": obs_group_to_add}]}
+
+    expected_result = {"OBS_GROUP": expected}
+
+    result = local.read_obs_groups(obs_list, obs_group)
+    assert result == expected_result
+
+
+@pytest.mark.parametrize(
+    "obs_group_to_add, obs_group_to_remove, expected",
+    [
+        (["OBS1", "OBS2"], ["OBS1"], ["OBS2"]),
+        ("All", ["OBS2"], ["OBS1"]),
+        ("All", ["OBS*"], []),
+    ],
+)
+def test_read_obs_add_remove_group(obs_group_to_add, obs_group_to_remove, expected):
+    obs_list = ["OBS1", "OBS2"]
+    obs_group = {
+        "obs_groups": [
+            {
+                "name": "OBS_GROUP",
+                "add": obs_group_to_add,
+                "remove": obs_group_to_remove,
+            }
+        ]
+    }
+
+    expected_result = {"OBS_GROUP": expected}
+
+    result = local.read_obs_groups(obs_list, obs_group)
+    assert result == expected_result
+
+
+@pytest.mark.parametrize(
+    "obs_list, obs_group_to_add, expected_error",
+    [
+        (["OBS1", "OBS2"], ["Q*1"], "The user defined observations Q*1"),
+        ([], [], "all_observations has 0 observations"),
+    ],
+)
+def test_invalid_read_obs(obs_list, obs_group_to_add, expected_error):
+    obs_list = obs_list
+    obs_group = {"obs_groups": [{"name": "OBS_GROUP", "add": obs_group_to_add}]}
+
+    with pytest.raises(ValueError) as err_msg:
+        local.read_obs_groups(obs_list, obs_group)
+
+    assert expected_error in str(err_msg.value)
 
 
 def test_read_obs_groups():
@@ -329,3 +400,41 @@ def test_read_obs_groups_for_correlations():
     )
     local.debug_print(f" -- obs_list: {obs_list}")
     assert obs_list == obs_list_reference3
+
+
+@pytest.mark.usefixtures("setup_tmpdir")
+def test_localisation_run(test_data_root):
+    """test data_set with only scalar parameters"""
+    test_data_dir = os.path.join(test_data_root, "snake_oil")
+
+    shutil.copytree(test_data_dir, "test_data")
+    os.chdir(os.path.join("test_data"))
+
+    res_config = ResConfig("snake_oil.ert")
+    res_config.convertToCReference(None)
+    ert = EnKFMain(res_config)
+
+    config = {
+        "localisation": {
+            "config_path": "./",  # Required
+            "add_correlations": [
+                {
+                    "name": "IRRELEVANT",
+                    "obs_group": "SOME_NAME",
+                    "model_group": "SOME_NAME",
+                }
+            ],
+            "model_param_groups": [  # Required
+                {
+                    "name": "SOME_NAME",
+                    "type": "Scalar",
+                    "nodes": [{"name": "SNAKE_OIL_PARAM", "all_active": "YES"}],
+                }
+            ],
+            "obs_groups": [{"name": "SOME_NAME", "nodes": ["WOPR_OP1_9"]}],
+        }
+    }
+    with open("config.yml", "w") as fh:
+        yaml.dump(config, fh)
+
+    localisation.LocalisationConfigJob(ert).run("config.yml")
