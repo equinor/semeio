@@ -50,12 +50,14 @@ def get_observations_from_ert(ert):
 
 def get_param_from_ert(ert, impl_type=ErtImplType.GEN_KW):
     ens_config = ert.ensembleConfig()
-    keylist = ens_config.getKeylistFromImplType(impl_type)
+    keylist = ens_config.alloc_keylist()
     parameters_for_node = {}
     for key in keylist:
         node = ens_config.getNode(key)
-        kw_config_model = node.getKeywordModelConfig()
-        parameters_for_node[key] = kw_config_model.getKeyWords()
+        impl_type = node.getImplementationType()
+        if impl_type == ErtImplType.GEN_KW:
+            kw_config_model = node.getKeywordModelConfig()
+            parameters_for_node[key] = kw_config_model.getKeyWords()
     return parameters_for_node
 
 
