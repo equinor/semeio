@@ -36,6 +36,10 @@ class LocalisationConfigJob(ErtScript):
 
         # Get all parameters nodes with parameters defined by GEN_KW from ert instance
         ert_param_dict = local.get_param_from_ert(ert, impl_type=ErtImplType.GEN_KW)
+        local.debug_print(
+            f"-- All specified scalar parameters from ERT instance:\n"
+            f"{ert_param_dict}\n"
+        )
 
         # Get dict of user defined model parameter groups from
         # main keyword 'model_param_groups'
@@ -51,6 +55,17 @@ class LocalisationConfigJob(ErtScript):
             param_groups=param_groups,
         )
         local.debug_print(f" -- Correlation specification: {correlation_specification}")
+        number_of_duplicates = local.check_for_duplicated_correlation_specifications(
+            correlation_specification
+        )
+        local.debug_print(
+            f" -- Number of duplicated correlations: {number_of_duplicates}"
+        )
+        if number_of_duplicates > 0:
+            raise ValueError(
+                f"Number of duplicated correlations specified is: "
+                f"{number_of_duplicates}"
+            )
 
 
 @hook_implementation
