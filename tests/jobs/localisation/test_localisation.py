@@ -428,9 +428,9 @@ def test_read_obs_groups_for_correlations():
 )
 def test_read_param_add_remove_group(param_to_add, param_to_remove, expected):
     param_dict = {
-        "NODE1": ["NODE1:PA1", "NODE1:PA2"],
-        "NODE2": ["NODE2:PA3", "NODE2:PA4"],
-        "NODE3": ["NODE3:PB1", "NODE3:PB2"],
+        "NODE1": ["PA1", "PA2"],
+        "NODE2": ["PA3", "PA4"],
+        "NODE3": ["PB1", "PB2"],
     }
     param_group = {
         "model_param_groups": [
@@ -452,18 +452,18 @@ def test_read_param_groups():
     local.debug_print("\n\nRun: test_read_param_groups")
     ert_param_dict = {
         "INTERPOLATE_RELPERM": [
-            "INTERPOLATE_RELPERM:INTERPOLATE_WO",
-            "INTERPOLATE_RELPERM:INTERPOLATE_GO",
+            "INTERPOLATE_WO",
+            "INTERPOLATE_GO",
         ],
         "MULTFLT": [
-            "MULTFLT:MULTFLT_F1",
-            "MULTFLT:MULTFLT_F2",
-            "MULTFLT:MULTFLT_F3",
-            "MULTFLT:MULTFLT_F4",
-            "MULTFLT:MULTFLT_F5",
+            "MULTFLT_F1",
+            "MULTFLT_F2",
+            "MULTFLT_F3",
+            "MULTFLT_F4",
+            "MULTFLT_F5",
         ],
-        "MULTZ": ["MULTZ:MULTZ_MIDREEK", "MULTZ:MULTZ_LOWREEK"],
-        "RMSGLOBPARAMS": ["RMSGLOBPARAMS:FWL", "RMSGLOBPARAMS:COHIBA_MODEL_MODE"],
+        "MULTZ": ["MULTZ_MIDREEK", "MULTZ_LOWREEK"],
+        "RMSGLOBPARAMS": ["FWL", "COHIBA_MODEL_MODE"],
     }
     # Test 1:
     all_kw = {}
@@ -547,18 +547,18 @@ def test_read_param_groups_for_correlations():
     main_keyword = "correlations"
     ert_param_dict = {
         "INTERPOLATE_RELPERM": [
-            "INTERPOLATE_RELPERM:INTERPOLATE_GO",
-            "INTERPOLATE_RELPERM:INTERPOLATE_WO",
+            "INTERPOLATE_WO",
+            "INTERPOLATE_GO",
         ],
         "MULTFLT": [
-            "MULTFLT:MULTFLT_F1",
-            "MULTFLT:MULTFLT_F2",
-            "MULTFLT:MULTFLT_F3",
-            "MULTFLT:MULTFLT_F4",
-            "MULTFLT:MULTFLT_F5",
+            "MULTFLT_F1",
+            "MULTFLT_F2",
+            "MULTFLT_F3",
+            "MULTFLT_F4",
+            "MULTFLT_F5",
         ],
-        "MULTZ": ["MULTZ:MULTZ_LOWREEK", "MULTZ:MULTZ_MIDREEK"],
-        "RMSGLOBPARAMS": ["RMSGLOBPARAMS:COHIBA_MODEL_MODE", "RMSGLOBPARAMS:FWL"],
+        "MULTZ": ["MULTZ_MIDREEK", "MULTZ_LOWREEK"],
+        "RMSGLOBPARAMS": ["FWL", "COHIBA_MODEL_MODE"],
     }
 
     # Test 1
@@ -642,19 +642,16 @@ def test_read_correlation_specification():
         "SHUT_IN_OP1",
     ]
     ert_param_dict = {
-        "INTERPOLATE_RELPERM": [
-            "INTERPOLATE_RELPERM:INTERPOLATE_GO",
-            "INTERPOLATE_RELPERM:INTERPOLATE_WO",
-        ],
+        "INTERPOLATE_RELPERM": ["INTERPOLATE_WO", "INTERPOLATE_GO"],
         "MULTFLT": [
-            "MULTFLT:MULTFLT_F1",
-            "MULTFLT:MULTFLT_F2",
-            "MULTFLT:MULTFLT_F3",
-            "MULTFLT:MULTFLT_F4",
-            "MULTFLT:MULTFLT_F5",
+            "MULTFLT_F1",
+            "MULTFLT_F2",
+            "MULTFLT_F3",
+            "MULTFLT_F4",
+            "MULTFLT_F5",
         ],
-        "MULTZ": ["MULTZ:MULTZ_LOWREEK", "MULTZ:MULTZ_MIDREEK"],
-        "RMSGLOBPARAMS": ["RMSGLOBPARAMS:COHIBA_MODEL_MODE", "RMSGLOBPARAMS:FWL"],
+        "MULTZ": ["MULTZ_MIDREEK", "MULTZ_LOWREEK"],
+        "RMSGLOBPARAMS": ["FWL", "COHIBA_MODEL_MODE"],
     }
 
     obs_group_dict = {

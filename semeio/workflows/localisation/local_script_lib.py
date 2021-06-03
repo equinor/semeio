@@ -57,7 +57,11 @@ def get_param_from_ert(ert, impl_type=ErtImplType.GEN_KW):
         impl_type = node.getImplementationType()
         if impl_type == ErtImplType.GEN_KW:
             kw_config_model = node.getKeywordModelConfig()
-            parameters_for_node[key] = kw_config_model.getKeyWords()
+            string_list = kw_config_model.getKeyWords()
+            param_list = []
+            for name in string_list:
+                param_list.append(name)
+            parameters_for_node[key] = param_list
     return parameters_for_node
 
 
@@ -150,6 +154,15 @@ def expand_wildcards_for_obs(user_obs, all_observations, all_obs_groups=None):
     return obs_list
 
 
+def get_full_parameter_name_list(user_node_name, all_param_dict):
+    param_list = all_param_dict[user_node_name]
+    full_param_name_list = []
+    for param_name in param_list:
+        full_param_name = user_node_name.strip() + ":" + param_name.strip()
+        full_param_name_list.append(full_param_name)
+    return full_param_name_list
+
+
 def check_and_append_parameter_list(
     param,
     total_param,
@@ -167,14 +180,17 @@ def check_and_append_parameter_list(
             # param is not found in defined parameter names in ert instance
             # but it matches parameter node names found in ert instance
             for user_node_name in list_of_expanded_user_param_node_names:
-                param_list = all_param_dict[user_node_name]
-                total_param.extend(param_list)
+                full_param_name_list = get_full_parameter_name_list(
+                    user_node_name, all_param_dict
+                )
+                total_param.extend(full_param_name_list)
         else:
             # The expanded name param is not found in defined parameter names
             # or parameter node names.
             raise ValueError(
                 f" The user defined parameter {param} "
-                "does not match any parameter name or node in ert instance."
+                "does not match any parameter name or node in ert instance.\n"
+                f"ERT instance nodes with parameters are: {all_param_dict}"
             )
     else:
         # In addition to check against defined parameter names and
@@ -184,8 +200,10 @@ def check_and_append_parameter_list(
             total_param.extend(list_of_expanded_user_param_names)
         elif len(list_of_expanded_user_param_node_names) > 0:
             for user_node_name in list_of_expanded_user_param_node_names:
-                param_list = all_param_dict[user_node_name]
-                total_param.extend(param_list)
+                full_param_name_list = get_full_parameter_name_list(
+                    user_node_name, all_param_dict
+                )
+                total_param.extend(full_param_name_list)
         else:
             # Does not match defined parameters,
             # check with parameter groups instead
@@ -206,8 +224,9 @@ def expand_wildcards_for_param(user_param, all_param_dict, all_param_groups=None
     # All parameter names defined in ert instance
     all_param_list = []
     all_param_node_list = []
-    for node_name, param_list in all_param_dict.items():
-        all_param_list.extend(param_list)
+    for node_name in all_param_dict.keys():
+        full_param_name_list = get_full_parameter_name_list(node_name, all_param_dict)
+        all_param_list.extend(full_param_name_list)
         all_param_node_list.append(node_name)
     total_param = []
     tmp_input = copy(user_param)
@@ -333,10 +352,9 @@ def read_obs_groups_for_correlations(
             )
         for keyword_read in keywords:
             if keyword_read not in valid_keywords:
-                print(
-                    f" -- Warning: Unknown keyword {keyword_read} "
-                    f"found in {obs_group_keyword} in {main_keyword}. "
-                    "Ignored"
+                raise KeyError(
+                    f"Unknown keyword {keyword_read} found in {obs_group_keyword} "
+                    f"in {main_keyword}. "
                 )
         add_list = obs_keyword_items["add"]
         remove_list = None
@@ -344,8 +362,8 @@ def read_obs_groups_for_correlations(
             remove_list = obs_keyword_items["remove"]
             if not isinstance(remove_list, list):
                 remove_list = [remove_list]
-        debug_print(f"add_list: {add_list}")
-        debug_print(f"remove_list: {remove_list}")
+        #        debug_print(f"add_list: {add_list}")
+        #        debug_print(f"remove_list: {remove_list}")
 
         # Define the list of all observations to add including the obs groups used
         total_obs_names_added = expand_wildcards_for_obs(
@@ -353,7 +371,7 @@ def read_obs_groups_for_correlations(
         )
         obs_node_names_added = list(set(total_obs_names_added))
         obs_node_names_added.sort()
-        debug_print(f" -- obs node names added: {obs_node_names_added}")
+        #        debug_print(f" -- obs node names added: {obs_node_names_added}")
 
         # Define the list of all observations to remove including the obs groups used
         if isinstance(remove_list, list):
@@ -362,7 +380,6 @@ def read_obs_groups_for_correlations(
             )
             obs_node_names_removed = list(set(total_obs_names_removed))
             obs_node_names_removed.sort()
-            debug_print(f" -- obs node names removed: {obs_node_names_removed}")
 
             # For each entry in add_list expand it to get observation names
             # For each entry in remove_list expand it to get observation names
@@ -443,8 +460,8 @@ def read_param_groups_for_correlations(
             remove_list = param_keyword_items["remove"]
             if not isinstance(remove_list, list):
                 remove_list = [remove_list]
-        debug_print(f"add_list: {add_list}")
-        debug_print(f"remove_list: {remove_list}")
+        #        debug_print(f"add_list: {add_list}")
+        #        debug_print(f"remove_list: {remove_list}")
 
         # Define the list of all observations to add including the obs groups used
         total_param_names_added = expand_wildcards_for_param(
@@ -452,7 +469,7 @@ def read_param_groups_for_correlations(
         )
         param_names_added = list(set(total_param_names_added))
         param_names_added.sort()
-        debug_print(f" -- param names added: {param_names_added}")
+        #        debug_print(f" -- param names added: {param_names_added}")
 
         # Define the list of all parameters to remove including
         # the parameter groups used
@@ -462,7 +479,7 @@ def read_param_groups_for_correlations(
             )
             param_names_removed = list(set(total_param_names_removed))
             param_names_removed.sort()
-            debug_print(f" -- param names removed: {param_names_removed}")
+            #            debug_print(f" -- param names removed: {param_names_removed}")
 
             # For each entry in add_list expand it to get param names
             # For each entry in remove_list expand it to get param names
@@ -494,3 +511,43 @@ def read_correlation_specification(
         corr_dict["param_list"] = param_list
         correlation_dict[name] = corr_dict
     return correlation_dict
+
+
+def check_for_duplicated_correlation_specifications(correlation_dict):
+    # All observations and model parameters used in correlations
+    tmp_obs_list = []
+    tmp_param_list = []
+    for name, item in correlation_dict.items():
+        obs_list = item["obs_list"]
+        param_list = item["param_list"]
+        tmp_obs_list.extend(obs_list)
+        tmp_param_list.extend(param_list)
+    complete_obs_list = list(set(tmp_obs_list))
+    complete_obs_list.sort()
+    complete_param_list = list(set(tmp_param_list))
+    complete_param_list.sort()
+
+    # Initialize the table
+    correlation_table = {}
+    for obs_name in complete_obs_list:
+        for param_name in complete_param_list:
+            key = (obs_name, param_name)
+            correlation_table[key] = False
+
+    # Check each correlation set (corresponding to a ministep)
+    number_of_duplicates = 0
+    for name, item in correlation_dict.items():
+        obs_list = item["obs_list"]
+        param_list = item["param_list"]
+        for obs_name in obs_list:
+            for param_name in param_list:
+                key = (obs_name, param_name)
+                if correlation_table[key]:
+                    debug_print(
+                        f"-- When reading correlation: {name} there are "
+                        f"double specified correlations for {key}"
+                    )
+                    number_of_duplicates = number_of_duplicates + 1
+                else:
+                    correlation_table[key] = True
+    return number_of_duplicates
