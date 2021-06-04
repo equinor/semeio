@@ -1,14 +1,6 @@
 from unittest.mock import Mock
 
-# import os
-# import shutil
-
-# import yaml
 import pytest
-
-# from res.enkf import EnKFMain, ResConfig
-
-# import semeio.workflows.localisation as localisation
 import semeio.workflows.localisation.local_script_lib as local
 
 
@@ -41,6 +33,12 @@ def test_read_correlation_specification():
         ],
         "MULTZ": ["MULTZ_MIDREEK", "MULTZ_LOWREEK"],
         "RMSGLOBPARAMS": ["FWL", "COHIBA_MODEL_MODE"],
+        "GENPARAM1": None,
+        "GENPARAM11": None,
+        "GENPARAM12": None,
+        "GENPARAM2": None,
+        "GENPARAM21": None,
+        "FIELDPARAM1": None,
     }
 
     obs_group_dict = {
@@ -66,6 +64,7 @@ def test_read_correlation_specification():
             "INTERPOLATE_RELPERM:INTERPOLATE_GO",
             "INTERPOLATE_RELPERM:INTERPOLATE_WO",
         ],
+        "GENPARAM_GROUP": ["GENPARAM1", "GENPARAM21"],
     }
     # Test 1:
     all_kw = {
@@ -86,6 +85,8 @@ def test_read_correlation_specification():
                         "MULTZ",
                         "INTERPOLATE_RELPERM:INTERPOLATE_GO",
                         "RMSGLOBPARAMS:COHIBA_MODEL_MODE",
+                        "GENPARAM*",
+                        "FIELDPARAM1",
                     ],
                 },
             },
@@ -185,11 +186,14 @@ def test_read_correlation_specification():
                         "INTERPOLATE_RELPERM_GROUP",
                         "MULTZ",
                         "MULTFLT",
+                        "GENPARAM_GROUP",
+                        "FIELDPARAM1",
                     ],
                     "remove": [
                         "MULTFLT:MULTFLT_F1",
                         "MULTFLT:MULTFLT_F2",
                         "INTERPOLATE_RELPERM:INTERPOLATE_GO",
+                        "GENPARAM1",
                     ],
                 },
             },
@@ -214,6 +218,8 @@ def test_read_correlation_specification():
         "CORRELATION2": {
             "obs_list": ["OP_2_WWCT1", "OP_2_WWCT2", "OP_2_WWCT3", "ROP_1_OBS"],
             "param_list": [
+                "FIELDPARAM1",
+                "GENPARAM21",
                 "INTERPOLATE_RELPERM:INTERPOLATE_WO",
                 "MULTFLT:MULTFLT_F3",
                 "MULTFLT:MULTFLT_F4",
@@ -247,6 +253,8 @@ def test_read_correlation_specification():
         ("MULTZ:MULTZ2", ("MULTZ", "MULTZ2", 1)),
         ("MULTZ:MULTZ3", ("MULTZ", "MULTZ3", 2)),
         ("MULTX:MULTX1", ("MULTX", "MULTX1", 0)),
+        ("FIELDPARAM1", ("FIELDPARAM1", "FIELDPARAM1", None)),
+        ("GENPARAM1", ("GENPARAM1", "GENPARAM1", None)),
     ],
 )
 def test_active_index_for_parameter(param_name, expected):
@@ -260,6 +268,8 @@ def test_active_index_for_parameter(param_name, expected):
         ],
         "MULTZ": ["MULTZ1", "MULTZ2", "MULTZ3"],
         "MULTX": ["MULTX1"],
+        "FIELDPARAM1": None,
+        "GENPARAM1": None,
     }
     expected_result = expected
     result = local.active_index_for_parameter(param_name, ert_param_dict)
@@ -367,7 +377,7 @@ def test_check_for_duplicated_correlation_specifications2(
             ["OBS2", "OBS3", "OBS4"],
             ["PB:PB1", "PB:PB2"],
             ["OBS1", "OBS4"],
-            ["PC:PC1"],
+            ["PC:PC1", "FIELDPARAM1", "GENPARAM1"],
         ),
     ],
 )
@@ -410,6 +420,8 @@ def test_add_ministeps(
         "PC": [
             "PC1",
         ],
+        "FIELDPARAM1": None,
+        "GENPARAM1": None,
     }
 
     correlation_specification = {

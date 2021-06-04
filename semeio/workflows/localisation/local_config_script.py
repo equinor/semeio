@@ -17,6 +17,8 @@ import semeio.workflows.localisation.local_script_lib as local
 # from ecl.util.util import IntVector
 from ert_shared.plugins.plugin_manager import hook_implementation
 
+debug_level = 1
+
 
 class LocalisationConfigJob(ErtScript):
     def run(self, *args):
@@ -33,17 +35,22 @@ class LocalisationConfigJob(ErtScript):
 
         # Get all observations from ert instance
         ert_obs_list = local.get_observations_from_ert(ert)
+        if debug_level > 0:
+            print(" -- Node names for observations found in ERT configuration:")
+            for obs_name in ert_obs_list:
+                print(f"      {obs_name}")
+            print("\n")
 
         # Get dict of observation groups from main keyword 'obs_groups'
         obs_groups = local.read_obs_groups(ert_obs_list, all_kw)
 
         # Get all parameters nodes with parameters defined by GEN_KW from ert instance
         ert_param_dict = local.get_param_from_ert(ert, impl_type=ErtImplType.GEN_KW)
-        local.debug_print(
-            f"-- All specified scalar parameters from ERT instance:\n"
-            f"{ert_param_dict}\n",
-            level=0,
-        )
+        if debug_level > 0:
+            print(
+                f"-- All specified scalar parameters from ERT instance:\n"
+                f"{ert_param_dict}\n"
+            )
 
         # Get dict of user defined model parameter groups from
         # main keyword 'model_param_groups'
@@ -64,9 +71,8 @@ class LocalisationConfigJob(ErtScript):
         number_of_duplicates = local.check_for_duplicated_correlation_specifications(
             correlation_specification
         )
-        local.debug_print(
-            f" -- Number of duplicated correlations: {number_of_duplicates}"
-        )
+        if debug_level > 0:
+            print(f" -- Number of duplicated correlations: {number_of_duplicates}")
         if number_of_duplicates > 0:
             raise ValueError(
                 f"Number of duplicated correlations specified is: "

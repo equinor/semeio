@@ -7,6 +7,7 @@ from copy import copy
 # import cwrap
 # from res.enkf import ErtScript
 from res.enkf.enums.ert_impl_type_enum import ErtImplType
+from res.enkf.enums.enkf_var_type_enum import EnkfVarType
 
 # from res.enkf.enums.active_mode_enum import ActiveMode
 
@@ -35,11 +36,6 @@ def get_observations_from_ert(ert):
     for obs_node in obs_data_from_ert_config:
         node_name = obs_node.key()
         ert_obs_node_list.append(node_name)
-
-    debug_print(" -- Node names for observations found in ERT configuration:", level=0)
-    for node_name in ert_obs_node_list:
-        debug_print(f"      {node_name}")
-    debug_print("\n")
     return ert_obs_node_list
 
 
@@ -47,16 +43,33 @@ def get_param_from_ert(ert, impl_type=ErtImplType.GEN_KW):
     ens_config = ert.ensembleConfig()
     keylist = ens_config.alloc_keylist()
     parameters_for_node = {}
+    implementation_type_not_scalar = [
+        ErtImplType.GEN_DATA,
+        ErtImplType.FIELD,
+        ErtImplType.SURFACE,
+    ]
+
     for key in keylist:
         node = ens_config.getNode(key)
         impl_type = node.getImplementationType()
-        if impl_type == ErtImplType.GEN_KW:
-            kw_config_model = node.getKeywordModelConfig()
-            string_list = kw_config_model.getKeyWords()
-            param_list = []
-            for name in string_list:
-                param_list.append(name)
-            parameters_for_node[key] = param_list
+        var_type = node.getVariableType()
+        #        debug_print(f"Node: {key} impl_type: {impl_type}  "
+        #                    f"var_type: {var_type}")
+        if var_type == EnkfVarType.PARAMETER:
+            if impl_type == ErtImplType.GEN_KW:
+                # Node contains scalar parameters defined by GEN_KW
+                kw_config_model = node.getKeywordModelConfig()
+                string_list = kw_config_model.getKeyWords()
+                param_list = []
+                for name in string_list:
+                    param_list.append(name)
+                parameters_for_node[key] = param_list
+
+            elif impl_type in implementation_type_not_scalar:
+                # Node contains parameter from GEN_PARAM
+                # which is of type PARAMETER
+                # and implementation type GEN_DATA
+                parameters_for_node[key] = None
     return parameters_for_node
 
 
@@ -152,9 +165,16 @@ def expand_wildcards_for_obs(user_obs, all_observations, all_obs_groups=None):
 def get_full_parameter_name_list(user_node_name, all_param_dict):
     param_list = all_param_dict[user_node_name]
     full_param_name_list = []
-    for param_name in param_list:
-        full_param_name = user_node_name.strip() + ":" + param_name.strip()
-        full_param_name_list.append(full_param_name)
+    if param_list is not None:
+        # A list of parameters for the specified node name exist
+        for param_name in param_list:
+            full_param_name = user_node_name.strip() + ":" + param_name.strip()
+            full_param_name_list.append(full_param_name)
+    else:
+        # This parameter node does not have any named parameters since it can be
+        # either a GEN_PARAM parameter node, a SURFACE parameter node
+        # or a FIELD parameter node. Use the parameter node name instead.
+        full_param_name_list.append(user_node_name)
     return full_param_name_list
 
 
@@ -358,8 +378,8 @@ def read_obs_groups_for_correlations(
             remove_list = obs_keyword_items["remove"]
             if not isinstance(remove_list, list):
                 remove_list = [remove_list]
-        #        debug_print(f"add_list: {add_list}")
-        #        debug_print(f"remove_list: {remove_list}")
+        debug_print(f"add_list: {add_list}", 0)
+        debug_print(f"remove_list: {remove_list}", 0)
 
         # Define the list of all observations to add including the obs groups used
         total_obs_names_added = expand_wildcards_for_obs(
@@ -367,7 +387,7 @@ def read_obs_groups_for_correlations(
         )
         obs_node_names_added = list(set(total_obs_names_added))
         obs_node_names_added.sort()
-        #        debug_print(f" -- obs node names added: {obs_node_names_added}")
+        debug_print(f" -- obs node names added: {obs_node_names_added}", 0)
 
         # Define the list of all observations to remove including the obs groups used
         if isinstance(remove_list, list):
@@ -419,8 +439,8 @@ def read_param_groups(ert_param_dict, all_kw):
         # Remove entries from add_list found in remove_list.
         param_names_added = expand_wildcards_for_param(add_list, ert_param_dict)
         param_names_removed = expand_wildcards_for_param(remove_list, ert_param_dict)
-        #        debug_print(f"param_names_added: {param_names_added}")
-        #        debug_print(f"param_names_removed: {param_names_removed}")
+        debug_print(f"param_names_added: {param_names_added}", 0)
+        debug_print(f"param_names_removed: {param_names_removed}", 0)
         for name in param_names_removed:
             if name in param_names_added:
                 param_names_added.remove(name)
@@ -456,8 +476,8 @@ def read_param_groups_for_correlations(
             remove_list = param_keyword_items["remove"]
             if not isinstance(remove_list, list):
                 remove_list = [remove_list]
-        #        debug_print(f"add_list: {add_list}")
-        #        debug_print(f"remove_list: {remove_list}")
+        debug_print(f"add_list: {add_list}", 0)
+        debug_print(f"remove_list: {remove_list}", 0)
 
         # Define the list of all observations to add including the obs groups used
         total_param_names_added = expand_wildcards_for_param(
@@ -465,7 +485,7 @@ def read_param_groups_for_correlations(
         )
         param_names_added = list(set(total_param_names_added))
         param_names_added.sort()
-        #        debug_print(f" -- param names added: {param_names_added}")
+        debug_print(f" -- param names added: {param_names_added}", 0)
 
         # Define the list of all parameters to remove including
         # the parameter groups used
@@ -475,7 +495,7 @@ def read_param_groups_for_correlations(
             )
             param_names_removed = list(set(total_param_names_removed))
             param_names_removed.sort()
-            #            debug_print(f" -- param names removed: {param_names_removed}")
+            debug_print(f" -- param names removed: {param_names_removed}", 0)
 
             # For each entry in add_list expand it to get param names
             # For each entry in remove_list expand it to get param names
@@ -540,19 +560,36 @@ def print_correlation_specification(correlation_specification, debug_level=1):
                     count = 0
             if count > 0:
                 print(f"      {outstring}")
+            print("\n")
         print("\n")
 
 
 def active_index_for_parameter(full_param_name, ert_param_dict):
-    [node_name, param_name] = full_param_name.split(":")
-    param_list = ert_param_dict[node_name]
-    index = -1
-
-    for count, name in enumerate(param_list):
-        if name == param_name:
-            index = count
+    # For parameters defined as scalar parameters (coming from GEN_KW)
+    # which is of the form  node_name:parameter_name,
+    # split the node_name from the parameter_name to identify which one
+    # of the parameter_names are used (and should be active).
+    # For parameters that are not coming from GEN_KW,
+    # the active index is not used here.
+    contains_both_node_and_param_name = False
+    for c in full_param_name:
+        if c == ":":
+            contains_both_node_and_param_name = True
             break
-    assert index > -1
+    if contains_both_node_and_param_name:
+        [node_name, param_name] = full_param_name.split(":")
+
+        param_list = ert_param_dict[node_name]
+        index = -1
+        for count, name in enumerate(param_list):
+            if name == param_name:
+                index = count
+                break
+        assert index > -1
+    else:
+        node_name = full_param_name
+        param_name = full_param_name
+        index = None
     return node_name, param_name, index
 
 
@@ -624,8 +661,10 @@ def add_ministeps(correlation_specification, ert_param_dict, ert):
                 model_param_group.addNode(node_name)
                 node_names_used.append(node_name)
 
-            active_param_list = model_param_group.getActiveList(node_name)
-            active_param_list.addActiveIndex(index)
+            if index is not None:
+                #    This is a model parameter node from GEN_KW
+                active_param_list = model_param_group.getActiveList(node_name)
+                active_param_list.addActiveIndex(index)
 
         # Setup observation group
         for obs_name in obs_list:
