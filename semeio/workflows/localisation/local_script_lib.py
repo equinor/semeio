@@ -22,8 +22,8 @@ from res.enkf.enums.ert_impl_type_enum import ErtImplType
 debug_level = 1
 
 
-def debug_print(text):
-    if debug_level > 0:
+def debug_print(text, level=debug_level):
+    if level > 0:
         print(text)
 
 
@@ -36,7 +36,7 @@ def get_observations_from_ert(ert):
         node_name = obs_node.key()
         ert_obs_node_list.append(node_name)
 
-    debug_print(" -- Node names for observations found in ERT configuration:")
+    debug_print(" -- Node names for observations found in ERT configuration:", level=0)
     for node_name in ert_obs_node_list:
         debug_print(f"      {node_name}")
     debug_print("\n")
@@ -276,10 +276,11 @@ def get_obs_from_ert_config(obs_data_from_ert_config):
         node_name = obs_node.key()
         ert_obs_node_list.append(node_name)
 
-    debug_print(" -- Node names for observations found in ERT configuration:")
-    for node_name in ert_obs_node_list:
-        debug_print(f"      {node_name}")
-    debug_print("\n")
+    if debug_level > 0:
+        print(" -- Node names for observations found in ERT configuration:")
+        for node_name in ert_obs_node_list:
+            print(f"      {node_name}")
+            print("\n")
     ert_obs_node_list.sort()
     return ert_obs_node_list
 
@@ -508,18 +509,51 @@ def read_correlation_specification(
     return correlation_dict
 
 
-def active_index_for_parameter(param_name, ert_param_dict):
-    [node_name, pname] = param_name.split(":")
+def print_correlation_specification(correlation_specification, debug_level=1):
+    if debug_level > 0:
+        for name, item in correlation_specification.items():
+            obs_list = item["obs_list"]
+            param_list = item["param_list"]
+            print(f" -- {name}")
+            count = 0
+            outstring = " "
+            print(" -- Obs:")
+            for obs_name in obs_list:
+                outstring = outstring + "  " + obs_name
+                count = count + 1
+                if count > 9:
+                    print(f"      {outstring}")
+                    outstring = " "
+                    count = 0
+            if count > 0:
+                print(f"      {outstring}")
+
+            count = 0
+            outstring = " "
+            print(" -- Parameter:")
+            for param_name in param_list:
+                outstring = outstring + "  " + param_name
+                count = count + 1
+                if count > 4:
+                    print(f"      {outstring}")
+                    outstring = " "
+                    count = 0
+            if count > 0:
+                print(f"      {outstring}")
+        print("\n")
+
+
+def active_index_for_parameter(full_param_name, ert_param_dict):
+    [node_name, param_name] = full_param_name.split(":")
     param_list = ert_param_dict[node_name]
     index = -1
 
     for count, name in enumerate(param_list):
-        print(f"node_name: {node_name}  param_name: {name}")
-        if name == pname:
+        if name == param_name:
             index = count
             break
     assert index > -1
-    return index, pname
+    return node_name, param_name, index
 
 
 def check_for_duplicated_correlation_specifications(correlation_dict):
@@ -554,9 +588,60 @@ def check_for_duplicated_correlation_specifications(correlation_dict):
                 if correlation_table[key]:
                     debug_print(
                         f"-- When reading correlation: {name} there are "
-                        f"double specified correlations for {key}"
+                        f"double specified correlations for {key}",
+                        0,
                     )
                     number_of_duplicates = number_of_duplicates + 1
                 else:
                     correlation_table[key] = True
     return number_of_duplicates
+
+
+def add_ministeps(correlation_specification, ert_param_dict, ert):
+    local_config = ert.getLocalConfig()
+    updatestep = local_config.getUpdatestep()
+    count = 1
+    for ministep_name, item in correlation_specification.items():
+        ministep = local_config.createMinistep(ministep_name)
+
+        model_group_name = ministep_name + "_param_group_" + str(count)
+        model_param_group = local_config.createDataset(model_group_name)
+
+        obs_group_name = ministep_name + "_obs_group_" + str(count)
+        obs_group = local_config.createObsdata(obs_group_name)
+
+        obs_list = item["obs_list"]
+        param_list = item["param_list"]
+        count = count + 1
+
+        # Setup model parameter group
+        node_names_used = []
+        for full_param_name in param_list:
+            node_name, param_name, index = active_index_for_parameter(
+                full_param_name, ert_param_dict
+            )
+            if node_name not in node_names_used:
+                model_param_group.addNode(node_name)
+                node_names_used.append(node_name)
+
+            active_param_list = model_param_group.getActiveList(node_name)
+            active_param_list.addActiveIndex(index)
+
+        # Setup observation group
+        for obs_name in obs_list:
+            obs_group.addNode(obs_name)
+
+        # Setup ministep
+        debug_print(f" -- Attach {model_group_name} to ministep {ministep_name}")
+        ministep.attachDataset(model_param_group)
+
+        debug_print(f" -- Attach {obs_group_name} to ministep {ministep_name}")
+        ministep.attachObsset(obs_group)
+
+        debug_print(f" -- Add {ministep_name} to update step\n")
+        updatestep.attachMinistep(ministep)
+
+
+def clear_correlations(ert):
+    local_config = ert.getLocalConfig()
+    local_config.clear()
