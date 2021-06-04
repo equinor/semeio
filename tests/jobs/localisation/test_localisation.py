@@ -847,3 +847,31 @@ def test_read_correlation_specification():
         f"{correlation_specification_reference2}\n"
     )
     assert correlation_specification == correlation_specification_reference2
+
+
+@pytest.mark.parametrize(
+    "param_name, expected",
+    [
+        ("MULTFLT:MULTFLT_F1", (0, "MULTFLT_F1")),
+        ("MULTFLT:MULTFLT_F4", (3, "MULTFLT_F4")),
+        ("MULTFLT:MULTFLT_F50", (4, "MULTFLT_F50")),
+        ("MULTZ:MULTZ2", (1, "MULTZ2")),
+        ("MULTZ:MULTZ3", (2, "MULTZ3")),
+        ("MULTX:MULTX1", (0, "MULTX1")),
+    ],
+)
+def test_active_index_for_parameter(param_name, expected):
+    ert_param_dict = {
+        "MULTFLT": [
+            "MULTFLT_F1",
+            "MULTFLT_F2",
+            "MULTFLT_F3",
+            "MULTFLT_F4",
+            "MULTFLT_F50",
+        ],
+        "MULTZ": ["MULTZ1", "MULTZ2", "MULTZ3"],
+        "MULTX": ["MULTX1"],
+    }
+    expected_result = expected
+    result = local.active_index_for_parameter(param_name, ert_param_dict)
+    assert result == expected_result
