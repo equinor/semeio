@@ -875,3 +875,95 @@ def test_active_index_for_parameter(param_name, expected):
     expected_result = expected
     result = local.active_index_for_parameter(param_name, ert_param_dict)
     assert result == expected_result
+
+
+@pytest.mark.parametrize(
+    "obs_list1, param_list1, obs_list2, param_list2, expected",
+    [
+        (
+            ["OBS1", "OBS2", "OBS3"],
+            ["PA:PA1", "PA:PA2", "PA:PA3"],
+            ["OBS1", "OBS2", "OBS3", "OBS4"],
+            ["PB:PB1", "PB:PB2"],
+            0,
+        ),
+        (
+            ["OBS1", "OBS2", "OBS3"],
+            ["PA:PA1", "PA:PA2", "PA:PA3"],
+            ["OBS1", "OBS2", "OBS3", "OBS4"],
+            ["PB:PB1", "PA:PA2"],
+            3,
+        ),
+        (
+            ["OBS1", "OBS2", "OBS3"],
+            ["PA:PA1", "PA:PA2", "PA:PA3"],
+            ["OBS1", "OBS2", "OBS3", "OBS4"],
+            ["PA:PA1", "PA:PA2"],
+            6,
+        ),
+        (
+            ["OBS1", "OBS12", "OBS3"],
+            ["PA:PA1", "PA:PA2", "PA:PA3"],
+            ["OBS11", "OBS12", "OBS13", "OBS14"],
+            ["PA:PA1", "PA:PA2"],
+            2,
+        ),
+        (
+            ["OBS1", "OBS2", "OBS3"],
+            ["PA:PA1", "PA:PA2", "PA:PA3"],
+            ["OBS10", "OBS20", "OBS30", "OBS40"],
+            ["PA:PA1", "PA:PA2"],
+            0,
+        ),
+        (
+            ["OBS1", "OBS2", "OBS3"],
+            ["PA:PA1", "PB:PB2", "PA:PA3"],
+            ["OBS1", "OBS12", "OBS13", "OBS14"],
+            ["PB:PB1", "PB:PB2"],
+            1,
+        ),
+    ],
+)
+def test_check_for_duplicated_correlation_specifications(
+    obs_list1, param_list1, obs_list2, param_list2, expected
+):
+    correlation_dict = {
+        "CORR1": {
+            "obs_list": obs_list1,
+            "param_list": param_list1,
+        },
+        "CORR2": {
+            "obs_list": obs_list2,
+            "param_list": param_list2,
+        },
+    }
+    expected_result = expected
+    result = local.check_for_duplicated_correlation_specifications(correlation_dict)
+    assert result == expected_result
+
+
+@pytest.mark.parametrize(
+    "obs_list1, param_list1,  expected",
+    [
+        (["OBS1", "OBS2", "OBS3"], ["PA:PA1", "PA:PA2", "PA:PA3"], 0),
+        (["OBS1", "OBS2", "OBS3"], ["PA:PA1", "PA:PA1", "PA:PA3"], 3),
+        (["OBS1", "OBS2", "OBS3"], ["PA:PA1", "PA:PA2", "PA:PA1"], 3),
+        (["OBS1", "OBS1", "OBS1"], ["PA:PA1", "PA:PA1", "PA:PA1"], 8),
+        (["OBS1", "OBS12", "OBS1"], ["PA:PA1", "PA:PA11", "PA:PA1"], 5),
+        (["OBS1"], ["PA:PA1", "PA:PA1", "PA:PA12"], 1),
+        (["OBS1"], ["PA:PA1"], 0),
+        (["OBS1", "OBS2"], ["PA:PA1"], 0),
+    ],
+)
+def test_check_for_duplicated_correlation_specifications2(
+    obs_list1, param_list1, expected
+):
+    correlation_dict = {
+        "CORR1": {
+            "obs_list": obs_list1,
+            "param_list": param_list1,
+        },
+    }
+    expected_result = expected
+    result = local.check_for_duplicated_correlation_specifications(correlation_dict)
+    assert result == expected_result
