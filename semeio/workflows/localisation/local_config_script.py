@@ -22,6 +22,9 @@ class LocalisationConfigJob(ErtScript):
     def run(self, *args):
         ert = self.ert()
 
+        # Clear all correlations
+        local.clear_correlations(ert)
+
         # Read yml file with specifications
         all_kw = local.read_localisation_config(args)
 
@@ -38,7 +41,8 @@ class LocalisationConfigJob(ErtScript):
         ert_param_dict = local.get_param_from_ert(ert, impl_type=ErtImplType.GEN_KW)
         local.debug_print(
             f"-- All specified scalar parameters from ERT instance:\n"
-            f"{ert_param_dict}\n"
+            f"{ert_param_dict}\n",
+            level=0,
         )
 
         # Get dict of user defined model parameter groups from
@@ -54,7 +58,9 @@ class LocalisationConfigJob(ErtScript):
             obs_groups=obs_groups,
             param_groups=param_groups,
         )
-        local.debug_print(f" -- Correlation specification: {correlation_specification}")
+
+        # Check if duplicated specification of the same correlations exist
+        local.print_correlation_specification(correlation_specification, debug_level=1)
         number_of_duplicates = local.check_for_duplicated_correlation_specifications(
             correlation_specification
         )
@@ -66,6 +72,7 @@ class LocalisationConfigJob(ErtScript):
                 f"Number of duplicated correlations specified is: "
                 f"{number_of_duplicates}"
             )
+        local.add_ministeps(correlation_specification, ert_param_dict, ert)
 
 
 @hook_implementation
