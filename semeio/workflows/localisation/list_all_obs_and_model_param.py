@@ -51,8 +51,8 @@ def get_param_node_name_list_from_ert(ert):
     for key in keylist:
         node = ens_config.getNode(key)
         impl_type = node.getImplementationType()
-        if impl_type == ErtImplType.GEN_KW:
-            model_param_node_names.append(key)
+        var_type = node.getVariableType()
+        model_param_node_names.append([key, impl_type, var_type])
     return model_param_node_names
 
 
@@ -66,6 +66,18 @@ def get_param_nodes_from_gen_kw(ert):
         if impl_type == ErtImplType.GEN_KW:
             kw_config_model = node.getKeywordModelConfig()
             parameters_for_node[key] = kw_config_model.getKeyWords()
+    return parameters_for_node
+
+
+def get_param_nodes_from_gen_data(ert):
+    ens_config = ert.ensembleConfig()
+    keylist = ens_config.getKeylistFromVarType(EnkfVarType.PARAMETER)
+    parameters_for_node = {}
+    for key in keylist:
+        node = ens_config.getNode(key)
+        impl_type = node.getImplementationType()
+        if impl_type == ErtImplType.GEN_DATA:
+            parameters_for_node[key] = impl_type
     return parameters_for_node
 
 
@@ -98,9 +110,12 @@ class LocalisationConfigJob(ErtScript):
 
         model_param_node_names = get_param_node_name_list_from_ert(ert)
         if debug_level > 0:
-            print(" -- Parameter nodes:")
-            for name in model_param_node_names:
-                print(f"     {name}")
+            print(" -- Parameter nodes (name, impl_type, var_type):")
+            for item in model_param_node_names:
+                name = item[0]
+                param_type = item[1]
+                var_type = item[2]
+                print(f"     {name}  {param_type}  {var_type}")
 
         parameters_for_node_dict = get_param_nodes_from_gen_kw(ert)
         debug_print(" - Parameter nodes from GEN_KW:")
@@ -109,6 +124,12 @@ class LocalisationConfigJob(ErtScript):
                 print(f" -- Parameter node: {node_name}")
                 for name in parameter_list:
                     print(f"     Parameter name:  {name}")
+                print("\n")
+        parameters_for_node_from_gen_data = get_param_nodes_from_gen_data(ert)
+        for node_name, parameter_type in parameters_for_node_from_gen_data.items():
+            if debug_level > 0:
+                print(f" -- Parameter node: {node_name}   Type: {parameter_type}")
+        print("\n")
 
         result_node_names = get_result_node_name_list_from_ert(ert)
         if debug_level > 0:

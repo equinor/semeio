@@ -433,6 +433,9 @@ def test_read_param_groups():
         ],
         "MULTZ": ["MULTZ_MIDREEK", "MULTZ_LOWREEK"],
         "RMSGLOBPARAMS": ["FWL", "COHIBA_MODEL_MODE"],
+        "GENPARAM1": None,
+        "GENPARAM2": None,
+        "GENPARAM3": None,
     }
     # Test 1:
     all_kw = {}
@@ -451,11 +454,17 @@ def test_read_param_groups():
         "add": "RMSGLOBPARAMS",
         "remove": "RMSGLOBPARAMS:COHIBA_MODEL_MODE",
     }
+    param_group_item5 = {
+        "name": "PARAM_GROUP_GENPARAM",
+        "add": ["GENPARAM1", "GENPARAM2", "GENPARAM3"],
+        "remove": "GENPARAM2",
+    }
     all_kw["model_param_groups"] = [
         param_group_item1,
         param_group_item2,
         param_group_item3,
         param_group_item4,
+        param_group_item5,
     ]
 
     param_groups_reference1 = {
@@ -467,6 +476,7 @@ def test_read_param_groups():
         ],
         "PARAM_GROUP_INTERPOLATE_RELPERM": ["INTERPOLATE_RELPERM:INTERPOLATE_WO"],
         "PARAM_GROUP_RMSGLOBPARAMS": ["RMSGLOBPARAMS:FWL"],
+        "PARAM_GROUP_GENPARAM": ["GENPARAM1", "GENPARAM3"],
     }
     param_groups = local.read_param_groups(ert_param_dict, all_kw)
     local.debug_print(f"-- Test1: Param groups: {param_groups}\n\n")
@@ -491,14 +501,22 @@ def test_read_param_groups():
     # Test 3:
     all_kw = {}
     param_group_item = {
-        "name": "PARAM_GROUP_MULTZ3",
+        "name": "PARAM_GROUP_MULTZ_GENPARAM",
         "add": "All",
-        "remove": ["MULT*:MULTZ_*", "MULTF*_F3", "RMSGLOBPARAMS:*", "INT*"],
+        "remove": [
+            "MULT*:MULTZ_*",
+            "MULTF*_F3",
+            "RMSGLOBPARAMS:*",
+            "INT*",
+            "GENPARAM1",
+        ],
     }
     all_kw["model_param_groups"] = [param_group_item]
 
     param_groups_reference3 = {
-        "PARAM_GROUP_MULTZ3": [
+        "PARAM_GROUP_MULTZ_GENPARAM": [
+            "GENPARAM2",
+            "GENPARAM3",
             "MULTFLT:MULTFLT_F1",
             "MULTFLT:MULTFLT_F2",
             "MULTFLT:MULTFLT_F4",
@@ -528,6 +546,10 @@ def test_read_param_groups_for_correlations():
         ],
         "MULTZ": ["MULTZ_MIDREEK", "MULTZ_LOWREEK"],
         "RMSGLOBPARAMS": ["FWL", "COHIBA_MODEL_MODE"],
+        "GENPARAM1": None,
+        "GENPARAM12": None,
+        "GENPARAM22": None,
+        "GENPARAM21": None,
     }
 
     # Test 1
@@ -578,12 +600,18 @@ def test_read_param_groups_for_correlations():
                 "MULTFLT:M*_F1",
                 "MULTFLT:M*_F4",
                 "MULTFLT:M*_F5",
+                "GENPARAM*2",
             ],
         },
     }
     param_group_dict = {"MULTFLT_GROUP": ["MULTFLT"]}
 
-    param_list_reference3 = ["MULTFLT:MULTFLT_F2", "MULTFLT:MULTFLT_F3"]
+    param_list_reference3 = [
+        "GENPARAM1",
+        "GENPARAM21",
+        "MULTFLT:MULTFLT_F2",
+        "MULTFLT:MULTFLT_F3",
+    ]
 
     param_list = local.read_param_groups_for_correlations(
         param_group_dict, correlation_spec_item, main_keyword, ert_param_dict
