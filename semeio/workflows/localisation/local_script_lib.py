@@ -21,11 +21,6 @@ from res.enkf.enums.ert_impl_type_enum import ErtImplType
 # Global variables
 debug_level = 1
 
-# Dictionary with key =(obs_name, model_param_name) containing value
-# True or False depending on whether the correlation is active or not.
-# Use this to check that no double specification of a correlation appears.
-correlation_table = {}
-
 
 def debug_print(text):
     if debug_level > 0:
@@ -511,6 +506,20 @@ def read_correlation_specification(
         corr_dict["param_list"] = param_list
         correlation_dict[name] = corr_dict
     return correlation_dict
+
+
+def active_index_for_parameter(param_name, ert_param_dict):
+    [node_name, pname] = param_name.split(":")
+    param_list = ert_param_dict[node_name]
+    index = -1
+
+    for count, name in enumerate(param_list):
+        print(f"node_name: {node_name}  param_name: {name}")
+        if name == pname:
+            index = count
+            break
+    assert index > -1
+    return index, pname
 
 
 def check_for_duplicated_correlation_specifications(correlation_dict):
