@@ -53,8 +53,6 @@ def get_param_from_ert(ert, impl_type=ErtImplType.GEN_KW):
         node = ens_config.getNode(key)
         impl_type = node.getImplementationType()
         var_type = node.getVariableType()
-        #        debug_print(f"Node: {key} impl_type: {impl_type}  "
-        #                    f"var_type: {var_type}")
         if var_type == EnkfVarType.PARAMETER:
             if impl_type == ErtImplType.GEN_KW:
                 # Node contains scalar parameters defined by GEN_KW
@@ -103,6 +101,7 @@ def check_and_expand_param_groups(
         for name in all_param_group_names
         if pathlib.Path(name).match(user_param_group)
     ]
+    print(f"list_from_usr_param_groups: {list_from_user_param_groups}")
     total_param = []
     if len(list_from_user_param_groups) > 0:
         # Get all parameter names in all parameter groups found
@@ -223,6 +222,7 @@ def check_and_append_parameter_list(
             # Does not match defined parameters,
             # check with parameter groups instead
             all_param_group_names = []
+            print(f"All param groups: {all_param_groups}")
             if isinstance(all_param_groups, dict):
                 all_param_group_names = all_param_groups.keys()
             param_list_from_groups = check_and_expand_param_groups(
@@ -378,8 +378,6 @@ def read_obs_groups_for_correlations(
             remove_list = obs_keyword_items["remove"]
             if not isinstance(remove_list, list):
                 remove_list = [remove_list]
-        debug_print(f"add_list: {add_list}", 0)
-        debug_print(f"remove_list: {remove_list}", 0)
 
         # Define the list of all observations to add including the obs groups used
         total_obs_names_added = expand_wildcards_for_obs(
@@ -387,7 +385,6 @@ def read_obs_groups_for_correlations(
         )
         obs_node_names_added = list(set(total_obs_names_added))
         obs_node_names_added.sort()
-        debug_print(f" -- obs node names added: {obs_node_names_added}", 0)
 
         # Define the list of all observations to remove including the obs groups used
         if isinstance(remove_list, list):
@@ -437,10 +434,10 @@ def read_param_groups(ert_param_dict, all_kw):
         # For each entry in add_list expand it to get parameter names.
         # For each entry in remove_list expand it to get parameter names.
         # Remove entries from add_list found in remove_list.
+        print(f"add_list before expand: {add_list}")
+        print(f"remove_list before expand: {remove_list}")
         param_names_added = expand_wildcards_for_param(add_list, ert_param_dict)
         param_names_removed = expand_wildcards_for_param(remove_list, ert_param_dict)
-        debug_print(f"param_names_added: {param_names_added}", 0)
-        debug_print(f"param_names_removed: {param_names_removed}", 0)
         for name in param_names_removed:
             if name in param_names_added:
                 param_names_added.remove(name)
@@ -476,8 +473,6 @@ def read_param_groups_for_correlations(
             remove_list = param_keyword_items["remove"]
             if not isinstance(remove_list, list):
                 remove_list = [remove_list]
-        debug_print(f"add_list: {add_list}", 0)
-        debug_print(f"remove_list: {remove_list}", 0)
 
         # Define the list of all observations to add including the obs groups used
         total_param_names_added = expand_wildcards_for_param(
@@ -485,7 +480,6 @@ def read_param_groups_for_correlations(
         )
         param_names_added = list(set(total_param_names_added))
         param_names_added.sort()
-        debug_print(f" -- param names added: {param_names_added}", 0)
 
         # Define the list of all parameters to remove including
         # the parameter groups used
@@ -495,7 +489,6 @@ def read_param_groups_for_correlations(
             )
             param_names_removed = list(set(total_param_names_removed))
             param_names_removed.sort()
-            debug_print(f" -- param names removed: {param_names_removed}", 0)
 
             # For each entry in add_list expand it to get param names
             # For each entry in remove_list expand it to get param names
@@ -626,7 +619,7 @@ def check_for_duplicated_correlation_specifications(correlation_dict):
                     debug_print(
                         f"-- When reading correlation: {name} there are "
                         f"double specified correlations for {key}",
-                        0,
+                        1,
                     )
                     number_of_duplicates = number_of_duplicates + 1
                 else:

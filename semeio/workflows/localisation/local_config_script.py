@@ -10,6 +10,9 @@ from res.enkf import ErtScript
 from res.enkf.enums.ert_impl_type_enum import ErtImplType
 import semeio.workflows.localisation.local_script_lib as local
 
+# For validation
+from semeio.workflows.localisation.localisation_config import LocalisationConfig
+
 # from res.enkf import EnkfObs
 # from ecl.grid import EclRegion, EclGrid
 # from ecl.eclfile import EclKW, Ecl3DKW
@@ -41,9 +44,6 @@ class LocalisationConfigJob(ErtScript):
                 print(f"      {obs_name}")
             print("\n")
 
-        # Get dict of observation groups from main keyword 'obs_groups'
-        obs_groups = local.read_obs_groups(ert_obs_list, all_kw)
-
         # Get all parameters nodes with parameters defined by GEN_KW from ert instance
         ert_param_dict = local.get_param_from_ert(ert, impl_type=ErtImplType.GEN_KW)
         if debug_level > 0:
@@ -51,6 +51,12 @@ class LocalisationConfigJob(ErtScript):
                 f"-- All specified scalar parameters from ERT instance:\n"
                 f"{ert_param_dict}\n"
             )
+        LocalisationConfig(
+            observations=ert_obs_list, parameters=ert_param_dict, **all_kw
+        )
+
+        # Get dict of observation groups from main keyword 'obs_groups'
+        obs_groups = local.read_obs_groups(ert_obs_list, all_kw)
 
         # Get dict of user defined model parameter groups from
         # main keyword 'model_param_groups'
@@ -71,13 +77,12 @@ class LocalisationConfigJob(ErtScript):
         number_of_duplicates = local.check_for_duplicated_correlation_specifications(
             correlation_specification
         )
-        if debug_level > 0:
-            print(f" -- Number of duplicated correlations: {number_of_duplicates}")
         if number_of_duplicates > 0:
-            raise ValueError(
-                f"Number of duplicated correlations specified is: "
-                f"{number_of_duplicates}"
+            print(
+                f"  -- Warning: There are {number_of_duplicates} "
+                "duplicated specification of the same correlations."
             )
+
         local.add_ministeps(correlation_specification, ert_param_dict, ert)
 
 
