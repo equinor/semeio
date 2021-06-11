@@ -618,3 +618,17 @@ def test_read_param_groups_for_correlations():
     )
     local.debug_print(f" -- Test 3: param_list: {param_list}\n\n")
     assert param_list == param_list_reference3
+
+
+@pytest.mark.parametrize(
+    "user_obs, all_obs, expected",
+    [
+        (["OBS1"], ["OBS1", "OBS2"], ["OBS1"]),
+        (["OBS*"], ["OBS1", "OBS2"], ["OBS1", "OBS2"]),
+        (["OBS*"], ["OBS1", "OBS2", "SOME"], ["OBS1", "OBS2"]),
+        (["UNKNOWN"], ["OBS1", "OBS2"], []),
+    ],
+)
+def test_expand_wildcards_for_obs(user_obs, all_obs, expected):
+    result = local.expand_wildcards(user_obs, all_obs)
+    assert result == expected
