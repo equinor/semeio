@@ -4,6 +4,7 @@ import pytest
 import semeio.workflows.localisation.local_script_lib as local
 from semeio.workflows.localisation.localisation_config import LocalisationConfig
 
+
 def test_read_correlation_specification():
     local.debug_print("\n\nRun: test_read_correlation_specification")
     ert_list_all_obs = [
@@ -103,7 +104,9 @@ def test_read_correlation_specification():
             },
         ]
     }
-    conf = LocalisationConfig(observations=ert_list_all_obs, parameters=ert_param_dict, **all_kw)
+    conf = LocalisationConfig(
+        observations=ert_list_all_obs, parameters=ert_param_dict, **all_kw
+    )
 
     correlation_specification_reference1 = {
         "CORRELATION1": {
@@ -165,8 +168,12 @@ def test_read_correlation_specification():
     assert correlation_specification == correlation_specification_reference1
 
     for corr in conf.correlations:
-        correlation_specification_reference1[corr.name]["obs_list"] == corr.obs_group.add
-        correlation_specification_reference1[corr.name]["param_list"] == corr.model_group.add
+        correlation_specification_reference1[corr.name][
+            "obs_list"
+        ] == corr.obs_group.add
+        correlation_specification_reference1[corr.name][
+            "param_list"
+        ] == corr.model_group.add
 
     # Test 2:
     all_kw = {

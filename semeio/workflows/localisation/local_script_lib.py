@@ -2,22 +2,8 @@ import yaml
 import pathlib
 from copy import copy
 
-# from functools import partial
-
-# import cwrap
-# from res.enkf import ErtScript
 from res.enkf.enums.ert_impl_type_enum import ErtImplType
 from res.enkf.enums.enkf_var_type_enum import EnkfVarType
-
-# from res.enkf.enums.active_mode_enum import ActiveMode
-
-# from res.enkf import EnkfObs
-# from ecl.grid import EclRegion, EclGrid
-# from ecl.eclfile import EclKW, Ecl3DKW
-# from ecl.ecl_type import EclDataType
-# from ecl.util.util import IntVector
-# from ert_shared.plugins.plugin_manager import hook_implementation
-
 
 # Global variables
 debug_level = 1
@@ -73,93 +59,19 @@ def get_param_from_ert(ert, impl_type=ErtImplType.GEN_KW):
     return parameters_for_node
 
 
-def check_and_expand_obs_groups(user_obs_group, all_obs_group_names, all_obs_groups):
-    #  Check of user_obs_group can be expanded to one or more obs group names.
-    # If so, get all observations for these groups and return this as a list
-    list_from_user_obs_groups = [
-        name for name in all_obs_group_names if pathlib.Path(name).match(user_obs_group)
-    ]
-    total_obs = []
-    if len(list_from_user_obs_groups) > 0:
-        # Get all obs in all obs groups found
-        for obs_group_name in list_from_user_obs_groups:
-            obs_list = all_obs_groups[obs_group_name]
-            total_obs.extend(obs_list)
-    else:
-        raise ValueError(
-            f" The user defined observation group {user_obs_group} "
-            "does not match any observation or observation group specified."
-        )
-    return total_obs
+def expand_wildcards(patterns, list_of_words):
+    all_matches = []
 
+    for pattern in patterns:
+        matches = [
+            words for words in list_of_words if pathlib.Path(words).match(pattern)
+        ]
+        if len(matches) > 0:
+            all_matches.extend(matches)
 
-def check_and_expand_param_groups(
-    user_param_group, all_param_group_names, all_param_groups
-):
-    #  Check if user_param_group can be expanded to one or more param group names.
-    # If so, get model parameters for these groups and return this as a list
-    list_from_user_param_groups = [
-        name
-        for name in all_param_group_names
-        if pathlib.Path(name).match(user_param_group)
-    ]
-    total_param = []
-    if len(list_from_user_param_groups) > 0:
-        # Get all parameter names in all parameter groups found
-        for param_group_name in list_from_user_param_groups:
-            param_list = all_param_groups[param_group_name]
-            total_param.extend(param_list)
-    else:
-        raise ValueError(
-            f" The user defined parameter group {user_param_group} "
-            "does not match any parameter, parameter node or parameter group specified."
-        )
-    return total_param
-
-
-def expand_wildcards_for_obs(user_obs, all_observations, all_obs_groups=None):
-    if len(all_observations) == 0:
-        raise ValueError(" all_observations has 0 observations")
-    total_obs = []
-    tmp_input = copy(user_obs)
-    if not isinstance(user_obs, list):
-        user_obs = [tmp_input]
-
-    all_obs_group_names = []
-    if isinstance(all_obs_groups, dict):
-        all_obs_group_names = all_obs_groups.keys()
-
-    for obs in user_obs:
-        if obs.upper().strip() == "ALL":
-            total_obs.extend(all_observations)
-        else:
-            # Find all defined observations matching obs
-            list_from_user_obs = [
-                name for name in all_observations if pathlib.Path(name).match(obs)
-            ]
-            if all_obs_groups is None:
-                # Require that obs match defined observations
-                if len(list_from_user_obs) > 0:
-                    total_obs.extend(list_from_user_obs)
-                else:
-                    raise ValueError(
-                        f" The user defined observations {obs} "
-                        "does not match any observations in ert instance."
-                    )
-            else:
-                # Require that obs match defined observations or defined obs groups
-                if len(list_from_user_obs) > 0:
-                    total_obs.extend(list_from_user_obs)
-                else:
-                    # Does not match defined observations, check with obs groups instead
-                    obs_list_from_groups = check_and_expand_obs_groups(
-                        obs, all_obs_group_names, all_obs_groups
-                    )
-                    total_obs.extend(obs_list_from_groups)
-
-    obs_list = list(set(total_obs))
-    obs_list.sort()
-    return obs_list
+    all_matches = list(set(all_matches))
+    all_matches.sort()
+    return all_matches
 
 
 def get_full_parameter_name_list(user_node_name, all_param_dict):
@@ -233,40 +145,28 @@ def check_and_append_parameter_list(
     return total_param
 
 
-def expand_wildcards_for_param(user_param, all_param_dict, all_param_groups=None):
-    if len(all_param_dict) == 0:
-        raise ValueError(" all_param_dict has 0 parameters")
-    # All parameter names defined in ert instance
+def expand_wildcards_with_dicts(pattern_of_dicts, list_of_dicts):
     all_param_list = []
-    all_param_node_list = []
-    for node_name in all_param_dict.keys():
-        full_param_name_list = get_full_parameter_name_list(node_name, all_param_dict)
-        all_param_list.extend(full_param_name_list)
-        all_param_node_list.append(node_name)
     total_param = []
-    tmp_input = copy(user_param)
-    if not isinstance(user_param, list):
-        user_param = [tmp_input]
 
-    for param in user_param:
-        if param.upper().strip() == "ALL":
-            total_param.extend(all_param_list)
-        else:
-            # Find all defined parameters matching param
-            list_of_expanded_user_param_names = [
-                name for name in all_param_list if pathlib.Path(name).match(param)
-            ]
-            list_of_expanded_user_param_node_names = [
-                name for name in all_param_node_list if pathlib.Path(name).match(param)
-            ]
-            total_param = check_and_append_parameter_list(
-                param,
-                total_param,
-                all_param_groups,
-                all_param_dict,
-                list_of_expanded_user_param_names,
-                list_of_expanded_user_param_node_names,
-            )
+    for key, value in pattern_of_dicts.items():
+
+        # expand_wildcards(patterns=, list_of_words=)
+        # Find all defined parameters matching param
+        list_of_expanded_user_param_names = [
+            name for name in all_param_list if pathlib.Path(name).match(param)
+        ]
+        list_of_expanded_user_param_node_names = [
+            name for name in all_param_node_list if pathlib.Path(name).match(param)
+        ]
+        total_param = check_and_append_parameter_list(
+            param,
+            total_param,
+            all_param_groups,
+            all_param_dict,
+            list_of_expanded_user_param_names,
+            list_of_expanded_user_param_node_names,
+        )
 
     param_list = list(set(total_param))
     param_list.sort()
@@ -305,51 +205,6 @@ def get_obs_from_ert_config(obs_data_from_ert_config):
     return ert_obs_node_list
 
 
-def read_obs_groups(ert_obs_list, all_kw):
-    #   ert_obs = ert.getObservations()
-    #   obs_data_from_ert_config = ert_obs.getAllActiveLocalObsdata()
-    #   ert_obs_list = get_obs_from_ert_config(obs_data_from_ert_config)
-
-    main_keyword = "obs_groups"
-    obs_group_item_list = all_kw[main_keyword]
-    obs_groups = {}
-    for obs_group_item in obs_group_item_list:
-        valid_keywords = ["add", "remove", "name"]
-        mandatory_keywords = ["add", "name"]
-        # Check that mandatory keywords exists
-        keywords = obs_group_item.keys()
-        for mkey in mandatory_keywords:
-            if mkey not in keywords:
-                raise KeyError(
-                    f"Can not find mandatory keywords {mandatory_keywords} "
-                    f"in {main_keyword} "
-                )
-        for keyword_read in keywords:
-            if keyword_read not in valid_keywords:
-                raise KeyError(
-                    f"Unknown keyword {keyword_read} found in {main_keyword}."
-                )
-        obs_group_name = obs_group_item["name"]
-        obs_groups[obs_group_name] = []
-        add_list = obs_group_item["add"]
-        remove_list = []
-        if "remove" in keywords:
-            remove_list = obs_group_item["remove"]
-
-        # For each entry in add_list expand it to get observation names.
-        # For each entry in remove_list expand it to get observation names.
-        # If obs group names are found instead of obs names,
-        # get the obs names for the group.
-        # Remove entries from add_list found in remove_list.
-        obs_node_names_added = expand_wildcards_for_obs(add_list, ert_obs_list)
-        obs_node_names_removed = expand_wildcards_for_obs(remove_list, ert_obs_list)
-        for name in obs_node_names_removed:
-            if name in obs_node_names_added:
-                obs_node_names_added.remove(name)
-        obs_groups[obs_group_name] = obs_node_names_added
-    return obs_groups
-
-
 def read_obs_groups_for_correlations(
     obs_group_dict, correlation_spec_item, main_keyword, ert_obs_list
 ):
@@ -382,16 +237,14 @@ def read_obs_groups_for_correlations(
         debug_print(f"remove_list: {remove_list}", 0)
 
         # Define the list of all observations to add including the obs groups used
-        total_obs_names_added = expand_wildcards_for_obs(
-            add_list, ert_obs_list, obs_group_dict
-        )
+        total_obs_names_added = expand_wildcards(add_list, ert_obs_list, obs_group_dict)
         obs_node_names_added = list(set(total_obs_names_added))
         obs_node_names_added.sort()
         debug_print(f" -- obs node names added: {obs_node_names_added}", 0)
 
         # Define the list of all observations to remove including the obs groups used
         if isinstance(remove_list, list):
-            total_obs_names_removed = expand_wildcards_for_obs(
+            total_obs_names_removed = expand_wildcards(
                 remove_list, ert_obs_list, obs_group_dict
             )
             obs_node_names_removed = list(set(total_obs_names_removed))
@@ -505,28 +358,6 @@ def read_param_groups_for_correlations(
                     param_names_added.remove(name)
 
     return param_names_added
-
-
-def read_correlation_specification(
-    all_kw, ert_obs_list, ert_param_dict, obs_groups=None, param_groups=None
-):
-    main_keyword = "correlations"
-    correlation_spec_list = all_kw[main_keyword]
-    correlation_dict = {}
-    for corr_item in correlation_spec_list:
-        corr_dict = {}
-        name = corr_item["name"]
-        obs_list = read_obs_groups_for_correlations(
-            obs_groups, corr_item, main_keyword, ert_obs_list
-        )
-        corr_dict["obs_list"] = obs_list
-
-        param_list = read_param_groups_for_correlations(
-            param_groups, corr_item, main_keyword, ert_param_dict
-        )
-        corr_dict["param_list"] = param_list
-        correlation_dict[name] = corr_dict
-    return correlation_dict
 
 
 def print_correlation_specification(correlation_specification, debug_level=1):
