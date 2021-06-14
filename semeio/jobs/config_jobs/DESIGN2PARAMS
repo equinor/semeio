@@ -3,7 +3,7 @@ STDOUT DESIGN2PARAMS.stdout
 
 TARGET_FILE DESIGN2PARAMS.OK
 
-PORTABLE_EXE design2params
+EXECUTABLE design2params
 ARGLIST      <IENS> <xls_filename> <designsheet> <defaultssheet>
 
 MIN_ARG    3
