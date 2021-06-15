@@ -6,11 +6,9 @@
 #   parameters and this script setup the localisation in ERT.
 
 from ert_shared.plugins.plugin_manager import hook_implementation
-from res.enkf.enums.ert_impl_type_enum import ErtImplType
-
 from semeio.communication import SemeioScript
 import semeio.workflows.localisation.local_script_lib as local
-from semeio.workflows.localisation.local_config_script import LocalisationConfig
+from semeio.workflows.localisation.localisation_config import LocalisationConfig
 
 
 debug_level = 1
@@ -34,19 +32,18 @@ class LocalisationConfigJob(SemeioScript):
                 print(f"      {obs_name}")
             print("\n")
 
-        # Get all parameters nodes with parameters defined by GEN_KW from ert instance
-        ert_param_dict = local.get_param_from_ert(ert, impl_type=ErtImplType.GEN_KW)
+        ert_param_dict = local.get_param_from_ert(ert)
         if debug_level > 0:
             print(
                 f"-- All specified scalar parameters from ERT instance:\n"
                 f"{ert_param_dict}\n"
             )
 
-        conf = LocalisationConfig(
+        config = LocalisationConfig(
             observations=ert_obs_list, parameters=ert_param_dict, **all_kw
         )
 
-        local.add_ministeps(conf.correlations, ert_param_dict, ert)
+        local.add_ministeps(config, ert_param_dict, ert)
 
 
 @hook_implementation

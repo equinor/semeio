@@ -1,6 +1,6 @@
 import yaml
 import pathlib
-from copy import copy
+
 
 from res.enkf.enums.ert_impl_type_enum import ErtImplType
 from res.enkf.enums.enkf_var_type_enum import EnkfVarType
@@ -25,7 +25,7 @@ def get_observations_from_ert(ert):
     return ert_obs_node_list
 
 
-def get_param_from_ert(ert, impl_type=ErtImplType.GEN_KW):
+def get_param_from_ert(ert):
     ens_config = ert.ensembleConfig()
     keylist = ens_config.alloc_keylist()
     parameters_for_node = {}
@@ -55,122 +55,202 @@ def get_param_from_ert(ert, impl_type=ErtImplType.GEN_KW):
                 # Node contains parameter from GEN_PARAM
                 # which is of type PARAMETER
                 # and implementation type GEN_DATA
-                parameters_for_node[key] = None
+                parameters_for_node[key] = []
     return parameters_for_node
 
 
 def expand_wildcards(patterns, list_of_words):
     all_matches = []
-
+    errors = []
     for pattern in patterns:
         matches = [
             words for words in list_of_words if pathlib.Path(words).match(pattern)
         ]
         if len(matches) > 0:
             all_matches.extend(matches)
-
+        else:
+            # No match
+            errors.append(pattern)
     all_matches = list(set(all_matches))
     all_matches.sort()
+    print(f"obs matches: {all_matches}")
+    if len(errors) > 0:
+        raise ValueError(
+            " These observation specifications does not match "
+            "any observations defined in ERT model\n"
+            f"     {errors}"
+        )
+
     return all_matches
 
 
 def get_full_parameter_name_list(user_node_name, all_param_dict):
     param_list = all_param_dict[user_node_name]
     full_param_name_list = []
-    if param_list is not None:
-        # A list of parameters for the specified node name exist
+    if len(param_list) > 0:
         for param_name in param_list:
             full_param_name = user_node_name.strip() + ":" + param_name.strip()
             full_param_name_list.append(full_param_name)
     else:
-        # This parameter node does not have any named parameters since it can be
-        # either a GEN_PARAM parameter node, a SURFACE parameter node
-        # or a FIELD parameter node. Use the parameter node name instead.
+        # This node does not have any specified list of parameters.
+        # There are two possibilities:
+        #  - The node may have parameters with names (coming from GEN_KW keyword in ERT)
+        #  - The node may not have any parameters with names
+        #     (coming from GEN_PARAM, SURFACE, FIELD) keywords.
         full_param_name_list.append(user_node_name)
     return full_param_name_list
 
 
-def check_and_append_parameter_list(
-    param,
-    total_param,
-    all_param_groups,
-    all_param_dict,
-    list_of_expanded_user_param_names,
-    list_of_expanded_user_param_node_names,
-):
-    if all_param_groups is None:
-        # No specification of user defined model parameter groups
-        if len(list_of_expanded_user_param_names) > 0:
-            # param is found in defined parameter names in ert instance
-            total_param.extend(list_of_expanded_user_param_names)
-        elif len(list_of_expanded_user_param_node_names) > 0:
-            # param is not found in defined parameter names in ert instance
-            # but it matches parameter node names found in ert instance
-            for user_node_name in list_of_expanded_user_param_node_names:
-                full_param_name_list = get_full_parameter_name_list(
-                    user_node_name, all_param_dict
+def full_param_names_for_ert(ert_param_dict):
+    all_param_node_list = ert_param_dict.keys()
+    valid_full_param_names = []
+    print(f"all_param_node_list: {all_param_node_list}")
+    for node_name in all_param_node_list:
+        # Define full parameter name of form nodename:parametername to simplify matching
+        full_name_list_for_node = get_full_parameter_name_list(
+            node_name, ert_param_dict
+        )
+        valid_full_param_names.extend(full_name_list_for_node)
+    return valid_full_param_names
+
+
+def set_full_param_name(node_name, param_name):
+    full_name = node_name + ":" + param_name
+    return full_name
+
+
+def append_pattern_list(pattern_of_dict, pattern_list):
+    for node_name_pattern, param_name_pattern_list in pattern_of_dict.items():
+        if isinstance(param_name_pattern_list, list):
+            for param_name_pattern in param_name_pattern_list:
+                full_name_pattern = set_full_param_name(
+                    node_name_pattern, param_name_pattern
                 )
-                total_param.extend(full_param_name_list)
-        else:
-            # The expanded name param is not found in defined parameter names
-            # or parameter node names.
-            raise ValueError(
-                f" The user defined parameter {param} "
-                "does not match any parameter name or node in ert instance.\n"
-                f"ERT instance nodes with parameters are: {all_param_dict}"
+                pattern_list.append(full_name_pattern)
+
+                if param_name_pattern == "*":
+                    # A node with * as an entry in the parameter list may be
+                    # a node without named parameters like nodes created by
+                    # the FIELD, SURFACE, GEN_PARAM ert keywords.
+                    # In this case the full name should also include only the
+                    # node name to get a match with valid full parameter names
+                    full_name_pattern = node_name_pattern.strip()
+                    pattern_list.append(full_name_pattern)
+        elif isinstance(param_name_pattern_list, str):
+            # Only a single string as value for the node in the dict
+            full_name_pattern = set_full_param_name(
+                node_name_pattern.strip(), param_name_pattern_list.strip()
             )
-    else:
-        # In addition to check against defined parameter names and
-        # defined parameter node names, also check against
-        # defined parameter group names
-        if len(list_of_expanded_user_param_names) > 0:
-            total_param.extend(list_of_expanded_user_param_names)
-        elif len(list_of_expanded_user_param_node_names) > 0:
-            for user_node_name in list_of_expanded_user_param_node_names:
-                full_param_name_list = get_full_parameter_name_list(
-                    user_node_name, all_param_dict
-                )
-                total_param.extend(full_param_name_list)
+            pattern_list.append(full_name_pattern)
+    return pattern_list
+
+
+def pattern_list_from_dict(list_of_pattern_of_dicts):
+    pattern_list = []
+    for pattern_of_dict in list_of_pattern_of_dicts:
+        if isinstance(pattern_of_dict, dict):
+            pattern_list = append_pattern_list(pattern_of_dict, pattern_list)
+        if isinstance(pattern_of_dict, str):
+            pattern_list.append(pattern_of_dict)
         else:
-            # Does not match defined parameters,
-            # check with parameter groups instead
-            all_param_group_names = []
-            if isinstance(all_param_groups, dict):
-                all_param_group_names = all_param_groups.keys()
-            param_list_from_groups = check_and_expand_param_groups(
-                param, all_param_group_names, all_param_groups
-            )
-            total_param.extend(param_list_from_groups)
-
-    return total_param
+            raise TypeError(f"Expecting a string , get a {pattern_of_dict}")
+    return pattern_list
 
 
-def expand_wildcards_with_dicts(pattern_of_dicts, list_of_dicts):
-    all_param_list = []
-    total_param = []
+def split_full_param_names_and_define_dict(full_param_name_list):
+    # Split the name up into node name and param name and define a dict
+    param_dict = {}
+    param_list = None
+    for fullname in full_param_name_list:
+        #        print(f"fullname: {fullname}")
+        words = []
+        words = fullname.split(":")
+        #        print(f"words: {words}")
+        if len(words) == 1:
+            node_name = words[0]
+            param_name = None
+        else:
+            node_name = words[0]
+            param_name = words[1]
+        #        print(f" node_name: {node_name}  param_name: {param_name}")
+        if node_name not in param_dict.keys():
+            param_dict[node_name] = []
+        param_list = param_dict[node_name]
+        if param_name is not None:
+            param_list.append(param_name)
+    return param_dict
 
-    for key, value in pattern_of_dicts.items():
 
-        # expand_wildcards(patterns=, list_of_words=)
-        # Find all defined parameters matching param
-        list_of_expanded_user_param_names = [
-            name for name in all_param_list if pathlib.Path(name).match(param)
+def expand_wildcards_with_param_dicts(list_of_pattern_of_dicts, ert_param_dict):
+    # Define a list with full parameter names of the form nodename:paramname
+    valid_full_param_names = full_param_names_for_ert(ert_param_dict)
+    print(f"valid full param names: {valid_full_param_names}")
+
+    # Define a list with specfied patterns of parameter names of the
+    # form nodename:paramname where both nodename and paramname
+    # can be specified with wildcard notation
+    pattern_list = pattern_list_from_dict(list_of_pattern_of_dicts)
+    print(f"pattern_list: {pattern_list}")
+
+    # Expand patterns of full parameter names
+    list_of_all_expanded_full_names = []
+    for pattern in pattern_list:
+        print(f"pattern: {pattern}")
+        expanded_full_names = [
+            name for name in valid_full_param_names if pathlib.Path(name).match(pattern)
         ]
-        list_of_expanded_user_param_node_names = [
-            name for name in all_param_node_list if pathlib.Path(name).match(param)
+        print(f"expanded: {expanded_full_names}")
+        list_of_all_expanded_full_names.extend(expanded_full_names)
+
+    # Eliminate duplicates
+    full_param_name_list = list(set(list_of_all_expanded_full_names))
+    full_param_name_list.sort()
+    print(f"full param name list: {full_param_name_list}")
+
+    # Make a dict with specified node names as key and a list of
+    # parameter names as value
+    param_dict = split_full_param_names_and_define_dict(full_param_name_list)
+    print(f"param_dict: {param_dict}")
+    return param_dict
+
+
+def expand_wildcards_with_param(pattern_list, ert_param_dict):
+    # Define a list with full parameter names of the form nodename:paramname
+    valid_full_param_names = full_param_names_for_ert(ert_param_dict)
+    print(f"valid full param names: {valid_full_param_names}")
+
+    # Expand patterns of full parameter names
+    list_of_all_expanded_full_names = []
+    error_list = []
+    for pattern in pattern_list:
+        #        print(f"pattern: {pattern}")
+        expanded_full_names = [
+            name for name in valid_full_param_names if pathlib.Path(name).match(pattern)
         ]
-        total_param = check_and_append_parameter_list(
-            param,
-            total_param,
-            all_param_groups,
-            all_param_dict,
-            list_of_expanded_user_param_names,
-            list_of_expanded_user_param_node_names,
+        if len(expanded_full_names) > 0:
+            #            print(f"expanded: {expanded_full_names}")
+            list_of_all_expanded_full_names.extend(expanded_full_names)
+        else:
+            error_list.append(pattern)
+
+    if len(error_list) > 0:
+        raise ValueError(
+            "List of specified model parameters "
+            "that does not match any ERT parameter:\n"
+            f"     {error_list}"
         )
 
-    param_list = list(set(total_param))
-    param_list.sort()
-    return param_list
+    # Eliminate duplicates
+    full_param_name_list = list(set(list_of_all_expanded_full_names))
+    full_param_name_list.sort()
+    print(f"full param name list: {full_param_name_list}")
+
+    # Make a dict with specified node names as key and a list of
+    # parameter names as value
+    param_dict = split_full_param_names_and_define_dict(full_param_name_list)
+    print(f"param_dict: {param_dict}")
+
+    return param_dict
 
 
 def read_localisation_config(args):
@@ -203,161 +283,6 @@ def get_obs_from_ert_config(obs_data_from_ert_config):
             print("\n")
     ert_obs_node_list.sort()
     return ert_obs_node_list
-
-
-def read_obs_groups_for_correlations(
-    obs_group_dict, correlation_spec_item, main_keyword, ert_obs_list
-):
-    obs_group_keyword = "obs_group"
-    obs_keyword_items = correlation_spec_item[obs_group_keyword]
-    valid_keywords = ["add", "remove"]
-    mandatory_keywords = ["add"]
-
-    # Check that mandatory keywords exists
-    keywords = obs_keyword_items.keys()
-    for mkey in mandatory_keywords:
-        if mkey not in keywords:
-            raise KeyError(
-                f"Can not find mandatory keywords {mandatory_keywords} "
-                f"in {obs_group_keyword} in {main_keyword} "
-            )
-        for keyword_read in keywords:
-            if keyword_read not in valid_keywords:
-                raise KeyError(
-                    f"Unknown keyword {keyword_read} found in {obs_group_keyword} "
-                    f"in {main_keyword}. "
-                )
-        add_list = obs_keyword_items["add"]
-        remove_list = None
-        if "remove" in keywords:
-            remove_list = obs_keyword_items["remove"]
-            if not isinstance(remove_list, list):
-                remove_list = [remove_list]
-        debug_print(f"add_list: {add_list}", 0)
-        debug_print(f"remove_list: {remove_list}", 0)
-
-        # Define the list of all observations to add including the obs groups used
-        total_obs_names_added = expand_wildcards(add_list, ert_obs_list, obs_group_dict)
-        obs_node_names_added = list(set(total_obs_names_added))
-        obs_node_names_added.sort()
-        debug_print(f" -- obs node names added: {obs_node_names_added}", 0)
-
-        # Define the list of all observations to remove including the obs groups used
-        if isinstance(remove_list, list):
-            total_obs_names_removed = expand_wildcards(
-                remove_list, ert_obs_list, obs_group_dict
-            )
-            obs_node_names_removed = list(set(total_obs_names_removed))
-            obs_node_names_removed.sort()
-
-            # For each entry in add_list expand it to get observation names
-            # For each entry in remove_list expand it to get observation names
-            # Remove entries from add_list found in remove_list
-            for name in obs_node_names_removed:
-                if name in obs_node_names_added:
-                    obs_node_names_added.remove(name)
-
-    return obs_node_names_added
-
-
-def read_param_groups(ert_param_dict, all_kw):
-    main_keyword = "model_param_groups"
-    param_group_item_list = all_kw[main_keyword]
-    param_groups = {}
-    for param_group_item in param_group_item_list:
-        valid_keywords = ["add", "remove", "name"]
-        mandatory_keywords = ["add", "name"]
-        # Check that mandatory keywords exists
-        keywords = param_group_item.keys()
-        for mkey in mandatory_keywords:
-            if mkey not in keywords:
-                raise KeyError(
-                    f"Can not find mandatory keywords {mandatory_keywords} "
-                    f"in {main_keyword} "
-                )
-        for keyword_read in keywords:
-            if keyword_read not in valid_keywords:
-                raise KeyError(
-                    f"Unknown keyword {keyword_read} found in {main_keyword}."
-                )
-        param_group_name = param_group_item["name"]
-        param_groups[param_group_name] = []
-        add_list = param_group_item["add"]
-        remove_list = []
-        if "remove" in keywords:
-            remove_list = param_group_item["remove"]
-
-        # For each entry in add_list expand it to get parameter names.
-        # For each entry in remove_list expand it to get parameter names.
-        # Remove entries from add_list found in remove_list.
-        param_names_added = expand_wildcards_for_param(add_list, ert_param_dict)
-        param_names_removed = expand_wildcards_for_param(remove_list, ert_param_dict)
-        debug_print(f"param_names_added: {param_names_added}", 0)
-        debug_print(f"param_names_removed: {param_names_removed}", 0)
-        for name in param_names_removed:
-            if name in param_names_added:
-                param_names_added.remove(name)
-        param_groups[param_group_name] = param_names_added
-    return param_groups
-
-
-def read_param_groups_for_correlations(
-    param_group_dict, correlation_spec_item, main_keyword, ert_param_dict
-):
-    param_group_keyword = "model_group"
-    param_keyword_items = correlation_spec_item[param_group_keyword]
-    valid_keywords = ["add", "remove"]
-    mandatory_keywords = ["add"]
-
-    # Check that mandatory keywords exists
-    keywords = param_keyword_items.keys()
-    for mkey in mandatory_keywords:
-        if mkey not in keywords:
-            raise KeyError(
-                f"Can not find mandatory keywords {mandatory_keywords} "
-                f"in {param_group_keyword} in {main_keyword} "
-            )
-        for keyword_read in keywords:
-            if keyword_read not in valid_keywords:
-                raise KeyError(
-                    f"Unknown keyword {keyword_read} "
-                    f"found in {param_group_keyword} in {main_keyword}. "
-                )
-        add_list = param_keyword_items["add"]
-        remove_list = None
-        if "remove" in keywords:
-            remove_list = param_keyword_items["remove"]
-            if not isinstance(remove_list, list):
-                remove_list = [remove_list]
-        debug_print(f"add_list: {add_list}", 0)
-        debug_print(f"remove_list: {remove_list}", 0)
-
-        # Define the list of all observations to add including the obs groups used
-        total_param_names_added = expand_wildcards_for_param(
-            add_list, ert_param_dict, param_group_dict
-        )
-        param_names_added = list(set(total_param_names_added))
-        param_names_added.sort()
-        debug_print(f" -- param names added: {param_names_added}", 0)
-
-        # Define the list of all parameters to remove including
-        # the parameter groups used
-        if isinstance(remove_list, list):
-            total_param_names_removed = expand_wildcards_for_param(
-                remove_list, ert_param_dict, param_group_dict
-            )
-            param_names_removed = list(set(total_param_names_removed))
-            param_names_removed.sort()
-            debug_print(f" -- param names removed: {param_names_removed}", 0)
-
-            # For each entry in add_list expand it to get param names
-            # For each entry in remove_list expand it to get param names
-            # Remove entries from add_list found in remove_list
-            for name in param_names_removed:
-                if name in param_names_added:
-                    param_names_added.remove(name)
-
-    return param_names_added
 
 
 def print_correlation_specification(correlation_specification, debug_level=1):
@@ -395,42 +320,34 @@ def print_correlation_specification(correlation_specification, debug_level=1):
         print("\n")
 
 
-def active_index_for_parameter(full_param_name, ert_param_dict):
+def active_index_for_parameter(node_name, param_name, ert_param_dict):
     # For parameters defined as scalar parameters (coming from GEN_KW)
-    # which is of the form  node_name:parameter_name,
-    # split the node_name from the parameter_name to identify which one
-    # of the parameter_names are used (and should be active).
+    # the parameters for a node have a name. Getthe index from the orderrrrr
+    # of these parameters.
     # For parameters that are not coming from GEN_KW,
     # the active index is not used here.
-    contains_both_node_and_param_name = False
-    for c in full_param_name:
-        if c == ":":
-            contains_both_node_and_param_name = True
-            break
-    if contains_both_node_and_param_name:
-        [node_name, param_name] = full_param_name.split(":")
 
-        param_list = ert_param_dict[node_name]
+    ert_param_list = ert_param_dict[node_name]
+    if len(ert_param_list) > 0:
         index = -1
-        for count, name in enumerate(param_list):
+        for count, name in enumerate(ert_param_list):
             if name == param_name:
                 index = count
                 break
         assert index > -1
     else:
-        node_name = full_param_name
-        param_name = full_param_name
         index = None
-    return node_name, param_name, index
+    return index
 
 
-def check_for_duplicated_correlation_specifications(correlation_dict):
+def check_for_duplicated_correlation_specifications(correlations):
     # All observations and model parameters used in correlations
+    print(f"correlations: {correlations}")
     tmp_obs_list = []
     tmp_param_list = []
-    for name, item in correlation_dict.items():
-        obs_list = item["obs_list"]
-        param_list = item["param_list"]
+    for corr in correlations:
+        obs_list = corr.obs_group.add
+        param_list = corr.param_group.add
         tmp_obs_list.extend(obs_list)
         tmp_param_list.extend(param_list)
     complete_obs_list = list(set(tmp_obs_list))
@@ -447,9 +364,10 @@ def check_for_duplicated_correlation_specifications(correlation_dict):
 
     # Check each correlation set (corresponding to a ministep)
     number_of_duplicates = 0
-    for name, item in correlation_dict.items():
-        obs_list = item["obs_list"]
-        param_list = item["param_list"]
+    for corr in correlations:
+        name = corr.name
+        obs_list = corr.obs_group.add
+        param_list = corr.param_group.add
         for obs_name in obs_list:
             for param_name in param_list:
                 key = (obs_name, param_name)
@@ -465,44 +383,46 @@ def check_for_duplicated_correlation_specifications(correlation_dict):
     return number_of_duplicates
 
 
-def add_ministeps(correlation_specification, ert_param_dict, ert):
+def add_ministeps(user_config, ert_param_dict, ert):
     local_config = ert.getLocalConfig()
     updatestep = local_config.getUpdatestep()
     count = 1
-    for ministep_name, item in correlation_specification.items():
+    for count, corr_spec in enumerate(user_config.correlations):
+        ministep_name = corr_spec.name
         ministep = local_config.createMinistep(ministep_name)
 
-        model_group_name = ministep_name + "_param_group_" + str(count)
-        model_param_group = local_config.createDataset(model_group_name)
+        param_group_name = ministep_name + "_param_group"
+        model_param_group = local_config.createDataset(param_group_name)
 
-        obs_group_name = ministep_name + "_obs_group_" + str(count)
+        obs_group_name = ministep_name + "_obs_group"
         obs_group = local_config.createObsdata(obs_group_name)
 
-        obs_list = item["obs_list"]
-        param_list = item["param_list"]
-        count = count + 1
+        obs_list = corr_spec.obs_group.add
+        print(f" obs_group_name: {obs_group_name}  obs group: {obs_list }")
+
+        param_dict = corr_spec.param_group.add
+        print(f" param_group_name: {param_group_name}  model group: {param_dict}")
 
         # Setup model parameter group
-        node_names_used = []
-        for full_param_name in param_list:
-            node_name, param_name, index = active_index_for_parameter(
-                full_param_name, ert_param_dict
-            )
-            if node_name not in node_names_used:
-                model_param_group.addNode(node_name)
-                node_names_used.append(node_name)
-
-            if index is not None:
-                #    This is a model parameter node from GEN_KW
-                active_param_list = model_param_group.getActiveList(node_name)
-                active_param_list.addActiveIndex(index)
+        for node_name, param_list in param_dict.items():
+            print(f"Add node: {node_name}")
+            model_param_group.addNode(node_name)
+            active_param_list = model_param_group.getActiveList(node_name)
+            for param_name in param_list:
+                index = active_index_for_parameter(
+                    node_name, param_name, ert_param_dict
+                )
+                if index is not None:
+                    print(f"    Active parameter index: {index}")
+                    active_param_list.addActiveIndex(index)
 
         # Setup observation group
         for obs_name in obs_list:
+            print(f"Add obs node: {obs_name}")
             obs_group.addNode(obs_name)
 
         # Setup ministep
-        debug_print(f" -- Attach {model_group_name} to ministep {ministep_name}")
+        debug_print(f" -- Attach {param_group_name} to ministep {ministep_name}")
         ministep.attachDataset(model_param_group)
 
         debug_print(f" -- Attach {obs_group_name} to ministep {ministep_name}")
