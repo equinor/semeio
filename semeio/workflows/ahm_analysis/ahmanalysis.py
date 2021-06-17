@@ -440,7 +440,7 @@ def calc_observationsgroup_misfit(obs_keys, df_update_log, misfit_df):
         mean = (
             misfit_df[df_misfit_calc["Misfit_key"].to_list()].sum(axis=1) / total_obs_nr
         )
-    return mean.loc[0]
+    return mean.mean()
 
 
 def load_grid_to_dataframe(grid_path):

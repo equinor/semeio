@@ -59,7 +59,7 @@ def test_count_active_observations():
     [
         (
             "RWI_3_OBS",
-            2.0,
+            (2.0 + 10.0 / 3.0) / 2.0,
             {
                 "obs_key": {0: "RWI_3_OBS", 1: "RWI_3_OBS", 2: "RWI_3_OBS"},
                 "status": {0: "Active", 1: "Inactive", 2: "Active"},
@@ -67,7 +67,7 @@ def test_count_active_observations():
         ),
         (
             "All_obs",
-            7.0 / 3.0,
+            (7.0 / 3.0 + 11.5 / 3.0) / 2.0,
             {
                 "obs_key": {
                     0: "RWI_3_OBS",
@@ -87,7 +87,7 @@ def test_count_active_observations():
         ),
         (
             "OP_3_WWCT",
-            1.4 / 3.0,
+            (1.4 / 3.0 + 1.8 / 3.0) / 2.0,
             {
                 "obs_key": {0: "OP_3_WWCT1", 1: "OP_3_WWCT2", 2: "OP_3_WWCT3"},
                 "status": {0: "Active", 1: "Inactive", 2: "Active"},
@@ -100,10 +100,10 @@ def test_calc_observationsgroup_misfit(input_obs, expected_misfit, update_log):
     reporting misfit data for each obs vector"""
     misfit_df = pd.DataFrame(
         {
-            "MISFIT:RWI_3_OBS": [6],
-            "MISFIT:OP_3_WWCT1": [1],
-            "MISFIT:OP_3_WWCT2": [0.15],
-            "MISFIT:OP_3_WWCT3": [0.25],
+            "MISFIT:RWI_3_OBS": [6, 10],
+            "MISFIT:OP_3_WWCT1": [1, 1.5],
+            "MISFIT:OP_3_WWCT2": [0.15, 0.2],
+            "MISFIT:OP_3_WWCT3": [0.25, 0.1],
         }
     )
     update_log_df = pd.DataFrame(update_log)
