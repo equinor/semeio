@@ -22,7 +22,8 @@ class MisfitPreprocessorJob(SemeioScript):
         config_record = _fetch_config_record(args)
         observations = _get_observations(facade)
         config = assemble_config(config_record, observations)
-
+        if config.reports_directory:
+            self._reports_dir = config.reports_directory
         measured_record = _load_measured_record(facade, config.observations)
         scaling_configs = misfit_preprocessor.run(
             **{

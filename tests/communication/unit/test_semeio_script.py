@@ -275,7 +275,7 @@ def test_semeio_script_relative_report_dir(tmpdir):
 
     class MySuperScript(SemeioScript):
         def run(self, param_A):
-            self.output_dir = "a_new_subdir"
+            self._reports_dir = "a_new_subdir"
             self.reporter.publish_msg(SEMEIOSCRIPT_LOG_FILE, param_A)
 
     my_super_script = MySuperScript(ert)
@@ -296,7 +296,7 @@ def test_semeio_script_absolute_report_dir(tmpdir):
 
     class MySuperScript(SemeioScript):
         def run(self, param_A):
-            self.output_dir = tmpdir
+            self._reports_dir = tmpdir
             self.reporter.publish_msg(SEMEIOSCRIPT_LOG_FILE, param_A)
 
     my_super_script = MySuperScript(ert)
@@ -317,7 +317,7 @@ def test_semeio_script_subdirs(tmpdir):
 
     class MySuperScript(SemeioScript):
         def run(self, param_A):
-            self.output_dir = os.path.join(tmpdir, "sub_dir_1", "sub_dir_2")
+            self._reports_dir = os.path.join(tmpdir, "sub_dir_1", "sub_dir_2")
             self.reporter.publish_msg(SEMEIOSCRIPT_LOG_FILE, param_A)
 
     my_super_script = MySuperScript(ert)
