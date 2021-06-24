@@ -83,6 +83,7 @@ class SemeioScript(ErtScript):
         return os.path.join(
             base_dir,
             "reports",
+            Path(res_config.user_config_file).stem,
             sub_dir,
             type(self).__name__,
         )
