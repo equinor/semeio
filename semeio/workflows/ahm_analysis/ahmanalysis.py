@@ -129,7 +129,7 @@ class AhmAnalysisJob(SemeioScript):  # pylint: disable=too-few-public-methods
         """Perform analysis of parameters change per obs group
         prior to posterior of ahm"""
         if output_dir is not None:
-            self.output_dir = output_dir
+            self._reports_dir = output_dir
         ert = self.ert()
         facade = LibresFacade(self.ert())
 

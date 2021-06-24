@@ -93,15 +93,15 @@ class SemeioScript(ErtScript):
         return self._reporter
 
     @property
-    def output_dir(self):
-        return self._output_dir
+    def _reports_dir(self):
+        return self.reporter._output_dir
 
-    @output_dir.setter
-    def output_dir(self, output_dir):
+    @_reports_dir.setter
+    def _reports_dir(self, output_dir):
         output_dir = Path(output_dir)
         if not output_dir.is_absolute():
             res_config = self.ert().resConfig()
             base_dir = Path(res_config.model_config.getEnspath()).parent.absolute()
-            self._reporter._output_dir = base_dir / output_dir
+            self.reporter._output_dir = base_dir / output_dir
         else:
-            self._reporter._output_dir = output_dir
+            self.reporter._output_dir = output_dir
