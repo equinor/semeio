@@ -1,4 +1,4 @@
-from typing import Union, List
+from typing import Union, List, Optional
 
 try:
     from typing import Literal
@@ -61,6 +61,7 @@ class MisfitConfig(BaseMisfitPreprocessorConfig):
     # "one can provide a list of observation names to cluster. Wildcards are "
     # 'supported. Example: ["OP_1_WWCT*", "SHUT_IN_OP1"]'
     observations: List[str] = []
+    reports_directory: Optional[str]
 
     @validator("workflow", pre=True)
     def validate_workflow(cls, value):
