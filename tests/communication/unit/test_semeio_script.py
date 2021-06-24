@@ -266,3 +266,69 @@ def test_semeio_script_keyword_args(tmpdir):
         published_msgs = f.readlines()
     assert published_msgs[0] == "param_A\n"
     assert published_msgs[1] == "param_B\n"
+
+
+def test_semeio_script_relative_report_dir(tmpdir):
+    tmpdir.chdir()
+    ensemble_path, user_case_name = "storage", "config_file"
+    ert = _ert_mock(ensemble_path, user_case_name)
+
+    class MySuperScript(SemeioScript):
+        def run(self, param_A):
+            self.output_dir = "a_new_subdir"
+            self.reporter.publish_msg(SEMEIOSCRIPT_LOG_FILE, param_A)
+
+    my_super_script = MySuperScript(ert)
+    my_super_script.run(param_A="param_A")
+
+    expected_outputfile = os.path.join(
+        "a_new_subdir",
+        SEMEIOSCRIPT_LOG_FILE,
+    )
+    with open(expected_outputfile) as f:
+        published_msgs = f.readlines()
+    assert published_msgs[0] == "param_A\n"
+
+
+def test_semeio_script_absolute_report_dir(tmpdir):
+    ensemble_path, user_case_name = "storage", "config_file"
+    ert = _ert_mock(ensemble_path, user_case_name)
+
+    class MySuperScript(SemeioScript):
+        def run(self, param_A):
+            self.output_dir = tmpdir
+            self.reporter.publish_msg(SEMEIOSCRIPT_LOG_FILE, param_A)
+
+    my_super_script = MySuperScript(ert)
+    my_super_script.run(param_A="param_A")
+
+    expected_outputfile = os.path.join(
+        tmpdir,
+        SEMEIOSCRIPT_LOG_FILE,
+    )
+    with open(expected_outputfile) as f:
+        published_msgs = f.readlines()
+    assert published_msgs[0] == "param_A\n"
+
+
+def test_semeio_script_subdirs(tmpdir):
+    ensemble_path, user_case_name = "storage", "config_file"
+    ert = _ert_mock(ensemble_path, user_case_name)
+
+    class MySuperScript(SemeioScript):
+        def run(self, param_A):
+            self.output_dir = os.path.join(tmpdir, "sub_dir_1", "sub_dir_2")
+            self.reporter.publish_msg(SEMEIOSCRIPT_LOG_FILE, param_A)
+
+    my_super_script = MySuperScript(ert)
+    my_super_script.run(param_A="param_A")
+
+    expected_outputfile = os.path.join(
+        tmpdir,
+        "sub_dir_1",
+        "sub_dir_2",
+        SEMEIOSCRIPT_LOG_FILE,
+    )
+    with open(expected_outputfile) as f:
+        published_msgs = f.readlines()
+    assert published_msgs[0] == "param_A\n"
