@@ -119,9 +119,17 @@ class AhmAnalysisJob(SemeioScript):  # pylint: disable=too-few-public-methods
     observation during history matching
     """
 
-    def run(self, target_name="analysis_case", prior_name=None, group_by="data_key"):
+    def run(
+        self,
+        target_name="analysis_case",
+        prior_name=None,
+        group_by="data_key",
+        output_dir=None,
+    ):
         """Perform analysis of parameters change per obs group
         prior to posterior of ahm"""
+        if output_dir is not None:
+            self.output_dir = output_dir
         ert = self.ert()
         facade = LibresFacade(self.ert())
 
