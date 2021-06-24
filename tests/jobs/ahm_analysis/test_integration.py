@@ -29,7 +29,7 @@ def test_ahmanalysis_run(test_data_root):
     ahmanalysis.AhmAnalysisJob(ert).run(prior_name="default_0")
 
     # assert that this returns/generates a KS csv file
-    output_dir = Path("storage/snake_oil/reports/default_0/AhmAnalysisJob")
+    output_dir = Path("storage/snake_oil/reports/snake_oil/default_0/AhmAnalysisJob")
     group_obs = [
         "FOPR",
         "WOPR_OP1",
@@ -93,6 +93,7 @@ def test_ahmanalysis_run_field(test_data_root, grid_prop):
         "storage",
         "snake_oil_field",
         "reports",
+        "snake_oil_field",
         "default",
         "AhmAnalysisJob",
         "delta_fieldPERMX.csv",

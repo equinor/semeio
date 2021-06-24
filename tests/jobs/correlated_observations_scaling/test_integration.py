@@ -138,6 +138,7 @@ def test_main_entry_point_gen_data(setup_ert):
         "storage",  # ens_path == storage/snake_oil/ensemble
         "snake_oil",
         "reports",
+        "snake_oil",
         "default_0",
         "CorrelatedObservationsScalingJob",
         "svd.json",
@@ -161,6 +162,7 @@ def test_main_entry_point_gen_data(setup_ert):
         "storage",  # ens_path == storage/snake_oil/ensemble
         "snake_oil",
         "reports",
+        "snake_oil",
         "default_0",
         "CorrelatedObservationsScalingJob",
         "scale_factor.json",

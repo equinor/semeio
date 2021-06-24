@@ -31,12 +31,14 @@ def test_semeio_script_integration(tmpdir):
     )
 
     # Assert that data was published correctly
-    with open("reports/default/TestWorkflowJob/test_data.json") as f:
+    with open("reports/config/default/TestWorkflowJob/test_data.json") as f:
         reported_data = json.load(f)
     assert [list(range(10))] == reported_data
 
     # Assert that logs were forwarded correctly
-    log_file = os.path.join("reports/default/TestWorkflowJob/", SEMEIOSCRIPT_LOG_FILE)
+    log_file = os.path.join(
+        "reports/config/default/TestWorkflowJob/", SEMEIOSCRIPT_LOG_FILE
+    )
     with open(log_file) as f:
         log = f.readlines()
     assert len(log) == 1
