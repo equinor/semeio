@@ -1,5 +1,6 @@
 import yaml
 import pathlib
+import math
 
 
 from res.enkf.enums.ert_impl_type_enum import ErtImplType
@@ -29,18 +30,20 @@ def get_param_from_ert(ert):
     ens_config = ert.ensembleConfig()
     keylist = ens_config.alloc_keylist()
     parameters_for_node = {}
+    grid_config = None
     implementation_type_not_scalar = [
         ErtImplType.GEN_DATA,
         ErtImplType.FIELD,
         ErtImplType.SURFACE,
     ]
-
+    dimensions = None
+    grid_origo = None
+    rotation_angle = None
+    grid_size = None
     for key in keylist:
         node = ens_config.getNode(key)
         impl_type = node.getImplementationType()
         var_type = node.getVariableType()
-        #        debug_print(f"Node: {key} impl_type: {impl_type}  "
-        #                    f"var_type: {var_type}")
         if var_type == EnkfVarType.PARAMETER:
             if impl_type == ErtImplType.GEN_KW:
                 # Node contains scalar parameters defined by GEN_KW
@@ -50,13 +53,69 @@ def get_param_from_ert(ert):
                 for name in string_list:
                     param_list.append(name)
                 parameters_for_node[key] = param_list
-
             elif impl_type in implementation_type_not_scalar:
-                # Node contains parameter from GEN_PARAM
-                # which is of type PARAMETER
-                # and implementation type GEN_DATA
+                # Node contains parameter from FIELD
+                # No named parameters for FIELD, but number of indexed parameters
+                # are equal to nx*ny*nz for ERTBOX grids.
                 parameters_for_node[key] = []
-    return parameters_for_node
+                if impl_type == ErtImplType.FIELD and dimensions is None:
+                    grid = ert.eclConfig().getGrid()
+                    dimensions = grid.get_dims()
+                    bounding_box = grid.get_bounding_box_2d()
+                    grid_origo, rotation_angle, area_size = grid_info(bounding_box)
+                    grid_config = {}
+                    grid_config["dimensions"] = dimensions
+                    grid_config["grid_origo"] = grid_origo
+                    grid_config["rotation"] = rotation_angle
+                    grid_config["size"] = area_size
+                elif impl_type == ErtImplType.GEN_DATA:
+                    gen_data_config = node.getModelConfig()
+                    data_size = gen_data_config.getDataSize()
+                    parameters_for_node[key] = data_size
+
+    return parameters_for_node, grid_config
+
+
+def grid_info(bounding_box):
+    # Corner points bounding_box = (p1, p2, p3, p4)
+    p1 = bounding_box[0]
+    #    p2 = bounding_box[1]
+    p3 = bounding_box[2]
+    p4 = bounding_box[3]
+
+    grid_origo = p4
+    # axis for I direction
+
+    V1x = p3[0] - p4[0]
+    V1y = p3[1] - p4[1]
+    V1_norm = math.sqrt(V1x * V1x + V1y * V1y)
+    #    print(f"V1: ({V1x},{V1y})")
+    V2x = p4[0] - p1[0]
+    V2y = p4[1] - p1[1]
+    V2_norm = math.sqrt(V2x * V2x + V2y * V2y)
+    #    print(f"V2: ({V2x},{V2y})")
+
+    sintheta = V1y / V1_norm
+    theta = math.asin(sintheta)
+
+    if V1y >= 0:
+        if V1x >= 0:
+            #   0<= theta <= pi/2
+            pass
+        else:
+            #  pi/2 <= theta <= pi
+            theta = math.pi + theta
+    else:
+        if V1x >= 0:
+            # 3pi/2 <= theta <= 2pi
+            theta = 2 * math.pi + theta
+        else:
+            #    pi <= theta <= 3pi/2
+            theta = theta + math.pi
+
+    rotation_angle = theta * 180 / math.pi
+    grid_size = (V1_norm, V2_norm)
+    return grid_origo, rotation_angle, grid_size
 
 
 def expand_wildcards(patterns, list_of_words):
@@ -73,7 +132,6 @@ def expand_wildcards(patterns, list_of_words):
             errors.append(pattern)
     all_matches = list(set(all_matches))
     all_matches.sort()
-    print(f"obs matches: {all_matches}")
     if len(errors) > 0:
         raise ValueError(
             " These observation specifications does not match "
@@ -104,7 +162,7 @@ def get_full_parameter_name_list(user_node_name, all_param_dict):
 def full_param_names_for_ert(ert_param_dict):
     all_param_node_list = ert_param_dict.keys()
     valid_full_param_names = []
-    print(f"all_param_node_list: {all_param_node_list}")
+    #    print(f"all_param_node_list: {all_param_node_list}")
     for node_name in all_param_node_list:
         # Define full parameter name of form nodename:parametername to simplify matching
         full_name_list_for_node = get_full_parameter_name_list(
@@ -184,28 +242,28 @@ def split_full_param_names_and_define_dict(full_param_name_list):
 def expand_wildcards_with_param_dicts(list_of_pattern_of_dicts, ert_param_dict):
     # Define a list with full parameter names of the form nodename:paramname
     valid_full_param_names = full_param_names_for_ert(ert_param_dict)
-    print(f"valid full param names: {valid_full_param_names}")
+    #    print(f"valid full param names: {valid_full_param_names}")
 
     # Define a list with specfied patterns of parameter names of the
     # form nodename:paramname where both nodename and paramname
     # can be specified with wildcard notation
     pattern_list = pattern_list_from_dict(list_of_pattern_of_dicts)
-    print(f"pattern_list: {pattern_list}")
+    #    print(f"pattern_list: {pattern_list}")
 
     # Expand patterns of full parameter names
     list_of_all_expanded_full_names = []
     for pattern in pattern_list:
-        print(f"pattern: {pattern}")
+        #        print(f"pattern: {pattern}")
         expanded_full_names = [
             name for name in valid_full_param_names if pathlib.Path(name).match(pattern)
         ]
-        print(f"expanded: {expanded_full_names}")
+        #        print(f"expanded: {expanded_full_names}")
         list_of_all_expanded_full_names.extend(expanded_full_names)
 
     # Eliminate duplicates
     full_param_name_list = list(set(list_of_all_expanded_full_names))
     full_param_name_list.sort()
-    print(f"full param name list: {full_param_name_list}")
+    #    print(f"full param name list: {full_param_name_list}")
 
     # Make a dict with specified node names as key and a list of
     # parameter names as value
@@ -217,7 +275,7 @@ def expand_wildcards_with_param_dicts(list_of_pattern_of_dicts, ert_param_dict):
 def expand_wildcards_with_param(pattern_list, ert_param_dict):
     # Define a list with full parameter names of the form nodename:paramname
     valid_full_param_names = full_param_names_for_ert(ert_param_dict)
-    print(f"valid full param names: {valid_full_param_names}")
+    #    print(f"valid full param names: {valid_full_param_names}")
 
     # Expand patterns of full parameter names
     list_of_all_expanded_full_names = []
@@ -243,12 +301,12 @@ def expand_wildcards_with_param(pattern_list, ert_param_dict):
     # Eliminate duplicates
     full_param_name_list = list(set(list_of_all_expanded_full_names))
     full_param_name_list.sort()
-    print(f"full param name list: {full_param_name_list}")
+    #    print(f"full param name list: {full_param_name_list}")
 
     # Make a dict with specified node names as key and a list of
     # parameter names as value
     param_dict = split_full_param_names_and_define_dict(full_param_name_list)
-    print(f"param_dict: {param_dict}")
+    #  print(f"param_dict: {param_dict}")
 
     return param_dict
 
@@ -342,7 +400,7 @@ def active_index_for_parameter(node_name, param_name, ert_param_dict):
 
 def check_for_duplicated_correlation_specifications(correlations):
     # All observations and model parameters used in correlations
-    print(f"correlations: {correlations}")
+    #    print(f"correlations: {correlations}")
     tmp_obs_list = []
     tmp_param_list = []
     for corr in correlations:
@@ -386,7 +444,8 @@ def check_for_duplicated_correlation_specifications(correlations):
 def add_ministeps(user_config, ert_param_dict, ert):
     local_config = ert.getLocalConfig()
     updatestep = local_config.getUpdatestep()
-    count = 1
+    ens_config = ert.ensembleConfig()
+    grid_for_field = None
     for count, corr_spec in enumerate(user_config.correlations):
         ministep_name = corr_spec.name
         ministep = local_config.createMinistep(ministep_name)
@@ -398,24 +457,68 @@ def add_ministeps(user_config, ert_param_dict, ert):
         obs_group = local_config.createObsdata(obs_group_name)
 
         obs_list = corr_spec.obs_group.add
-        print(f" obs_group_name: {obs_group_name}  obs group: {obs_list }")
+        print(f" obs_group_name: {obs_group_name}\n  obs group: {obs_list }\n")
 
         param_dict = corr_spec.param_group.add
-        print(f" param_group_name: {param_group_name}  model group: {param_dict}")
+        print(f" param_group_name: {param_group_name}\n  model group: {param_dict}\n")
 
         # Setup model parameter group
         for node_name, param_list in param_dict.items():
-            print(f"Add node: {node_name}")
-            model_param_group.addNode(node_name)
-            active_param_list = model_param_group.getActiveList(node_name)
-            for param_name in param_list:
-                index = active_index_for_parameter(
-                    node_name, param_name, ert_param_dict
-                )
-                if index is not None:
-                    print(f"    Active parameter index: {index}")
-                    active_param_list.addActiveIndex(index)
+            node = ens_config.getNode(node_name)
+            impl_type = node.getImplementationType()
 
+            print(f"  -- Add node: {node_name} of type: {impl_type}")
+            model_param_group.addNode(node_name)
+            if impl_type == ErtImplType.GEN_KW:
+                active_param_list = model_param_group.getActiveList(node_name)
+                for param_name in param_list:
+                    index = active_index_for_parameter(
+                        node_name, param_name, ert_param_dict
+                    )
+                    if index is not None:
+                        debug_print(f" -- Active parameter index: {index}")
+                        active_param_list.addActiveIndex(index)
+            elif impl_type == ErtImplType.FIELD:
+                if corr_spec.field_scale is not None:
+                    # A scaling of correlation is defined
+                    debug_print(
+                        " -- Apply the correlation scaling method: "
+                        f"{corr_spec.field_scale.method}"
+                    )
+                    if grid_for_field is None:
+                        grid_for_field = ert.eclConfig().getGrid()
+                        debug_print(f" -- Get grid: {grid_for_field.get_name()}")
+
+                    row_scaling = model_param_group.row_scaling(node_name)
+                    field_config = node.getFieldModelConfig()
+                    data_size = field_config.get_data_size()
+                    if corr_spec.field_scale.method == "gaussian_decay":
+                        ref_pos = corr_spec.obs_group.ref_point
+                        main_range = corr_spec.field_scale.method_param[0]
+                        perp_range = corr_spec.field_scale.method_param[1]
+                        azimuth = corr_spec.field_scale.method_param[2]
+                        row_scaling.assign(
+                            data_size,
+                            GaussianDecay(
+                                ref_pos, main_range, perp_range, azimuth, grid_for_field
+                            ),
+                        )
+                    elif corr_spec.field_scale.method == "exponential_decay":
+                        ref_pos = corr_spec.obs_group.ref_point
+                        main_range = corr_spec.field_scale.method_param[0]
+                        perp_range = corr_spec.field_scale.method_param[1]
+                        azimuth = corr_spec.field_scale.method_param[2]
+                        row_scaling.assign(
+                            data_size,
+                            ExponentialDecay(
+                                ref_pos, main_range, perp_range, azimuth, grid_for_field
+                            ),
+                        )
+                    else:
+                        print(
+                            f" --  Scaling method: {corr_spec.field_scale.method} "
+                            "is not implemented yet"
+                        )
         # Setup observation group
         for obs_name in obs_list:
             print(f"Add obs node: {obs_name}")
@@ -435,3 +538,107 @@ def add_ministeps(user_config, ert_param_dict, ert):
 def clear_correlations(ert):
     local_config = ert.getLocalConfig()
     local_config.clear()
+
+
+# def get_config_path(ert)
+#    pass
+#    return None
+
+
+def check_ref_point_with_grid_data(ref_point, origo, rotation, size):
+    #    print(f"size: {size}, origo: {origo}, ref_point: {ref_point}, "
+    #    f"rotation: {rotation}")
+    point = transform_from_utm_to_ertbox_coordinates(ref_point, origo, rotation)
+    if not (0 <= point[0] <= size[0] and 0 <= point[1] <= size[1]):
+        raise ValueError(
+            f"Specified reference point ({ref_point[0]}, {ref_point[1]}) "
+            "for observations is outside ERTBOX area.\n"
+            "The reference point transformed to ERTBOX "
+            "coordinates fails the check:\n"
+            f"1.coordinate: 0 <= {point[0]} <= {size[0]}      "
+            f"2.coordinate:  0<= {point[1]} <= {size[1]}"
+        )
+
+
+def transform_from_utm_to_ertbox_coordinates(point, origo, rotation):
+    theta = rotation * math.pi / 180.0
+    sintheta = math.sin(theta)
+    costheta = math.cos(theta)
+    x0 = point[0] - origo[0]
+    y0 = point[1] - origo[1]
+    x = costheta * x0 + sintheta * y0
+    y = -sintheta * x0 + costheta * y0
+    transf_point = [x, y]
+    #    print(f"Point: ({point[0]},{point[1]})  Transf point: ({x},{y})")
+    return transf_point
+
+
+def transform_from_ertbox_to_utm_coordinates(point, origo, rotation):
+    theta = rotation * math.pi / 180.0
+    sintheta = math.sin(theta)
+    costheta = math.cos(theta)
+    x0 = point[0]
+    y0 = point[1]
+    x = costheta * x0 - sintheta * y0
+    y = sintheta * x0 + costheta * y0
+    x = x + origo[0]
+    y = y + origo[1]
+
+    transf_point = [x, y]
+    print(f"Point: ({point[0]},{point[1]})  Transf point: ({x},{y})")
+    return transf_point
+
+
+# This is an example callable which decays as a gaussian away from a position
+# obs_pos; this is (probaly) a simplified version of tapering function which
+# will be interesting to use.
+class GaussianDecay(object):
+    def __init__(self, ref_point, main_range, perp_range, azimuth, grid):
+        self._obs_pos = ref_point
+        self._main_range = main_range
+        self._perp_range = perp_range
+        self._grid = grid
+
+        angle = (90.0 - azimuth) * math.pi / 180.0
+        self._cosangle = math.cos(angle)
+        self._sinangle = math.sin(angle)
+
+    def __call__(self, data_index):
+        x, y, _ = self._grid.get_xyz(active_index=data_index)
+        x_unrotated = x - self._obs_pos[0]
+        y_unrotated = y - self._obs_pos[1]
+
+        dx = (
+            x_unrotated * self._cosangle + y_unrotated * self._sinangle
+        ) / self._main_range
+        dy = (
+            -x_unrotated * self._sinangle + y_unrotated * self._cosangle
+        ) / self._perp_range
+        exp_arg = -0.5 * (dx * dx + dy * dy)
+        return math.exp(exp_arg)
+
+
+class ExponentialDecay(object):
+    def __init__(self, ref_point, main_range, perp_range, azimuth, grid):
+        self._obs_pos = ref_point
+        self._main_range = main_range
+        self._perp_range = perp_range
+        self._grid = grid
+
+        angle = (90.0 - azimuth) * math.pi / 180.0
+        self._cosangle = math.cos(angle)
+        self._sinangle = math.sin(angle)
+
+    def __call__(self, data_index):
+        x, y, _ = self._grid.get_xyz(active_index=data_index)
+        x_unrotated = x - self._obs_pos[0]
+        y_unrotated = y - self._obs_pos[1]
+
+        dx = (
+            x_unrotated * self._cosangle + y_unrotated * self._sinangle
+        ) / self._main_range
+        dy = (
+            -x_unrotated * self._sinangle + y_unrotated * self._cosangle
+        ) / self._perp_range
+        exp_arg = -0.5 * math.sqrt(dx * dx + dy * dy)
+        return math.exp(exp_arg)

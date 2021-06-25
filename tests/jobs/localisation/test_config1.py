@@ -3,6 +3,14 @@ import pytest
 # from pydantic import ValidationError
 
 from semeio.workflows.localisation.localisation_config import LocalisationConfig
+from res.enkf.enums.ert_impl_type_enum import ErtImplType
+
+ERT_GRID_CONFIG = {
+    "dimensions": [100, 200],
+    "grid_origo": [100.0, 150.0],
+    "rotation": 45,
+    "size": [1000, 2000],
+}
 
 
 ERT_OBS = ["OBS1", "OBS2", "OBS11", "OBS22", "OBS12", "OBS13", "OBS14", "OBS3"]
@@ -16,6 +24,7 @@ ERT_PARAM = {
     "PARAM_FIELD1": [],
     "PARAM_FIELD2": [],
     "PARAM_FIELD3": [],
+    "PARAM_GEN": [],
 }
 
 
@@ -261,6 +270,62 @@ def test_simple_config_duplicate_error(
 
 
 @pytest.mark.parametrize(
+    "obs_group_add, obs_group_remove, ref_point, expected_error",
+    [
+        (
+            "OBS1*",
+            "OBS1",
+            [],
+            "Reference point for an observation group must be a list of ",
+        ),
+        (
+            "OBS1*",
+            "OBS1",
+            [100],
+            "Reference point for an observation group must be a list of ",
+        ),
+        (
+            "OBS1*",
+            "OBS1",
+            ["1x00", 200],
+            "value is not a valid float",
+        ),
+        (
+            "OBS1*",
+            "OBS1",
+            [100, 200, 300],
+            "Reference point for an observation group must be a list of ",
+        ),
+    ],
+)
+def test_simple_config_ref_point_error(
+    obs_group_add, obs_group_remove, ref_point, expected_error
+):
+    data = {
+        "correlations": [
+            {
+                "name": "some_name",
+                "obs_group": {
+                    "ref_point": ref_point,
+                    "add": obs_group_add,
+                    "remove": obs_group_remove,
+                },
+                "param_group": {
+                    "add": "PARAM_NODE1:PARAM1",
+                },
+            }
+        ],
+    }
+    with pytest.raises(ValueError, match=expected_error):
+        LocalisationConfig(
+            observations=ERT_OBS,
+            parameters=ERT_PARAM,
+            grid_config=ERT_GRID_CONFIG,
+            **data
+        )
+
+
+@pytest.mark.parametrize(
     "param_group_add,  param_group_remove, expected",
     [
         (
@@ -390,6 +455,7 @@ def test_simple_config_duplicate_error(
                 "PARAM_FIELD1": [],
                 "PARAM_FIELD2": [],
                 "PARAM_FIELD3": [],
+                "PARAM_GEN": [],
             },
         ),
     ],
@@ -454,3 +520,128 @@ def test_add_remove_obs_config(obs_group_add, obs_group_remove, expected):
     assert len(conf.correlations) == 1
     assert conf.correlations[0].obs_group.add == expected
     assert conf.correlations[0].param_group.add == {"PARAM_NODE1": ["PARAM1"]}
+
+
+@pytest.mark.parametrize(
+    "obs_group_add, param_group_add, ref_point,  expected",
+    [
+        (
+            "OBS1*",
+            "PARAM_FIELD1",
+            [550, 1050],
+            ["OBS1", "OBS11", "OBS12", "OBS13", "OBS14"],
+        ),
+        (
+            "OBS1*",
+            "PARAM_FIELD1",
+            [100, 150],
+            ["OBS1", "OBS11", "OBS12", "OBS13", "OBS14"],
+        ),
+        (
+            "OBS1*",
+            "PARAM_FIELD1",
+            [0, 750],
+            ["OBS1", "OBS11", "OBS12", "OBS13", "OBS14"],
+        ),
+        (
+            "OBS1*",
+            "PARAM_FIELD1",
+            [500, 750],
+            ["OBS1", "OBS11", "OBS12", "OBS13", "OBS14"],
+        ),
+    ],
+)
+def test_add_remove_obs_with_ref_point_config(
+    obs_group_add, param_group_add, ref_point, expected
+):
+    data = {
+        "correlations": [
+            {
+                "name": "some_name",
+                "obs_group": {
+                    "add": [obs_group_add],
+                    "ref_point": ref_point,
+                },
+                "param_group": {
+                    "add": [param_group_add],
+                },
+            }
+        ],
+    }
+    conf = LocalisationConfig(
+        observations=ERT_OBS, parameters=ERT_PARAM, grid_config=ERT_GRID_CONFIG, **data
+    )
+    assert len(conf.correlations) == 1
+    assert conf.correlations[0].obs_group.add == expected
+    assert conf.correlations[0].param_group.add == {"PARAM_FIELD1": []}
+
+
+@pytest.mark.parametrize(
+    "obs_group_add, param_group_add, ref_point,  method, method_param, expected",
+    [
+        (
+            "OBS1*",
+            "PARAM_FIELD1",
+            [550, 1050],
+            "gaussian_decay",
+            [1700, 850, 310],
+            ["OBS1", "OBS11", "OBS12", "OBS13", "OBS14"],
+        ),
+        (
+            "OBS1*",
+            "PARAM_FIELD1",
+            [100, 150],
+            "exponential_decay",
+            [0.1, 850, 0],
+            ["OBS1", "OBS11", "OBS12", "OBS13", "OBS14"],
+        ),
+        (
+            "OBS1*",
+            "PARAM_FIELD1",
+            [0, 750],
+            "exponential_decay",
+            [700, 850, 100],
+            ["OBS1", "OBS11", "OBS12", "OBS13", "OBS14"],
+        ),
+        (
+            "OBS1*",
+            "PARAM_FIELD1",
+            [500, 750],
+            "exponential_decay",
+            [1700, 500, 360],
+            ["OBS1", "OBS11", "OBS12", "OBS13", "OBS14"],
+        ),
+        (
+            "OBS1*",
+            "PARAM_FIELD1",
+            [500, 750],
+            "gaussian_decay",
+            [0.1, 0.1, 0],
+            ["OBS1", "OBS11", "OBS12", "OBS13", "OBS14"],
+        ),
+    ],
+)
+def test_add_remove_obs_with_ref_point_and_field_scale_config(
+    obs_group_add, param_group_add, ref_point, method, method_param, expected
+):
+    data = {
+        "correlations": [
+            {
+                "name": "some_name",
+                "obs_group": {
+                    "add": [obs_group_add],
+                    "ref_point": ref_point,
+                },
+                "param_group": {
+                    "add": [param_group_add],
+                },
+                "field_scale": {"method": method, "method_param": method_param},
+            }
+        ],
+    }
+    conf = LocalisationConfig(
+        observations=ERT_OBS, parameters=ERT_PARAM, grid_config=ERT_GRID_CONFIG, **data
+    )
+    assert len(conf.correlations) == 1
+    assert conf.correlations[0].obs_group.add == expected
+    assert conf.correlations[0].param_group.add == {"PARAM_FIELD1": []}

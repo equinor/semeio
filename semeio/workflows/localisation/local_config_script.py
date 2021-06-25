@@ -24,6 +24,9 @@ class LocalisationConfigJob(SemeioScript):
         # Read yml file with specifications
         all_kw = local.read_localisation_config(args)
 
+        # Get config path
+        #        config_path = local.get_config_path(ert)
+
         # Get all observations from ert instance
         ert_obs_list = local.get_observations_from_ert(ert)
         if debug_level > 0:
@@ -32,7 +35,7 @@ class LocalisationConfigJob(SemeioScript):
                 print(f"      {obs_name}")
             print("\n")
 
-        ert_param_dict = local.get_param_from_ert(ert)
+        ert_param_dict, grid_config = local.get_param_from_ert(ert)
         if debug_level > 0:
             print(
                 f"-- All specified scalar parameters from ERT instance:\n"
@@ -40,7 +43,10 @@ class LocalisationConfigJob(SemeioScript):
             )
 
         config = LocalisationConfig(
-            observations=ert_obs_list, parameters=ert_param_dict, **all_kw
+            observations=ert_obs_list,
+            parameters=ert_param_dict,
+            grid_config=grid_config,
+            **all_kw,
         )
 
         local.add_ministeps(config, ert_param_dict, ert)
