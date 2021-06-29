@@ -12,7 +12,7 @@ def test_simple_config():
             {
                 "name": "some_name",
                 "obs_group": {"add": ["OBS1"]},
-                "model_group": {"add": ["PARAM_NODE1:PARAM1"]},
+                "param_group": {"add": ["PARAM_NODE1:PARAM1"]},
             }
         ],
     }
@@ -28,7 +28,7 @@ def test_observations_wilcard():
             {
                 "name": "some_name",
                 "obs_group": {"add": ["OBS*"]},
-                "model_group": {"add": ["PARAM_NODE1:PARAM1"]},
+                "param_group": {"add": ["PARAM_NODE1:PARAM1"]},
             }
         ],
     }
@@ -48,7 +48,7 @@ def test_parameters_different_format():
             {
                 "name": "some_name",
                 "obs_group": {"add": ["OBS1"]},
-                "model_group": {
+                "param_group": {
                     "add": [
                         "PARAM_NODE1",
                         {"PARAM_NODE2": ["PARAM1"]},
@@ -66,7 +66,7 @@ def test_parameters_different_format():
     }
 
 
-@pytest.parametrize(
+@pytest.mark.parametrize(
     "model_group_add, expected",
     [
         (
@@ -84,8 +84,7 @@ def test_parameters_different_format():
             },
         ),
         (
-            {"PARAM_NODE1": ["PARAM1"]},
-            {"PARAM_NODE2": ["PARAM*"]},
+            {"PARAM_NODE1": ["PARAM1"], "PARAM_NODE2": ["PARAM*"]},
             {
                 "PARAM_NODE1": ["PARAM1"],
                 "PARAM_NODE2": ["PARAM1", "PARAM2"],
@@ -103,7 +102,7 @@ def test_parameters_wildcard(model_group_add, expected):
             {
                 "name": "some_name",
                 "obs_group": {"add": ["OBS1"]},
-                "model_group": {
+                "param_group": {
                     "add": [
                         model_group_add,
                     ]

@@ -1,6 +1,7 @@
 from typing import List, Optional, Union, Dict
+from typing_extensions import Literal
 
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, validator, confloat
 from semeio.workflows.localisation.local_script_lib import (
     expand_wildcards,
     expand_wildcards_with_param,
@@ -57,16 +58,47 @@ class ParamConfig(BaseModel):
         return remove
 
 
-class FieldConfig(BaseModel):
-    method: str
-    method_param: List[Union[float, int]]
+class GaussianConfig(BaseModel):
+    method: Literal["gaussian_decay"]
+    main_range: confloat(gt=0)
+    perp_range: confloat(gt=0)
+    angle: confloat(ge=0.0, le=360)
+
+
+class ExponentialConfig(BaseModel):
+    method: Literal["exponential_decay"]
+    main_range: confloat(gt=0)
+    perp_range: confloat(gt=0)
+    angle: confloat(ge=0, le=360)
 
 
 class CorrelationConfig(BaseModel):
     name: str
     obs_group: ObsConfig
     param_group: ParamConfig
-    field_scale: Optional[FieldConfig]
+    field_scale: Optional[Union[GaussianConfig, ExponentialConfig]]
+
+    @validator("field_scale", pre=True)
+    def validate_workflow(cls, value):
+        """
+        To improve the user feedback we explicitly check
+        which method is configured and bypass the Union
+        """
+        if isinstance(value, BaseModel):
+            return value
+        if not isinstance(value, dict):
+            raise ValueError("value must be dict")
+        method = value.get("method")
+        _valid_methods = {
+            "gaussian_decay": GaussianConfig,
+            "exponential_decay": ExponentialConfig,
+        }
+        if method in _valid_methods:
+            return _valid_methods[method](**value)
+        else:
+            raise ValueError(
+                f"Unknown method: {method}, valid methods are: {_valid_methods.keys()}"
+            )
 
 
 class GridInfoConfig(BaseModel):
@@ -80,7 +112,8 @@ class LocalisationConfig(BaseModel):
     """
     observations:  A list of observations from ERT in format nodename
     parameters:    A dict of  parameters from ERT in format nodename:paramname.
-                            Key is node name. Values are lists of parameter names for the node.
+                            Key is node name. Values are lists of parameter names
+                            for the node.
     grid_config:   A dict with configuration parameters for grid related to
                            FIELD keyword in ERT.
     correlations:   A list of CorrelationConfig objects keeping name of
@@ -116,8 +149,6 @@ class LocalisationConfig(BaseModel):
             corr.param_group.add = parameters
             corr.param_group.remove = []
 
-            # Check optional parameters for fields
-            check_validaton_of_field_scaling(corr.field_scale)
 
         number_of_duplicates = check_for_duplicated_correlation_specifications(
             correlations
@@ -157,45 +188,6 @@ def check_validation_of_obs_group_ref_point(ref_point, values):
                     ert_grid_rotation,
                     ert_grid_size,
                 )
-
-
-def check_validaton_of_field_scaling(field_scale):
-    valid_scaling_methods = [
-        "gaussian_decay",
-        "exponential_decay",
-    ]
-
-    if field_scale is not None:
-        if field_scale.method not in valid_scaling_methods:
-            raise ValueError(
-                "Specified method name for scaling of fields is: "
-                f"{field_scale.method}\n"
-                f"Valid method names are: {valid_scaling_methods}"
-            )
-        if (
-            not isinstance(field_scale.method_param, list)
-            or len(field_scale.method_param) != 3
-        ):
-            raise ValueError(
-                f"The method: {field_scale.method} for field "
-                "correlation scaling has wrongly specified parameters: "
-                f"{field_scale.method_param}.\n"
-                f"Expecting a list of three parameters: "
-                f"[range1, range2, anisotropy azimuth angle in degrees]."
-            )
-        if (
-            field_scale.method_param[0] <= 0.0
-            or field_scale.method_param[1] <= 0.0
-            or field_scale.method_param[2] < 0.0
-            or field_scale.method_param[2] > 360.0
-        ):
-            raise ValueError(
-                f"Scale method: {field_scale.method} is specified with range parameters: "
-                f"({field_scale.method_param[0]}, {field_scale.method_param[1]}) "
-                f"and anisotropy angle: {field_scale.method_param[2]}\n"
-                f"Range parameters must be positive and azimuth angle must be in degrees "
-                "between 0 and 360 degrees."
-            )
 
 
 def get_and_validate_parameters(param_group, values):

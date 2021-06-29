@@ -63,11 +63,12 @@ def get_param_from_ert(ert):
                     dimensions = grid.get_dims()
                     bounding_box = grid.get_bounding_box_2d()
                     grid_origo, rotation_angle, area_size = grid_info(bounding_box)
-                    grid_config = {}
-                    grid_config["dimensions"] = dimensions
-                    grid_config["grid_origo"] = grid_origo
-                    grid_config["rotation"] = rotation_angle
-                    grid_config["size"] = area_size
+                    grid_config = {
+                        "dimensions": dimensions,
+                        "grid_origo": grid_origo,
+                        "rotation": rotation_angle,
+                        "size": area_size,
+                    }
                 elif impl_type == ErtImplType.GEN_DATA:
                     gen_data_config = node.getModelConfig()
                     data_size = gen_data_config.getDataSize()
@@ -602,53 +603,46 @@ def transform_from_ertbox_to_utm_coordinates(point, origo, rotation):
 # This is an example callable which decays as a gaussian away from a position
 # obs_pos; this is (probaly) a simplified version of tapering function which
 # will be interesting to use.
-class GaussianDecay(object):
-    def __init__(self, ref_point, main_range, perp_range, azimuth, grid):
-        self._obs_pos = ref_point
-        self._main_range = main_range
-        self._perp_range = perp_range
-        self._grid = grid
 
-        angle = (90.0 - azimuth) * math.pi / 180.0
-        self._cosangle = math.cos(angle)
-        self._sinangle = math.sin(angle)
+from dataclasses import dataclass
+
+
+@dataclass
+class Decay:
+    obs_pos: list
+    main_range: float
+    perp_range: float
+    grid: object
+    azimuth: float
+
+    def __post_init__(self):
+        angle = (90.0 - self.azimuth) * math.pi / 180.0
+        self.cosangle = math.cos(angle)
+        self.sinangle = math.sin(angle)
 
     def __call__(self, data_index):
-        x, y, _ = self._grid.get_xyz(active_index=data_index)
-        x_unrotated = x - self._obs_pos[0]
-        y_unrotated = y - self._obs_pos[1]
+        x, y, _ = self.grid.get_xyz(active_index=data_index)
+        x_unrotated = x - self.obs_pos[0]
+        y_unrotated = y - self.obs_pos[1]
 
         dx = (
-            x_unrotated * self._cosangle + y_unrotated * self._sinangle
-        ) / self._main_range
+            x_unrotated * self.cosangle + y_unrotated * self.sinangle
+        ) / self.main_range
         dy = (
-            -x_unrotated * self._sinangle + y_unrotated * self._cosangle
-        ) / self._perp_range
+            -x_unrotated * self.sinangle + y_unrotated * self.cosangle
+        ) / self.perp_range
+        return dx, dy
+
+
+class GaussianDecay(Decay):
+    def __call__(self, data_index):
+        dx, dy, _ = super().__call__(data_index)
         exp_arg = -0.5 * (dx * dx + dy * dy)
         return math.exp(exp_arg)
 
 
-class ExponentialDecay(object):
-    def __init__(self, ref_point, main_range, perp_range, azimuth, grid):
-        self._obs_pos = ref_point
-        self._main_range = main_range
-        self._perp_range = perp_range
-        self._grid = grid
-
-        angle = (90.0 - azimuth) * math.pi / 180.0
-        self._cosangle = math.cos(angle)
-        self._sinangle = math.sin(angle)
-
+class ExponentialDecay(Decay):
     def __call__(self, data_index):
-        x, y, _ = self._grid.get_xyz(active_index=data_index)
-        x_unrotated = x - self._obs_pos[0]
-        y_unrotated = y - self._obs_pos[1]
-
-        dx = (
-            x_unrotated * self._cosangle + y_unrotated * self._sinangle
-        ) / self._main_range
-        dy = (
-            -x_unrotated * self._sinangle + y_unrotated * self._cosangle
-        ) / self._perp_range
+        dx, dy = super().__call__(data_index)
         exp_arg = -0.5 * math.sqrt(dx * dx + dy * dy)
         return math.exp(exp_arg)
