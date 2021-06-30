@@ -1,6 +1,7 @@
 import yaml
 import pathlib
 import math
+import copy
 
 
 from res.enkf.enums.ert_impl_type_enum import ErtImplType
@@ -39,7 +40,6 @@ def get_param_from_ert(ert):
     dimensions = None
     grid_origo = None
     rotation_angle = None
-    grid_size = None
     for key in keylist:
         node = ens_config.getNode(key)
         impl_type = node.getImplementationType()
@@ -405,9 +405,12 @@ def check_for_duplicated_correlation_specifications(correlations):
     tmp_param_list = []
     for corr in correlations:
         obs_list = corr.obs_group.add
-        param_list = corr.param_group.add
-        tmp_obs_list.extend(obs_list)
-        tmp_param_list.extend(param_list)
+        tmp_obs_list.extend(copy.copy(obs_list))
+
+        param_dict = corr.param_group.add
+        for node_name in param_dict.keys():
+            full_param_name_list = get_full_parameter_name_list(node_name, param_dict)
+            tmp_param_list.extend(copy.copy(full_param_name_list))
     complete_obs_list = list(set(tmp_obs_list))
     complete_obs_list.sort()
     complete_param_list = list(set(tmp_param_list))
@@ -425,19 +428,29 @@ def check_for_duplicated_correlation_specifications(correlations):
     for corr in correlations:
         name = corr.name
         obs_list = corr.obs_group.add
-        param_list = corr.param_group.add
+        param_dict = corr.param_group.add
+
         for obs_name in obs_list:
-            for param_name in param_list:
-                key = (obs_name, param_name)
-                if correlation_table[key]:
-                    debug_print(
-                        f"-- When reading correlation: {name} there are "
-                        f"double specified correlations for {key}",
-                        0,
-                    )
-                    number_of_duplicates = number_of_duplicates + 1
-                else:
-                    correlation_table[key] = True
+            for node_name in param_dict.keys():
+                full_param_name_list = get_full_parameter_name_list(
+                    node_name, param_dict
+                )
+                for param_name in full_param_name_list:
+                    key = (obs_name, param_name)
+                    if key not in correlation_table.keys():
+                        raise KeyError(
+                            " Correlation_table does not have the key:"
+                            f"({obs_name},{param_name})"
+                        )
+                    if correlation_table[key]:
+                        debug_print(
+                            f"-- When reading correlation: {name} there are "
+                            f"double specified correlations for {key}",
+                            0,
+                        )
+                        number_of_duplicates = number_of_duplicates + 1
+                    else:
+                        correlation_table[key] = True
     return number_of_duplicates
 
 
@@ -457,17 +470,14 @@ def add_ministeps(user_config, ert_param_dict, ert):
         obs_group = local_config.createObsdata(obs_group_name)
 
         obs_list = corr_spec.obs_group.add
-        print(f" obs_group_name: {obs_group_name}\n  obs group: {obs_list }\n")
-
         param_dict = corr_spec.param_group.add
-        print(f" param_group_name: {param_group_name}\n  model group: {param_dict}\n")
 
         # Setup model parameter group
         for node_name, param_list in param_dict.items():
             node = ens_config.getNode(node_name)
             impl_type = node.getImplementationType()
 
-            print(f"  -- Add node: {node_name} of type: {impl_type}")
+            debug_print(f"  -- Add node: {node_name} of type: {impl_type}")
             model_param_group.addNode(node_name)
             if impl_type == ErtImplType.GEN_KW:
                 active_param_list = model_param_group.getActiveList(node_name)
@@ -521,7 +531,7 @@ def add_ministeps(user_config, ert_param_dict, ert):
                         )
         # Setup observation group
         for obs_name in obs_list:
-            print(f"Add obs node: {obs_name}")
+            debug_print(f"Add obs node: {obs_name}")
             obs_group.addNode(obs_name)
 
         # Setup ministep
