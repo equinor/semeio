@@ -620,7 +620,7 @@ class Decay:
         self.cosangle = math.cos(angle)
         self.sinangle = math.sin(angle)
 
-    def __call__(self, data_index):
+    def get_dx_dy(self, data_index):
         x, y, _ = self.grid.get_xyz(active_index=data_index)
         x_unrotated = x - self.obs_pos[0]
         y_unrotated = y - self.obs_pos[1]
@@ -636,13 +636,13 @@ class Decay:
 
 class GaussianDecay(Decay):
     def __call__(self, data_index):
-        dx, dy, _ = super().__call__(data_index)
+        dx, dy = super().get_dx_dy(data_index)
         exp_arg = -0.5 * (dx * dx + dy * dy)
         return math.exp(exp_arg)
 
 
 class ExponentialDecay(Decay):
     def __call__(self, data_index):
-        dx, dy = super().__call__(data_index)
+        dx, dy = super().get_dx_dy(data_index)
         exp_arg = -0.5 * math.sqrt(dx * dx + dy * dy)
         return math.exp(exp_arg)
