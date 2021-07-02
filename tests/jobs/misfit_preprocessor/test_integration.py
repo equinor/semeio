@@ -6,7 +6,7 @@ import pytest
 from res.enkf import EnKFMain, ResConfig
 
 import semeio
-import semeio.workflows.misfit_preprocessor.misfit_preprocessor as misfit_preprocessor
+from semeio.workflows.misfit_preprocessor import misfit_preprocessor
 from semeio.workflows.correlated_observations_scaling.exceptions import (
     EmptyDatasetException,
 )

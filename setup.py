@@ -1,9 +1,9 @@
 from setuptools import setup, find_packages
-
+from pathlib import Path
 
 setup(
     name="semeio",
-    long_description=open("README.md").read(),
+    long_description=Path("README.md").read_text(),
     long_description_content_type="text/markdown",
     use_scm_version={"write_to": "semeio/version.py"},
     author="Equinor ASA",

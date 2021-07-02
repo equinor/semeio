@@ -1,4 +1,5 @@
 import itertools
+from pathlib import Path
 
 import pandas as pd
 
@@ -117,10 +118,11 @@ def test_dframe_trajectory(initdir, fname):
 
     # Dataframe lengths should be the same as number of non-empty lines
     # in txt input:
+
     assert len(dframe) == len(
         [
             line
-            for line in open(fname).readlines()
+            for line in Path(fname).read_text().split("\n")
             if line.strip() and not line.strip().startswith("--")
         ],
     )

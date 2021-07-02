@@ -1,5 +1,7 @@
+# pylint: disable=unsubscriptable-object  # pylint issue
 import sys
 import os
+from pathlib import Path
 
 import pandas as pd
 import numpy
@@ -413,7 +415,7 @@ def test_defaults():
     )
 
     # Crude parsing of the file
-    for line in open(job_description_file).readlines():
+    for line in Path(job_description_file).read_text().split("\n"):
         if line.startswith("DEFAULT"):
             if line.split()[0:2] == ["DEFAULT", "<CSVFILE>"]:
                 csv_job_default = line.split()[2]

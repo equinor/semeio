@@ -2,7 +2,7 @@
 import os
 import sys
 import random
-
+from pathlib import Path
 import pytest
 
 import pandas as pd
@@ -60,7 +60,7 @@ def test_fm_pyscal(dframe, runargs, tmpdir):
 
     run(*(["relperm-input.csv", "relperm.inc"] + runargs))
     assert os.path.exists("relperm.inc")
-    assert len(open("relperm.inc").readlines()) > 20
+    assert len(Path("relperm.inc").read_text()) > 20
 
 
 def test_fm_pysal_static_xlsx(tmpdir):
@@ -77,7 +77,7 @@ def test_fm_pysal_static_xlsx(tmpdir):
         "relperm-sheets.xlsx", "static.inc", "static", "__NONE__", "__NONE__", "sgof", 1
     )
     assert os.path.exists("static.inc")
-    assert "SGOF" in "".join(open("static.inc").readlines())
+    assert "SGOF" in "".join(Path("static.inc").read_text())
     run(
         "relperm-sheets.xlsx",
         "wateroil.inc",
@@ -88,7 +88,7 @@ def test_fm_pysal_static_xlsx(tmpdir):
         1,
     )
     assert os.path.exists("wateroil.inc")
-    assert "SGOF" not in "".join(open("wateroil.inc").readlines())
+    assert "SGOF" not in "".join(Path("wateroil.inc").read_text())
 
 
 def test_fm_pyscal_argparse(tmpdir, monkeypatch):

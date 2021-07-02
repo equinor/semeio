@@ -2,7 +2,7 @@ import pytest
 import pandas as pd
 import numpy as np
 
-import semeio.workflows.ahm_analysis.ahmanalysis as ahmanalysis
+from semeio.workflows.ahm_analysis import ahmanalysis
 from semeio._exceptions.exceptions import ValidationError
 
 from unittest.mock import MagicMock
