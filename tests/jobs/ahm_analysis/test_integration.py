@@ -1,8 +1,9 @@
+# pylint: disable=unsubscriptable-object  # pylint issue
 import os
 import shutil
 import pytest
 import pandas as pd
-import semeio.workflows.ahm_analysis.ahmanalysis as ahmanalysis
+from semeio.workflows.ahm_analysis import ahmanalysis
 from semeio._exceptions.exceptions import ValidationError
 
 from pathlib import Path
