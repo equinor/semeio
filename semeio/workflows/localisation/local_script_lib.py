@@ -323,10 +323,7 @@ def read_localisation_config(args):
     )
     with open(specification_file_name, "r") as yml_file:
         localisation_yml = yaml.safe_load(yml_file)
-    all_keywords = localisation_yml["localisation"]
-    if all_keywords is None:
-        raise IOError(f"None is found when reading file: {specification_file_name}")
-    return all_keywords
+    return localisation_yml
 
 
 def get_obs_from_ert_config(obs_data_from_ert_config):

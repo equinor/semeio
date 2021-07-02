@@ -28,32 +28,30 @@ def test_localisation(
 ):
     ert = EnKFMain(setup_ert)
     config = {
-        "localisation": {
-            "correlations": [
-                {
-                    "name": "CORR1",
-                    "obs_group": {"add": "*", "remove": obs_group_add},
-                    "param_group": {
-                        "add": "SNAKE_OIL_PARAM:OP1_PERSISTENCE",
-                    },
+        "correlations": [
+            {
+                "name": "CORR1",
+                "obs_group": {"add": "*", "remove": obs_group_add},
+                "param_group": {
+                    "add": "SNAKE_OIL_PARAM:OP1_PERSISTENCE",
                 },
-                {
-                    "name": "CORR2",
-                    "obs_group": {"add": "*", "remove": obs_group_add},
-                    "param_group": {
-                        "add": "SNAKE_OIL_PARAM:*",
-                        "remove": "SNAKE_OIL_PARAM:OP1_PERSISTENCE",
-                    },
+            },
+            {
+                "name": "CORR2",
+                "obs_group": {"add": "*", "remove": obs_group_add},
+                "param_group": {
+                    "add": "SNAKE_OIL_PARAM:*",
+                    "remove": "SNAKE_OIL_PARAM:OP1_PERSISTENCE",
                 },
-                {
-                    "name": "CORR3",
-                    "obs_group": {"add": obs_group_add},
-                    "param_group": {
-                        "add": param_group_add,
-                    },
+            },
+            {
+                "name": "CORR3",
+                "obs_group": {"add": obs_group_add},
+                "param_group": {
+                    "add": param_group_add,
                 },
-            ],
-        }
+            },
+        ],
     }
     with open("local_config.yaml", "w") as fout:
         yaml.dump(config, fout)

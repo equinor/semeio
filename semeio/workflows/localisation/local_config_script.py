@@ -22,10 +22,7 @@ class LocalisationConfigJob(SemeioScript):
         local.clear_correlations(ert)
 
         # Read yml file with specifications
-        all_kw = local.read_localisation_config(args)
-
-        # Get config path
-        #        config_path = local.get_config_path(ert)
+        config_dict = local.read_localisation_config(args)
 
         # Get all observations from ert instance
         ert_obs_list = local.get_observations_from_ert(ert)
@@ -46,7 +43,7 @@ class LocalisationConfigJob(SemeioScript):
             observations=ert_obs_list,
             parameters=ert_param_dict,
             grid_config=grid_config,
-            **all_kw,
+            **config_dict,
         )
 
         local.add_ministeps(config, ert_param_dict, ert)
