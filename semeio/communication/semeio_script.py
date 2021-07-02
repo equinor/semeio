@@ -47,7 +47,7 @@ class _ReportHandler(BufferingHandler):
         )
 
 
-class SemeioScript(ErtScript):
+class SemeioScript(ErtScript):  # pylint: disable=too-few-public-methods
     """
     SemeioScript is a workflow utility extending the functionality of ErtScript.
     In particular it provides a `self.reporter` instance available for passing
