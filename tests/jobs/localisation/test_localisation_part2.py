@@ -1,8 +1,14 @@
+from typing import List
 from unittest.mock import Mock
 
 import pytest
+from pydantic import BaseModel
+
 import semeio.workflows.localisation.local_script_lib as local
-from semeio.workflows.localisation.localisation_config import LocalisationConfig
+from semeio.workflows.localisation.localisation_config import (
+    LocalisationConfig,
+    CorrelationConfig,
+)
 
 
 def test_read_correlation_specification():
@@ -437,21 +443,30 @@ def test_add_ministeps(
     }
 
     correlation_specification = {
-        "CORR1": {
-            "obs_list": obs_list1,
-            "param_list": param_list1,
-        },
-        "CORR2": {
-            "obs_list": obs_list2,
-            "param_list": param_list2,
-        },
-        "CORR3": {
-            "obs_list": obs_list3,
-            "param_list": param_list3,
-        },
+        "correlations": [
+            {
+                "name": "CORR1",
+                "obs_group": {"add": obs_list1},
+                "param_group": {"add": param_list1},
+            },
+            {
+                "name": "CORR2",
+                "obs_group": {"add": obs_list2},
+                "param_group": {"add": param_list2},
+            },
+            {
+                "name": "CORR3",
+                "obs_group": {"add": obs_list3},
+                "param_group": {"add": param_list3},
+            },
+        ]
     }
 
-    local.add_ministeps(correlation_specification, ert_param_dict, ert_mock)
+    class UserConfig(BaseModel):
+        correlations: List[CorrelationConfig]
+
+    config = UserConfig(**correlation_specification)
+    local.add_ministeps(config, ert_param_dict, ert_mock)
     assert local_mock.createMinistep.called_once()
     assert mock_ministep.attachDataset.called_once_with(mock_model_param_group)
     assert mock_ministep.attachObsset.called_once_with(mock_obs_group)

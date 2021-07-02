@@ -24,7 +24,10 @@ def test_gaussian_config_valid_angle(angle):
 
 @pytest.mark.parametrize(
     "angle, expected_error",
-    [(-0.0001, "Angle must be >=0 degrees"), (360.0001, "Angle must be <=360 degrees")],
+    [
+        (-0.0001, "ensure this value is greater than or equal to 0.0"),
+        (360.0001, "ensure this value is less than or equal to 360"),
+    ],
 )
 def test_gaussian_config_invalid_angle(angle, expected_error):
     with pytest.raises(pydantic.ValidationError, match=expected_error):
