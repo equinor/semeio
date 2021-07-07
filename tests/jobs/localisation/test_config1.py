@@ -3,7 +3,8 @@ import pytest
 # from pydantic import ValidationError
 
 from semeio.workflows.localisation.localisation_config import LocalisationConfig
-from res.enkf.enums.ert_impl_type_enum import ErtImplType
+
+# from res.enkf.enums.ert_impl_type_enum import ErtImplType
 
 ERT_GRID_CONFIG = {
     "dimensions": [100, 200],
@@ -288,7 +289,7 @@ def test_simple_config_duplicate_error(
             "OBS1*",
             "OBS1",
             ["1x00", 200],
-            "value is not a valid float",
+            "could not convert string to float",
         ),
         (
             "OBS1*",
@@ -306,13 +307,13 @@ def test_simple_config_ref_point_error(
             {
                 "name": "some_name",
                 "obs_group": {
-                    "ref_point": ref_point,
                     "add": obs_group_add,
                     "remove": obs_group_remove,
                 },
                 "param_group": {
                     "add": "PARAM_NODE1:PARAM1",
                 },
+                "ref_point": ref_point,
             }
         ],
     }
@@ -560,11 +561,11 @@ def test_add_remove_obs_with_ref_point_config(
                 "name": "some_name",
                 "obs_group": {
                     "add": [obs_group_add],
-                    "ref_point": ref_point,
                 },
                 "param_group": {
                     "add": [param_group_add],
                 },
+                "ref_point": ref_point,
             }
         ],
     }
@@ -577,14 +578,16 @@ def test_add_remove_obs_with_ref_point_config(
 
 
 @pytest.mark.parametrize(
-    "obs_group_add, param_group_add, ref_point,  method, method_param, expected",
+    "obs_add, param_add, ref_point,  method, range1, range2, angle, expected",
     [
         (
             "OBS1*",
             "PARAM_FIELD1",
             [550, 1050],
             "gaussian_decay",
-            [1700, 850, 310],
+            1700,
+            850,
+            310,
             ["OBS1", "OBS11", "OBS12", "OBS13", "OBS14"],
         ),
         (
@@ -592,7 +595,9 @@ def test_add_remove_obs_with_ref_point_config(
             "PARAM_FIELD1",
             [100, 150],
             "exponential_decay",
-            [0.1, 850, 0],
+            0.1,
+            850,
+            0,
             ["OBS1", "OBS11", "OBS12", "OBS13", "OBS14"],
         ),
         (
@@ -600,7 +605,9 @@ def test_add_remove_obs_with_ref_point_config(
             "PARAM_FIELD1",
             [0, 750],
             "exponential_decay",
-            [700, 850, 100],
+            700,
+            850,
+            100,
             ["OBS1", "OBS11", "OBS12", "OBS13", "OBS14"],
         ),
         (
@@ -608,7 +615,9 @@ def test_add_remove_obs_with_ref_point_config(
             "PARAM_FIELD1",
             [500, 750],
             "exponential_decay",
-            [1700, 500, 360],
+            1700,
+            500,
+            360,
             ["OBS1", "OBS11", "OBS12", "OBS13", "OBS14"],
         ),
         (
@@ -616,26 +625,33 @@ def test_add_remove_obs_with_ref_point_config(
             "PARAM_FIELD1",
             [500, 750],
             "gaussian_decay",
-            [0.1, 0.1, 0],
+            0.1,
+            0.1,
+            0,
             ["OBS1", "OBS11", "OBS12", "OBS13", "OBS14"],
         ),
     ],
 )
 def test_add_remove_obs_with_ref_point_and_field_scale_config(
-    obs_group_add, param_group_add, ref_point, method, method_param, expected
+    obs_add, param_add, ref_point, method, range1, range2, angle, expected
 ):
     data = {
         "correlations": [
             {
                 "name": "some_name",
                 "obs_group": {
-                    "add": [obs_group_add],
-                    "ref_point": ref_point,
+                    "add": [obs_add],
                 },
                 "param_group": {
-                    "add": [param_group_add],
+                    "add": [param_add],
                 },
-                "field_scale": {"method": method, "method_param": method_param},
+                "ref_point": ref_point,
+                "field_scale": {
+                    "method": method,
+                    "main_range": range1,
+                    "perp_range": range2,
+                    "angle": angle,
+                },
             }
         ],
     }

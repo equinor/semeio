@@ -1,3 +1,4 @@
+# pylint: disable=W0201
 import yaml
 import pathlib
 import math
@@ -6,6 +7,7 @@ import copy
 
 from res.enkf.enums.ert_impl_type_enum import ErtImplType
 from res.enkf.enums.enkf_var_type_enum import EnkfVarType
+from dataclasses import dataclass
 
 # Global variables
 debug_level = 1
@@ -70,9 +72,13 @@ def get_param_from_ert(ert):
                         "size": area_size,
                     }
                 elif impl_type == ErtImplType.GEN_DATA:
-                    gen_data_config = node.getModelConfig()
-                    data_size = gen_data_config.getDataSize()
-                    parameters_for_node[key] = data_size
+                    gen_data_config = node.getDataModelConfig()
+                    data_size = gen_data_config.get_initial_size()
+                    print(f" gendataconfig: {gen_data_config}")
+                    print(f" datasize:  {data_size}")
+                    print(f"activeMask: {gen_data_config.getActiveMask}")
+                    #  print(f"getDataSize: {gen_data_config.getDataSize(0)}")
+                    parameters_for_node[key] = [str(data_size)]
 
     return parameters_for_node, grid_config
 
@@ -452,6 +458,51 @@ def check_for_duplicated_correlation_specifications(correlations):
     return number_of_duplicates
 
 
+def activate_gen_kw_param(model_param_group, node_name, param_list, ert_param_dict):
+    active_param_list = model_param_group.getActiveList(node_name)
+    for param_name in param_list:
+        index = active_index_for_parameter(node_name, param_name, ert_param_dict)
+        if index is not None:
+            debug_print(f"  -- Active parameter index: {index}")
+            active_param_list.addActiveIndex(index)
+
+
+def activate_and_scale_field_correlation(
+    model_param_group, node_name, field_config, corr_spec, grid_for_field
+):
+    # A scaling of correlation is defined
+    debug_print(
+        "  -- Apply the correlation scaling method: " f"{corr_spec.field_scale.method}"
+    )
+
+    row_scaling = model_param_group.row_scaling(node_name)
+    data_size = field_config.get_data_size()
+
+    if corr_spec.field_scale.method == "gaussian_decay":
+        ref_pos = corr_spec.ref_point
+        main_range = corr_spec.field_scale.main_range
+        perp_range = corr_spec.field_scale.perp_range
+        azimuth = corr_spec.field_scale.angle
+        row_scaling.assign(
+            data_size,
+            GaussianDecay(ref_pos, main_range, perp_range, azimuth, grid_for_field),
+        )
+    elif corr_spec.field_scale.method == "exponential_decay":
+        ref_pos = corr_spec.obs_group.ref_point
+        main_range = corr_spec.field_scale.method_param[0]
+        perp_range = corr_spec.field_scale.method_param[1]
+        azimuth = corr_spec.field_scale.method_param[2]
+        row_scaling.assign(
+            data_size,
+            ExponentialDecay(ref_pos, main_range, perp_range, azimuth, grid_for_field),
+        )
+    else:
+        print(
+            f" --  Scaling method: {corr_spec.field_scale.method} "
+            "is not implemented."
+        )
+
+
 def add_ministeps(user_config, ert_param_dict, ert):
     local_config = ert.getLocalConfig()
     updatestep = local_config.getUpdatestep()
@@ -478,68 +529,36 @@ def add_ministeps(user_config, ert_param_dict, ert):
             debug_print(f"  -- Add node: {node_name} of type: {impl_type}")
             model_param_group.addNode(node_name)
             if impl_type == ErtImplType.GEN_KW:
-                active_param_list = model_param_group.getActiveList(node_name)
-                for param_name in param_list:
-                    index = active_index_for_parameter(
-                        node_name, param_name, ert_param_dict
-                    )
-                    if index is not None:
-                        debug_print(f" -- Active parameter index: {index}")
-                        active_param_list.addActiveIndex(index)
+                activate_gen_kw_param(
+                    model_param_group, node_name, param_list, ert_param_dict
+                )
             elif impl_type == ErtImplType.FIELD:
                 if corr_spec.field_scale is not None:
-                    # A scaling of correlation is defined
-                    debug_print(
-                        " -- Apply the correlation scaling method: "
-                        f"{corr_spec.field_scale.method}"
-                    )
                     if grid_for_field is None:
                         grid_for_field = ert.eclConfig().getGrid()
-                        debug_print(f" -- Get grid: {grid_for_field.get_name()}")
-
-                    row_scaling = model_param_group.row_scaling(node_name)
+                        debug_print(f"  -- Get grid: {grid_for_field.get_name()}")
                     field_config = node.getFieldModelConfig()
-                    data_size = field_config.get_data_size()
-                    if corr_spec.field_scale.method == "gaussian_decay":
-                        ref_pos = corr_spec.obs_group.ref_point
-                        main_range = corr_spec.field_scale.method_param[0]
-                        perp_range = corr_spec.field_scale.method_param[1]
-                        azimuth = corr_spec.field_scale.method_param[2]
-                        row_scaling.assign(
-                            data_size,
-                            GaussianDecay(
-                                ref_pos, main_range, perp_range, azimuth, grid_for_field
-                            ),
-                        )
-                    elif corr_spec.field_scale.method == "exponential_decay":
-                        ref_pos = corr_spec.obs_group.ref_point
-                        main_range = corr_spec.field_scale.method_param[0]
-                        perp_range = corr_spec.field_scale.method_param[1]
-                        azimuth = corr_spec.field_scale.method_param[2]
-                        row_scaling.assign(
-                            data_size,
-                            ExponentialDecay(
-                                ref_pos, main_range, perp_range, azimuth, grid_for_field
-                            ),
-                        )
-                    else:
-                        print(
-                            f" --  Scaling method: {corr_spec.field_scale.method} "
-                            "is not implemented yet"
-                        )
+                    activate_and_scale_field_correlation(
+                        model_param_group,
+                        node_name,
+                        field_config,
+                        corr_spec,
+                        grid_for_field,
+                    )
+
         # Setup observation group
         for obs_name in obs_list:
-            debug_print(f"Add obs node: {obs_name}")
+            debug_print(f"  -- Add obs node: {obs_name}")
             obs_group.addNode(obs_name)
 
         # Setup ministep
-        debug_print(f" -- Attach {param_group_name} to ministep {ministep_name}")
+        debug_print(f"  -- Attach {param_group_name} to ministep {ministep_name}")
         ministep.attachDataset(model_param_group)
 
-        debug_print(f" -- Attach {obs_group_name} to ministep {ministep_name}")
+        debug_print(f"  -- Attach {obs_group_name} to ministep {ministep_name}")
         ministep.attachObsset(obs_group)
 
-        debug_print(f" -- Add {ministep_name} to update step\n")
+        debug_print(f"  -- Add {ministep_name} to update step\n")
         updatestep.attachMinistep(ministep)
 
 
@@ -601,16 +620,14 @@ def transform_from_ertbox_to_utm_coordinates(point, origo, rotation):
 # obs_pos; this is (probaly) a simplified version of tapering function which
 # will be interesting to use.
 
-from dataclasses import dataclass
-
 
 @dataclass
 class Decay:
     obs_pos: list
     main_range: float
     perp_range: float
-    grid: object
     azimuth: float
+    grid: object
 
     def __post_init__(self):
         angle = (90.0 - self.azimuth) * math.pi / 180.0

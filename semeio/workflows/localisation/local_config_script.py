@@ -35,7 +35,7 @@ class LocalisationConfigJob(SemeioScript):
         ert_param_dict, grid_config = local.get_param_from_ert(ert)
         if debug_level > 0:
             print(
-                f"-- All specified scalar parameters from ERT instance:\n"
+                f"-- All specified parameters from ERT instance:\n"
                 f"{ert_param_dict}\n"
             )
 

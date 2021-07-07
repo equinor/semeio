@@ -1,3 +1,4 @@
+# pylint: disable=E0213
 from typing import List, Optional, Union, Dict
 from typing_extensions import Literal
 
@@ -13,7 +14,6 @@ from semeio.workflows.localisation.local_script_lib import (
 class ObsConfig(BaseModel):
     add: Union[str, List[str]]
     remove: Optional[Union[str, List[str]]]
-    ref_point: Optional[List[Union[float, int]]]
 
     @validator("add")
     def validate_add(cls, add):
@@ -26,19 +26,6 @@ class ObsConfig(BaseModel):
         if isinstance(remove, str):
             remove = [remove]
         return remove
-
-    @validator("ref_point")
-    def validate_ref_point(cls, ref_point):
-        if len(ref_point) == 2:
-            ref_point[0] = float(ref_point[0])
-            ref_point[1] = float(ref_point[1])
-        else:
-            raise ValueError(
-                "Reference point for an observation group "
-                "must be a list of two float or integer. "
-                f"Found the reference point: {ref_point}"
-            )
-        return ref_point
 
 
 class ParamConfig(BaseModel):
@@ -76,7 +63,22 @@ class CorrelationConfig(BaseModel):
     name: str
     obs_group: ObsConfig
     param_group: ParamConfig
+    ref_point: Optional[List[float]]
     field_scale: Optional[Union[GaussianConfig, ExponentialConfig]]
+
+    @validator("ref_point", pre=True)
+    def validate_ref_point(cls, value):
+        ref_point = value
+        if len(ref_point) == 2:
+            ref_point[0] = float(ref_point[0])
+            ref_point[1] = float(ref_point[1])
+        else:
+            raise ValueError(
+                "Reference point for an observation group "
+                "must be a list of two float or integer. "
+                f"Found the reference point: {ref_point}"
+            )
+        return ref_point
 
     @validator("field_scale", pre=True)
     def validate_workflow(cls, value):
@@ -93,7 +95,7 @@ class CorrelationConfig(BaseModel):
             "gaussian_decay": GaussianConfig,
             "exponential_decay": ExponentialConfig,
         }
-        if method in _valid_methods:
+        if method in _valid_methods.keys():
             return _valid_methods[method](**value)
         else:
             raise ValueError(
@@ -122,7 +124,7 @@ class LocalisationConfig(BaseModel):
     """
 
     observations: List[str]
-    parameters: Dict[str, Optional[List[str]]]
+    parameters: Dict[str, Optional[Union[str, List[str]]]]
     grid_config: Optional[Dict[str, Union[float, int, List[Union[float, int]]]]]
     correlations: List[CorrelationConfig]
 
@@ -130,7 +132,6 @@ class LocalisationConfig(BaseModel):
     def validate_correlations(cls, correlations, values):
 
         for corr in correlations:
-            #            print(f"corr.obs_group.add: {corr.obs_group.add}")
             if len(corr.obs_group.add) == 0:
                 raise ValueError(
                     "Number of specified observations for correlation: "
@@ -141,7 +142,6 @@ class LocalisationConfig(BaseModel):
             )
             corr.obs_group.add = observations
             corr.obs_group.remove = []
-            check_validation_of_obs_group_ref_point(corr.obs_group.ref_point, values)
 
             parameters = get_and_validate_parameters(
                 corr.param_group, values["parameters"]
@@ -149,6 +149,7 @@ class LocalisationConfig(BaseModel):
             corr.param_group.add = parameters
             corr.param_group.remove = []
 
+            check_validation_of_obs_group_ref_point(values)
 
         number_of_duplicates = check_for_duplicated_correlation_specifications(
             correlations
@@ -172,15 +173,18 @@ def check_observation_specification(obs_group, ert_obs_list):
     return observations
 
 
-def check_validation_of_obs_group_ref_point(ref_point, values):
+def check_validation_of_obs_group_ref_point(values):
     key = "grid_config"
     if key in values.keys():
         grid_config = values[key]
         if grid_config is not None:
-            ert_grid_dim = grid_config["dimensions"]
+            #            ert_grid_dim = grid_config["dimensions"]
             ert_grid_origo = grid_config["grid_origo"]
             ert_grid_rotation = grid_config["rotation"]
             ert_grid_size = grid_config["size"]
+        key = "ref_point"
+        if key in values.keys():
+            ref_point = values[key]
             if ref_point is not None:
                 check_ref_point_with_grid_data(
                     ref_point,
@@ -192,10 +196,8 @@ def check_validation_of_obs_group_ref_point(ref_point, values):
 
 def get_and_validate_parameters(param_group, values):
     params_added = expand_wildcards_with_param(param_group.add, values)
-    #            print(f"params_added: {params_added}")
     if param_group.remove is not None:
         params_removed = expand_wildcards_with_param(param_group.remove, values)
-        #                print(f"params_removed: {params_removed}")
         nodes_to_remove = []
         for node_name, param_names in params_added.items():
             if node_name in params_removed:
@@ -211,6 +213,6 @@ def get_and_validate_parameters(param_group, values):
         parameters = params_added
     else:
         parameters = params_added
-        #            print(f"parameters final: {parameters}\n")
+    #        print(f"parameters final: {parameters}\n")
 
     return parameters

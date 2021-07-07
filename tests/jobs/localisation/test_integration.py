@@ -1,6 +1,6 @@
 import yaml
 import pytest
-from res.enkf import EnKFMain
+from res.enkf import EnKFMain, ResConfig
 from semeio.workflows.localisation.local_config_script import LocalisationConfigJob
 
 
@@ -75,3 +75,36 @@ def test_localisation(
             assert obs_list == expected_obs2
         key = ministep_names[index] + "_param_group"
         assert ministep[key].keys() == expected
+
+
+def test_localisation_gen_param(
+    setup_poly_ert,
+):
+    with open("poly.ert", "a") as fout:
+        fout.write(
+            "GEN_PARAM PARAMS_A parameter_file_A INPUT_FORMAT:ASCII "
+            "OUTPUT_FORMAT:ASCII INIT_FILES:initial_param_file_A_%d"
+        )
+    with open("initial_param_file_A_0", "w") as fout:
+        for i in range(10):
+            fout.write(f"{i}\n")
+
+    res_config = ResConfig("poly.ert")
+    ert = EnKFMain(res_config)
+    config = {
+        "correlations": [
+            {
+                "name": "CORR1",
+                "obs_group": {
+                    "add": "*",
+                },
+                "param_group": {
+                    "add": "*",
+                },
+            },
+        ],
+    }
+
+    with open("local_config.yaml", "w") as fout:
+        yaml.dump(config, fout)
+    LocalisationConfigJob(ert).run("local_config.yaml")
