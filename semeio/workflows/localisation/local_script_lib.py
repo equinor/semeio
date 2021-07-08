@@ -33,6 +33,7 @@ def get_param_from_ert(ert):
     ens_config = ert.ensembleConfig()
     keylist = ens_config.alloc_keylist()
     parameters_for_node = {}
+    node_type = {}
     grid_config = None
     implementation_type_not_scalar = [
         ErtImplType.GEN_DATA,
@@ -45,6 +46,7 @@ def get_param_from_ert(ert):
     for key in keylist:
         node = ens_config.getNode(key)
         impl_type = node.getImplementationType()
+        node_type[key] = impl_type
         var_type = node.getVariableType()
         if var_type == EnkfVarType.PARAMETER:
             if impl_type == ErtImplType.GEN_KW:
@@ -74,13 +76,10 @@ def get_param_from_ert(ert):
                 elif impl_type == ErtImplType.GEN_DATA:
                     gen_data_config = node.getDataModelConfig()
                     data_size = gen_data_config.get_initial_size()
-                    print(f" gendataconfig: {gen_data_config}")
-                    print(f" datasize:  {data_size}")
-                    print(f"activeMask: {gen_data_config.getActiveMask}")
-                    #  print(f"getDataSize: {gen_data_config.getDataSize(0)}")
+                    debug_print(f" -- GEN_PARAM node {key} has {data_size} parameters.")
                     parameters_for_node[key] = [str(data_size)]
 
-    return parameters_for_node, grid_config
+    return parameters_for_node, node_type, grid_config
 
 
 def grid_info(bounding_box):
