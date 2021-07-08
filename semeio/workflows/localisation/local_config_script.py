@@ -32,21 +32,20 @@ class LocalisationConfigJob(SemeioScript):
                 print(f"      {obs_name}")
             print("\n")
 
-        ert_param_dict, grid_config = local.get_param_from_ert(ert)
+        ert_param_dict, ert_node_type_dict, grid_config = local.get_param_from_ert(ert)
         if debug_level > 0:
-            print(
-                f"-- All specified parameters from ERT instance:\n"
-                f"{ert_param_dict}\n"
-            )
+            print(" -- All specified parameters from ERT instance:")
+            local.print_params(ert_param_dict, ert_node_type_dict)
 
         config = LocalisationConfig(
             observations=ert_obs_list,
             parameters=ert_param_dict,
+            node_type=ert_node_type_dict,
             grid_config=grid_config,
             **config_dict,
         )
 
-        local.add_ministeps(config, ert_param_dict, ert)
+        local.add_ministeps(config, ert_param_dict, ert, debug_level=debug_level)
 
 
 @hook_implementation

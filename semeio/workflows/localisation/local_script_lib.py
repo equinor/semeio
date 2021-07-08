@@ -76,6 +76,15 @@ def get_param_from_ert(ert):
                 elif impl_type == ErtImplType.GEN_DATA:
                     gen_data_config = node.getDataModelConfig()
                     data_size = gen_data_config.get_initial_size()
+                    if data_size <= 0:
+                        print(
+                            f"\n -- Warning: A GEN_PARAM node {key} "
+                            "is defined in ERT config.\n"
+                            "          This requires that the localization script "
+                            "must be run AFTER \n"
+                            "          initialization of the ensemble, "
+                            "but BEFORE the first update step.\n"
+                        )
                     debug_print(f" -- GEN_PARAM node {key} has {data_size} parameters.")
                     parameters_for_node[key] = [str(data_size)]
 
@@ -148,31 +157,54 @@ def expand_wildcards(patterns, list_of_words):
     return all_matches
 
 
-def get_full_parameter_name_list(user_node_name, all_param_dict):
+def get_full_parameter_name_list(user_node_name, all_param_dict, node_type_dict=None):
     param_list = all_param_dict[user_node_name]
     full_param_name_list = []
-    if len(param_list) > 0:
-        for param_name in param_list:
-            full_param_name = user_node_name.strip() + ":" + param_name.strip()
-            full_param_name_list.append(full_param_name)
+    if node_type_dict is None:
+        if len(param_list) > 0:
+            for param_name in param_list:
+                full_param_name = user_node_name.strip() + ":" + param_name.strip()
+                full_param_name_list.append(full_param_name)
+        else:
+            full_param_name_list.append(user_node_name)
     else:
+        if node_type_dict[user_node_name] == ErtImplType.GEN_KW:
+            if len(param_list) > 0:
+                for param_name in param_list:
+                    full_param_name = user_node_name.strip() + ":" + param_name.strip()
+                    full_param_name_list.append(full_param_name)
+            else:
+                full_param_name_list.append(user_node_name)
+
+        elif node_type_dict[user_node_name] == ErtImplType.GEN_DATA:
+            data_size = int(param_list[0])
+            for index in range(data_size):
+                full_param_name = user_node_name.strip() + ":" + str(index)
+                full_param_name_list.append(full_param_name)
+
+        elif node_type_dict[user_node_name] == ErtImplType.FIELD:
+            full_param_name_list.append(user_node_name)
+
+        elif node_type_dict[user_node_name] == ErtImplType.SURFACE:
+            full_param_name_list.append(user_node_name)
+
         # This node does not have any specified list of parameters.
         # There are two possibilities:
         #  - The node may have parameters with names (coming from GEN_KW keyword in ERT)
         #  - The node may not have any parameters with names
         #     (coming from GEN_PARAM, SURFACE, FIELD) keywords.
-        full_param_name_list.append(user_node_name)
+
     return full_param_name_list
 
 
-def full_param_names_for_ert(ert_param_dict):
+def full_param_names_for_ert(ert_param_dict, ert_node_type):
     all_param_node_list = ert_param_dict.keys()
     valid_full_param_names = []
     #    print(f"all_param_node_list: {all_param_node_list}")
     for node_name in all_param_node_list:
         # Define full parameter name of form nodename:parametername to simplify matching
         full_name_list_for_node = get_full_parameter_name_list(
-            node_name, ert_param_dict
+            node_name, ert_param_dict, ert_node_type
         )
         valid_full_param_names.extend(full_name_list_for_node)
     return valid_full_param_names
@@ -245,9 +277,11 @@ def split_full_param_names_and_define_dict(full_param_name_list):
     return param_dict
 
 
-def expand_wildcards_with_param_dicts(list_of_pattern_of_dicts, ert_param_dict):
+def expand_wildcards_with_param_dicts(
+    list_of_pattern_of_dicts, ert_param_dict, ert_node_type
+):
     # Define a list with full parameter names of the form nodename:paramname
-    valid_full_param_names = full_param_names_for_ert(ert_param_dict)
+    valid_full_param_names = full_param_names_for_ert(ert_param_dict, ert_node_type)
     #    print(f"valid full param names: {valid_full_param_names}")
 
     # Define a list with specfied patterns of parameter names of the
@@ -278,9 +312,9 @@ def expand_wildcards_with_param_dicts(list_of_pattern_of_dicts, ert_param_dict):
     return param_dict
 
 
-def expand_wildcards_with_param(pattern_list, ert_param_dict):
+def expand_wildcards_with_param(pattern_list, ert_param_dict, ert_node_type):
     # Define a list with full parameter names of the form nodename:paramname
-    valid_full_param_names = full_param_names_for_ert(ert_param_dict)
+    valid_full_param_names = full_param_names_for_ert(ert_param_dict, ert_node_type)
     #    print(f"valid full param names: {valid_full_param_names}")
 
     # Expand patterns of full parameter names
@@ -458,12 +492,37 @@ def check_for_duplicated_correlation_specifications(correlations):
 
 
 def activate_gen_kw_param(model_param_group, node_name, param_list, ert_param_dict):
+    """
+    Activate the selected parameters for the specified node.
+    The param_list contains the list of parameters defined in GEN_KW
+    for this node to be activated.
+    """
     active_param_list = model_param_group.getActiveList(node_name)
+    debug_print(" -- Set active parameters:")
     for param_name in param_list:
         index = active_index_for_parameter(node_name, param_name, ert_param_dict)
         if index is not None:
-            debug_print(f"  -- Active parameter index: {index}")
+            debug_print(f"  -- Active parameter: {param_name}  index: {index}")
             active_param_list.addActiveIndex(index)
+
+
+def activate_gen_param(model_param_group, node_name, param_list, data_size):
+    """
+    Activate the selected parameters for the specified node.
+    The param_list contains a list of names that are integer numbers
+    for the parameter indices to be activated for parameters belonging
+    to the specified GEN_PARAM node.
+    """
+    active_param_list = model_param_group.getActiveList(node_name)
+    for param_name in param_list:
+        index = int(param_name)
+        if index < 0 or index >= data_size:
+            raise ValueError(
+                f"Index for parameter in node {node_name} is "
+                f"outside the interval [0,{data_size-1}]"
+            )
+        debug_print(f"  -- Active parameter index: {index}")
+        active_param_list.addActiveIndex(index)
 
 
 def activate_and_scale_field_correlation(
@@ -502,7 +561,7 @@ def activate_and_scale_field_correlation(
         )
 
 
-def add_ministeps(user_config, ert_param_dict, ert):
+def add_ministeps(user_config, ert_param_dict, ert, debug_level=0):
     local_config = ert.getLocalConfig()
     updatestep = local_config.getUpdatestep()
     ens_config = ert.ensembleConfig()
@@ -543,6 +602,13 @@ def add_ministeps(user_config, ert_param_dict, ert):
                         field_config,
                         corr_spec,
                         grid_for_field,
+                    )
+            elif impl_type == ErtImplType.GEN_DATA:
+                gen_data_config = node.getDataModelConfig()
+                data_size = gen_data_config.get_initial_size()
+                if data_size > 0:
+                    activate_gen_param(
+                        model_param_group, node_name, param_list, data_size
                     )
 
         # Setup observation group
@@ -659,3 +725,17 @@ class ExponentialDecay(Decay):
         dx, dy = super().get_dx_dy(data_index)
         exp_arg = -0.5 * math.sqrt(dx * dx + dy * dy)
         return math.exp(exp_arg)
+
+
+def print_params(params_for_node, node_type):
+    for key, param_list in params_for_node.items():
+        print(f"     Node: {key}     Type: {node_type[key]}")
+        if node_type[key] == ErtImplType.GEN_KW:
+            print("     Parameters for this node:")
+            for param in param_list:
+                print(f"       {param}")
+        elif node_type[key] == ErtImplType.GEN_DATA:
+            n = int(param_list[0])
+            if n > 0:
+                print(f"     Number of parameters for GEN_PARAM node: {n}")
+    print("\n")

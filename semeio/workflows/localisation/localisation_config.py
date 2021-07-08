@@ -125,6 +125,7 @@ class LocalisationConfig(BaseModel):
 
     observations: List[str]
     parameters: Dict[str, Optional[Union[str, List[str]]]]
+    node_type: Optional[Dict[str, int]]
     grid_config: Optional[Dict[str, Union[float, int, List[Union[float, int]]]]]
     correlations: List[CorrelationConfig]
 
@@ -142,9 +143,13 @@ class LocalisationConfig(BaseModel):
             )
             corr.obs_group.add = observations
             corr.obs_group.remove = []
-
+            #            print(f"values: {values}")
+            node_params_dict = values["parameters"]
+            node_type_dict = None
+            if "node_type" in values.keys():
+                node_type_dict = values["node_type"]
             parameters = get_and_validate_parameters(
-                corr.param_group, values["parameters"]
+                corr.param_group, node_params_dict, node_type_dict
             )
             corr.param_group.add = parameters
             corr.param_group.remove = []
@@ -194,10 +199,12 @@ def check_validation_of_obs_group_ref_point(values):
                 )
 
 
-def get_and_validate_parameters(param_group, values):
-    params_added = expand_wildcards_with_param(param_group.add, values)
+def get_and_validate_parameters(param_group, values, node_type):
+    params_added = expand_wildcards_with_param(param_group.add, values, node_type)
     if param_group.remove is not None:
-        params_removed = expand_wildcards_with_param(param_group.remove, values)
+        params_removed = expand_wildcards_with_param(
+            param_group.remove, values, node_type
+        )
         nodes_to_remove = []
         for node_name, param_names in params_added.items():
             if node_name in params_removed:

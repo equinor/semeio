@@ -3,8 +3,7 @@ import pytest
 # from pydantic import ValidationError
 
 from semeio.workflows.localisation.localisation_config import LocalisationConfig
-
-# from res.enkf.enums.ert_impl_type_enum import ErtImplType
+from res.enkf.enums.ert_impl_type_enum import ErtImplType
 
 ERT_GRID_CONFIG = {
     "dimensions": [100, 200],
@@ -25,7 +24,20 @@ ERT_PARAM = {
     "PARAM_FIELD1": [],
     "PARAM_FIELD2": [],
     "PARAM_FIELD3": [],
-    "PARAM_GEN": [],
+    "PARAM_GEN": [5],
+}
+
+ERT_NODE_TYPE = {
+    "PARAM_NODE1": ErtImplType.GEN_KW,
+    "PARAM_NODE2": ErtImplType.GEN_KW,
+    "PARAM_NODE3": ErtImplType.GEN_KW,
+    "PARAM_NODE22": ErtImplType.GEN_KW,
+    "PARAM_NODE1X": ErtImplType.GEN_KW,
+    "PARAM_NODE2Y": ErtImplType.GEN_KW,
+    "PARAM_FIELD1": ErtImplType.FIELD,
+    "PARAM_FIELD2": ErtImplType.FIELD,
+    "PARAM_FIELD3": ErtImplType.FIELD,
+    "PARAM_GEN": ErtImplType.GEN_DATA,
 }
 
 
@@ -59,13 +71,14 @@ ERT_PARAM = {
         (
             ["P*2*", "PARAM_NODE3*"],
             {
+                "PARAM_FIELD2": [],
+                "PARAM_GEN": ["2"],
                 "PARAM_NODE1": ["PARAM2"],
                 "PARAM_NODE1X": ["X2"],
                 "PARAM_NODE2": ["PARAM1", "PARAM2", "PARAM3"],
                 "PARAM_NODE22": ["P1", "P2", "P22"],
                 "PARAM_NODE2Y": ["Y1", "Y2", "Y3"],
                 "PARAM_NODE3": ["PARAM4"],
-                "PARAM_FIELD2": [],
             },
         ),
         (
@@ -132,6 +145,10 @@ ERT_PARAM = {
                 "PARAM_FIELD1": [],
             },
         ),
+        (
+            "PARAM_GEN:*",
+            {"PARAM_GEN": ["0", "1", "2", "3", "4"]},
+        ),
     ],
 )
 def test_simple_config(param_group_add, expected):
@@ -146,7 +163,9 @@ def test_simple_config(param_group_add, expected):
             }
         ],
     }
-    conf = LocalisationConfig(observations=ERT_OBS, parameters=ERT_PARAM, **data)
+    conf = LocalisationConfig(
+        observations=ERT_OBS, parameters=ERT_PARAM, node_type=ERT_NODE_TYPE, **data
+    )
     assert len(conf.correlations) == 1
     assert conf.correlations[0].obs_group.add[0] == "OBS1"
     assert conf.correlations[0].param_group.add == expected
@@ -205,7 +224,9 @@ def test_simple_config_error(
         ],
     }
     with pytest.raises(ValueError, match=expected_error):
-        LocalisationConfig(observations=ERT_OBS, parameters=ERT_PARAM, **data)
+        LocalisationConfig(
+            observations=ERT_OBS, parameters=ERT_PARAM, node_type=ERT_NODE_TYPE, **data
+        )
 
 
 @pytest.mark.parametrize(
@@ -267,7 +288,9 @@ def test_simple_config_duplicate_error(
         ],
     }
     with pytest.raises(ValueError, match=expected_error):
-        LocalisationConfig(observations=ERT_OBS, parameters=ERT_PARAM, **data)
+        LocalisationConfig(
+            observations=ERT_OBS, parameters=ERT_PARAM, node_type=ERT_NODE_TYPE, **data
+        )
 
 
 @pytest.mark.parametrize(
@@ -321,6 +344,7 @@ def test_simple_config_ref_point_error(
         LocalisationConfig(
             observations=ERT_OBS,
             parameters=ERT_PARAM,
+            node_type=ERT_NODE_TYPE,
             grid_config=ERT_GRID_CONFIG,
             **data
         )
@@ -364,12 +388,10 @@ def test_simple_config_ref_point_error(
             },
         ),
         (
-            ["P*2*", "PARAM_NODE3*"],
-            ["PARAM_NODE2:*", "PARAM_NODE22:P2*"],
+            ["P*2*:*", "PARAM_NODE3*", "P*_GEN*"],
+            ["PARAM_NODE2:*", "PARAM_NODE22:P2*", "P*_G*:1", "P*_G*:3", "P*_G*:4"],
             {
-                "PARAM_FIELD2": [],
-                "PARAM_NODE1": ["PARAM2"],
-                "PARAM_NODE1X": ["X2"],
+                "PARAM_GEN": ["0", "2"],
                 "PARAM_NODE22": ["P1"],
                 "PARAM_NODE2Y": ["Y1", "Y2", "Y3"],
                 "PARAM_NODE3": ["PARAM4"],
@@ -456,7 +478,7 @@ def test_simple_config_ref_point_error(
                 "PARAM_FIELD1": [],
                 "PARAM_FIELD2": [],
                 "PARAM_FIELD3": [],
-                "PARAM_GEN": [],
+                "PARAM_GEN": ["0", "1", "2", "3", "4"],
             },
         ),
     ],
@@ -474,7 +496,9 @@ def test_add_remove_param_config(param_group_add, param_group_remove, expected):
             }
         ],
     }
-    conf = LocalisationConfig(observations=ERT_OBS, parameters=ERT_PARAM, **data)
+    conf = LocalisationConfig(
+        observations=ERT_OBS, parameters=ERT_PARAM, node_type=ERT_NODE_TYPE, **data
+    )
     assert len(conf.correlations) == 1
     assert conf.correlations[0].obs_group.add[0] == "OBS1"
     assert conf.correlations[0].param_group.add == expected
@@ -517,7 +541,9 @@ def test_add_remove_obs_config(obs_group_add, obs_group_remove, expected):
             }
         ],
     }
-    conf = LocalisationConfig(observations=ERT_OBS, parameters=ERT_PARAM, **data)
+    conf = LocalisationConfig(
+        observations=ERT_OBS, parameters=ERT_PARAM, node_type=ERT_NODE_TYPE, **data
+    )
     assert len(conf.correlations) == 1
     assert conf.correlations[0].obs_group.add == expected
     assert conf.correlations[0].param_group.add == {"PARAM_NODE1": ["PARAM1"]}
@@ -570,7 +596,11 @@ def test_add_remove_obs_with_ref_point_config(
         ],
     }
     conf = LocalisationConfig(
-        observations=ERT_OBS, parameters=ERT_PARAM, grid_config=ERT_GRID_CONFIG, **data
+        observations=ERT_OBS,
+        parameters=ERT_PARAM,
+        grid_config=ERT_GRID_CONFIG,
+        node_type=ERT_NODE_TYPE,
+        **data
     )
     assert len(conf.correlations) == 1
     assert conf.correlations[0].obs_group.add == expected
@@ -656,7 +686,11 @@ def test_add_remove_obs_with_ref_point_and_field_scale_config(
         ],
     }
     conf = LocalisationConfig(
-        observations=ERT_OBS, parameters=ERT_PARAM, grid_config=ERT_GRID_CONFIG, **data
+        observations=ERT_OBS,
+        parameters=ERT_PARAM,
+        grid_config=ERT_GRID_CONFIG,
+        node_type=ERT_NODE_TYPE,
+        **data
     )
     assert len(conf.correlations) == 1
     assert conf.correlations[0].obs_group.add == expected
