@@ -7,8 +7,10 @@ from semeio.workflows.localisation.local_script_lib import (
     expand_wildcards,
     expand_wildcards_with_param,
     check_for_duplicated_correlation_specifications,
-    check_ref_point_with_grid_data,
+    check_ref_point_with_surface_data,
+    #    check_ref_point_with_grid_data,
 )
+from res.enkf.enums.ert_impl_type_enum import ErtImplType
 
 
 class ObsConfig(BaseModel):
@@ -50,6 +52,7 @@ class GaussianConfig(BaseModel):
     main_range: confloat(gt=0)
     perp_range: confloat(gt=0)
     angle: confloat(ge=0.0, le=360)
+    filename: Optional[str]
 
 
 class ExponentialConfig(BaseModel):
@@ -57,6 +60,7 @@ class ExponentialConfig(BaseModel):
     main_range: confloat(gt=0)
     perp_range: confloat(gt=0)
     angle: confloat(ge=0, le=360)
+    filename: Optional[str]
 
 
 class CorrelationConfig(BaseModel):
@@ -65,6 +69,7 @@ class CorrelationConfig(BaseModel):
     param_group: ParamConfig
     ref_point: Optional[List[float]]
     field_scale: Optional[Union[GaussianConfig, ExponentialConfig]]
+    surface_scale: Optional[Union[GaussianConfig, ExponentialConfig]]
 
     @validator("ref_point", pre=True)
     def validate_ref_point(cls, value):
@@ -81,15 +86,46 @@ class CorrelationConfig(BaseModel):
         return ref_point
 
     @validator("field_scale", pre=True)
-    def validate_workflow(cls, value):
+    def validate_field_scale(cls, value):
         """
         To improve the user feedback we explicitly check
         which method is configured and bypass the Union
         """
+        #        print(f"value in field_scale validation: {value}")
         if isinstance(value, BaseModel):
             return value
         if not isinstance(value, dict):
             raise ValueError("value must be dict")
+        method = value.get("method")
+        _valid_methods = {
+            "gaussian_decay": GaussianConfig,
+            "exponential_decay": ExponentialConfig,
+        }
+        if method in _valid_methods.keys():
+            return _valid_methods[method](**value)
+        else:
+            raise ValueError(
+                f"Unknown method: {method}, valid methods are: {_valid_methods.keys()}"
+            )
+
+    @validator("surface_scale", pre=True)
+    def validate_surface_scale(cls, value):
+        """
+        To improve the user feedback we explicitly check
+        which method is configured and bypass the Union
+        """
+        #        print(f"value in surface_scale validation: {value}")
+        if isinstance(value, BaseModel):
+            return value
+        if not isinstance(value, dict):
+            raise ValueError("value must be dict")
+        key = "filename"
+        if key in value.keys():
+            surface_file_name = value.get(key)
+        else:
+            raise KeyError(f"Missing keyword {key} in keyword 'surface_scale' ")
+        if not isinstance(surface_file_name, str):
+            raise ValueError(f"Invalid file name for surface: {surface_file_name}")
         method = value.get("method")
         _valid_methods = {
             "gaussian_decay": GaussianConfig,
@@ -108,6 +144,7 @@ class GridInfoConfig(BaseModel):
     origo: List[Union[float, int]]
     grid_rotation: Union[float, int]
     size: List[Union[float, int]]
+    righthanded: int
 
 
 class LocalisationConfig(BaseModel):
@@ -116,6 +153,9 @@ class LocalisationConfig(BaseModel):
     parameters:    A dict of  parameters from ERT in format nodename:paramname.
                             Key is node name. Values are lists of parameter names
                             for the node.
+    node_type:     A dict with node type from ERT.
+                            Key is node name.
+                            Values are implementation type for the node.
     grid_config:   A dict with configuration parameters for grid related to
                            FIELD keyword in ERT.
     correlations:   A list of CorrelationConfig objects keeping name of
@@ -143,6 +183,7 @@ class LocalisationConfig(BaseModel):
             )
             corr.obs_group.add = observations
             corr.obs_group.remove = []
+
             #            print(f"values: {values}")
             node_params_dict = values["parameters"]
             node_type_dict = None
@@ -154,7 +195,15 @@ class LocalisationConfig(BaseModel):
             corr.param_group.add = parameters
             corr.param_group.remove = []
 
-            check_validation_of_obs_group_ref_point(values)
+            # Check if any parameter is a field and check if ref_point is defined.
+            # If the ref_point is defined it should be within the area defined
+            # by the 3D grid defined for the field.
+            check_validation_of_ref_point_for_field(corr, node_type_dict, values)
+
+            # Check if any parameter is a surface and check if ref_point is defined.
+            # If the ref_point is defined, it should be withion the area defined
+            # by the 2D grid defined for the surface.
+            check_validation_of_ref_point_for_surface(corr, node_type_dict, values)
 
         number_of_duplicates = check_for_duplicated_correlation_specifications(
             correlations
@@ -178,25 +227,55 @@ def check_observation_specification(obs_group, ert_obs_list):
     return observations
 
 
-def check_validation_of_obs_group_ref_point(values):
-    key = "grid_config"
-    if key in values.keys():
-        grid_config = values[key]
-        if grid_config is not None:
-            #            ert_grid_dim = grid_config["dimensions"]
-            ert_grid_origo = grid_config["grid_origo"]
-            ert_grid_rotation = grid_config["rotation"]
-            ert_grid_size = grid_config["size"]
-        key = "ref_point"
-        if key in values.keys():
-            ref_point = values[key]
-            if ref_point is not None:
-                check_ref_point_with_grid_data(
-                    ref_point,
-                    ert_grid_origo,
-                    ert_grid_rotation,
-                    ert_grid_size,
-                )
+def check_validation_of_ref_point_for_field(corr, node_type_dict, values):
+    param_group_dict = corr.param_group.add
+    field_scale = corr.field_scale
+    ref_point = corr.ref_point
+    #    grid_config = None
+    #    key = "grid_config"
+    #    if key in values.keys():
+    #        grid_config = values[key]
+    #        if grid_config is not None:
+    #            ert_grid_origo = grid_config["grid_origo"]
+    #            ert_grid_rotation = grid_config["rotation"]
+    #            ert_grid_size = grid_config["size"]
+    #            ert_grid_righthanded = grid_config["righthanded"]
+
+    for node_name, param_list in param_group_dict.items():
+        if node_type_dict[node_name] == ErtImplType.FIELD:
+            if field_scale is not None:
+                # Require that ref_point must be defined
+                if ref_point is None:
+                    raise KeyError(
+                        "When using FIELD, the reference point must be specified."
+                    )
+
+
+#                check_ref_point_with_grid_data(
+#                    ref_point,
+#                    ert_grid_origo,
+#                    ert_grid_rotation,
+#                    ert_grid_size,
+#                    ert_grid_righthanded,
+#                )
+
+
+def check_validation_of_ref_point_for_surface(corr, node_type_dict, values):
+    param_group_dict = corr.param_group.add
+    surface_scale = corr.surface_scale
+    ref_point = corr.ref_point
+    for node_name, param_list in param_group_dict.items():
+        if node_type_dict[node_name] == ErtImplType.SURFACE:
+            if surface_scale is not None:
+                # Require that ref_point must be defined
+                if ref_point is None:
+                    raise KeyError(
+                        "When using SURFACE or FIELD, "
+                        "the reference point must be specified."
+                    )
+
+                # Check that ref_point is within area defined by SURFACE
+                check_ref_point_with_surface_data(surface_scale, ref_point)
 
 
 def get_and_validate_parameters(param_group, values, node_type):

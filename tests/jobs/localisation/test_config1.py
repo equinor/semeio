@@ -10,6 +10,7 @@ ERT_GRID_CONFIG = {
     "grid_origo": [100.0, 150.0],
     "rotation": 45,
     "size": [1000, 2000],
+    "righthanded": 1,
 }
 
 
@@ -25,6 +26,8 @@ ERT_PARAM = {
     "PARAM_FIELD2": [],
     "PARAM_FIELD3": [],
     "PARAM_GEN": [5],
+    "PARAM_SURFACE1": [],
+    "PARAM_SURFACE2": [],
 }
 
 ERT_NODE_TYPE = {
@@ -38,6 +41,8 @@ ERT_NODE_TYPE = {
     "PARAM_FIELD2": ErtImplType.FIELD,
     "PARAM_FIELD3": ErtImplType.FIELD,
     "PARAM_GEN": ErtImplType.GEN_DATA,
+    "PARAM_SURFACE1": ErtImplType.SURFACE,
+    "PARAM_SURFACE2": ErtImplType.SURFACE,
 }
 
 
@@ -79,6 +84,7 @@ ERT_NODE_TYPE = {
                 "PARAM_NODE22": ["P1", "P2", "P22"],
                 "PARAM_NODE2Y": ["Y1", "Y2", "Y3"],
                 "PARAM_NODE3": ["PARAM4"],
+                "PARAM_SURFACE2": [],
             },
         ),
         (
@@ -479,6 +485,8 @@ def test_simple_config_ref_point_error(
                 "PARAM_FIELD2": [],
                 "PARAM_FIELD3": [],
                 "PARAM_GEN": ["0", "1", "2", "3", "4"],
+                "PARAM_SURFACE1": [],
+                "PARAM_SURFACE2": [],
             },
         ),
     ],
@@ -695,3 +703,100 @@ def test_add_remove_obs_with_ref_point_and_field_scale_config(
     assert len(conf.correlations) == 1
     assert conf.correlations[0].obs_group.add == expected
     assert conf.correlations[0].param_group.add == {"PARAM_FIELD1": []}
+
+
+@pytest.mark.parametrize(
+    "obs_add, param_add, ref_point,  method, range1, "
+    "range2, angle, expected, expected2",
+    [
+        (
+            "OBS1*",
+            "PARAM_SURFACE1",
+            [550, 1050],
+            "gaussian_decay",
+            1700,
+            850,
+            310,
+            ["OBS1", "OBS11", "OBS12", "OBS13", "OBS14"],
+            {"PARAM_SURFACE1": []},
+        ),
+        (
+            "OBS1*",
+            "PARAM_SURFACE*",
+            [100, 150],
+            "exponential_decay",
+            0.1,
+            850,
+            0,
+            ["OBS1", "OBS11", "OBS12", "OBS13", "OBS14"],
+            {"PARAM_SURFACE1": [], "PARAM_SURFACE2": []},
+        ),
+        (
+            "OBS1*",
+            "PARAM_SURFACE1",
+            [0, 750],
+            "exponential_decay",
+            700,
+            850,
+            100,
+            ["OBS1", "OBS11", "OBS12", "OBS13", "OBS14"],
+            {"PARAM_SURFACE1": []},
+        ),
+        (
+            "OBS1*",
+            "PARAM_SURFACE*",
+            [500, 750],
+            "exponential_decay",
+            1700,
+            500,
+            360,
+            ["OBS1", "OBS11", "OBS12", "OBS13", "OBS14"],
+            {"PARAM_SURFACE1": [], "PARAM_SURFACE2": []},
+        ),
+        (
+            "OBS1*",
+            "PARAM_SURFACE*",
+            [500, 750],
+            "gaussian_decay",
+            0.1,
+            0.1,
+            0,
+            ["OBS1", "OBS11", "OBS12", "OBS13", "OBS14"],
+            {"PARAM_SURFACE1": [], "PARAM_SURFACE2": []},
+        ),
+    ],
+)
+def test_add_remove_obs_with_ref_point_and_surface_scale_config(
+    obs_add, param_add, ref_point, method, range1, range2, angle, expected, expected2
+):
+    data = {
+        "correlations": [
+            {
+                "name": "some_name",
+                "obs_group": {
+                    "add": [obs_add],
+                },
+                "param_group": {
+                    "add": [param_add],
+                },
+                "ref_point": ref_point,
+                "surface_scale": {
+                    "method": method,
+                    "main_range": range1,
+                    "perp_range": range2,
+                    "angle": angle,
+                    "filename": "surface.txt",
+                },
+            }
+        ],
+    }
+    conf = LocalisationConfig(
+        observations=ERT_OBS,
+        parameters=ERT_PARAM,
+        grid_config=ERT_GRID_CONFIG,
+        node_type=ERT_NODE_TYPE,
+        **data
+    )
+    assert len(conf.correlations) == 1
+    assert conf.correlations[0].obs_group.add == expected
+    assert conf.correlations[0].param_group.add == expected2

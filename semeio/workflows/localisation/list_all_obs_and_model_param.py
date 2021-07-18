@@ -3,7 +3,10 @@ from res.enkf.enums.enkf_var_type_enum import EnkfVarType
 from semeio.workflows.localisation.local_script_lib import (
     get_param_from_ert,
     print_params,
+    check_if_ref_point_in_grid,
 )
+
+# import xtgeo
 
 debug_level = 1
 
@@ -51,6 +54,17 @@ class LocalisationConfigJob(ErtScript):
     def run(self, *args):
         ert = self.ert()
         local_config = ert.getLocalConfig()
+        grid = ert.eclConfig().getGrid()
+        x = 462690
+        y = 5938400
+        ref_point = (x, y)
+        if grid is not None:
+            check_if_ref_point_in_grid(ref_point, grid)
+        x = 463000
+        y = 5938400
+        ref_point = (x, y)
+        if grid is not None:
+            check_if_ref_point_in_grid(ref_point, grid)
 
         # Clear all correlations
         local_config.clear()
@@ -64,3 +78,13 @@ class LocalisationConfigJob(ErtScript):
 
         params_for_node, node_type, grid_config = get_param_from_ert(ert)
         print_params(params_for_node, node_type)
+
+
+#        filename = input("Surface file name:")
+#        from ecl.util.geometry import Surface
+#        surface = Surface(filename)
+#        print(f"Surface: {surface}")
+
+#        surf = xtgeo.surface_from_file(filename, fformat="irap_ascii")
+#        print(f"surface: {surf.xori}, {surf.yori}, {surf.xinc}, {surf.yinc}, "
+#                 f"{surf.nx}, {surf.ny}, {surf.rotation}")

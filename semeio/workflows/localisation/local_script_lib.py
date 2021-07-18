@@ -4,7 +4,7 @@ import pathlib
 import math
 import copy
 
-
+from ecl.util.geometry import Surface
 from res.enkf.enums.ert_impl_type_enum import ErtImplType
 from res.enkf.enums.enkf_var_type_enum import EnkfVarType
 from dataclasses import dataclass
@@ -29,6 +29,77 @@ def get_observations_from_ert(ert):
     return ert_obs_node_list
 
 
+def grid_info(grid):
+    print("With get_node_xyz:")
+    p = []
+    for j in [0, grid.ny - 1]:
+        for i in [0, grid.nx - 1]:
+            if grid.active(ijk=(i, j, 0)):
+                p.append(grid.get_node_xyz(i, j, 0))
+            else:
+                print(
+                    "Warning:\n"
+                    f"Grid corner point for node ({i},{j},{0}) is inactive."
+                )
+    p1 = p[0]
+    p2 = p[1]
+    p4 = p[2]
+    p3 = p[3]
+    debug_print(
+        f" -- NX: {grid.nx}  NY: {grid.ny}  NZ: {grid.nz}\n"
+        f" -- Bounding box for 3D grid for field: \n"
+        f"     p1: {p1}\n"
+        f"     p2: {p2}\n"
+        f"     p3: {p3}\n"
+        f"     p4: {p4}"
+    )
+
+    grid_origo = p1
+    # axis for I direction
+    V1x = (p2[0] - p1[0] + p3[0] - p4[0]) / 2.0
+    V1y = (p2[1] - p1[1] + p3[1] - p4[1]) / 2.0
+    V1_norm = math.sqrt(V1x * V1x + V1y * V1y)
+    print(f"V1: ({V1x},{V1y})")
+
+    # axis for J direction
+    V2x = (p4[0] - p1[0] + p3[0] - p2[0]) / 2.0
+    V2y = (p4[1] - p1[1] + p3[1] - p2[1]) / 2.0
+    V2_norm = math.sqrt(V2x * V2x + V2y * V2y)
+    print(f"V2: ({V2x},{V2y})")
+
+    # Check if left or right handed
+    # V1 x V2 (cross-product) is positive if right handed and
+    # negative if left handed
+    righthanded = (V1x * V2y - V2x * V1y) > 0
+    print(f"righthanded: {righthanded}")
+
+    sintheta = V1y / V1_norm
+    theta = math.asin(sintheta)
+    print(f"theta: {theta}")
+    if V1y >= 0:
+        if V1x >= 0:
+            #   input theta > 0
+            #   0<= theta <= pi/2
+            pass
+        else:
+            # input theta > 0
+            #  pi/2 <= theta <= pi
+            theta = math.pi - theta
+    else:
+        if V1x >= 0:
+            # input theta < 0
+            # 3pi/2 <= theta <= 2pi
+            theta = 2 * math.pi + theta
+        else:
+            # input theta < 0
+            #    pi <= theta <= 3pi/2
+            theta = math.pi - theta
+
+    rotation_angle = theta * 180 / math.pi
+    grid_size = (V1_norm, V2_norm)
+    return grid_origo, rotation_angle, grid_size, righthanded
+
+
 def get_param_from_ert(ert):
     ens_config = ert.ensembleConfig()
     keylist = ens_config.alloc_keylist()
@@ -41,8 +112,8 @@ def get_param_from_ert(ert):
         ErtImplType.SURFACE,
     ]
     dimensions = None
-    grid_origo = None
-    rotation_angle = None
+    #    grid_origo = None
+    #    rotation_angle = None
     for key in keylist:
         node = ens_config.getNode(key)
         impl_type = node.getImplementationType()
@@ -63,16 +134,19 @@ def get_param_from_ert(ert):
                 # are equal to nx*ny*nz for ERTBOX grids.
                 parameters_for_node[key] = []
                 if impl_type == ErtImplType.FIELD and dimensions is None:
-                    grid = ert.eclConfig().getGrid()
-                    dimensions = grid.get_dims()
-                    bounding_box = grid.get_bounding_box_2d()
-                    grid_origo, rotation_angle, area_size = grid_info(bounding_box)
-                    grid_config = {
-                        "dimensions": dimensions,
-                        "grid_origo": grid_origo,
-                        "rotation": rotation_angle,
-                        "size": area_size,
-                    }
+                    #   grid = ert.eclConfig().getGrid()
+                    #   dimensions = grid.get_dims()
+                    #   grid_origo, rotation_angle, area_size, righthanded = \
+                    #   grid_info(grid)
+                    #                    grid_config = {
+                    #                        "dimensions": dimensions,
+                    #                        "grid_origo": grid_origo,
+                    #                        "rotation": rotation_angle,
+                    #                        "size": area_size,
+                    #                        "righthanded": righthanded,
+                    #                   }
+                    #                    print(f" grid_config: {grid_config}")
+                    pass
                 elif impl_type == ErtImplType.GEN_DATA:
                     gen_data_config = node.getDataModelConfig()
                     data_size = gen_data_config.get_initial_size()
@@ -89,48 +163,6 @@ def get_param_from_ert(ert):
                     parameters_for_node[key] = [str(data_size)]
 
     return parameters_for_node, node_type, grid_config
-
-
-def grid_info(bounding_box):
-    # Corner points bounding_box = (p1, p2, p3, p4)
-    p1 = bounding_box[0]
-    #    p2 = bounding_box[1]
-    p3 = bounding_box[2]
-    p4 = bounding_box[3]
-
-    grid_origo = p4
-    # axis for I direction
-
-    V1x = p3[0] - p4[0]
-    V1y = p3[1] - p4[1]
-    V1_norm = math.sqrt(V1x * V1x + V1y * V1y)
-    #    print(f"V1: ({V1x},{V1y})")
-    V2x = p4[0] - p1[0]
-    V2y = p4[1] - p1[1]
-    V2_norm = math.sqrt(V2x * V2x + V2y * V2y)
-    #    print(f"V2: ({V2x},{V2y})")
-
-    sintheta = V1y / V1_norm
-    theta = math.asin(sintheta)
-
-    if V1y >= 0:
-        if V1x >= 0:
-            #   0<= theta <= pi/2
-            pass
-        else:
-            #  pi/2 <= theta <= pi
-            theta = math.pi + theta
-    else:
-        if V1x >= 0:
-            # 3pi/2 <= theta <= 2pi
-            theta = 2 * math.pi + theta
-        else:
-            #    pi <= theta <= 3pi/2
-            theta = theta + math.pi
-
-    rotation_angle = theta * 180 / math.pi
-    grid_size = (V1_norm, V2_norm)
-    return grid_origo, rotation_angle, grid_size
 
 
 def expand_wildcards(patterns, list_of_words):
@@ -528,6 +560,10 @@ def activate_gen_param(model_param_group, node_name, param_list, data_size):
 def activate_and_scale_field_correlation(
     model_param_group, node_name, field_config, corr_spec, grid_for_field
 ):
+    assert corr_spec.field_scale
+    ref_pos = corr_spec.ref_point
+    check_if_ref_point_in_grid(ref_pos, grid_for_field)
+
     # A scaling of correlation is defined
     debug_print(
         "  -- Apply the correlation scaling method: " f"{corr_spec.field_scale.method}"
@@ -537,22 +573,73 @@ def activate_and_scale_field_correlation(
     data_size = field_config.get_data_size()
 
     if corr_spec.field_scale.method == "gaussian_decay":
-        ref_pos = corr_spec.ref_point
         main_range = corr_spec.field_scale.main_range
         perp_range = corr_spec.field_scale.perp_range
         azimuth = corr_spec.field_scale.angle
         row_scaling.assign(
             data_size,
-            GaussianDecay(ref_pos, main_range, perp_range, azimuth, grid_for_field),
+            GaussianDecay(
+                ref_pos, main_range, perp_range, azimuth, grid_for_field, None
+            ),
         )
     elif corr_spec.field_scale.method == "exponential_decay":
-        ref_pos = corr_spec.obs_group.ref_point
-        main_range = corr_spec.field_scale.method_param[0]
-        perp_range = corr_spec.field_scale.method_param[1]
-        azimuth = corr_spec.field_scale.method_param[2]
+        main_range = corr_spec.field_scale.main_range
+        perp_range = corr_spec.field_scale.perp_range
+        azimuth = corr_spec.field_scale.angle
         row_scaling.assign(
             data_size,
-            ExponentialDecay(ref_pos, main_range, perp_range, azimuth, grid_for_field),
+            ExponentialDecay(
+                ref_pos, main_range, perp_range, azimuth, grid_for_field, None
+            ),
+        )
+    else:
+        print(
+            f" --  Scaling method: {corr_spec.field_scale.method} "
+            "is not implemented."
+        )
+
+
+def activate_and_scale_surface_correlation(
+    model_param_group,
+    node_name,
+    corr_spec,
+):
+    assert corr_spec.surface_scale
+    # A scaling of correlation is defined
+    debug_print(
+        "  -- Get surface grid attributes from file: "
+        f"{corr_spec.surface_scale.filename}"
+    )
+    surface = Surface(corr_spec.surface_scale.filename)
+    nx = surface.getNX()
+    ny = surface.getNY()
+    data_size = nx * ny
+    debug_print(f"  -- Surface grid size: ({nx}, {ny})")
+    debug_print(
+        "  -- Apply the correlation scaling method: "
+        f"{corr_spec.surface_scale.method}\n"
+    )
+    row_scaling = model_param_group.row_scaling(node_name)
+
+    if corr_spec.surface_scale.method == "gaussian_decay":
+        assert corr_spec.ref_point
+        ref_pos = corr_spec.ref_point
+        main_range = corr_spec.surface_scale.main_range
+        perp_range = corr_spec.surface_scale.perp_range
+        azimuth = corr_spec.surface_scale.angle
+        row_scaling.assign(
+            data_size,
+            GaussianDecay(ref_pos, main_range, perp_range, azimuth, None, surface),
+        )
+    elif corr_spec.surface_scale.method == "exponential_decay":
+        assert corr_spec.ref_point
+        ref_pos = corr_spec.ref_point
+        main_range = corr_spec.surface_scale.main_range
+        perp_range = corr_spec.surface_scale.perp_range
+        azimuth = corr_spec.surface_scale.angle
+        row_scaling.assign(
+            data_size,
+            ExponentialDecay(ref_pos, main_range, perp_range, azimuth, None, surface),
         )
     else:
         print(
@@ -562,13 +649,17 @@ def activate_and_scale_field_correlation(
 
 
 def add_ministeps(user_config, ert_param_dict, ert, debug_level=0):
+    # pylint: disable-msg=too-many-branches
     local_config = ert.getLocalConfig()
     updatestep = local_config.getUpdatestep()
     ens_config = ert.ensembleConfig()
-    grid_for_field = None
+    grid_for_field = ert.eclConfig().getGrid()
+    if grid_for_field is not None:
+        debug_print(f"  -- Get grid: {grid_for_field.get_name()}")
     for count, corr_spec in enumerate(user_config.correlations):
         ministep_name = corr_spec.name
         ministep = local_config.createMinistep(ministep_name)
+        debug_print(f" -- Define ministep: {ministep_name}")
 
         param_group_name = ministep_name + "_param_group"
         model_param_group = local_config.createDataset(param_group_name)
@@ -584,7 +675,7 @@ def add_ministeps(user_config, ert_param_dict, ert, debug_level=0):
             node = ens_config.getNode(node_name)
             impl_type = node.getImplementationType()
 
-            debug_print(f"  -- Add node: {node_name} of type: {impl_type}")
+            debug_print(f" -- Add node: {node_name} of type: {impl_type}")
             model_param_group.addNode(node_name)
             if impl_type == ErtImplType.GEN_KW:
                 activate_gen_kw_param(
@@ -592,16 +683,19 @@ def add_ministeps(user_config, ert_param_dict, ert, debug_level=0):
                 )
             elif impl_type == ErtImplType.FIELD:
                 if corr_spec.field_scale is not None:
-                    if grid_for_field is None:
-                        grid_for_field = ert.eclConfig().getGrid()
-                        debug_print(f"  -- Get grid: {grid_for_field.get_name()}")
                     field_config = node.getFieldModelConfig()
+
                     activate_and_scale_field_correlation(
                         model_param_group,
                         node_name,
                         field_config,
                         corr_spec,
                         grid_for_field,
+                    )
+                else:
+                    debug_print(
+                        f"  -- No correlation scaling for node {node_name} "
+                        f"in {ministep_name}"
                     )
             elif impl_type == ErtImplType.GEN_DATA:
                 gen_data_config = node.getDataModelConfig()
@@ -610,10 +704,27 @@ def add_ministeps(user_config, ert_param_dict, ert, debug_level=0):
                     activate_gen_param(
                         model_param_group, node_name, param_list, data_size
                     )
+                else:
+                    debug_print(
+                        f"  -- Parameter {node_name} has data size: {data_size} "
+                        f"in {ministep_name}"
+                    )
+            elif impl_type == ErtImplType.SURFACE:
+                if corr_spec.surface_scale is not None:
+                    activate_and_scale_surface_correlation(
+                        model_param_group,
+                        node_name,
+                        corr_spec,
+                    )
+                else:
+                    debug_print(
+                        f"  -- No correlation scaling for node {node_name} "
+                        f"in {ministep_name}"
+                    )
 
         # Setup observation group
         for obs_name in obs_list:
-            debug_print(f"  -- Add obs node: {obs_name}")
+            debug_print(f" -- Add obs node: {obs_name}")
             obs_group.addNode(obs_name)
 
         # Setup ministep
@@ -635,44 +746,73 @@ def clear_correlations(ert):
 # def get_config_path(ert)
 #    pass
 #    return None
+def check_if_ref_point_in_grid(ref_point, grid):
+    try:
+        i, j = grid.find_cell_xy(ref_point[0], ref_point[1], 0)
+        print(f"ref_point in grid cell: ({i},{j})")
+    except ValueError:
+        print(
+            f"Warning: Reference point {ref_point} corresponds to undefined grid cell "
+            f"or is outside the area defined by the grid {grid.get_name()}"
+        )
 
 
-def check_ref_point_with_grid_data(ref_point, origo, rotation, size):
-    #    print(f"size: {size}, origo: {origo}, ref_point: {ref_point}, "
-    #    f"rotation: {rotation}")
-    point = transform_from_utm_to_ertbox_coordinates(ref_point, origo, rotation)
+def check_ref_point_with_grid_data(ref_point, origo, rotation, size, righthanded):
+    print(
+        f"size: {size}, origo: {origo}, ref_point: {ref_point}, "
+        f"rotation: {rotation} righthanded: {righthanded}"
+    )
+    point = transform_from_utm_to_ertbox_coordinates(
+        ref_point, origo, rotation, righthanded
+    )
     if not (0 <= point[0] <= size[0] and 0 <= point[1] <= size[1]):
         raise ValueError(
             f"Specified reference point ({ref_point[0]}, {ref_point[1]}) "
             "for observations is outside ERTBOX area.\n"
             "The reference point transformed to ERTBOX "
             "coordinates fails the check:\n"
-            f"1.coordinate: 0 <= {point[0]} <= {size[0]}      "
-            f"2.coordinate:  0<= {point[1]} <= {size[1]}"
+            f"1.coordinate: 0 <= {point[0]} <= {size[0]}\n"
+            f"2.coordinate: 0 <= {point[1]} <= {size[1]}"
         )
 
 
-def transform_from_utm_to_ertbox_coordinates(point, origo, rotation):
+def check_ref_point_with_surface_data(surface_scale, ref_point):
+    debug_print(
+        f"  -- No check is implemented to verify that ref point {ref_point}\n"
+        f"      is within surface area defined by {surface_scale.filename}"
+    )
+
+
+def transform_from_utm_to_ertbox_coordinates(point, origo, rotation, righthanded):
     theta = rotation * math.pi / 180.0
     sintheta = math.sin(theta)
     costheta = math.cos(theta)
     x0 = point[0] - origo[0]
     y0 = point[1] - origo[1]
-    x = costheta * x0 + sintheta * y0
-    y = -sintheta * x0 + costheta * y0
+    if not righthanded:
+        x = costheta * x0 + sintheta * y0
+        y = sintheta * x0 - costheta * y0
+    else:
+        x = costheta * x0 + sintheta * y0
+        y = -sintheta * x0 + costheta * y0
     transf_point = [x, y]
     #    print(f"Point: ({point[0]},{point[1]})  Transf point: ({x},{y})")
     return transf_point
 
 
-def transform_from_ertbox_to_utm_coordinates(point, origo, rotation):
+def transform_from_ertbox_to_utm_coordinates(point, origo, rotation, righthanded):
     theta = rotation * math.pi / 180.0
     sintheta = math.sin(theta)
     costheta = math.cos(theta)
     x0 = point[0]
     y0 = point[1]
-    x = costheta * x0 - sintheta * y0
-    y = sintheta * x0 + costheta * y0
+    if not righthanded:
+        x = costheta * x0 + sintheta * y0
+        y = sintheta * x0 - costheta * y0
+    else:
+        x = costheta * x0 - sintheta * y0
+        y = sintheta * x0 + costheta * y0
+
     x = x + origo[0]
     y = y + origo[1]
 
@@ -692,7 +832,8 @@ class Decay:
     main_range: float
     perp_range: float
     azimuth: float
-    grid: object
+    grid3D: object
+    grid2D: object
 
     def __post_init__(self):
         angle = (90.0 - self.azimuth) * math.pi / 180.0
@@ -700,7 +841,10 @@ class Decay:
         self.sinangle = math.sin(angle)
 
     def get_dx_dy(self, data_index):
-        x, y, _ = self.grid.get_xyz(active_index=data_index)
+        if self.grid3D is not None:
+            x, y, _ = self.grid3D.get_xyz(active_index=data_index)
+        elif self.grid2D is not None:
+            x, y = self.grid2D.getXY(data_index)
         x_unrotated = x - self.obs_pos[0]
         y_unrotated = y - self.obs_pos[1]
 
@@ -735,7 +879,8 @@ def print_params(params_for_node, node_type):
             for param in param_list:
                 print(f"       {param}")
         elif node_type[key] == ErtImplType.GEN_DATA:
-            n = int(param_list[0])
-            if n > 0:
-                print(f"     Number of parameters for GEN_PARAM node: {n}")
+            print("    Parameter indices active for this node:")
+            if len(param_list) > 0:
+                for param in param_list:
+                    print(f"       {param}")
     print("\n")
