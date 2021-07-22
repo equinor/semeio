@@ -40,6 +40,7 @@ def ert_statoil_test_data(tmpdir):
     yield
 
     os.chdir(cwd)
+    tmpdir.remove()
 
 
 def mock_norne_data(reals, iters, parameters=True):
