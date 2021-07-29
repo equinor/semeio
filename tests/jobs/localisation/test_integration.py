@@ -2,6 +2,7 @@ import yaml
 import pytest
 from res.enkf import EnKFMain, ResConfig
 from semeio.workflows.localisation.local_config_script import LocalisationConfigJob
+
 from xtgeo.surface.regular_surface import RegularSurface
 import xtgeo
 import numpy as np
@@ -20,6 +21,7 @@ import numpy as np
 def test_localisation(setup_ert, obs_group_add, param_group_add, expected):
     ert = EnKFMain(setup_ert)
     config = {
+        "log_level": 4,
         "correlations": [
             {
                 "name": "CORR1",
@@ -105,6 +107,7 @@ def test_localisation_gen_param(
     res_config = ResConfig("poly.ert")
     ert = EnKFMain(res_config)
     config = {
+        "log_level": 2,
         "correlations": [
             {
                 "name": "CORR1",
@@ -162,6 +165,7 @@ def test_localisation_surf(
     res_config = ResConfig("poly.ert")
     ert = EnKFMain(res_config)
     config = {
+        "log_level": 2,
         "correlations": [
             {
                 "name": "CORR1",
@@ -209,7 +213,7 @@ def test_localisation_field(
         flip=-1,
     )
     grid_file_name = "grid3D.EGRID"
-    print(f" Writel file: {grid_file_name}")
+    print(f" Write file: {grid_file_name}")
     grid.to_file(grid_file_name, fformat="egrid")
     property_name = "G"
     filename_output = property_name + ".roff"

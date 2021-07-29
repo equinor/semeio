@@ -5,14 +5,11 @@
 #   Localisation configuration file in YAML format is read for
 #   parameters and this script setup the localisation in ERT.
 
+import semeio.workflows.localisation.local_script_lib as local
+
 from ert_shared.plugins.plugin_manager import hook_implementation
 from semeio.communication import SemeioScript
-import semeio.workflows.localisation.local_script_lib as local
 from semeio.workflows.localisation.localisation_config import LocalisationConfig
-
-
-debug_level = 1
-scaling_parameter_number = 1
 
 
 class LocalisationConfigJob(SemeioScript):
@@ -27,26 +24,18 @@ class LocalisationConfigJob(SemeioScript):
 
         # Get all observations from ert instance
         ert_obs_list = local.get_observations_from_ert(ert)
-        if debug_level > 0:
-            print(" -- Node names for observations found in ERT configuration:")
-            for obs_name in ert_obs_list:
-                print(f"      {obs_name}")
-            print("\n")
 
-        ert_param_dict, ert_node_type_dict, grid_config = local.get_param_from_ert(ert)
-        if debug_level > 0:
-            print(" -- All specified parameters from ERT instance:")
-            local.print_params(ert_param_dict, ert_node_type_dict)
+        ert_param_dict, ert_node_type_dict = local.get_param_from_ert(ert)
 
         config = LocalisationConfig(
             observations=ert_obs_list,
             parameters=ert_param_dict,
             node_type=ert_node_type_dict,
-            grid_config=grid_config,
             **config_dict,
         )
 
-        local.add_ministeps(config, ert_param_dict, ert, debug_level=debug_level)
+        local.add_ministeps(config, ert_param_dict, ert)
+        print("\nFinished localisation setup.")
 
 
 @hook_implementation

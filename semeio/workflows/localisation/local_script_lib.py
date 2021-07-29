@@ -1,8 +1,6 @@
 # pylint: disable=W0201
 import yaml
-import pathlib
 import math
-import copy
 import cwrap
 import numpy as np
 
@@ -11,14 +9,16 @@ from res.enkf.enums.ert_impl_type_enum import ErtImplType
 from res.enkf.enums.enkf_var_type_enum import EnkfVarType
 from dataclasses import dataclass
 
-# Global variables
-debug_level = 2
-scaling_parameter_number = 1
+from semeio.workflows.localisation.localisation_debug_settings import (
+    LogLevel,
+    debug_print,
+)
+import semeio.workflows.localisation.localisation_debug_settings as log_level_setting
 
-
-def debug_print(text, level=debug_level):
-    if level > 0:
-        print(text)
+# The global variables are only used for controlling output of log info to screen
+# and for writing scaling factor to file (for QC and test purpose)
+debug_level = log_level_setting.debug_level
+scaling_parameter_number = log_level_setting.scaling_parameter_number
 
 
 def get_observations_from_ert(ert):
@@ -32,83 +32,11 @@ def get_observations_from_ert(ert):
     return ert_obs_node_list
 
 
-def grid_info(grid):
-    print("With get_node_xyz:")
-    p = []
-    for j in [0, grid.ny - 1]:
-        for i in [0, grid.nx - 1]:
-            if grid.active(ijk=(i, j, 0)):
-                p.append(grid.get_node_xyz(i, j, 0))
-            else:
-                print(
-                    "Warning:\n"
-                    f"Grid corner point for node ({i},{j},{0}) is inactive."
-                )
-    p1 = p[0]
-    p2 = p[1]
-    p4 = p[2]
-    p3 = p[3]
-    debug_print(
-        f" -- NX: {grid.nx}  NY: {grid.ny}  NZ: {grid.nz}\n"
-        f" -- Bounding box for 3D grid for field: \n"
-        f"     p1: {p1}\n"
-        f"     p2: {p2}\n"
-        f"     p3: {p3}\n"
-        f"     p4: {p4}"
-    )
-
-    grid_origo = p1
-    # axis for I direction
-    V1x = (p2[0] - p1[0] + p3[0] - p4[0]) / 2.0
-    V1y = (p2[1] - p1[1] + p3[1] - p4[1]) / 2.0
-    V1_norm = math.sqrt(V1x * V1x + V1y * V1y)
-    print(f"V1: ({V1x},{V1y})")
-
-    # axis for J direction
-    V2x = (p4[0] - p1[0] + p3[0] - p2[0]) / 2.0
-    V2y = (p4[1] - p1[1] + p3[1] - p2[1]) / 2.0
-    V2_norm = math.sqrt(V2x * V2x + V2y * V2y)
-    print(f"V2: ({V2x},{V2y})")
-
-    # Check if left or right handed
-    # V1 x V2 (cross-product) is positive if right handed and
-    # negative if left handed
-    righthanded = (V1x * V2y - V2x * V1y) > 0
-    print(f"righthanded: {righthanded}")
-
-    sintheta = V1y / V1_norm
-    theta = math.asin(sintheta)
-    print(f"theta: {theta}")
-    if V1y >= 0:
-        if V1x >= 0:
-            #   input theta > 0
-            #   0<= theta <= pi/2
-            pass
-        else:
-            # input theta > 0
-            #  pi/2 <= theta <= pi
-            theta = math.pi - theta
-    else:
-        if V1x >= 0:
-            # input theta < 0
-            # 3pi/2 <= theta <= 2pi
-            theta = 2 * math.pi + theta
-        else:
-            # input theta < 0
-            #    pi <= theta <= 3pi/2
-            theta = math.pi - theta
-
-    rotation_angle = theta * 180 / math.pi
-    grid_size = (V1_norm, V2_norm)
-    return grid_origo, rotation_angle, grid_size, righthanded
-
-
 def get_param_from_ert(ert):
     ens_config = ert.ensembleConfig()
     keylist = ens_config.alloc_keylist()
     parameters_for_node = {}
     node_type = {}
-    grid_config = None
     implementation_type_not_scalar = [
         ErtImplType.GEN_DATA,
         ErtImplType.FIELD,
@@ -131,11 +59,12 @@ def get_param_from_ert(ert):
             elif impl_type in implementation_type_not_scalar:
                 # Node contains parameter from FIELD, SURFACE or GEN_PARAM
                 # The parameters_for_node dict contains empty list for FIELD
-                # and SURFACE.  The number of variables for a FIELD parameter is
-                # defined by the grid in the GRID keyword. The number of
-                # variables for a SURFACE parameter is defined by the size of a
-                # surface object. For GEN_PARAM the list contains the
-                # number of variables.
+                # and SURFACE.
+                # The number of variables for a FIELD parameter is
+                # defined by the grid in the GRID keyword.
+                # The number of variables for a SURFACE parameter is
+                # defined by the size of a surface object.
+                # For GEN_PARAM the list contains the number of variables.
                 parameters_for_node[key] = []
                 if impl_type == ErtImplType.GEN_DATA:
                     gen_data_config = node.getDataModelConfig()
@@ -149,228 +78,13 @@ def get_param_from_ert(ert):
                             "          initialization of the ensemble, "
                             "but BEFORE the first update step.\n"
                         )
-                    debug_print(f" -- GEN_PARAM node {key} has {data_size} parameters.")
+                    debug_print(
+                        f"GEN_PARAM node {key} has {data_size} parameters.",
+                        LogLevel.LEVEL3,
+                    )
                     parameters_for_node[key] = [str(data_size)]
 
-    return parameters_for_node, node_type, grid_config
-
-
-def expand_wildcards(patterns, list_of_words):
-    all_matches = []
-    errors = []
-    for pattern in patterns:
-        matches = [
-            words for words in list_of_words if pathlib.Path(words).match(pattern)
-        ]
-        if len(matches) > 0:
-            all_matches.extend(matches)
-        else:
-            # No match
-            errors.append(pattern)
-    all_matches = list(set(all_matches))
-    all_matches.sort()
-    if len(errors) > 0:
-        raise ValueError(
-            " These observation specifications does not match "
-            "any observations defined in ERT model\n"
-            f"     {errors}"
-        )
-
-    return all_matches
-
-
-def get_full_parameter_name_list(user_node_name, all_param_dict, node_type_dict=None):
-    param_list = all_param_dict[user_node_name]
-    full_param_name_list = []
-    if node_type_dict is None:
-        if len(param_list) > 0:
-            for param_name in param_list:
-                full_param_name = user_node_name.strip() + ":" + param_name.strip()
-                full_param_name_list.append(full_param_name)
-        else:
-            full_param_name_list.append(user_node_name)
-    else:
-        if node_type_dict[user_node_name] == ErtImplType.GEN_KW:
-            if len(param_list) > 0:
-                for param_name in param_list:
-                    full_param_name = user_node_name.strip() + ":" + param_name.strip()
-                    full_param_name_list.append(full_param_name)
-            else:
-                full_param_name_list.append(user_node_name)
-
-        elif node_type_dict[user_node_name] == ErtImplType.GEN_DATA:
-            data_size = int(param_list[0])
-            for index in range(data_size):
-                full_param_name = user_node_name.strip() + ":" + str(index)
-                full_param_name_list.append(full_param_name)
-
-        elif node_type_dict[user_node_name] == ErtImplType.FIELD:
-            full_param_name_list.append(user_node_name)
-
-        elif node_type_dict[user_node_name] == ErtImplType.SURFACE:
-            full_param_name_list.append(user_node_name)
-
-        # This node does not have any specified list of parameters.
-        # There are two possibilities:
-        #  - The node may have parameters with names (coming from GEN_KW keyword in ERT)
-        #  - The node may not have any parameters with names
-        #     (coming from GEN_PARAM, SURFACE, FIELD) keywords.
-
-    return full_param_name_list
-
-
-def full_param_names_for_ert(ert_param_dict, ert_node_type):
-    all_param_node_list = ert_param_dict.keys()
-    valid_full_param_names = []
-    #    print(f"all_param_node_list: {all_param_node_list}")
-    for node_name in all_param_node_list:
-        # Define full parameter name of form nodename:parametername to simplify matching
-        full_name_list_for_node = get_full_parameter_name_list(
-            node_name, ert_param_dict, ert_node_type
-        )
-        valid_full_param_names.extend(full_name_list_for_node)
-    return valid_full_param_names
-
-
-def set_full_param_name(node_name, param_name):
-    full_name = node_name + ":" + param_name
-    return full_name
-
-
-def append_pattern_list(pattern_of_dict, pattern_list):
-    for node_name_pattern, param_name_pattern_list in pattern_of_dict.items():
-        if isinstance(param_name_pattern_list, list):
-            for param_name_pattern in param_name_pattern_list:
-                full_name_pattern = set_full_param_name(
-                    node_name_pattern, param_name_pattern
-                )
-                pattern_list.append(full_name_pattern)
-
-                if param_name_pattern == "*":
-                    # A node with * as an entry in the parameter list may be
-                    # a node without named parameters like nodes created by
-                    # the FIELD, SURFACE, GEN_PARAM ert keywords.
-                    # In this case the full name should also include only the
-                    # node name to get a match with valid full parameter names
-                    full_name_pattern = node_name_pattern.strip()
-                    pattern_list.append(full_name_pattern)
-        elif isinstance(param_name_pattern_list, str):
-            # Only a single string as value for the node in the dict
-            full_name_pattern = set_full_param_name(
-                node_name_pattern.strip(), param_name_pattern_list.strip()
-            )
-            pattern_list.append(full_name_pattern)
-    return pattern_list
-
-
-def pattern_list_from_dict(list_of_pattern_of_dicts):
-    pattern_list = []
-    for pattern_of_dict in list_of_pattern_of_dicts:
-        if isinstance(pattern_of_dict, dict):
-            pattern_list = append_pattern_list(pattern_of_dict, pattern_list)
-        if isinstance(pattern_of_dict, str):
-            pattern_list.append(pattern_of_dict)
-        else:
-            raise TypeError(f"Expecting a string , get a {pattern_of_dict}")
-    return pattern_list
-
-
-def split_full_param_names_and_define_dict(full_param_name_list):
-    # Split the name up into node name and param name and define a dict
-    param_dict = {}
-    param_list = None
-    for fullname in full_param_name_list:
-        #        print(f"fullname: {fullname}")
-        words = []
-        words = fullname.split(":")
-        #        print(f"words: {words}")
-        if len(words) == 1:
-            node_name = words[0]
-            param_name = None
-        else:
-            node_name = words[0]
-            param_name = words[1]
-        #        print(f" node_name: {node_name}  param_name: {param_name}")
-        if node_name not in param_dict.keys():
-            param_dict[node_name] = []
-        param_list = param_dict[node_name]
-        if param_name is not None:
-            param_list.append(param_name)
-    return param_dict
-
-
-def expand_wildcards_with_param_dicts(
-    list_of_pattern_of_dicts, ert_param_dict, ert_node_type
-):
-    # Define a list with full parameter names of the form nodename:paramname
-    valid_full_param_names = full_param_names_for_ert(ert_param_dict, ert_node_type)
-    #    print(f"valid full param names: {valid_full_param_names}")
-
-    # Define a list with specfied patterns of parameter names of the
-    # form nodename:paramname where both nodename and paramname
-    # can be specified with wildcard notation
-    pattern_list = pattern_list_from_dict(list_of_pattern_of_dicts)
-    #    print(f"pattern_list: {pattern_list}")
-
-    # Expand patterns of full parameter names
-    list_of_all_expanded_full_names = []
-    for pattern in pattern_list:
-        #        print(f"pattern: {pattern}")
-        expanded_full_names = [
-            name for name in valid_full_param_names if pathlib.Path(name).match(pattern)
-        ]
-        #        print(f"expanded: {expanded_full_names}")
-        list_of_all_expanded_full_names.extend(expanded_full_names)
-
-    # Eliminate duplicates
-    full_param_name_list = list(set(list_of_all_expanded_full_names))
-    full_param_name_list.sort()
-    #    print(f"full param name list: {full_param_name_list}")
-
-    # Make a dict with specified node names as key and a list of
-    # parameter names as value
-    param_dict = split_full_param_names_and_define_dict(full_param_name_list)
-    print(f"param_dict: {param_dict}")
-    return param_dict
-
-
-def expand_wildcards_with_param(pattern_list, ert_param_dict, ert_node_type):
-    # Define a list with full parameter names of the form nodename:paramname
-    valid_full_param_names = full_param_names_for_ert(ert_param_dict, ert_node_type)
-    #    print(f"valid full param names: {valid_full_param_names}")
-
-    # Expand patterns of full parameter names
-    list_of_all_expanded_full_names = []
-    error_list = []
-    for pattern in pattern_list:
-        #        print(f"pattern: {pattern}")
-        expanded_full_names = [
-            name for name in valid_full_param_names if pathlib.Path(name).match(pattern)
-        ]
-        if len(expanded_full_names) > 0:
-            #            print(f"expanded: {expanded_full_names}")
-            list_of_all_expanded_full_names.extend(expanded_full_names)
-        else:
-            error_list.append(pattern)
-
-    if len(error_list) > 0:
-        raise ValueError(
-            "List of specified model parameters "
-            "that does not match any ERT parameter:\n"
-            f"     {error_list}"
-        )
-
-    # Eliminate duplicates
-    full_param_name_list = list(set(list_of_all_expanded_full_names))
-    full_param_name_list.sort()
-    #    print(f"full param name list: {full_param_name_list}")
-
-    # Make a dict with specified node names as key and a list of
-    # parameter names as value
-    param_dict = split_full_param_names_and_define_dict(full_param_name_list)
-    #  print(f"param_dict: {param_dict}")
-
-    return param_dict
+    return parameters_for_node, node_type
 
 
 def read_localisation_config(args):
@@ -387,59 +101,9 @@ def read_localisation_config(args):
     return localisation_yml
 
 
-def get_obs_from_ert_config(obs_data_from_ert_config):
-    ert_obs_node_list = []
-    for obs_node in obs_data_from_ert_config:
-        node_name = obs_node.key()
-        ert_obs_node_list.append(node_name)
-
-    if debug_level > 0:
-        print(" -- Node names for observations found in ERT configuration:")
-        for node_name in ert_obs_node_list:
-            print(f"      {node_name}")
-            print("\n")
-    ert_obs_node_list.sort()
-    return ert_obs_node_list
-
-
-def print_correlation_specification(correlation_specification, debug_level=1):
-    if debug_level > 0:
-        for name, item in correlation_specification.items():
-            obs_list = item["obs_list"]
-            param_list = item["param_list"]
-            print(f" -- {name}")
-            count = 0
-            outstring = " "
-            print(" -- Obs:")
-            for obs_name in obs_list:
-                outstring = outstring + "  " + obs_name
-                count = count + 1
-                if count > 9:
-                    print(f"      {outstring}")
-                    outstring = " "
-                    count = 0
-            if count > 0:
-                print(f"      {outstring}")
-
-            count = 0
-            outstring = " "
-            print(" -- Parameter:")
-            for param_name in param_list:
-                outstring = outstring + "  " + param_name
-                count = count + 1
-                if count > 4:
-                    print(f"      {outstring}")
-                    outstring = " "
-                    count = 0
-            if count > 0:
-                print(f"      {outstring}")
-            print("\n")
-        print("\n")
-
-
 def active_index_for_parameter(node_name, param_name, ert_param_dict):
     # For parameters defined as scalar parameters (coming from GEN_KW)
-    # the parameters for a node have a name. Getthe index from the orderrrrr
+    # the parameters for a node have a name. Get the index from the order
     # of these parameters.
     # For parameters that are not coming from GEN_KW,
     # the active index is not used here.
@@ -457,62 +121,6 @@ def active_index_for_parameter(node_name, param_name, ert_param_dict):
     return index
 
 
-def check_for_duplicated_correlation_specifications(correlations):
-    # All observations and model parameters used in correlations
-    #    print(f"correlations: {correlations}")
-    tmp_obs_list = []
-    tmp_param_list = []
-    for corr in correlations:
-        obs_list = corr.obs_group.add
-        tmp_obs_list.extend(copy.copy(obs_list))
-
-        param_dict = corr.param_group.add
-        for node_name in param_dict.keys():
-            full_param_name_list = get_full_parameter_name_list(node_name, param_dict)
-            tmp_param_list.extend(copy.copy(full_param_name_list))
-    complete_obs_list = list(set(tmp_obs_list))
-    complete_obs_list.sort()
-    complete_param_list = list(set(tmp_param_list))
-    complete_param_list.sort()
-
-    # Initialize the table
-    correlation_table = {}
-    for obs_name in complete_obs_list:
-        for param_name in complete_param_list:
-            key = (obs_name, param_name)
-            correlation_table[key] = False
-
-    # Check each correlation set (corresponding to a ministep)
-    number_of_duplicates = 0
-    for corr in correlations:
-        name = corr.name
-        obs_list = corr.obs_group.add
-        param_dict = corr.param_group.add
-
-        for obs_name in obs_list:
-            for node_name in param_dict.keys():
-                full_param_name_list = get_full_parameter_name_list(
-                    node_name, param_dict
-                )
-                for param_name in full_param_name_list:
-                    key = (obs_name, param_name)
-                    if key not in correlation_table.keys():
-                        raise KeyError(
-                            " Correlation_table does not have the key:"
-                            f"({obs_name},{param_name})"
-                        )
-                    if correlation_table[key]:
-                        debug_print(
-                            f"-- When reading correlation: {name} there are "
-                            f"double specified correlations for {key}",
-                            0,
-                        )
-                        number_of_duplicates = number_of_duplicates + 1
-                    else:
-                        correlation_table[key] = True
-    return number_of_duplicates
-
-
 def activate_gen_kw_param(model_param_group, node_name, param_list, ert_param_dict):
     """
     Activate the selected parameters for the specified node.
@@ -520,11 +128,13 @@ def activate_gen_kw_param(model_param_group, node_name, param_list, ert_param_di
     for this node to be activated.
     """
     active_param_list = model_param_group.getActiveList(node_name)
-    debug_print(" -- Set active parameters:")
+    debug_print("Set active parameters", LogLevel.LEVEL2)
     for param_name in param_list:
         index = active_index_for_parameter(node_name, param_name, ert_param_dict)
         if index is not None:
-            debug_print(f"  -- Active parameter: {param_name}  index: {index}")
+            debug_print(
+                f"Active parameter: {param_name}  index: {index}", LogLevel.LEVEL3
+            )
             active_param_list.addActiveIndex(index)
 
 
@@ -543,7 +153,7 @@ def activate_gen_param(model_param_group, node_name, param_list, data_size):
                 f"Index for parameter in node {node_name} is "
                 f"outside the interval [0,{data_size-1}]"
             )
-        debug_print(f"  -- Active parameter index: {index}")
+        debug_print(f"Active parameter index: {index}", LogLevel.LEVEL3)
         active_param_list.addActiveIndex(index)
 
 
@@ -557,6 +167,7 @@ def write_scaling_values(
     perp_range,
     azimuth,
 ):
+    # pylint: disable=W0603
     global scaling_parameter_number
     nx = grid_for_field.getNX()
     ny = grid_for_field.getNY()
@@ -582,7 +193,7 @@ def write_scaling_values(
     scaling_kw_name = "S_" + str(scaling_parameter_number)
     scaling_kw = grid_for_field.create_kw(scaling_values, scaling_kw_name, False)
     filename = corr_name + "_" + node_name + "_scaling" + ".GRDECL"
-    print(f" -- Write file: {filename}")
+    print(f"   -- Write file: {filename}")
     with cwrap.open(filename, "w") as file:
         grid_for_field.write_grdecl(scaling_kw, file)
     scaling_parameter_number += 1
@@ -597,7 +208,8 @@ def activate_and_scale_field_correlation(
 
     # A scaling of correlation is defined
     debug_print(
-        "  -- Apply the correlation scaling method: " f"{corr_spec.field_scale.method}"
+        f"Apply the correlation scaling method: {corr_spec.field_scale.method}",
+        LogLevel.LEVEL3,
     )
 
     row_scaling = model_param_group.row_scaling(node_name)
@@ -613,7 +225,7 @@ def activate_and_scale_field_correlation(
                 ref_pos, main_range, perp_range, azimuth, grid_for_field, None
             ),
         )
-        if debug_level > 1:
+        if debug_level >= LogLevel.LEVEL4:
             write_scaling_values(
                 corr_spec.name,
                 node_name,
@@ -635,7 +247,7 @@ def activate_and_scale_field_correlation(
                 ref_pos, main_range, perp_range, azimuth, grid_for_field, None
             ),
         )
-        if debug_level > 1:
+        if debug_level >= LogLevel.LEVEL4:
             write_scaling_values(
                 corr_spec.name,
                 node_name,
@@ -662,17 +274,17 @@ def activate_and_scale_surface_correlation(
     assert corr_spec.surface_scale
     # A scaling of correlation is defined
     debug_print(
-        "  -- Get surface grid attributes from file: "
-        f"{corr_spec.surface_scale.filename}"
+        "Get surface grid attributes from file: " f"{corr_spec.surface_scale.filename}",
+        LogLevel.LEVEL2,
     )
     surface = Surface(corr_spec.surface_scale.filename)
     nx = surface.getNX()
     ny = surface.getNY()
     data_size = nx * ny
-    debug_print(f"  -- Surface grid size: ({nx}, {ny})")
+    debug_print(f"Surface grid size: ({nx}, {ny})", LogLevel.LEVEL3)
     debug_print(
-        "  -- Apply the correlation scaling method: "
-        f"{corr_spec.surface_scale.method}\n"
+        "Apply the correlation scaling method: " f"{corr_spec.surface_scale.method}\n",
+        LogLevel.LEVEL2,
     )
     row_scaling = model_param_group.row_scaling(node_name)
 
@@ -703,19 +315,21 @@ def activate_and_scale_surface_correlation(
         )
 
 
-def add_ministeps(user_config, ert_param_dict, ert, debug_level=0):
+def add_ministeps(user_config, ert_param_dict, ert):
     # pylint: disable-msg=too-many-branches
     local_config = ert.getLocalConfig()
     updatestep = local_config.getUpdatestep()
     ens_config = ert.ensembleConfig()
     grid_for_field = ert.eclConfig().getGrid()
+    debug_print(f"Log level: {log_level_setting.debug_level}", LogLevel.LEVEL1)
+    debug_print("Add all ministeps:", LogLevel.LEVEL1)
     if grid_for_field is not None:
-        debug_print(f"  -- Get grid: {grid_for_field.get_name()}")
+        debug_print(f"Get grid: {grid_for_field.get_name()}", LogLevel.LEVEL1)
 
     for count, corr_spec in enumerate(user_config.correlations):
         ministep_name = corr_spec.name
         ministep = local_config.createMinistep(ministep_name)
-        debug_print(f" -- Define ministep: {ministep_name}")
+        debug_print(f"Define ministep: {ministep_name}", LogLevel.LEVEL1)
 
         param_group_name = ministep_name + "_param_group"
         model_param_group = local_config.createDataset(param_group_name)
@@ -731,7 +345,7 @@ def add_ministeps(user_config, ert_param_dict, ert, debug_level=0):
             node = ens_config.getNode(node_name)
             impl_type = node.getImplementationType()
 
-            debug_print(f" -- Add node: {node_name} of type: {impl_type}")
+            debug_print(f"Add node: {node_name} of type: {impl_type}", LogLevel.LEVEL2)
             model_param_group.addNode(node_name)
             if impl_type == ErtImplType.GEN_KW:
                 activate_gen_kw_param(
@@ -750,8 +364,9 @@ def add_ministeps(user_config, ert_param_dict, ert, debug_level=0):
                     )
                 else:
                     debug_print(
-                        f"  -- No correlation scaling for node {node_name} "
-                        f"in {ministep_name}"
+                        f"No correlation scaling for node {node_name} "
+                        f"in {ministep_name}",
+                        LogLevel.LEVEL3,
                     )
             elif impl_type == ErtImplType.GEN_DATA:
                 gen_data_config = node.getDataModelConfig()
@@ -762,8 +377,9 @@ def add_ministeps(user_config, ert_param_dict, ert, debug_level=0):
                     )
                 else:
                     debug_print(
-                        f"  -- Parameter {node_name} has data size: {data_size} "
-                        f"in {ministep_name}"
+                        f"Parameter {node_name} has data size: {data_size} "
+                        f"in {ministep_name}",
+                        LogLevel.LEVEL3,
                     )
             elif impl_type == ErtImplType.SURFACE:
                 if corr_spec.surface_scale is not None:
@@ -774,23 +390,28 @@ def add_ministeps(user_config, ert_param_dict, ert, debug_level=0):
                     )
                 else:
                     debug_print(
-                        f"  -- No correlation scaling for node {node_name} "
-                        f"in {ministep_name}"
+                        f"No correlation scaling for node {node_name} "
+                        f"in {ministep_name}",
+                        LogLevel.LEVEL3,
                     )
 
         # Setup observation group
         for obs_name in obs_list:
-            debug_print(f" -- Add obs node: {obs_name}")
+            debug_print(f"Add obs node: {obs_name}", LogLevel.LEVEL2)
             obs_group.addNode(obs_name)
 
         # Setup ministep
-        debug_print(f"  -- Attach {param_group_name} to ministep {ministep_name}")
+        debug_print(
+            f"Attach {param_group_name} to ministep {ministep_name}", LogLevel.LEVEL1
+        )
         ministep.attachDataset(model_param_group)
 
-        debug_print(f"  -- Attach {obs_group_name} to ministep {ministep_name}")
+        debug_print(
+            f"Attach {obs_group_name} to ministep {ministep_name}", LogLevel.LEVEL1
+        )
         ministep.attachObsset(obs_group)
 
-        debug_print(f"  -- Add {ministep_name} to update step\n")
+        debug_print(f"Add {ministep_name} to update step\n", LogLevel.LEVEL1)
         updatestep.attachMinistep(ministep)
 
 
@@ -803,81 +424,14 @@ def check_if_ref_point_in_grid(ref_point, grid):
     try:
         i, j = grid.find_cell_xy(ref_point[0], ref_point[1], 0)
     except ValueError:
-        print(
-            f"Warning: Reference point {ref_point} corresponds to undefined grid cell "
-            f"or is outside the area defined by the grid {grid.get_name()}"
-        )
-
-
-def check_ref_point_with_grid_data(ref_point, origo, rotation, size, righthanded):
-    print(
-        f"size: {size}, origo: {origo}, ref_point: {ref_point}, "
-        f"rotation: {rotation} righthanded: {righthanded}"
-    )
-    point = transform_from_utm_to_ertbox_coordinates(
-        ref_point, origo, rotation, righthanded
-    )
-    if not (0 <= point[0] <= size[0] and 0 <= point[1] <= size[1]):
         raise ValueError(
-            f"Specified reference point ({ref_point[0]}, {ref_point[1]}) "
-            "for observations is outside ERTBOX area.\n"
-            "The reference point transformed to ERTBOX "
-            "coordinates fails the check:\n"
-            f"1.coordinate: 0 <= {point[0]} <= {size[0]}\n"
-            f"2.coordinate: 0 <= {point[1]} <= {size[1]}"
-        )
-
-
-def check_ref_point_with_surface_data(surface_scale, ref_point):
-    debug_print(
-        f"  -- No check is implemented to verify that ref point {ref_point}\n"
-        f"      is within surface area defined by {surface_scale.filename}"
-    )
-
-
-def transform_from_utm_to_ertbox_coordinates(point, origo, rotation, righthanded):
-    theta = rotation * math.pi / 180.0
-    sintheta = math.sin(theta)
-    costheta = math.cos(theta)
-    x0 = point[0] - origo[0]
-    y0 = point[1] - origo[1]
-    if not righthanded:
-        x = costheta * x0 + sintheta * y0
-        y = sintheta * x0 - costheta * y0
-    else:
-        x = costheta * x0 + sintheta * y0
-        y = -sintheta * x0 + costheta * y0
-    transf_point = [x, y]
-    #    print(f"Point: ({point[0]},{point[1]})  Transf point: ({x},{y})")
-    return transf_point
-
-
-def transform_from_ertbox_to_utm_coordinates(point, origo, rotation, righthanded):
-    theta = rotation * math.pi / 180.0
-    sintheta = math.sin(theta)
-    costheta = math.cos(theta)
-    x0 = point[0]
-    y0 = point[1]
-    if not righthanded:
-        x = costheta * x0 + sintheta * y0
-        y = sintheta * x0 - costheta * y0
-    else:
-        x = costheta * x0 - sintheta * y0
-        y = sintheta * x0 + costheta * y0
-
-    x = x + origo[0]
-    y = y + origo[1]
-
-    transf_point = [x, y]
-    print(f"Point: ({point[0]},{point[1]})  Transf point: ({x},{y})")
-    return transf_point
+            f"Reference point {ref_point} corresponds to undefined grid cell "
+            f"or is outside the area defined by the grid {grid.get_name()}\n"
+            "Check specification of reference point."
+        ) from None
 
 
 # This is an example callable which decays as a gaussian away from a position
-# obs_pos; this is (probaly) a simplified version of tapering function which
-# will be interesting to use.
-
-
 @dataclass
 class Decay:
     obs_pos: list
@@ -921,18 +475,3 @@ class ExponentialDecay(Decay):
         dx, dy = super().get_dx_dy(data_index)
         exp_arg = -0.5 * math.sqrt(dx * dx + dy * dy)
         return math.exp(exp_arg)
-
-
-def print_params(params_for_node, node_type):
-    for key, param_list in params_for_node.items():
-        print(f"     Node: {key}     Type: {node_type[key]}")
-        if node_type[key] == ErtImplType.GEN_KW:
-            print("     Parameters for this node:")
-            for param in param_list:
-                print(f"       {param}")
-        elif node_type[key] == ErtImplType.GEN_DATA:
-            print("    Parameter indices active for this node:")
-            if len(param_list) > 0:
-                for param in param_list:
-                    print(f"       {param}")
-    print("\n")

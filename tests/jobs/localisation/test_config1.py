@@ -1,7 +1,5 @@
 import pytest
 
-# from pydantic import ValidationError
-
 from semeio.workflows.localisation.localisation_config import LocalisationConfig
 from res.enkf.enums.ert_impl_type_enum import ErtImplType
 
@@ -159,6 +157,7 @@ ERT_NODE_TYPE = {
 )
 def test_simple_config(param_group_add, expected):
     data = {
+        "log_level": 2,
         "correlations": [
             {
                 "name": "some_name",
@@ -216,6 +215,7 @@ def test_simple_config_error(
     obs_group_add, param_group_add, param_group_remove, expected_error
 ):
     data = {
+        "log_level": 2,
         "correlations": [
             {
                 "name": "some_name",
@@ -272,6 +272,7 @@ def test_simple_config_duplicate_error(
     obsgroup1, paramgroup1, obsgroup2, paramgroup2, expected_error
 ):
     data = {
+        "log_level": 2,
         "correlations": [
             {
                 "name": "some_name1",
@@ -332,6 +333,7 @@ def test_simple_config_ref_point_error(
     obs_group_add, obs_group_remove, ref_point, expected_error
 ):
     data = {
+        "log_level": 2,
         "correlations": [
             {
                 "name": "some_name",
@@ -493,6 +495,7 @@ def test_simple_config_ref_point_error(
 )
 def test_add_remove_param_config(param_group_add, param_group_remove, expected):
     data = {
+        "log_level": 2,
         "correlations": [
             {
                 "name": "some_name",
@@ -539,6 +542,7 @@ def test_add_remove_param_config(param_group_add, param_group_remove, expected):
 )
 def test_add_remove_obs_config(obs_group_add, obs_group_remove, expected):
     data = {
+        "log_level": 2,
         "correlations": [
             {
                 "name": "some_name",
@@ -590,6 +594,7 @@ def test_add_remove_obs_with_ref_point_config(
     obs_group_add, param_group_add, ref_point, expected
 ):
     data = {
+        "log_level": 2,
         "correlations": [
             {
                 "name": "some_name",
@@ -674,6 +679,7 @@ def test_add_remove_obs_with_ref_point_and_field_scale_config(
     obs_add, param_add, ref_point, method, range1, range2, angle, expected
 ):
     data = {
+        "log_level": 2,
         "correlations": [
             {
                 "name": "some_name",
@@ -770,6 +776,7 @@ def test_add_remove_obs_with_ref_point_and_surface_scale_config(
     obs_add, param_add, ref_point, method, range1, range2, angle, expected, expected2
 ):
     data = {
+        "log_level": 2,
         "correlations": [
             {
                 "name": "some_name",
