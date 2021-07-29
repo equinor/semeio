@@ -8,27 +8,16 @@ import numpy as np
 
 
 @pytest.mark.parametrize(
-    "obs_group_add, param_group_add, expected, expected_obs1, expected_obs2",
+    "obs_group_add, param_group_add, expected",
     [
         (
             ["FOPR", "WOPR_OP1_190"],
             ["SNAKE_OIL_PARAM:OP1_DIVERGENCE_SCALE", "SNAKE_OIL_PARAM:OP1_OFFSET"],
             ["SNAKE_OIL_PARAM"],
-            [
-                "WOPR_OP1_108",
-                "WOPR_OP1_144",
-                "WOPR_OP1_36",
-                "WOPR_OP1_72",
-                "WOPR_OP1_9",
-                "WPR_DIFF_1",
-            ],
-            ["FOPR", "WOPR_OP1_190"],
         ),
     ],
 )
-def test_localisation(
-    setup_ert, obs_group_add, param_group_add, expected, expected_obs1, expected_obs2
-):
+def test_localisation(setup_ert, obs_group_add, param_group_add, expected):
     ert = EnKFMain(setup_ert)
     config = {
         "correlations": [
@@ -63,21 +52,38 @@ def test_localisation(
     assert (
         ert.getLocalConfig().getObsdata("CORR1_obs_group").name() == "CORR1_obs_group"
     )
-    assert len(ert.getLocalConfig().getUpdatestep()) == 3
-    ministep_names = ["CORR1", "CORR2", "CORR3"]
+    result = {}
     for index, ministep in enumerate(ert.getLocalConfig().getUpdatestep()):
-        assert ministep.name() == ministep_names[index]
-        obs_list = []
-        for count, obsnode in enumerate(ministep.getLocalObsData()):
-            obs_list.append(obsnode.key())
-        obs_list.sort()
-
-        if index in [0, 1]:
-            assert obs_list == expected_obs1
-        else:
-            assert obs_list == expected_obs2
-        key = ministep_names[index] + "_param_group"
-        assert ministep[key].keys() == expected
+        result[ministep.name()] = {
+            "obs": [obs_node.key() for obs_node in ministep.getLocalObsData()],
+            "key": ministep.name() + "_param_group",
+        }
+    expected_result = {
+        "CORR1": {
+            "obs": [
+                "WOPR_OP1_108",
+                "WOPR_OP1_144",
+                "WOPR_OP1_36",
+                "WOPR_OP1_72",
+                "WOPR_OP1_9",
+                "WPR_DIFF_1",
+            ],
+            "key": "CORR1_param_group",
+        },
+        "CORR2": {
+            "obs": [
+                "WOPR_OP1_108",
+                "WOPR_OP1_144",
+                "WOPR_OP1_36",
+                "WOPR_OP1_72",
+                "WOPR_OP1_9",
+                "WPR_DIFF_1",
+            ],
+            "key": "CORR2_param_group",
+        },
+        "CORR3": {"obs": ["FOPR", "WOPR_OP1_190"], "key": "CORR3_param_group"},
+    }
+    assert result == expected_result
 
 
 def test_localisation_gen_param(
