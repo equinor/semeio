@@ -3,6 +3,8 @@ import yaml
 import pathlib
 import math
 import copy
+import cwrap
+import numpy as np
 
 from ecl.util.geometry import Surface
 from res.enkf.enums.ert_impl_type_enum import ErtImplType
@@ -10,7 +12,8 @@ from res.enkf.enums.enkf_var_type_enum import EnkfVarType
 from dataclasses import dataclass
 
 # Global variables
-debug_level = 1
+debug_level = 2
+scaling_parameter_number = 1
 
 
 def debug_print(text, level=debug_level):
@@ -111,9 +114,6 @@ def get_param_from_ert(ert):
         ErtImplType.FIELD,
         ErtImplType.SURFACE,
     ]
-    dimensions = None
-    #    grid_origo = None
-    #    rotation_angle = None
     for key in keylist:
         node = ens_config.getNode(key)
         impl_type = node.getImplementationType()
@@ -129,25 +129,15 @@ def get_param_from_ert(ert):
                     param_list.append(name)
                 parameters_for_node[key] = param_list
             elif impl_type in implementation_type_not_scalar:
-                # Node contains parameter from FIELD
-                # No named parameters for FIELD, but number of indexed parameters
-                # are equal to nx*ny*nz for ERTBOX grids.
+                # Node contains parameter from FIELD, SURFACE or GEN_PARAM
+                # The parameters_for_node dict contains empty list for FIELD
+                # and SURFACE.  The number of variables for a FIELD parameter is
+                # defined by the grid in the GRID keyword. The number of
+                # variables for a SURFACE parameter is defined by the size of a
+                # surface object. For GEN_PARAM the list contains the
+                # number of variables.
                 parameters_for_node[key] = []
-                if impl_type == ErtImplType.FIELD and dimensions is None:
-                    #   grid = ert.eclConfig().getGrid()
-                    #   dimensions = grid.get_dims()
-                    #   grid_origo, rotation_angle, area_size, righthanded = \
-                    #   grid_info(grid)
-                    #                    grid_config = {
-                    #                        "dimensions": dimensions,
-                    #                        "grid_origo": grid_origo,
-                    #                        "rotation": rotation_angle,
-                    #                        "size": area_size,
-                    #                        "righthanded": righthanded,
-                    #                   }
-                    #                    print(f" grid_config: {grid_config}")
-                    pass
-                elif impl_type == ErtImplType.GEN_DATA:
+                if impl_type == ErtImplType.GEN_DATA:
                     gen_data_config = node.getDataModelConfig()
                     data_size = gen_data_config.get_initial_size()
                     if data_size <= 0:
@@ -557,6 +547,47 @@ def activate_gen_param(model_param_group, node_name, param_list, data_size):
         active_param_list.addActiveIndex(index)
 
 
+def write_scaling_values(
+    corr_name,
+    node_name,
+    method_name,
+    grid_for_field,
+    ref_pos,
+    main_range,
+    perp_range,
+    azimuth,
+):
+    global scaling_parameter_number
+    nx = grid_for_field.getNX()
+    ny = grid_for_field.getNY()
+    nz = grid_for_field.getNZ()
+    if method_name == "gaussian_decay":
+        decay_obj = GaussianDecay(
+            ref_pos, main_range, perp_range, azimuth, grid_for_field, None
+        )
+    elif method_name == "exponential_decay":
+        decay_obj = ExponentialDecay(
+            ref_pos, main_range, perp_range, azimuth, grid_for_field, None
+        )
+    else:
+        raise KeyError(f" Method name: {method_name} is not implemented")
+
+    scaling_values = np.zeros((nx, ny, nz), dtype=np.float32)
+    for k in range(nz):
+        for j in range(ny):
+            for i in range(nx):
+                global_index = grid_for_field.global_index(ijk=(i, j, k))
+                scaling_values[i, j, k] = decay_obj(global_index)
+
+    scaling_kw_name = "S_" + str(scaling_parameter_number)
+    scaling_kw = grid_for_field.create_kw(scaling_values, scaling_kw_name, False)
+    filename = corr_name + "_" + node_name + "_scaling" + ".GRDECL"
+    print(f" -- Write file: {filename}")
+    with cwrap.open(filename, "w") as file:
+        grid_for_field.write_grdecl(scaling_kw, file)
+    scaling_parameter_number += 1
+
+
 def activate_and_scale_field_correlation(
     model_param_group, node_name, field_config, corr_spec, grid_for_field
 ):
@@ -582,6 +613,18 @@ def activate_and_scale_field_correlation(
                 ref_pos, main_range, perp_range, azimuth, grid_for_field, None
             ),
         )
+        if debug_level > 1:
+            write_scaling_values(
+                corr_spec.name,
+                node_name,
+                corr_spec.field_scale.method,
+                grid_for_field,
+                ref_pos,
+                main_range,
+                perp_range,
+                azimuth,
+            )
+
     elif corr_spec.field_scale.method == "exponential_decay":
         main_range = corr_spec.field_scale.main_range
         perp_range = corr_spec.field_scale.perp_range
@@ -592,6 +635,18 @@ def activate_and_scale_field_correlation(
                 ref_pos, main_range, perp_range, azimuth, grid_for_field, None
             ),
         )
+        if debug_level > 1:
+            write_scaling_values(
+                corr_spec.name,
+                node_name,
+                corr_spec.field_scale.method,
+                grid_for_field,
+                ref_pos,
+                main_range,
+                perp_range,
+                azimuth,
+            )
+
     else:
         print(
             f" --  Scaling method: {corr_spec.field_scale.method} "
@@ -656,6 +711,7 @@ def add_ministeps(user_config, ert_param_dict, ert, debug_level=0):
     grid_for_field = ert.eclConfig().getGrid()
     if grid_for_field is not None:
         debug_print(f"  -- Get grid: {grid_for_field.get_name()}")
+
     for count, corr_spec in enumerate(user_config.correlations):
         ministep_name = corr_spec.name
         ministep = local_config.createMinistep(ministep_name)
@@ -743,13 +799,9 @@ def clear_correlations(ert):
     local_config.clear()
 
 
-# def get_config_path(ert)
-#    pass
-#    return None
 def check_if_ref_point_in_grid(ref_point, grid):
     try:
         i, j = grid.find_cell_xy(ref_point[0], ref_point[1], 0)
-        print(f"ref_point in grid cell: ({i},{j})")
     except ValueError:
         print(
             f"Warning: Reference point {ref_point} corresponds to undefined grid cell "

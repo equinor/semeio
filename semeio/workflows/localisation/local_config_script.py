@@ -12,6 +12,7 @@ from semeio.workflows.localisation.localisation_config import LocalisationConfig
 
 
 debug_level = 1
+scaling_parameter_number = 1
 
 
 class LocalisationConfigJob(SemeioScript):
