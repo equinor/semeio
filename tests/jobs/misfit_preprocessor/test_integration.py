@@ -16,7 +16,7 @@ from unittest.mock import Mock
 
 @pytest.mark.usefixtures("setup_tmpdir")
 @pytest.mark.parametrize(
-    "observation, expected_nr_clusters", [["*", 58], ["WPR_DIFF_1", 1]]
+    "observation, expected_nr_clusters", [["*", 60], ["WPR_DIFF_1", 1]]
 )
 def test_misfit_preprocessor_main_entry_point_gen_data(
     monkeypatch, test_data_root, observation, expected_nr_clusters
