@@ -1,32 +1,45 @@
+from mock import MagicMock
+
 import pytest
+import pydantic
 
-from semeio.workflows.localisation.localisation_config import LocalisationConfig
+from semeio.workflows.localisation.localisation_config import (
+    LocalisationConfig,
+    expand_wildcards,
+    check_for_duplicated_correlation_specifications,
+)
 from res.enkf.enums.ert_impl_type_enum import ErtImplType
-
-ERT_GRID_CONFIG = {
-    "dimensions": [100, 200],
-    "grid_origo": [100.0, 150.0],
-    "rotation": 45,
-    "size": [1000, 2000],
-    "righthanded": 1,
-}
 
 
 ERT_OBS = ["OBS1", "OBS2", "OBS11", "OBS22", "OBS12", "OBS13", "OBS14", "OBS3"]
-ERT_PARAM = {
-    "PARAM_NODE1": ["PARAM1", "PARAM2"],
-    "PARAM_NODE2": ["PARAM1", "PARAM2", "PARAM3"],
-    "PARAM_NODE3": ["PARAM4"],
-    "PARAM_NODE22": ["P1", "P2", "P22"],
-    "PARAM_NODE1X": ["X1", "X2", "X3"],
-    "PARAM_NODE2Y": ["Y1", "Y2", "Y3"],
-    "PARAM_FIELD1": [],
-    "PARAM_FIELD2": [],
-    "PARAM_FIELD3": [],
-    "PARAM_GEN": [5],
-    "PARAM_SURFACE1": [],
-    "PARAM_SURFACE2": [],
-}
+ERT_PARAM = [
+    "PARAM_NODE1:PARAM1",
+    "PARAM_NODE1:PARAM2",
+    "PARAM_NODE2:PARAM1",
+    "PARAM_NODE2:PARAM2",
+    "PARAM_NODE2:PARAM3",
+    "PARAM_NODE3:PARAM4",
+    "PARAM_NODE22:P1",
+    "PARAM_NODE22:P2",
+    "PARAM_NODE22:P22",
+    "PARAM_NODE1X:X1",
+    "PARAM_NODE1X:X2",
+    "PARAM_NODE1X:X3",
+    "PARAM_NODE2Y:Y1",
+    "PARAM_NODE2Y:Y2",
+    "PARAM_NODE2Y:Y3",
+    "PARAM_FIELD1",
+    "PARAM_FIELD2",
+    "PARAM_FIELD3",
+    "PARAM_GEN:0",
+    "PARAM_GEN:1",
+    "PARAM_GEN:2",
+    "PARAM_GEN:3",
+    "PARAM_GEN:4",
+    "PARAM_SURFACE1",
+    "PARAM_SURFACE2",
+]
+
 
 ERT_NODE_TYPE = {
     "PARAM_NODE1": ErtImplType.GEN_KW,
@@ -49,53 +62,67 @@ ERT_NODE_TYPE = {
     [
         (
             "PARAM_NODE1:*",
-            {"PARAM_NODE1": ["PARAM1", "PARAM2"]},
+            ["PARAM_NODE1:PARAM1", "PARAM_NODE1:PARAM2"],
         ),
         (
             "PARAM_N*1:*",
-            {
-                "PARAM_NODE1": ["PARAM1", "PARAM2"],
-            },
+            ["PARAM_NODE1:PARAM1", "PARAM_NODE1:PARAM2"],
         ),
         (
             ["PARAM_NODE1:*", "PARAM_NODE2:*"],
-            {
-                "PARAM_NODE1": ["PARAM1", "PARAM2"],
-                "PARAM_NODE2": ["PARAM1", "PARAM2", "PARAM3"],
-            },
+            [
+                "PARAM_NODE1:PARAM1",
+                "PARAM_NODE1:PARAM2",
+                "PARAM_NODE2:PARAM1",
+                "PARAM_NODE2:PARAM2",
+                "PARAM_NODE2:PARAM3",
+            ],
         ),
         (
             ["PARAM_NODE2:*", "PARAM_NODE1:*"],
-            {
-                "PARAM_NODE1": ["PARAM1", "PARAM2"],
-                "PARAM_NODE2": ["PARAM1", "PARAM2", "PARAM3"],
-            },
+            [
+                "PARAM_NODE1:PARAM1",
+                "PARAM_NODE1:PARAM2",
+                "PARAM_NODE2:PARAM1",
+                "PARAM_NODE2:PARAM2",
+                "PARAM_NODE2:PARAM3",
+            ],
         ),
         (
             ["P*2*", "PARAM_NODE3*"],
-            {
-                "PARAM_FIELD2": [],
-                "PARAM_GEN": ["2"],
-                "PARAM_NODE1": ["PARAM2"],
-                "PARAM_NODE1X": ["X2"],
-                "PARAM_NODE2": ["PARAM1", "PARAM2", "PARAM3"],
-                "PARAM_NODE22": ["P1", "P2", "P22"],
-                "PARAM_NODE2Y": ["Y1", "Y2", "Y3"],
-                "PARAM_NODE3": ["PARAM4"],
-                "PARAM_SURFACE2": [],
-            },
+            [
+                "PARAM_FIELD2",
+                "PARAM_GEN:2",
+                "PARAM_NODE1:PARAM2",
+                "PARAM_NODE1X:X2",
+                "PARAM_NODE22:P1",
+                "PARAM_NODE22:P2",
+                "PARAM_NODE22:P22",
+                "PARAM_NODE2:PARAM1",
+                "PARAM_NODE2:PARAM2",
+                "PARAM_NODE2:PARAM3",
+                "PARAM_NODE2Y:Y1",
+                "PARAM_NODE2Y:Y2",
+                "PARAM_NODE2Y:Y3",
+                "PARAM_NODE3:PARAM4",
+                "PARAM_SURFACE2",
+            ],
         ),
         (
             ["P*2:*", "PARAM_NODE3*"],
-            {
-                "PARAM_NODE2": ["PARAM1", "PARAM2", "PARAM3"],
-                "PARAM_NODE22": ["P1", "P2", "P22"],
-                "PARAM_NODE3": ["PARAM4"],
-            },
+            [
+                "PARAM_NODE2:PARAM1",
+                "PARAM_NODE2:PARAM2",
+                "PARAM_NODE2:PARAM3",
+                "PARAM_NODE22:P1",
+                "PARAM_NODE22:P2",
+                "PARAM_NODE22:P22",
+                "PARAM_NODE3:PARAM4",
+            ],
         ),
         (
             "PARAM_NODE1:PARAM1",
-            {"PARAM_NODE1": ["PARAM1"]},
+            ["PARAM_NODE1:PARAM1"],
         ),
         (
             [
@@ -104,21 +131,24 @@ ERT_NODE_TYPE = {
                 "PARAM_NODE3:PARAM4",
                 "PARAM_NODE1X:X*",
             ],
-            {
-                "PARAM_NODE1": ["PARAM1"],
-                "PARAM_NODE2": ["PARAM3"],
-                "PARAM_NODE3": ["PARAM4"],
-                "PARAM_NODE1X": ["X1", "X2", "X3"],
-            },
+            [
+                "PARAM_NODE1:PARAM1",
+                "PARAM_NODE2:PARAM3",
+                "PARAM_NODE3:PARAM4",
+                "PARAM_NODE1X:X1",
+                "PARAM_NODE1X:X2",
+                "PARAM_NODE1X:X3",
+            ],
         ),
         (
             ["PARAM_NODE3:P*", "PARAM_NODE2*:*2*"],
-            {
-                "PARAM_NODE2": ["PARAM2"],
-                "PARAM_NODE22": ["P2", "P22"],
-                "PARAM_NODE2Y": ["Y2"],
-                "PARAM_NODE3": ["PARAM4"],
-            },
+            [
+                "PARAM_NODE2:PARAM2",
+                "PARAM_NODE22:P2",
+                "PARAM_NODE22:P22",
+                "PARAM_NODE2Y:Y2",
+                "PARAM_NODE3:PARAM4",
+            ],
         ),
         (
             [
@@ -128,30 +158,27 @@ ERT_NODE_TYPE = {
                 "PARAM_NODE1X:X3",
                 "PARAM_NODE1X:X1",
             ],
-            {
-                "PARAM_NODE1": ["PARAM1"],
-                "PARAM_NODE1X": ["X1", "X3"],
-                "PARAM_NODE2": ["PARAM3"],
-                "PARAM_NODE2Y": ["Y1", "Y2", "Y3"],
-            },
+            [
+                "PARAM_NODE1:PARAM1",
+                "PARAM_NODE1X:X1",
+                "PARAM_NODE1X:X3",
+                "PARAM_NODE2:PARAM3",
+                "PARAM_NODE2Y:Y1",
+                "PARAM_NODE2Y:Y2",
+                "PARAM_NODE2Y:Y3",
+            ],
         ),
         (
             "PARAM_FIELD*",
-            {
-                "PARAM_FIELD1": [],
-                "PARAM_FIELD2": [],
-                "PARAM_FIELD3": [],
-            },
+            ["PARAM_FIELD1", "PARAM_FIELD2", "PARAM_FIELD3"],
         ),
         (
             "PARAM_FIELD1",
-            {
-                "PARAM_FIELD1": [],
-            },
+            ["PARAM_FIELD1"],
         ),
         (
             "PARAM_GEN:*",
-            {"PARAM_GEN": ["0", "1", "2", "3", "4"]},
+            ["PARAM_GEN:0", "PARAM_GEN:1", "PARAM_GEN:2", "PARAM_GEN:3", "PARAM_GEN:4"],
         ),
     ],
 )
@@ -168,12 +195,10 @@ def test_simple_config(param_group_add, expected):
             }
         ],
     }
-    conf = LocalisationConfig(
-        observations=ERT_OBS, parameters=ERT_PARAM, node_type=ERT_NODE_TYPE, **data
-    )
+    conf = LocalisationConfig(observations=ERT_OBS, parameters=ERT_PARAM, **data)
     assert len(conf.correlations) == 1
-    assert conf.correlations[0].obs_group.add[0] == "OBS1"
-    assert conf.correlations[0].param_group.add == expected
+    assert conf.correlations[0].obs_group.result_items == ["OBS1"]
+    assert sorted(conf.correlations[0].param_group.result_items) == sorted(expected)
 
 
 @pytest.mark.parametrize(
@@ -183,25 +208,25 @@ def test_simple_config(param_group_add, expected):
             "OBS1",
             "PARAM_NODE1",
             "[]",
-            "List of specified model parameters",
+            "No match for: PARAM_NODE1",
         ),
         (
             ["OBS1", "OBS2"],
             ["PY*:*", "PARAM_FILED*"],
             "[]",
-            "List of specified model parameters",
+            "No match for: PY*:*",
         ),
         (
             ["OBS2*"],
             ["PARAM_FIELD*"],
             ["PARAM_FIELD2:*"],
-            "List of specified model parameters",
+            "No match for: PARAM_FIELD2:*",
         ),
         (
             ["OBS*"],
             "PARAM_NODE1:PARAM1",
             "P*:*:*",
-            "List of specified model parameters",
+            "No match for: P*:*:*",
         ),
         (
             [],
@@ -229,10 +254,8 @@ def test_simple_config_error(
             }
         ],
     }
-    with pytest.raises(ValueError, match=expected_error):
-        LocalisationConfig(
-            observations=ERT_OBS, parameters=ERT_PARAM, node_type=ERT_NODE_TYPE, **data
-        )
+    with pytest.raises(pydantic.error_wrappers.ValidationError, match=expected_error):
+        LocalisationConfig(observations=ERT_OBS, parameters=ERT_PARAM, **data)
 
 
 @pytest.mark.parametrize(
@@ -243,28 +266,28 @@ def test_simple_config_error(
             "PARAM_NODE1:*",
             "OBS*",
             "PARAM_NODE*:*",
-            "Some correlations are specified multiple times. ",
+            "Found 2 duplicated correlations",
         ),
         (
             ["OBS1", "OBS2"],
             ["PARAM_NODE2:*"],
             ["OBS1*", "OBS2*"],
             ["P*:*"],
-            "Some correlations are specified multiple times. ",
+            "Found 6 duplicated correlations",
         ),
         (
             ["OBS1*"],
             ["PARAM_FIELD2"],
             ["OBS14"],
             ["PARAM_F*"],
-            "Some correlations are specified multiple times. ",
+            "Found 1 duplicated correlations",
         ),
         (
             "*",
             "*",
             "O*",
             "P*:*",
-            "Some correlations are specified multiple times. ",
+            "Found 160 duplicated correlations",
         ),
     ],
 )
@@ -295,67 +318,47 @@ def test_simple_config_duplicate_error(
         ],
     }
     with pytest.raises(ValueError, match=expected_error):
-        LocalisationConfig(
-            observations=ERT_OBS, parameters=ERT_PARAM, node_type=ERT_NODE_TYPE, **data
-        )
+        LocalisationConfig(observations=ERT_OBS, parameters=ERT_PARAM, **data)
 
 
 @pytest.mark.parametrize(
-    "obs_group_add, obs_group_remove, ref_point, expected_error",
+    "ref_point, expected_error",
     [
         (
-            "OBS1*",
-            "OBS1",
             [],
-            "Reference point for an observation group must be a list of ",
+            "least 2 items",
         ),
         (
-            "OBS1*",
-            "OBS1",
             [100],
-            "Reference point for an observation group must be a list of ",
+            "least 2 items ",
         ),
         (
-            "OBS1*",
-            "OBS1",
-            ["1x00", 200],
-            "could not convert string to float",
+            ["not_float", 200],
+            "value is not a valid float",
         ),
         (
-            "OBS1*",
-            "OBS1",
             [100, 200, 300],
-            "Reference point for an observation group must be a list of ",
+            "at most 2 items",
         ),
     ],
 )
-def test_simple_config_ref_point_error(
-    obs_group_add, obs_group_remove, ref_point, expected_error
-):
+def test_simple_config_ref_point_error(ref_point, expected_error):
     data = {
-        "log_level": 2,
         "correlations": [
             {
                 "name": "some_name",
                 "obs_group": {
-                    "add": obs_group_add,
-                    "remove": obs_group_remove,
+                    "add": "OBS",
                 },
                 "param_group": {
-                    "add": "PARAM_NODE1:PARAM1",
+                    "add": "PARAM_NODE1",
                 },
                 "ref_point": ref_point,
             }
         ],
     }
     with pytest.raises(ValueError, match=expected_error):
-        LocalisationConfig(
-            observations=ERT_OBS,
-            parameters=ERT_PARAM,
-            node_type=ERT_NODE_TYPE,
-            grid_config=ERT_GRID_CONFIG,
-            **data
-        )
+        LocalisationConfig(observations=["OBS"], parameters=["PARAM_NODE1"], **data)
 
 
 @pytest.mark.parametrize(
@@ -364,51 +367,52 @@ def test_simple_config_ref_point_error(
         (
             "PARAM_NODE1:*",
             "PARAM_NODE2:*",
-            {"PARAM_NODE1": ["PARAM1", "PARAM2"]},
+            ["PARAM_NODE1:PARAM1", "PARAM_NODE1:PARAM2"],
         ),
         (
             "PARAM_N*1*",
             "PARAM_NODE1:PARAM1",
-            {
-                "PARAM_NODE1": ["PARAM2"],
-                "PARAM_NODE1X": ["X1", "X2", "X3"],
-                "PARAM_NODE2": ["PARAM1"],
-                "PARAM_NODE22": ["P1"],
-                "PARAM_NODE2Y": ["Y1"],
-            },
+            [
+                "PARAM_NODE1:PARAM2",
+                "PARAM_NODE1X:X1",
+                "PARAM_NODE1X:X2",
+                "PARAM_NODE1X:X3",
+                "PARAM_NODE2:PARAM1",
+                "PARAM_NODE22:P1",
+                "PARAM_NODE2Y:Y1",
+            ],
         ),
         (
             ["PARAM_NODE1:*", "PARAM_NODE2:*"],
             ["PARAM_NODE1:PARAM1", "PARAM_NODE2:PARAM1"],
-            {
-                "PARAM_NODE1": ["PARAM2"],
-                "PARAM_NODE2": ["PARAM2", "PARAM3"],
-            },
+            ["PARAM_NODE1:PARAM2", "PARAM_NODE2:PARAM2", "PARAM_NODE2:PARAM3"],
         ),
         (
             ["PARAM_NODE2*", "PARAM_NODE1:PARAM2"],
             ["PARAM_NODE2:PARAM2", "PARAM_NODE2Y:Y2"],
-            {
-                "PARAM_NODE1": ["PARAM2"],
-                "PARAM_NODE2": ["PARAM1", "PARAM3"],
-                "PARAM_NODE22": ["P1", "P2", "P22"],
-                "PARAM_NODE2Y": ["Y1", "Y3"],
-            },
+            [
+                "PARAM_NODE1:PARAM2",
+                "PARAM_NODE2:PARAM1",
+                "PARAM_NODE2:PARAM3",
+                "PARAM_NODE22:P1",
+                "PARAM_NODE22:P2",
+                "PARAM_NODE22:P22",
+                "PARAM_NODE2Y:Y1",
+                "PARAM_NODE2Y:Y3",
+            ],
         ),
         (
             ["P*2*:*", "PARAM_NODE3*", "P*_GEN*"],
             ["PARAM_NODE2:*", "PARAM_NODE22:P2*", "P*_G*:1", "P*_G*:3", "P*_G*:4"],
-            {
-                "PARAM_GEN": ["0", "2"],
-                "PARAM_NODE22": ["P1"],
-                "PARAM_NODE2Y": ["Y1", "Y2", "Y3"],
-                "PARAM_NODE3": ["PARAM4"],
-            },
-        ),
-        (
-            ["PARAM_NODE1:PARAM1"],
-            "PARAM_NODE*:PARAM1",
-            {},
+            [
+                "PARAM_GEN:0",
+                "PARAM_GEN:2",
+                "PARAM_NODE22:P1",
+                "PARAM_NODE2Y:Y1",
+                "PARAM_NODE2Y:Y2",
+                "PARAM_NODE2Y:Y3",
+                "PARAM_NODE3:PARAM4",
+            ],
         ),
         (
             [
@@ -419,11 +423,7 @@ def test_simple_config_ref_point_error(
                 "PARAM_NODE1X:X1",
             ],
             ["P*_N*X:X2", "PARAM_NODE2:PARAM1"],
-            {
-                "PARAM_NODE1": ["PARAM1"],
-                "PARAM_NODE2": ["PARAM3"],
-                "PARAM_NODE1X": ["X1"],
-            },
+            ["PARAM_NODE1:PARAM1", "PARAM_NODE2:PARAM3", "PARAM_NODE1X:X1"],
         ),
         (
             [
@@ -434,11 +434,13 @@ def test_simple_config_ref_point_error(
                 "PARAM_NODE1X:X1",
             ],
             ["PARAM_NODE*Y:Y*"],
-            {
-                "PARAM_NODE1": ["PARAM1"],
-                "PARAM_NODE1X": ["X1", "X2"],
-                "PARAM_NODE2": ["PARAM1", "PARAM3"],
-            },
+            [
+                "PARAM_NODE1:PARAM1",
+                "PARAM_NODE1X:X1",
+                "PARAM_NODE1X:X2",
+                "PARAM_NODE2:PARAM1",
+                "PARAM_NODE2:PARAM3",
+            ],
         ),
         (
             [
@@ -453,43 +455,31 @@ def test_simple_config_ref_point_error(
                 "PARAM_NODE2Y:Y3",
                 "PARAM_NODE1:PARAM1",
             ],
-            {
-                "PARAM_NODE1": ["PARAM2"],
-                "PARAM_NODE1X": ["X1", "X3"],
-                "PARAM_NODE2": ["PARAM3"],
-                "PARAM_NODE2Y": ["Y1", "Y2"],
-            },
+            [
+                "PARAM_NODE1:PARAM2",
+                "PARAM_NODE1X:X1",
+                "PARAM_NODE1X:X3",
+                "PARAM_NODE2:PARAM3",
+                "PARAM_NODE2Y:Y1",
+                "PARAM_NODE2Y:Y2",
+            ],
         ),
-        (
-            ["*"],
-            ["*"],
-            {},
-        ),
-        (
-            ["*FIELD*"],
-            ["*"],
-            {},
-        ),
-        (
-            ["*FIELD*"],
-            ["*NODE*"],
-            {
-                "PARAM_FIELD1": [],
-                "PARAM_FIELD2": [],
-                "PARAM_FIELD3": [],
-            },
-        ),
+        (["*FIELD*"], ["*NODE*"], ["PARAM_FIELD1", "PARAM_FIELD2", "PARAM_FIELD3"]),
         (
             ["*"],
             ["PARAM_NODE*"],
-            {
-                "PARAM_FIELD1": [],
-                "PARAM_FIELD2": [],
-                "PARAM_FIELD3": [],
-                "PARAM_GEN": ["0", "1", "2", "3", "4"],
-                "PARAM_SURFACE1": [],
-                "PARAM_SURFACE2": [],
-            },
+            [
+                "PARAM_FIELD1",
+                "PARAM_FIELD2",
+                "PARAM_FIELD3",
+                "PARAM_GEN:0",
+                "PARAM_GEN:1",
+                "PARAM_GEN:2",
+                "PARAM_GEN:3",
+                "PARAM_GEN:4",
+                "PARAM_SURFACE1",
+                "PARAM_SURFACE2",
+            ],
         ),
     ],
 )
@@ -507,12 +497,46 @@ def test_add_remove_param_config(param_group_add, param_group_remove, expected):
             }
         ],
     }
-    conf = LocalisationConfig(
-        observations=ERT_OBS, parameters=ERT_PARAM, node_type=ERT_NODE_TYPE, **data
-    )
+    conf = LocalisationConfig(observations=ERT_OBS, parameters=ERT_PARAM, **data)
     assert len(conf.correlations) == 1
-    assert conf.correlations[0].obs_group.add[0] == "OBS1"
-    assert conf.correlations[0].param_group.add == expected
+    assert conf.correlations[0].obs_group.result_items == ["OBS1"]
+    assert sorted(conf.correlations[0].param_group.result_items) == sorted(expected)
+
+
+@pytest.mark.parametrize(
+    "config, expected",
+    [
+        (
+            {
+                "add": ["PARAM_NODE1:PARAM1"],
+                "remove": "PARAM_NODE*:PARAM1",
+            },
+            r"Adding: \['PARAM_NODE1:PARAM1'\] and removing: \['PARAM_NODE\*:PARAM1'\]",
+        ),
+        (
+            {
+                "add": ["*"],
+                "remove": ["*"],
+            },
+            r"Adding: \['\*'\] and removing: \['\*'\]",
+        ),
+        (
+            {
+                "add": ["*FIELD*"],
+                "remove": ["*"],
+            },
+            r"Adding: \['\*FIELD\*'\] and removing: \['\*'\]",
+        ),
+    ],
+)
+def test_add_remove_param_config_no_param(config, expected):
+    data = {
+        "correlations": [
+            {"name": "some_name", "obs_group": {"add": ["OBS1"]}, "param_group": config}
+        ],
+    }
+    with pytest.raises(ValueError, match=expected):
+        LocalisationConfig(observations=ERT_OBS, parameters=ERT_PARAM, **data)
 
 
 @pytest.mark.parametrize(
@@ -553,71 +577,39 @@ def test_add_remove_obs_config(obs_group_add, obs_group_remove, expected):
             }
         ],
     }
-    conf = LocalisationConfig(
-        observations=ERT_OBS, parameters=ERT_PARAM, node_type=ERT_NODE_TYPE, **data
-    )
+    conf = LocalisationConfig(observations=ERT_OBS, parameters=ERT_PARAM, **data)
     assert len(conf.correlations) == 1
-    assert conf.correlations[0].obs_group.add == expected
-    assert conf.correlations[0].param_group.add == {"PARAM_NODE1": ["PARAM1"]}
+    assert conf.correlations[0].obs_group.result_items == expected
 
 
 @pytest.mark.parametrize(
-    "obs_group_add, param_group_add, ref_point,  expected",
+    "ref_point",
     [
-        (
-            "OBS1*",
-            "PARAM_FIELD1",
-            [550, 1050],
-            ["OBS1", "OBS11", "OBS12", "OBS13", "OBS14"],
-        ),
-        (
-            "OBS1*",
-            "PARAM_FIELD1",
-            [100, 150],
-            ["OBS1", "OBS11", "OBS12", "OBS13", "OBS14"],
-        ),
-        (
-            "OBS1*",
-            "PARAM_FIELD1",
-            [0, 750],
-            ["OBS1", "OBS11", "OBS12", "OBS13", "OBS14"],
-        ),
-        (
-            "OBS1*",
-            "PARAM_FIELD1",
-            [500, 750],
-            ["OBS1", "OBS11", "OBS12", "OBS13", "OBS14"],
-        ),
+        [550, 1050],
+        [100, 150],
+        [0, 750],
+        [500, 750],
+        ["10", 1.0],
     ],
 )
-def test_add_remove_obs_with_ref_point_config(
-    obs_group_add, param_group_add, ref_point, expected
-):
+def test_ref_point_config(ref_point):
     data = {
-        "log_level": 2,
         "correlations": [
             {
                 "name": "some_name",
                 "obs_group": {
-                    "add": [obs_group_add],
+                    "add": "OBS",
                 },
                 "param_group": {
-                    "add": [param_group_add],
+                    "add": "PARAM_NODE1",
                 },
                 "ref_point": ref_point,
             }
         ],
     }
-    conf = LocalisationConfig(
-        observations=ERT_OBS,
-        parameters=ERT_PARAM,
-        grid_config=ERT_GRID_CONFIG,
-        node_type=ERT_NODE_TYPE,
-        **data
-    )
-    assert len(conf.correlations) == 1
-    assert conf.correlations[0].obs_group.add == expected
-    assert conf.correlations[0].param_group.add == {"PARAM_FIELD1": []}
+    conf = LocalisationConfig(observations=["OBS"], parameters=["PARAM_NODE1"], **data)
+    expected_refpoint = [float(item) for item in ref_point]
+    assert conf.correlations[0].ref_point == expected_refpoint
 
 
 @pytest.mark.parametrize(
@@ -699,21 +691,14 @@ def test_add_remove_obs_with_ref_point_and_field_scale_config(
             }
         ],
     }
-    conf = LocalisationConfig(
-        observations=ERT_OBS,
-        parameters=ERT_PARAM,
-        grid_config=ERT_GRID_CONFIG,
-        node_type=ERT_NODE_TYPE,
-        **data
-    )
+    conf = LocalisationConfig(observations=ERT_OBS, parameters=ERT_PARAM, **data)
     assert len(conf.correlations) == 1
-    assert conf.correlations[0].obs_group.add == expected
-    assert conf.correlations[0].param_group.add == {"PARAM_FIELD1": []}
+    assert conf.correlations[0].obs_group.result_items == expected
+    assert conf.correlations[0].param_group.result_items == ["PARAM_FIELD1"]
 
 
 @pytest.mark.parametrize(
-    "obs_add, param_add, ref_point,  method, range1, "
-    "range2, angle, expected, expected2",
+    "obs_add, param_add, ref_point,  method, range1, " "range2, angle",
     [
         (
             "OBS1*",
@@ -723,8 +708,6 @@ def test_add_remove_obs_with_ref_point_and_field_scale_config(
             1700,
             850,
             310,
-            ["OBS1", "OBS11", "OBS12", "OBS13", "OBS14"],
-            {"PARAM_SURFACE1": []},
         ),
         (
             "OBS1*",
@@ -734,8 +717,6 @@ def test_add_remove_obs_with_ref_point_and_field_scale_config(
             0.1,
             850,
             0,
-            ["OBS1", "OBS11", "OBS12", "OBS13", "OBS14"],
-            {"PARAM_SURFACE1": [], "PARAM_SURFACE2": []},
         ),
         (
             "OBS1*",
@@ -745,8 +726,6 @@ def test_add_remove_obs_with_ref_point_and_field_scale_config(
             700,
             850,
             100,
-            ["OBS1", "OBS11", "OBS12", "OBS13", "OBS14"],
-            {"PARAM_SURFACE1": []},
         ),
         (
             "OBS1*",
@@ -756,8 +735,6 @@ def test_add_remove_obs_with_ref_point_and_field_scale_config(
             1700,
             500,
             360,
-            ["OBS1", "OBS11", "OBS12", "OBS13", "OBS14"],
-            {"PARAM_SURFACE1": [], "PARAM_SURFACE2": []},
         ),
         (
             "OBS1*",
@@ -767,13 +744,11 @@ def test_add_remove_obs_with_ref_point_and_field_scale_config(
             0.1,
             0.1,
             0,
-            ["OBS1", "OBS11", "OBS12", "OBS13", "OBS14"],
-            {"PARAM_SURFACE1": [], "PARAM_SURFACE2": []},
         ),
     ],
 )
 def test_add_remove_obs_with_ref_point_and_surface_scale_config(
-    obs_add, param_add, ref_point, method, range1, range2, angle, expected, expected2
+    obs_add, param_add, ref_point, method, range1, range2, angle
 ):
     data = {
         "log_level": 2,
@@ -797,13 +772,59 @@ def test_add_remove_obs_with_ref_point_and_surface_scale_config(
             }
         ],
     }
-    conf = LocalisationConfig(
-        observations=ERT_OBS,
-        parameters=ERT_PARAM,
-        grid_config=ERT_GRID_CONFIG,
-        node_type=ERT_NODE_TYPE,
-        **data
-    )
-    assert len(conf.correlations) == 1
-    assert conf.correlations[0].obs_group.add == expected
-    assert conf.correlations[0].param_group.add == expected2
+    LocalisationConfig(observations=ERT_OBS, parameters=ERT_PARAM, **data)
+
+
+@pytest.mark.parametrize(
+    "pattern, list_of_words, expected_result",
+    [(["*"], ["OBS_1", "2"], {"OBS_1", "2"}), ((["OBS*"], ["OBS_1", "2"], {"OBS_1"}))],
+)
+def test_wildcard_expansion(pattern, list_of_words, expected_result):
+    result = expand_wildcards(pattern, list_of_words)
+    assert result == expected_result
+
+
+@pytest.mark.parametrize(
+    "pattern, list_of_words, expected_error",
+    [
+        (["NOT:"], ["OBS_1", "2"], "No match for: NOT"),
+        (["OBS", "OBS_1"], ["OBS_1", "2"], "No match for: OBS"),
+        (["NOT", "OBS"], ["OBS_1", "2"], "No match for: NOT"),
+    ],
+)
+def test_wildcard_expansion_mismatch(pattern, list_of_words, expected_error):
+    with pytest.raises(ValueError, match=expected_error):
+        expand_wildcards(pattern, list_of_words)
+
+
+@pytest.mark.parametrize(
+    "obs_1, obs_2, param_1, param_2, expected",
+    (
+        [["a"], ["a"], ["b"], ["b"], ["Observation: a, parameter: b"]],
+        [["a", "c"], ["a"], ["b"], ["b"], ["Observation: a, parameter: b"]],
+        [
+            ["a", "c"],
+            ["a", "c"],
+            ["b"],
+            ["b"],
+            ["Observation: a, parameter: b", "Observation: c, parameter: b"],
+        ],
+        [
+            ["a", "c"],
+            ["a", "c"],
+            ["b", "d"],
+            ["b"],
+            ["Observation: a, parameter: b", "Observation: c, parameter: b"],
+        ],
+    ),
+)
+def test_check_for_duplicates(obs_1, obs_2, param_1, param_2, expected):
+    correlation_1 = MagicMock()
+    correlation_2 = MagicMock()
+    correlation_1.obs_group.result_items = obs_1
+    correlation_1.param_group.result_items = param_1
+    correlation_2.obs_group.result_items = obs_2
+    correlation_2.param_group.result_items = param_2
+    correlations = [correlation_1, correlation_2]
+    result = check_for_duplicated_correlation_specifications(correlations)
+    assert result == expected

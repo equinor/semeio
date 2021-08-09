@@ -6,6 +6,7 @@ import semeio.hook_implementations.jobs
 from semeio.workflows.misfit_preprocessor import misfit_preprocessor
 from semeio.workflows.spearman_correlation_job import spearman_correlation
 from semeio.workflows.correlated_observations_scaling import cos
+from semeio.workflows.localisation import local_config_script
 from semeio.workflows.csv_export2 import csv_export2
 from semeio.workflows.ahm_analysis import ahmanalysis
 from ert_shared.plugins.plugin_manager import ErtPluginManager
@@ -18,6 +19,7 @@ def test_hook_implementations():
             spearman_correlation,
             misfit_preprocessor,
             cos,
+            local_config_script,
             csv_export2,
             ahmanalysis,
         ]

@@ -11,16 +11,15 @@ class LogLevel(IntEnum):
 
 # Global variables initialized with default
 debug_level = LogLevel.OFF
-scaling_parameter_number = 1
 
 
-def debug_print(text, level=LogLevel.OFF):
+def debug_print(text, threshold=LogLevel.OFF):
     if debug_level > LogLevel.OFF:
-        if level == LogLevel.LEVEL1:
+        if threshold == LogLevel.LEVEL1:
             text = "-- " + text
-        elif level == LogLevel.LEVEL2:
+        elif threshold == LogLevel.LEVEL2:
             text = "  -- " + text
-        elif level == LogLevel.LEVEL3:
+        elif threshold == LogLevel.LEVEL3:
             text = "    -- " + text
-        if debug_level >= level:
+        if debug_level >= threshold:
             print(text)

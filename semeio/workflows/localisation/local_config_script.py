@@ -4,10 +4,10 @@
 # Current version:
 #   Localisation configuration file in YAML format is read for
 #   parameters and this script setup the localisation in ERT.
+from ert_shared.libres_facade import LibresFacade
+from ert_shared.plugins.plugin_manager import hook_implementation
 
 import semeio.workflows.localisation.local_script_lib as local
-
-from ert_shared.plugins.plugin_manager import hook_implementation
 from semeio.communication import SemeioScript
 from semeio.workflows.localisation.localisation_config import LocalisationConfig
 
@@ -15,7 +15,7 @@ from semeio.workflows.localisation.localisation_config import LocalisationConfig
 class LocalisationConfigJob(SemeioScript):
     def run(self, *args):
         ert = self.ert()
-
+        facade = LibresFacade(self.ert())
         # Clear all correlations
         local.clear_correlations(ert)
 
@@ -23,19 +23,26 @@ class LocalisationConfigJob(SemeioScript):
         config_dict = local.read_localisation_config(args)
 
         # Get all observations from ert instance
-        ert_obs_list = local.get_observations_from_ert(ert)
+        obs_keys = [
+            facade.get_observation_key(nr)
+            for nr, _ in enumerate(facade.get_observations())
+        ]
 
-        ert_param_dict, ert_node_type_dict = local.get_param_from_ert(ert)
+        ert_parameters = local.get_param_from_ert(ert.ensembleConfig())
 
         config = LocalisationConfig(
-            observations=ert_obs_list,
-            parameters=ert_param_dict,
-            node_type=ert_node_type_dict,
+            observations=obs_keys,
+            parameters=ert_parameters.to_list(),
             **config_dict,
         )
 
-        local.add_ministeps(config, ert_param_dict, ert)
-        print("\nFinished localisation setup.")
+        local.add_ministeps(
+            config,
+            ert_parameters.to_dict(),
+            ert.getLocalConfig(),
+            ert.ensembleConfig(),
+            ert.eclConfig().getGrid(),
+        )
 
 
 @hook_implementation
