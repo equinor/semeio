@@ -88,8 +88,8 @@ class GaussianConfig(BaseModel):
     method: Literal["gaussian_decay"]
     main_range: confloat(gt=0)
     perp_range: confloat(gt=0)
-    angle: confloat(ge=0.0, le=360)
-    filename: Optional[str]
+    azimuth: confloat(ge=0.0, le=360)
+    surf_filename: Optional[str]
 
 
 class ExponentialConfig(GaussianConfig):
@@ -153,7 +153,7 @@ class CorrelationConfig(BaseModel):
             return value
         if not isinstance(value, dict):
             raise ValueError("value must be dict")
-        key = "filename"
+        key = "surf_filename"
         if key in value.keys():
             surface_file_name = value.get(key)
         else:
@@ -191,9 +191,17 @@ class LocalisationConfig(BaseModel):
     log_level: Optional[conint(ge=0, le=5)] = 1
 
     @validator("log_level")
-    def validate_log_level(cls, value):
-        # Change the log level from default to user defined
-        log_level_setting.debug_level = value
+    def validate_log_level(cls, level):
+        if isinstance(level, int):
+            # Change the log level from default to user defined
+            log_level_setting.debug_level = level
+        else:
+            # Set equal to default
+            level = log_level_setting.debug_level
+
+        # Initialize global parameter scaling_param_number to 1
+        log_level_setting.scaling_param_number = 1
+        return level
 
     @root_validator(pre=True)
     def inject_context(cls, values: Dict) -> Dict:

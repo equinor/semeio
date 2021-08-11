@@ -1,5 +1,4 @@
 # pylint: disable=W0201
-import itertools
 import math
 from collections import defaultdict
 from typing import List
@@ -21,6 +20,7 @@ import semeio.workflows.localisation.localisation_debug_settings as log_level_se
 
 # The global variable is only used for controlling output of log info to screen
 debug_level = log_level_setting.debug_level
+scaling_param_number = log_level_setting.scaling_param_number
 
 
 @dataclass
@@ -236,14 +236,16 @@ def write_scaling_values(
         raise KeyError(f" Method name: {method_name} is not implemented")
 
     scaling_values = np.zeros((nx, ny, nz), dtype=np.float32)
-    for k, j, i in itertools.product(nz, ny, nx):
-        global_index = grid_for_field.global_index(ijk=(i, j, k))
-        scaling_values[i, j, k] = decay_obj(global_index)
+    for k in range(nz):
+        for j in range(ny):
+            for i in range(nx):
+                global_index = grid_for_field.global_index(ijk=(i, j, k))
+                scaling_values[i, j, k] = decay_obj(global_index)
 
     scaling_kw_name = "S_" + str(scaling_parameter_number)
     scaling_kw = grid_for_field.create_kw(scaling_values, scaling_kw_name, False)
-    filename = corr_name + "_" + node_name + "_scaling" + ".GRDECL"
-    print(f"   -- Write file: {filename}")
+    filename = corr_name + "_" + node_name + "_" + scaling_kw_name + ".GRDECL"
+    debug_print(f"Write file: {filename}", LogLevel.LEVEL3)
     with cwrap.open(filename, "w") as file:
         grid_for_field.write_grdecl(scaling_kw, file)
 
@@ -251,6 +253,7 @@ def write_scaling_values(
 def activate_and_scale_correlation(
     grid, method, row_scaling, ref_pos, data_size, main_range, perp_range, azimuth
 ):
+    debug_print(f"Scale correlations using method: {method}", LogLevel.LEVEL3)
     if method == "gaussian_decay":
         row_scaling.assign(
             data_size,
@@ -307,10 +310,11 @@ def add_ministeps(
                         field_config.get_data_size(),
                         corr_spec.field_scale.main_range,
                         corr_spec.field_scale.perp_range,
-                        corr_spec.field_scale.angle,
+                        corr_spec.field_scale.azimuth,
                     )
                     if user_config.log_level > 3:
-                        scaling_param_number = 1
+                        # pylint: disable=W0603
+                        global scaling_param_number
                         write_scaling_values(
                             corr_spec.name,
                             node_name,
@@ -344,7 +348,7 @@ def add_ministeps(
                     )
             elif impl_type == ErtImplType.SURFACE:
                 if corr_spec.surface_scale is not None:
-                    surface = Surface(corr_spec.surface_scale.filename)
+                    surface = Surface(corr_spec.surface_scale.surf_filename)
                     data_size = surface.getNX() * surface.getNY()
                     activate_and_scale_correlation(
                         surface,
@@ -354,7 +358,7 @@ def add_ministeps(
                         data_size,
                         corr_spec.surface_scale.main_range,
                         corr_spec.surface_scale.perp_range,
-                        corr_spec.surface_scale.angle,
+                        corr_spec.surface_scale.azimuth,
                     )
                 else:
                     debug_print(

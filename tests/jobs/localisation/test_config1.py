@@ -686,7 +686,7 @@ def test_add_remove_obs_with_ref_point_and_field_scale_config(
                     "method": method,
                     "main_range": range1,
                     "perp_range": range2,
-                    "angle": angle,
+                    "azimuth": angle,
                 },
             }
         ],
@@ -766,8 +766,8 @@ def test_add_remove_obs_with_ref_point_and_surface_scale_config(
                     "method": method,
                     "main_range": range1,
                     "perp_range": range2,
-                    "angle": angle,
-                    "filename": "surface.txt",
+                    "azimuth": angle,
+                    "surf_filename": "surface.txt",
                 },
             }
         ],

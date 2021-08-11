@@ -11,6 +11,7 @@ class LogLevel(IntEnum):
 
 # Global variables initialized with default
 debug_level = LogLevel.OFF
+scaling_param_number = 1
 
 
 def debug_print(text, threshold=LogLevel.OFF):

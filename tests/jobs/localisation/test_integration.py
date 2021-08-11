@@ -180,8 +180,8 @@ def test_localisation_surf(
                     "method": "gaussian_decay",
                     "main_range": 1700,
                     "perp_range": 850,
-                    "angle": 200,
-                    "filename": "surf0.txt",
+                    "azimuth": 200,
+                    "surf_filename": "surf0.txt",
                 },
             },
         ],
@@ -215,28 +215,32 @@ def test_localisation_field(
     grid_file_name = "grid3D.EGRID"
     print(f" Write file: {grid_file_name}")
     grid.to_file(grid_file_name, fformat="egrid")
-    property_name = "G"
-    filename_output = property_name + ".roff"
-    filename_input = property_name + "_%d.roff"
-    values = np.zeros((nx, ny, nz), dtype=np.float32)
-    property_field = xtgeo.GridProperty(grid, values=0.0, name=property_name)
-    for n in range(nreal):
-        values = np.zeros((nx, ny, nz), dtype=np.float32)
-        property_field.values = values + 0.1 * n
-        filename = property_name + str(n) + ".roff"
-        print(f"Write file: {filename}")
-        property_field.to_file(filename, fformat="roff", name=property_name)
-
     with open("poly.ert", "a") as fout:
-        fout.write(
-            f"GRID   {grid_file_name}\n"
-            f"FIELD  {property_name}  PARAMETER  {filename_output}  "
-            f"INIT_FILES:{filename_input}  MIN:-5.5   MAX:5.5     FORWARD_INIT:False\n"
-        )
+        fout.write(f"GRID   {grid_file_name}\n")
+
+        property_names = ["G1", "G2"]
+        for pname in property_names:
+            filename_output = pname + ".roff"
+            filename_input = pname + "_%d.roff"
+            values = np.zeros((nx, ny, nz), dtype=np.float32)
+            property_field = xtgeo.GridProperty(grid, values=0.0, name=pname)
+            for n in range(nreal):
+                values = np.zeros((nx, ny, nz), dtype=np.float32)
+                property_field.values = values + 0.1 * n
+                filename = pname + "_" + str(n) + ".roff"
+                print(f"Write file: {filename}")
+                property_field.to_file(filename, fformat="roff", name=pname)
+
+            fout.write(
+                f"FIELD  {pname}  PARAMETER  {filename_output}  "
+                f"INIT_FILES:{filename_input}  MIN:-5.5   MAX:5.5  "
+                "FORWARD_INIT:False\n"
+            )
 
     res_config = ResConfig("poly.ert")
     ert = EnKFMain(res_config)
     config = {
+        "log_level": 4,
         "correlations": [
             {
                 "name": "CORR1",
@@ -251,7 +255,7 @@ def test_localisation_field(
                     "method": "gaussian_decay",
                     "main_range": 1700,
                     "perp_range": 850,
-                    "angle": 200,
+                    "azimuth": 200,
                 },
             },
         ],
