@@ -165,7 +165,7 @@ def test_localisation_surf(
     res_config = ResConfig("poly.ert")
     ert = EnKFMain(res_config)
     config = {
-        "log_level": 2,
+        "log_level": 3,
         "correlations": [
             {
                 "name": "CORR1",
@@ -181,7 +181,6 @@ def test_localisation_surf(
                     "main_range": 1700,
                     "perp_range": 850,
                     "azimuth": 200,
-                    "surf_filename": "surf0.txt",
                 },
             },
         ],

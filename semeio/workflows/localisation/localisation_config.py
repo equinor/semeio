@@ -89,7 +89,7 @@ class GaussianConfig(BaseModel):
     main_range: confloat(gt=0)
     perp_range: confloat(gt=0)
     azimuth: confloat(ge=0.0, le=360)
-    surf_filename: Optional[str]
+    surface_directory: Optional[str] = "."
 
 
 class ExponentialConfig(GaussianConfig):
@@ -153,13 +153,14 @@ class CorrelationConfig(BaseModel):
             return value
         if not isinstance(value, dict):
             raise ValueError("value must be dict")
-        key = "surf_filename"
-        if key in value.keys():
-            surface_file_name = value.get(key)
-        else:
-            raise KeyError(f"Missing keyword {key} in keyword 'surface_scale' ")
-        if not isinstance(surface_file_name, str):
-            raise ValueError(f"Invalid file name for surface: {surface_file_name}")
+
+        # String with relative path to surface files relative to config path
+        key = "surface_directory"
+        if key not in value.keys():
+            # Set default relative directory
+            surface_directory = "."
+            value[key] = surface_directory
+
         method = value.get("method")
         _valid_methods = {
             "gaussian_decay": GaussianConfig,
@@ -183,12 +184,15 @@ class LocalisationConfig(BaseModel):
                             one correlation set which defines the input to
                             create a ministep object.
     log_level:       Integer defining how much log output to write to screen
+    write_scaling_factors: Turn on writing calculated scaling parameters to file.
+                            Possible values: True/False. Default: False
     """
 
     observations: List[str]
     parameters: List[str]
     correlations: List[CorrelationConfig]
     log_level: Optional[conint(ge=0, le=5)] = 1
+    write_scaling_factors: Optional[bool] = False
 
     @validator("log_level")
     def validate_log_level(cls, level):

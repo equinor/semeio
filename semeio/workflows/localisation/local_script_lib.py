@@ -10,6 +10,7 @@ import numpy as np
 from ecl.util.geometry import Surface
 from res.enkf.enums.ert_impl_type_enum import ErtImplType
 from res.enkf.enums.enkf_var_type_enum import EnkfVarType
+
 from dataclasses import dataclass, field
 
 from semeio.workflows.localisation.localisation_debug_settings import (
@@ -157,8 +158,6 @@ def active_index_for_parameter(node_name, param_name, ert_param_dict):
     # For parameters defined as scalar parameters (coming from GEN_KW)
     # the parameters for a node have a name. Get the index from the order
     # of these parameters.
-    # For parameters that are not coming from GEN_KW,
-    # the active index is not used here.
 
     ert_param_list = ert_param_dict[node_name]
     if len(ert_param_list) > 0:
@@ -168,8 +167,6 @@ def active_index_for_parameter(node_name, param_name, ert_param_dict):
                 index = count
                 break
         assert index > -1
-    else:
-        index = None
     return index
 
 
@@ -268,10 +265,29 @@ def activate_and_scale_correlation(
         print(f" --  Scaling method: {method} " "is not implemented.")
 
 
+def get_file_with_surface_format(directory_path, file_with_surface_format):
+    # The file is either of format <name%d.suffix> or <name.suffix>
+    # since it is the name specified in the INIT_FILES sub keyword
+    # of the SURFACE keyword in ERT config file
+    if "%" in file_with_surface_format:
+        # Assume that realisation 0 exist for the init file
+        n = 0
+        words = file_with_surface_format.split("%")
+        filename = directory_path + "/" + words[0] + str(n) + words[1][1:]
+    else:
+        filename = directory_path + "/" + file_with_surface_format
+    return filename
+
+
 def add_ministeps(
-    user_config, ert_param_dict, ert_local_config, ert_ensemble_config, grid_for_field
+    user_config,
+    ert_param_dict,
+    ert_local_config,
+    ert_ensemble_config,
+    grid_for_field,
 ):
     # pylint: disable-msg=too-many-branches
+    # pylint: disable-msg=R0915
     debug_print("Add all ministeps:", LogLevel.LEVEL1)
 
     for count, corr_spec in enumerate(user_config.correlations):
@@ -348,7 +364,15 @@ def add_ministeps(
                     )
             elif impl_type == ErtImplType.SURFACE:
                 if corr_spec.surface_scale is not None:
-                    surface = Surface(corr_spec.surface_scale.surf_filename)
+                    surface_directory_path = corr_spec.surface_scale.surface_directory
+                    file_with_surface_format = get_file_with_surface_format(
+                        surface_directory_path, node.get_init_file_fmt()
+                    )
+                    debug_print(
+                        f"Get surface size from: {file_with_surface_format}",
+                        LogLevel.LEVEL3,
+                    )
+                    surface = Surface(file_with_surface_format)
                     data_size = surface.getNX() * surface.getNY()
                     activate_and_scale_correlation(
                         surface,
