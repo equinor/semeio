@@ -21,7 +21,7 @@ import numpy as np
 def test_localisation(setup_ert, obs_group_add, param_group_add, expected):
     ert = EnKFMain(setup_ert)
     config = {
-        "log_level": 4,
+        "log_level": 3,
         "correlations": [
             {
                 "name": "CORR1",
@@ -107,7 +107,7 @@ def test_localisation_gen_param(
     res_config = ResConfig("poly.ert")
     ert = EnKFMain(res_config)
     config = {
-        "log_level": 2,
+        "log_level": 3,
         "correlations": [
             {
                 "name": "CORR1",
@@ -217,7 +217,7 @@ def test_localisation_field(
     with open("poly.ert", "a") as fout:
         fout.write(f"GRID   {grid_file_name}\n")
 
-        property_names = ["G1", "G2"]
+        property_names = ["G1", "G2", "G3", "G4"]
         for pname in property_names:
             filename_output = pname + ".roff"
             filename_input = pname + "_%d.roff"
@@ -239,7 +239,8 @@ def test_localisation_field(
     res_config = ResConfig("poly.ert")
     ert = EnKFMain(res_config)
     config = {
-        "log_level": 4,
+        "log_level": 3,
+        "write_scaling_factors": True,
         "correlations": [
             {
                 "name": "CORR1",
@@ -247,7 +248,7 @@ def test_localisation_field(
                     "add": "*",
                 },
                 "param_group": {
-                    "add": "*",
+                    "add": ["G1", "G2"],
                 },
                 "ref_point": [700, 370],
                 "field_scale": {
@@ -255,6 +256,22 @@ def test_localisation_field(
                     "main_range": 1700,
                     "perp_range": 850,
                     "azimuth": 200,
+                },
+            },
+            {
+                "name": "CORR2",
+                "obs_group": {
+                    "add": "*",
+                },
+                "param_group": {
+                    "add": ["G3", "G4"],
+                },
+                "ref_point": [700, 370],
+                "field_scale": {
+                    "method": "gaussian_decay",
+                    "main_range": 1000,
+                    "perp_range": 950,
+                    "azimuth": 100,
                 },
             },
         ],

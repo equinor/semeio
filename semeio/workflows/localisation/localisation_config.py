@@ -6,7 +6,10 @@ from typing_extensions import Literal
 
 from pydantic import BaseModel, validator, confloat, conint, conlist, root_validator
 
-import semeio.workflows.localisation.localisation_debug_settings as log_level_setting
+from semeio.workflows.localisation.localisation_debug_settings import (
+    LocalDebugLog,
+    LogLevel,
+)
 
 
 def expand_wildcards(patterns, list_of_words):
@@ -196,15 +199,10 @@ class LocalisationConfig(BaseModel):
 
     @validator("log_level")
     def validate_log_level(cls, level):
+        LocalDebugLog.level = LogLevel.LEVEL1
         if isinstance(level, int):
             # Change the log level from default to user defined
-            log_level_setting.debug_level = level
-        else:
-            # Set equal to default
-            level = log_level_setting.debug_level
-
-        # Initialize global parameter scaling_param_number to 1
-        log_level_setting.scaling_param_number = 1
+            LocalDebugLog.level = level
         return level
 
     @root_validator(pre=True)

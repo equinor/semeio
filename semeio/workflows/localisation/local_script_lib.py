@@ -17,11 +17,6 @@ from semeio.workflows.localisation.localisation_debug_settings import (
     LogLevel,
     debug_print,
 )
-import semeio.workflows.localisation.localisation_debug_settings as log_level_setting
-
-# The global variable is only used for controlling output of log info to screen
-debug_level = log_level_setting.debug_level
-scaling_param_number = log_level_setting.scaling_param_number
 
 
 @dataclass
@@ -206,47 +201,6 @@ def activate_gen_param(model_param_group, node_name, param_list, data_size):
         active_param_list.addActiveIndex(index)
 
 
-def write_scaling_values(
-    corr_name,
-    node_name,
-    method_name,
-    grid_for_field,
-    ref_pos,
-    main_range,
-    perp_range,
-    azimuth,
-    scaling_parameter_number,
-):
-    # pylint: disable=W0603
-    nx = grid_for_field.getNX()
-    ny = grid_for_field.getNY()
-    nz = grid_for_field.getNZ()
-    if method_name == "gaussian_decay":
-        decay_obj = GaussianDecay(
-            ref_pos, main_range, perp_range, azimuth, grid_for_field
-        )
-    elif method_name == "exponential_decay":
-        decay_obj = ExponentialDecay(
-            ref_pos, main_range, perp_range, azimuth, grid_for_field
-        )
-    else:
-        raise KeyError(f" Method name: {method_name} is not implemented")
-
-    scaling_values = np.zeros((nx, ny, nz), dtype=np.float32)
-    for k in range(nz):
-        for j in range(ny):
-            for i in range(nx):
-                global_index = grid_for_field.global_index(ijk=(i, j, k))
-                scaling_values[i, j, k] = decay_obj(global_index)
-
-    scaling_kw_name = "S_" + str(scaling_parameter_number)
-    scaling_kw = grid_for_field.create_kw(scaling_values, scaling_kw_name, False)
-    filename = corr_name + "_" + node_name + "_" + scaling_kw_name + ".GRDECL"
-    debug_print(f"Write file: {filename}", LogLevel.LEVEL3)
-    with cwrap.open(filename, "w") as file:
-        grid_for_field.write_grdecl(scaling_kw, file)
-
-
 def activate_and_scale_correlation(
     grid, method, row_scaling, ref_pos, data_size, main_range, perp_range, azimuth
 ):
@@ -289,7 +243,7 @@ def add_ministeps(
     # pylint: disable-msg=too-many-branches
     # pylint: disable-msg=R0915
     debug_print("Add all ministeps:", LogLevel.LEVEL1)
-
+    ScalingValues.initialize()
     for count, corr_spec in enumerate(user_config.correlations):
         ministep_name = corr_spec.name
         ministep = ert_local_config.createMinistep(ministep_name)
@@ -303,6 +257,7 @@ def add_ministeps(
 
         obs_list = corr_spec.obs_group.result_items
         param_dict = Parameters.from_list(corr_spec.param_group.result_items).to_dict()
+
         # Setup model parameter group
         for node_name, param_list in param_dict.items():
             node = ert_ensemble_config.getNode(node_name)
@@ -328,21 +283,8 @@ def add_ministeps(
                         corr_spec.field_scale.perp_range,
                         corr_spec.field_scale.azimuth,
                     )
-                    if user_config.log_level > 3:
-                        # pylint: disable=W0603
-                        global scaling_param_number
-                        write_scaling_values(
-                            corr_spec.name,
-                            node_name,
-                            corr_spec.field_scale.method,
-                            grid_for_field,
-                            corr_spec.ref_point,
-                            corr_spec.field_scale.main_range,
-                            corr_spec.field_scale.perp_range,
-                            corr_spec.field_scale.azimuth,
-                            scaling_param_number,
-                        )
-                        scaling_param_number += 1
+                    if user_config.write_scaling_factors:
+                        ScalingValues.write(node_name, corr_spec, grid_for_field)
                 else:
                     debug_print(
                         f"No correlation scaling for node {node_name} "
@@ -470,3 +412,74 @@ class ExponentialDecay(Decay):
         dx, dy = super().get_dx_dy(data_index)
         exp_arg = -0.5 * math.sqrt(dx * dx + dy * dy)
         return math.exp(exp_arg)
+
+
+class ScalingValues:
+    # pylint: disable=R0903
+    scaling_param_number = 1
+    corr_name = None
+
+    @classmethod
+    def initialize(cls):
+        cls.scaling_param_number = 1
+        cls.corr_name = None
+
+    @classmethod
+    def write(cls, node_name, corr_spec, grid_for_field):
+        corr_name = corr_spec.name
+        ref_point = corr_spec.ref_point
+        grid = grid_for_field
+        if corr_spec.field_scale is None:
+            raise ValueError(
+                "Scaling values for 3D parameters require "
+                f"specification of keyword 'field_scale' for {cls.corr_name}"
+            )
+        method_name = corr_spec.field_scale.method
+
+        if method_name == "gaussian_decay":
+            decay_obj = GaussianDecay(
+                ref_point,
+                corr_spec.field_scale.main_range,
+                corr_spec.field_scale.perp_range,
+                corr_spec.field_scale.azimuth,
+                grid,
+            )
+            scaling_values = cls._calculate_scaling_param(grid, decay_obj)
+        elif method_name == "exponential_decay":
+            decay_obj = ExponentialDecay(
+                ref_point,
+                corr_spec.field_scale.main_range,
+                corr_spec.field_scale.perp_range,
+                corr_spec.field_scale.azimuth,
+                grid,
+            )
+            scaling_values = cls._calculate_scaling_param(grid, decay_obj)
+        else:
+            raise KeyError(f" Method name: {method_name} is not implemented")
+
+        # Write scaling parameter  once per corr_name
+        if corr_name != cls.corr_name:
+            cls.corr_name = corr_name
+            scaling_kw_name = "S_" + str(cls.scaling_param_number)
+            scaling_kw = grid.create_kw(scaling_values, scaling_kw_name, False)
+            filename = (
+                cls.corr_name + "_" + node_name + "_" + scaling_kw_name + ".GRDECL"
+            )
+            debug_print(f"Write file: {filename}", LogLevel.LEVEL3)
+            with cwrap.open(filename, "w") as file:
+                grid.write_grdecl(scaling_kw, file)
+            # Increase parameter number to define unique parameter name
+            cls.scaling_param_number = cls.scaling_param_number + 1
+
+    @classmethod
+    def _calculate_scaling_param(cls, grid, decay_obj):
+        nx = grid.getNX()
+        ny = grid.getNY()
+        nz = grid.getNZ()
+        scaling_values = np.zeros((nx, ny, nz), dtype=np.float32)
+        for k in range(nz):
+            for j in range(ny):
+                for i in range(nx):
+                    global_index = grid.global_index(ijk=(i, j, k))
+                    scaling_values[i, j, k] = decay_obj(global_index)
+        return scaling_values

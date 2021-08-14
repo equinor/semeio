@@ -9,18 +9,22 @@ class LogLevel(IntEnum):
     LEVEL4 = 4
 
 
-# Global variables initialized with default
-debug_level = LogLevel.OFF
-scaling_param_number = 1
+class LocalDebugLog:
+    # pylint: disable=R0903
+    level = LogLevel.LEVEL1
+
+    @classmethod
+    def debug_print(cls, text, threshold=LogLevel.OFF):
+        if cls.level > LogLevel.OFF:
+            if threshold == LogLevel.LEVEL1:
+                text = "-- " + text
+            elif threshold == LogLevel.LEVEL2:
+                text = "  -- " + text
+            elif threshold == LogLevel.LEVEL3:
+                text = "    -- " + text
+            if cls.level >= threshold:
+                print(text)
 
 
 def debug_print(text, threshold=LogLevel.OFF):
-    if debug_level > LogLevel.OFF:
-        if threshold == LogLevel.LEVEL1:
-            text = "-- " + text
-        elif threshold == LogLevel.LEVEL2:
-            text = "  -- " + text
-        elif threshold == LogLevel.LEVEL3:
-            text = "    -- " + text
-        if debug_level >= threshold:
-            print(text)
+    LocalDebugLog.debug_print(text, threshold)
