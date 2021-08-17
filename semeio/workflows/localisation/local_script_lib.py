@@ -1,17 +1,18 @@
 # pylint: disable=W0201
 import math
-from collections import defaultdict
-from typing import List
-
 import yaml
 import cwrap
 import numpy as np
 
+from collections import defaultdict
+from typing import List
+from dataclasses import dataclass, field
+
 from ecl.util.geometry import Surface
+from ecl.eclfile import Ecl3DKW
+from ecl.ecl_type import EclDataType
 from res.enkf.enums.ert_impl_type_enum import ErtImplType
 from res.enkf.enums.enkf_var_type_enum import EnkfVarType
-
-from dataclasses import dataclass, field
 
 from semeio.workflows.localisation.localisation_debug_settings import (
     LogLevel,
@@ -204,7 +205,7 @@ def activate_gen_param(model_param_group, node_name, param_list, data_size):
 def activate_and_scale_correlation(
     grid, method, row_scaling, ref_pos, data_size, main_range, perp_range, azimuth
 ):
-    debug_print(f"Scale correlations using method: {method}", LogLevel.LEVEL3)
+
     if method == "gaussian_decay":
         row_scaling.assign(
             data_size,
@@ -231,6 +232,127 @@ def get_file_with_surface_format(directory_path, file_with_surface_format):
     else:
         filename = directory_path + "/" + file_with_surface_format
     return filename
+
+
+def apply_gaussian_decay(
+    row_scaling, data_size, grid, ref_pos, main_range, perp_range, azimuth
+):
+    row_scaling.assign(
+        data_size,
+        GaussianDecay(ref_pos, main_range, perp_range, azimuth, grid),
+    )
+
+
+def apply_exponential_decay(
+    row_scaling, data_size, grid, ref_pos, main_range, perp_range, azimuth
+):
+    row_scaling.assign(
+        data_size,
+        ExponentialDecay(ref_pos, main_range, perp_range, azimuth, grid),
+    )
+
+
+def apply_from_file(row_scaling, data_size, grid, filename, param_name):
+    debug_print(f"Read scaling factors as parameter {param_name}", LogLevel.LEVEL3)
+    debug_print(f"File name:  {filename}", LogLevel.LEVEL3)
+    with cwrap.open(filename, "r") as file:
+        scaling_parameter = Ecl3DKW.read_grdecl(
+            grid,
+            file,
+            param_name,
+            strict=True,
+            ecl_type=EclDataType.ECL_FLOAT,
+        )
+        for index in range(data_size):
+            global_index = grid.global_index(active_index=index)
+            row_scaling[index] = scaling_parameter[global_index]
+
+
+def apply_segment(
+    row_scaling,
+    data_size,
+    grid,
+    filename,
+    param_name,
+    active_segment_list,
+    scaling_factor_list,
+    corr_name,
+    use_return_param=False,
+):
+    """
+    Purpose: Use region numbers and list of scaling factors per region to
+                   create scaling factors. Input file is region file with specified
+                   parameter name, active segment list and scaling factor list
+                   are user specified.
+    """
+    # pylint: disable=R0912
+    debug_print(f"Use parameter name: {param_name}", LogLevel.LEVEL3)
+    debug_print(f"Active segments: {active_segment_list}", LogLevel.LEVEL3)
+    if scaling_factor_list is None:
+        scaling_factor_list = []
+        scaling_factor_list.append(1.0)
+        debug_print(f"Scaling factors:    {scaling_factor_list}", LogLevel.LEVEL3)
+
+    max_region_number_specified = 0
+    for n in active_segment_list:
+        if n > max_region_number_specified:
+            max_region_number_specified = n
+        if n < 0:
+            raise ValueError("Segment number must be non-negative integer")
+
+    scaling = np.zeros(max_region_number_specified + 1, dtype=np.float32)
+    for count, n in enumerate(active_segment_list):
+        # Array to look up scaling factor given segment number
+        scaling[n] = scaling_factor_list[count]
+
+    debug_print(f"Read region file: {filename}", LogLevel.LEVEL3)
+    with cwrap.open(filename, "r") as file:
+        region_parameter = Ecl3DKW.read_grdecl(
+            grid,
+            file,
+            param_name,
+            strict=True,
+            ecl_type=EclDataType.ECL_INT,
+        )
+    # Get max region number
+    max_region_number = 0
+    for index in range(data_size):
+        global_index = grid.global_index(active_index=index)
+        region_number = region_parameter[global_index]
+        if region_number > max_region_number:
+            max_region_number = region_number
+
+    # Array with 0 if region number is not used and 1 if used
+    # Assign scaling factor and save which regions is used as info
+    region_used = np.zeros(max_region_number + 1, dtype=np.uint16)
+    param_for_field = None
+    if use_return_param:
+        param_for_field = np.zeros(data_size, dtype=np.float32)
+    for index in range(data_size):
+        global_index = grid.global_index(active_index=index)
+        region_number = region_parameter[global_index]
+        region_used[region_number] = 1
+        if region_number in active_segment_list:
+            row_scaling[index] = scaling[region_number]
+            if use_return_param:
+                param_for_field[index] = scaling[region_number]
+        else:
+            row_scaling[index] = 0
+
+    not_defined_in_region_param = []
+    for n in active_segment_list:
+        if not region_used[n]:
+            not_defined_in_region_param.append(n)
+    if len(not_defined_in_region_param) > 0:
+        debug_print(
+            f"Warning: The following region numbers are specified in \n"
+            "                config file for correlation group "
+            f"{corr_name}, \n"
+            "                but not found in region parameter: "
+            f"{not_defined_in_region_param}",
+            LogLevel.LEVEL3,
+        )
+    return param_for_field
 
 
 def add_ministeps(
@@ -271,20 +393,80 @@ def add_ministeps(
                 )
             elif impl_type == ErtImplType.FIELD:
                 if corr_spec.field_scale is not None:
-                    field_config = node.getFieldModelConfig()
-                    check_if_ref_point_in_grid(corr_spec.ref_point, grid_for_field)
-                    activate_and_scale_correlation(
-                        grid_for_field,
-                        corr_spec.field_scale.method,
-                        model_param_group.row_scaling(node_name),
-                        corr_spec.ref_point,
-                        field_config.get_data_size(),
-                        corr_spec.field_scale.main_range,
-                        corr_spec.field_scale.perp_range,
-                        corr_spec.field_scale.azimuth,
+                    debug_print(
+                        "Scale correlations using method: "
+                        f"{corr_spec.field_scale.method}",
+                        LogLevel.LEVEL3,
                     )
+                    field_config = node.getFieldModelConfig()
+                    row_scaling = model_param_group.row_scaling(node_name)
+                    data_size = grid_for_field.get_num_active()
+                    data_size2 = field_config.get_data_size()
+                    assert data_size == data_size2
+                    param_for_field = None
+                    if corr_spec.field_scale.method == "gaussian_decay":
+                        ref_pos = corr_spec.ref_point
+                        main_range = corr_spec.field_scale.main_range
+                        perp_range = corr_spec.field_scale.perp_range
+                        azimuth = corr_spec.field_scale.azimuth
+                        check_if_ref_point_in_grid(ref_pos, grid_for_field)
+                        apply_gaussian_decay(
+                            row_scaling,
+                            data_size,
+                            grid_for_field,
+                            ref_pos,
+                            main_range,
+                            perp_range,
+                            azimuth,
+                        )
+
+                    elif corr_spec.field_scale.method == "exponential_decay":
+                        ref_pos = corr_spec.ref_point
+                        main_range = corr_spec.field_scale.main_range
+                        perp_range = corr_spec.field_scale.perp_range
+                        azimuth = corr_spec.field_scale.azimuth
+                        check_if_ref_point_in_grid(ref_pos, grid_for_field)
+                        apply_exponential_decay(
+                            row_scaling,
+                            data_size,
+                            grid_for_field,
+                            ref_pos,
+                            main_range,
+                            perp_range,
+                            azimuth,
+                        )
+
+                    elif corr_spec.field_scale.method == "from_file":
+                        apply_from_file(
+                            row_scaling,
+                            data_size,
+                            grid_for_field,
+                            corr_spec.field_scale.filename,
+                            corr_spec.field_scale.param_name,
+                        )
+
+                    elif corr_spec.field_scale.method == "segment":
+                        param_for_field = apply_segment(
+                            row_scaling,
+                            data_size,
+                            grid_for_field,
+                            corr_spec.field_scale.segment_filename,
+                            corr_spec.field_scale.param_name,
+                            corr_spec.field_scale.active_segments,
+                            corr_spec.field_scale.scalingfactors,
+                            corr_spec.name,
+                            user_config.write_scaling_factors,
+                        )
+                    else:
+                        print(
+                            f" --  Scaling method: {corr_spec.field_scale.method} "
+                            "is not implemented."
+                        )
+
                     if user_config.write_scaling_factors:
-                        ScalingValues.write(node_name, corr_spec, grid_for_field)
+                        ScalingValues.write(
+                            node_name, corr_spec, grid_for_field, param_for_field
+                        )
                 else:
                     debug_print(
                         f"No correlation scaling for node {node_name} "
@@ -313,16 +495,36 @@ def add_ministeps(
                     )
                     surface = Surface(surface_file)
                     data_size = surface.getNX() * surface.getNY()
-                    activate_and_scale_correlation(
-                        surface,
-                        corr_spec.surface_scale.method,
-                        model_param_group.row_scaling(node_name),
-                        corr_spec.ref_point,
-                        data_size,
-                        corr_spec.surface_scale.main_range,
-                        corr_spec.surface_scale.perp_range,
-                        corr_spec.surface_scale.azimuth,
-                    )
+                    row_scaling = model_param_group.row_scaling(node_name)
+                    if corr_spec.surface_scale.method == "gaussian_decay":
+                        ref_pos = corr_spec.ref_point
+                        main_range = corr_spec.surface_scale.main_range
+                        perp_range = corr_spec.surface_scale.perp_range
+                        azimuth = corr_spec.surface_scale.azimuth
+                        apply_gaussian_decay(
+                            row_scaling,
+                            data_size,
+                            surface,
+                            ref_pos,
+                            main_range,
+                            perp_range,
+                            azimuth,
+                        )
+
+                    elif corr_spec.surface_scale.method == "exponential_decay":
+                        ref_pos = corr_spec.ref_point
+                        main_range = corr_spec.surface_scale.main_range
+                        perp_range = corr_spec.surface_scale.perp_range
+                        azimuth = corr_spec.surface_scale.azimuth
+                        apply_exponential_decay(
+                            row_scaling,
+                            data_size,
+                            surface,
+                            ref_pos,
+                            main_range,
+                            perp_range,
+                            azimuth,
+                        )
                 else:
                     debug_print(
                         f"No correlation scaling for node {node_name} "
@@ -422,7 +624,7 @@ class ScalingValues:
         cls.corr_name = None
 
     @classmethod
-    def write(cls, node_name, corr_spec, grid_for_field):
+    def write(cls, node_name, corr_spec, grid_for_field, param_for_field=None):
         corr_name = corr_spec.name
         ref_point = corr_spec.ref_point
         grid = grid_for_field
@@ -441,7 +643,7 @@ class ScalingValues:
                 corr_spec.field_scale.azimuth,
                 grid,
             )
-            scaling_values = cls._calculate_scaling_param(grid, decay_obj)
+            scaling_values = cls._calculate_scaling_param_decay(grid, decay_obj)
         elif method_name == "exponential_decay":
             decay_obj = ExponentialDecay(
                 ref_point,
@@ -450,9 +652,16 @@ class ScalingValues:
                 corr_spec.field_scale.azimuth,
                 grid,
             )
-            scaling_values = cls._calculate_scaling_param(grid, decay_obj)
+            scaling_values = cls._calculate_scaling_param_decay(grid, decay_obj)
+        elif method_name == "segment":
+            if param_for_field is not None:
+                scaling_values = np.reshape(
+                    param_for_field, (grid.getNX(), grid.getNY(), grid.getNZ()), "F"
+                )
+            else:
+                raise ValueError("Can not write undefined parameter")
         else:
-            raise KeyError(f" Method name: {method_name} is not implemented")
+            return
 
         # Write scaling parameter  once per corr_name
         if corr_name != cls.corr_name:
@@ -469,7 +678,7 @@ class ScalingValues:
             cls.scaling_param_number = cls.scaling_param_number + 1
 
     @classmethod
-    def _calculate_scaling_param(cls, grid, decay_obj):
+    def _calculate_scaling_param_decay(cls, grid, decay_obj):
         nx = grid.getNX()
         ny = grid.getNY()
         nz = grid.getNZ()
