@@ -7,3 +7,7 @@ copy_test_files () {
     mv $TMP_CLONE_DIR/libres/test-data $CI_TEST_ROOT/libres-test-data
     export LIBRES_TEST_DATA_DIR=$CI_TEST_ROOT/libres-test-data
 }
+
+start_tests () {
+    pytest --ert_integration
+}
