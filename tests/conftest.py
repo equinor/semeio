@@ -32,3 +32,24 @@ def move_to_shared_tmp(tmp_path_factory):
     os.chdir(tmp_path_factory.mktemp("some_shared_path"))
     yield
     os.chdir(cwd)
+
+
+def pytest_addoption(parser):
+    parser.addoption(
+        "--ert_integration",
+        action="store_true",
+        default=False,
+        help="Run ERT integration tests",
+    )
+
+
+def pytest_collection_modifyitems(config, items):
+    if config.getoption("--ert_integration"):
+        # Do not skip tests when --plot is supplied on pytest command line
+        return
+    skip_ert_integration = pytest.mark.skip(
+        reason="need --ert_integration option to run"
+    )
+    for item in items:
+        if "ert_integration" in item.keywords:
+            item.add_marker(skip_ert_integration)

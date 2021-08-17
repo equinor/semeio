@@ -1,14 +1,15 @@
 # pylint: disable=unsubscriptable-object  # pylint issue
-import sys
 import os
+import shutil
+import subprocess
+import sys
 from pathlib import Path
 
-import pandas as pd
 import numpy
-
+import pandas as pd
 import pytest
 
-from semeio.jobs.scripts.gendata_rft import main_entry_point, _build_parser
+from semeio.jobs.scripts.gendata_rft import _build_parser, main_entry_point
 from tests.jobs.rft import conftest
 
 ECL_BASE_NORNE = conftest.get_ecl_base_norne()
@@ -469,3 +470,222 @@ def test_defaults():
     # And compare with argparse:
     assert csv_job_default == _build_parser().get_default("csvfile")
     assert directory_job_default == _build_parser().get_default("outputdirectory")
+
+
+@pytest.mark.ert_integration
+@pytest.mark.skipif(
+    sys.platform == "darwin",
+    reason=(
+        "Forward models have same name as executable and "
+        "libres will find wrong exe on case insensitive system "
+        "bug report here: https://github.com/equinor/libres/issues/1053"
+    ),
+)
+def test_ert_setup_one_well_one_rft_point(tmpdir):
+    """Test a simple ERT integration of GENDATA_RFT with one RFT point at one time instant.
+
+    This test should confirm that the GENDATA_RFT + GEN_DATA works together, and acts
+    as a reference for documentation
+    """
+    tmpdir.chdir()
+    Path("realization-0/iter-0").mkdir(parents=True)
+    Path("realization-0/iter-1").mkdir(parents=True)
+    for filename in Path(ECL_BASE_REEK).parent.glob("2_R001_REEK-0.*"):
+        shutil.copy(filename, Path("realization-0/iter-0") / filename.name)
+        shutil.copy(filename, Path("realization-0/iter-1") / filename.name)
+
+    Path("rft_input").mkdir()
+
+    # Write the well trajectory:
+    (Path("rft_input") / "OP_1.txt").write_text(
+        "462608.57 5934210.96 1644.38 1624.38 zone2"
+    )
+
+    # List the well and dates for which we have observations:
+    (Path("rft_input") / "well_time.txt").write_text("OP_1 01 02 2000 1")
+
+    Path("observations").mkdir()
+
+    # Write observation file:
+    Path("observations.txt").write_text(
+        "GENERAL_OBSERVATION OP_1_OBS1 "
+        "{DATA=OP_1_RFT_SIM1; RESTART=1; OBS_FILE=observations/OP_1_1.obs; };\n"
+    )
+
+    # Chosen filename syntax for obs file: <wellname>_<report_step>.obs
+    Path("observations/OP_1_1.obs").write_text("200 1")
+    # measured pressure, abs error
+
+    # Time-map needed for loading observations with no summary file. It seems we need
+    # one date for start-date, and one date for every report_step in use.
+    Path("time_map.txt").write_text("01/01/2000\n01/02/2000")  # No ISO-8601 support..
+
+    # Write an ERT config file
+    Path("config.ert").write_text(
+        """
+RUNPATH realization-%d/iter-%d
+ECLBASE 2_R001_REEK-%d
+TIME_MAP time_map.txt
+QUEUE_SYSTEM LOCAL
+NUM_REALIZATIONS 1
+OBS_CONFIG observations.txt
+
+FORWARD_MODEL GENDATA_RFT(<PATH_TO_TRAJECTORY_FILES>=../../rft_input, <WELL_AND_TIME_FILE>=../../rft_input/well_time.txt)
+
+GEN_DATA OP_1_RFT_SIM1 INPUT_FORMAT:ASCII REPORT_STEPS:1 RESULT_FILE:RFT_OP_1_%d
+"""  # noqa
+    )
+
+    # pylint: disable=subprocess-run-check
+    # (assert on the return code further down)
+    result = subprocess.run(
+        ["ert", "ensemble_smoother", "--target-case", "default_1", "config.ert"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    stdouterr = result.stdout.decode() + result.stderr.decode()
+
+    if result.returncode != 0:
+        print(stdouterr)
+        # Print any stderr files from the forward model:
+        for stderrfile in Path("realization-0").glob("iter-*/*stderr*"):
+            if stderrfile.stat().st_size > 0:
+                print(stderrfile)
+                print(stderrfile.read_text())
+
+    # Fails if time_map vs observations.txt does not match:
+    assert "failed to load observation data from" not in stdouterr
+
+    # These can be triggered by GEN_DATA errors:
+    assert "Error" not in stdouterr
+    assert "ERROR" not in stdouterr
+    assert "Failed load data for GEN_DATA node" not in stdouterr
+    assert "gen_obs_assert_data_size: size mismatch" not in stdouterr
+
+    # This is probably an 'ok' from the smoother, as there are no parameters involved:
+    assert "No active observations/parameters for MINISTEP: ALL_ACTIVE." in stdouterr
+
+    # Asserts on GENDATA_RFT output:
+    assert Path("realization-0/iter-0/RFT_OP_1_1").is_file()
+    assert Path("realization-0/iter-1/RFT_OP_1_1").is_file()
+
+    assert Path("realization-0/iter-0/OK").is_file()
+    assert Path("realization-0/iter-1/OK").is_file()
+
+    assert result.returncode == 0
+
+
+@pytest.mark.ert_integration
+@pytest.mark.skipif(
+    sys.platform == "darwin",
+    reason=(
+        "Forward models have same name as executable and "
+        "libres will find wrong exe on case insensitive system "
+        "bug report here: https://github.com/equinor/libres/issues/1053"
+    ),
+)
+def test_ert_setup_one_well_two_points_different_time_and_depth(tmpdir):
+    """Test a simple ERT integration of GENDATA_RFT with one RFT point at one time
+    instant and another RFT point at another time and another depth.
+
+    This test should confirm that the GENDATA_RFT + GEN_DATA works together, and acts
+    as a reference for documentation.
+
+    Also using a dedicated directory for RUNPATH output of rft data.
+    """
+    tmpdir.chdir()
+    Path("realization-0/iter-0").mkdir(parents=True)
+    Path("realization-0/iter-1").mkdir(parents=True)
+    for filename in Path(ECL_BASE_REEK).parent.glob("2_R001_REEK-0.*"):
+        shutil.copy(filename, Path("realization-0/iter-0") / filename.name)
+        shutil.copy(filename, Path("realization-0/iter-1") / filename.name)
+
+    Path("rft_input").mkdir()
+
+    # Write the well trajectory:
+    (Path("rft_input") / "OP_1.txt").write_text(
+        "462608.57 5934210.96 1644.38 1624.38 zone2\n"
+        "462608.57 5934210.96 1644.38 1634.38 zone2\n"
+    )
+
+    # List the well and dates for which we have observations:
+    (Path("rft_input") / "well_time.txt").write_text(
+        "OP_1 01 02 2000 1\nOP_1 01 01 2001 2"
+    )
+
+    Path("observations").mkdir()
+
+    # Write observation file:
+    Path("observations.txt").write_text(
+        "GENERAL_OBSERVATION OP_1_OBS1 "
+        "{DATA=OP_1_RFT_SIM1; RESTART=1; OBS_FILE=observations/OP_1_1.obs; };\n"
+        "GENERAL_OBSERVATION OP_1_OBS2 "
+        "{DATA=OP_1_RFT_SIM2; RESTART=2; OBS_FILE=observations/OP_1_2.obs; };\n"
+    )
+
+    # Chosen filename syntax for obs file: <wellname>_<report_step>.obs
+    Path("observations/OP_1_1.obs").write_text("200 1\n-1 0\n")
+    Path("observations/OP_1_2.obs").write_text("-1 0.1\n190 1\n")
+    # measured pressure, abs error
+
+    # Time-map needed for loading observations with no summary file. It seems we need
+    # one date for start-date, and one date for every report_step in use.
+    Path("time_map.txt").write_text(
+        "01/01/2000\n01/02/2000\n01/01/2001"
+    )  # No ISO-8601 support..
+
+    # Write an ERT config file
+    Path("config.ert").write_text(
+        """
+RUNPATH realization-%d/iter-%d
+ECLBASE 2_R001_REEK-%d
+TIME_MAP time_map.txt
+QUEUE_SYSTEM LOCAL
+NUM_REALIZATIONS 1
+OBS_CONFIG observations.txt
+
+FORWARD_MODEL MAKE_DIRECTORY(<DIRECTORY>=gendata_rft)
+FORWARD_MODEL GENDATA_RFT(<PATH_TO_TRAJECTORY_FILES>=../../rft_input, <WELL_AND_TIME_FILE>=../../rft_input/well_time.txt, <OUTPUTDIRECTORY>=gendata_rft)
+
+GEN_DATA OP_1_RFT_SIM1 INPUT_FORMAT:ASCII REPORT_STEPS:1 RESULT_FILE:gendata_rft/RFT_OP_1_%d
+GEN_DATA OP_1_RFT_SIM2 INPUT_FORMAT:ASCII REPORT_STEPS:2 RESULT_FILE:gendata_rft/RFT_OP_1_%d
+"""  # noqa
+    )
+
+    # pylint: disable=subprocess-run-check
+    # (assert on the return code further down)
+    result = subprocess.run(
+        ["ert", "ensemble_smoother", "--target-case", "default_1", "config.ert"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    stdouterr = result.stdout.decode() + result.stderr.decode()
+
+    if result.returncode != 0:
+        print(stdouterr)
+        # Print any stderr files from the forward model:
+        for stderrfile in Path("realization-0").glob("iter-*/*stderr*"):
+            if stderrfile.stat().st_size > 0:
+                print(stderrfile)
+                print(stderrfile.read_text())
+
+    # Fails if time_map vs observations.txt does not match:
+    assert "failed to load observation data from" not in stdouterr
+
+    # These can be triggered by GEN_DATA errors:
+    assert "Error" not in stdouterr
+    assert "ERROR" not in stdouterr
+    assert "Failed load data for GEN_DATA node" not in stdouterr
+    assert "gen_obs_assert_data_size: size mismatch" not in stdouterr
+
+    # This is probably an 'ok' from the smoother, as there are no parameters involved:
+    assert "No active observations/parameters for MINISTEP: ALL_ACTIVE." in stdouterr
+
+    # Asserts on GENDATA_RFT output:
+    assert Path("realization-0/iter-0/gendata_rft/RFT_OP_1_1").is_file()
+    assert Path("realization-0/iter-1/gendata_rft/RFT_OP_1_1").is_file()
+
+    assert Path("realization-0/iter-0/OK").is_file()
+    assert Path("realization-0/iter-1/OK").is_file()
+
+    assert result.returncode == 0
