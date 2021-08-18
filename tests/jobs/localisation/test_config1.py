@@ -69,26 +69,6 @@ ERT_NODE_TYPE = {
             ["PARAM_NODE1:PARAM1", "PARAM_NODE1:PARAM2"],
         ),
         (
-            ["PARAM_NODE1:*", "PARAM_NODE2:*"],
-            [
-                "PARAM_NODE1:PARAM1",
-                "PARAM_NODE1:PARAM2",
-                "PARAM_NODE2:PARAM1",
-                "PARAM_NODE2:PARAM2",
-                "PARAM_NODE2:PARAM3",
-            ],
-        ),
-        (
-            ["PARAM_NODE2:*", "PARAM_NODE1:*"],
-            [
-                "PARAM_NODE1:PARAM1",
-                "PARAM_NODE1:PARAM2",
-                "PARAM_NODE2:PARAM1",
-                "PARAM_NODE2:PARAM2",
-                "PARAM_NODE2:PARAM3",
-            ],
-        ),
-        (
             ["P*2*", "PARAM_NODE3*"],
             [
                 "PARAM_FIELD2",
@@ -121,26 +101,6 @@ ERT_NODE_TYPE = {
             ],
         ),
         (
-            "PARAM_NODE1:PARAM1",
-            ["PARAM_NODE1:PARAM1"],
-        ),
-        (
-            [
-                "PARAM_NODE1:PARAM1",
-                "PARAM_NODE2:PARAM3",
-                "PARAM_NODE3:PARAM4",
-                "PARAM_NODE1X:X*",
-            ],
-            [
-                "PARAM_NODE1:PARAM1",
-                "PARAM_NODE2:PARAM3",
-                "PARAM_NODE3:PARAM4",
-                "PARAM_NODE1X:X1",
-                "PARAM_NODE1X:X2",
-                "PARAM_NODE1X:X3",
-            ],
-        ),
-        (
             ["PARAM_NODE3:P*", "PARAM_NODE2*:*2*"],
             [
                 "PARAM_NODE2:PARAM2",
@@ -148,24 +108,6 @@ ERT_NODE_TYPE = {
                 "PARAM_NODE22:P22",
                 "PARAM_NODE2Y:Y2",
                 "PARAM_NODE3:PARAM4",
-            ],
-        ),
-        (
-            [
-                "PARAM_NODE1:PARAM1",
-                "PARAM_NODE2:PARAM3",
-                "PARAM_NODE2Y:*",
-                "PARAM_NODE1X:X3",
-                "PARAM_NODE1X:X1",
-            ],
-            [
-                "PARAM_NODE1:PARAM1",
-                "PARAM_NODE1X:X1",
-                "PARAM_NODE1X:X3",
-                "PARAM_NODE2:PARAM3",
-                "PARAM_NODE2Y:Y1",
-                "PARAM_NODE2Y:Y2",
-                "PARAM_NODE2Y:Y3",
             ],
         ),
         (
@@ -204,24 +146,6 @@ def test_simple_config(param_group_add, expected):
 @pytest.mark.parametrize(
     "obs_group_add, param_group_add,  param_group_remove, expected_error",
     [
-        (
-            "OBS1",
-            "PARAM_NODE1",
-            "[]",
-            "No match for: PARAM_NODE1",
-        ),
-        (
-            ["OBS1", "OBS2"],
-            ["PY*:*", "PARAM_FILED*"],
-            "[]",
-            "No match for: PY*:*",
-        ),
-        (
-            ["OBS2*"],
-            ["PARAM_FIELD*"],
-            ["PARAM_FIELD2:*"],
-            "No match for: PARAM_FIELD2:*",
-        ),
         (
             ["OBS*"],
             "PARAM_NODE1:PARAM1",
@@ -383,25 +307,6 @@ def test_simple_config_ref_point_error(ref_point, expected_error):
             ],
         ),
         (
-            ["PARAM_NODE1:*", "PARAM_NODE2:*"],
-            ["PARAM_NODE1:PARAM1", "PARAM_NODE2:PARAM1"],
-            ["PARAM_NODE1:PARAM2", "PARAM_NODE2:PARAM2", "PARAM_NODE2:PARAM3"],
-        ),
-        (
-            ["PARAM_NODE2*", "PARAM_NODE1:PARAM2"],
-            ["PARAM_NODE2:PARAM2", "PARAM_NODE2Y:Y2"],
-            [
-                "PARAM_NODE1:PARAM2",
-                "PARAM_NODE2:PARAM1",
-                "PARAM_NODE2:PARAM3",
-                "PARAM_NODE22:P1",
-                "PARAM_NODE22:P2",
-                "PARAM_NODE22:P22",
-                "PARAM_NODE2Y:Y1",
-                "PARAM_NODE2Y:Y3",
-            ],
-        ),
-        (
             ["P*2*:*", "PARAM_NODE3*", "P*_GEN*"],
             ["PARAM_NODE2:*", "PARAM_NODE22:P2*", "P*_G*:1", "P*_G*:3", "P*_G*:4"],
             [
@@ -412,56 +317,6 @@ def test_simple_config_ref_point_error(ref_point, expected_error):
                 "PARAM_NODE2Y:Y2",
                 "PARAM_NODE2Y:Y3",
                 "PARAM_NODE3:PARAM4",
-            ],
-        ),
-        (
-            [
-                "PARAM_NODE1:PARAM1",
-                "PARAM_NODE2:PARAM3",
-                "PARAM_NODE2:PARAM1",
-                "PARAM_NODE1X:X2",
-                "PARAM_NODE1X:X1",
-            ],
-            ["P*_N*X:X2", "PARAM_NODE2:PARAM1"],
-            ["PARAM_NODE1:PARAM1", "PARAM_NODE2:PARAM3", "PARAM_NODE1X:X1"],
-        ),
-        (
-            [
-                "PARAM_NODE1:PARAM1",
-                "PARAM_NODE2:PARAM3",
-                "PARAM_NODE2:PARAM1",
-                "PARAM_NODE1X:X2",
-                "PARAM_NODE1X:X1",
-            ],
-            ["PARAM_NODE*Y:Y*"],
-            [
-                "PARAM_NODE1:PARAM1",
-                "PARAM_NODE1X:X1",
-                "PARAM_NODE1X:X2",
-                "PARAM_NODE2:PARAM1",
-                "PARAM_NODE2:PARAM3",
-            ],
-        ),
-        (
-            [
-                "PARAM_NODE1:PARAM1",
-                "PARAM_NODE2:PARAM3",
-                "PARAM_NODE2Y:*",
-                "PARAM_NODE1X:X3",
-                "PARAM_NODE1X:X1",
-                "PARAM_NODE1:PARAM2",
-            ],
-            [
-                "PARAM_NODE2Y:Y3",
-                "PARAM_NODE1:PARAM1",
-            ],
-            [
-                "PARAM_NODE1:PARAM2",
-                "PARAM_NODE1X:X1",
-                "PARAM_NODE1X:X3",
-                "PARAM_NODE2:PARAM3",
-                "PARAM_NODE2Y:Y1",
-                "PARAM_NODE2Y:Y2",
             ],
         ),
         (["*FIELD*"], ["*NODE*"], ["PARAM_FIELD1", "PARAM_FIELD2", "PARAM_FIELD3"]),
