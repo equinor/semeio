@@ -306,15 +306,12 @@ def add_ministeps(
                     )
             elif impl_type == ErtImplType.SURFACE:
                 if corr_spec.surface_scale is not None:
-                    surface_directory_path = corr_spec.surface_scale.surface_directory
-                    file_with_surface_format = get_file_with_surface_format(
-                        surface_directory_path, node.get_init_file_fmt()
-                    )
+                    surface_file = corr_spec.surface_scale.surface_file
                     debug_print(
-                        f"Get surface size from: {file_with_surface_format}",
+                        f"Get surface size from: {surface_file}",
                         LogLevel.LEVEL3,
                     )
-                    surface = Surface(file_with_surface_format)
+                    surface = Surface(surface_file)
                     data_size = surface.getNX() * surface.getNY()
                     activate_and_scale_correlation(
                         surface,

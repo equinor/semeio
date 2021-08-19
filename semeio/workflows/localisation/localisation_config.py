@@ -1,6 +1,8 @@
 # pylint: disable=E0213
 import itertools
 import pathlib
+
+import os.path
 from typing import List, Optional, Union, Dict
 from typing_extensions import Literal
 
@@ -92,7 +94,7 @@ class GaussianConfig(BaseModel):
     main_range: confloat(gt=0)
     perp_range: confloat(gt=0)
     azimuth: confloat(ge=0.0, le=360)
-    surface_directory: Optional[str] = "."
+    surface_file: Optional[str]
 
 
 class ExponentialConfig(GaussianConfig):
@@ -158,11 +160,14 @@ class CorrelationConfig(BaseModel):
             raise ValueError("value must be dict")
 
         # String with relative path to surface files relative to config path
-        key = "surface_directory"
+        key = "surface_file"
         if key not in value.keys():
-            # Set default relative directory
-            surface_directory = "."
-            value[key] = surface_directory
+            raise ValueError(f"Missing keyword: '{key}' in keyword: 'surface_scale' ")
+
+        filename = value[key]
+        # Check  that the file exists
+        if not os.path.exists(filename):
+            raise IOError(f"File for surface: {filename} does not exist.")
 
         method = value.get("method")
         _valid_methods = {

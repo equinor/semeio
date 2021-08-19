@@ -181,6 +181,7 @@ def test_localisation_surf(
                     "main_range": 1700,
                     "perp_range": 850,
                     "azimuth": 200,
+                    "surface_file": "surf0.txt",
                 },
             },
         ],
