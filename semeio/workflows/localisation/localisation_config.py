@@ -56,19 +56,74 @@ def check_for_duplicated_correlation_specifications(correlations):
     return errors
 
 
-def _check_method_param_consistency(method_config):
-    if isinstance(method_config, ScalingForSegments):
+def _check_valid_keywords(method_keys, valid_key_list, values):
+    key_list = values.keys()
+    invalid_keys = []
+    for key in key_list:
+        if key not in valid_key_list:
+            invalid_keys.append(key)
+    if len(invalid_keys) > 0:
+        raise KeyError(
+            "Found unknown keywords when using "
+            f"methods: {method_keys}.  \nUnknown keywords:\n{invalid_keys}"
+        )
+
+
+def _check_field_method_param_consistency(method_config, values):
+    if isinstance(method_config, ScalingForSegmentsConfig):
         # Check consistency between active_segments list and scalingfactors list
         active_segments_list = method_config.active_segments
         scalingfactor_list = method_config.scalingfactors
-        print(f"active_segment: {active_segments_list}")
-        print(f"scalingfactor: {scalingfactor_list}")
+        #        print(f"active_segment: {active_segments_list}")
+        #        print(f"scalingfactor: {scalingfactor_list}")
         if len(active_segments_list) != len(scalingfactor_list):
             raise IndexError(
                 "The specified length of 'active_segments' list"
                 f"{active_segments_list }\n"
                 f"  and 'scalingfactors' list {scalingfactor_list} are different."
             )
+        method_keys = ["segment"]
+        valid_key_list = [
+            "method",
+            "segment_filename",
+            "param_name",
+            "active_segments",
+            "scalingfactors",
+        ]
+        _check_valid_keywords(method_keys, valid_key_list, values)
+
+    if isinstance(method_config, GaussianConfig) or isinstance(
+        method_config, ExponentialConfig
+    ):
+        method_keys = ["gaussian_decay", "exponential_decay"]
+        valid_key_list = [
+            "method",
+            "main_range",
+            "perp_range",
+            "azimuth",
+            "surface_file",
+        ]
+        _check_valid_keywords(method_keys, valid_key_list, values)
+
+    if isinstance(method_config, ScalingFromFileConfig):
+        method_keys = ["from_file"]
+        valid_key_list = ["method", "filename", "param_name"]
+        _check_valid_keywords(method_keys, valid_key_list, values)
+
+
+def _check_surface_method_param_consistency(method_config, values):
+    if isinstance(method_config, GaussianConfig) or isinstance(
+        method_config, ExponentialConfig
+    ):
+        method_keys = ["gaussian_decay", "exponential_decay"]
+        valid_key_list = [
+            "method",
+            "main_range",
+            "perp_range",
+            "azimuth",
+            "surface_file",
+        ]
+        _check_valid_keywords(method_keys, valid_key_list, values)
 
 
 class ObsConfig(BaseModel):
@@ -110,6 +165,21 @@ class ObsConfig(BaseModel):
                 f"Adding: {add} and removing: {remove} resulted in no items"
             )
         return result
+
+    @root_validator(pre=True)
+    def check_valid_keys(cls, values: Dict) -> Dict:
+        key_list = values.keys()
+        valid_key_list = ["add", "remove", "context"]
+        invalid_keys = []
+        for key in key_list:
+            if key not in valid_key_list:
+                invalid_keys.append(key)
+        if len(invalid_keys) > 0:
+            raise KeyError(
+                "Found the following unknown keywords in 'obs_group' "
+                f"or 'param_group': {invalid_keys}"
+            )
+        return values
 
 
 class ParamConfig(ObsConfig):
@@ -166,13 +236,13 @@ class ExponentialConfig(GaussianConfig):
     method: Literal["exponential_decay"]
 
 
-class ScalingFromFile(BaseModel):
+class ScalingFromFileConfig(BaseModel):
     method: Literal["from_file"]
     filename: str
     param_name: str
 
 
-class ScalingForSegments(BaseModel):
+class ScalingForSegmentsConfig(BaseModel):
     method: Literal["segment"]
     segment_filename: str
     param_name: str
@@ -242,8 +312,8 @@ class CorrelationConfig(BaseModel):
         Union[
             GaussianConfig,
             ExponentialConfig,
-            ScalingFromFile,
-            ScalingForSegments,
+            ScalingFromFileConfig,
+            ScalingForSegmentsConfig,
         ]
     ]
     surface_scale: Optional[Union[GaussianConfig, ExponentialConfig]]
@@ -270,16 +340,17 @@ class CorrelationConfig(BaseModel):
         _valid_methods = {
             "gaussian_decay": GaussianConfig,
             "exponential_decay": ExponentialConfig,
-            "from_file": ScalingFromFile,
-            "segment": ScalingForSegments,
+            "from_file": ScalingFromFileConfig,
+            "segment": ScalingForSegmentsConfig,
         }
         if method in _valid_methods.keys():
             method_config = _valid_methods[method]
-            _check_method_param_consistency(method_config(**value))
+            _check_field_method_param_consistency(method_config(**value), value)
             return _valid_methods[method](**value)
         else:
+            valid_list = list(_valid_methods.keys())
             raise ValueError(
-                f"Unknown method: {method}, valid methods are: {_valid_methods.keys()}"
+                f"Unknown method: {method}, valid methods are: {valid_list}"
             )
 
     @root_validator()
@@ -339,10 +410,13 @@ class CorrelationConfig(BaseModel):
             "exponential_decay": ExponentialConfig,
         }
         if method in _valid_methods.keys():
+            method_config = _valid_methods[method]
+            _check_surface_method_param_consistency(method_config(**value), value)
             return _valid_methods[method](**value)
         else:
+            valid_list = list(_valid_methods.keys())
             raise ValueError(
-                f"Unknown method: {method}, valid methods are: {_valid_methods.keys()}"
+                f"Unknown method: {method}, valid methods are: {valid_list}"
             )
 
 
