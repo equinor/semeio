@@ -138,8 +138,6 @@ def test_simple_config(param_group_add, expected):
         ],
     }
     conf = LocalisationConfig(observations=ERT_OBS, parameters=ERT_PARAM, **data)
-    assert len(conf.correlations) == 1
-    assert conf.correlations[0].obs_group.result_items == ["OBS1"]
     assert sorted(conf.correlations[0].param_group.result_items) == sorted(expected)
 
 
@@ -353,8 +351,6 @@ def test_add_remove_param_config(param_group_add, param_group_remove, expected):
         ],
     }
     conf = LocalisationConfig(observations=ERT_OBS, parameters=ERT_PARAM, **data)
-    assert len(conf.correlations) == 1
-    assert conf.correlations[0].obs_group.result_items == ["OBS1"]
     assert sorted(conf.correlations[0].param_group.result_items) == sorted(expected)
 
 
@@ -465,91 +461,6 @@ def test_ref_point_config(ref_point):
     conf = LocalisationConfig(observations=["OBS"], parameters=["PARAM_NODE1"], **data)
     expected_refpoint = [float(item) for item in ref_point]
     assert conf.correlations[0].ref_point == expected_refpoint
-
-
-@pytest.mark.parametrize(
-    "obs_add, param_add, ref_point,  method, range1, range2, angle, expected",
-    [
-        (
-            "OBS1*",
-            "PARAM_FIELD1",
-            [550, 1050],
-            "gaussian_decay",
-            1700,
-            850,
-            310,
-            ["OBS1", "OBS11", "OBS12", "OBS13", "OBS14"],
-        ),
-        (
-            "OBS1*",
-            "PARAM_FIELD1",
-            [100, 150],
-            "exponential_decay",
-            0.1,
-            850,
-            0,
-            ["OBS1", "OBS11", "OBS12", "OBS13", "OBS14"],
-        ),
-        (
-            "OBS1*",
-            "PARAM_FIELD1",
-            [0, 750],
-            "exponential_decay",
-            700,
-            850,
-            100,
-            ["OBS1", "OBS11", "OBS12", "OBS13", "OBS14"],
-        ),
-        (
-            "OBS1*",
-            "PARAM_FIELD1",
-            [500, 750],
-            "exponential_decay",
-            1700,
-            500,
-            360,
-            ["OBS1", "OBS11", "OBS12", "OBS13", "OBS14"],
-        ),
-        (
-            "OBS1*",
-            "PARAM_FIELD1",
-            [500, 750],
-            "gaussian_decay",
-            0.1,
-            0.1,
-            0,
-            ["OBS1", "OBS11", "OBS12", "OBS13", "OBS14"],
-        ),
-    ],
-)
-def test_add_remove_obs_with_ref_point_and_field_scale_config(
-    obs_add, param_add, ref_point, method, range1, range2, angle, expected
-):
-    data = {
-        "log_level": 2,
-        "correlations": [
-            {
-                "name": "some_name",
-                "obs_group": {
-                    "add": [obs_add],
-                },
-                "param_group": {
-                    "add": [param_add],
-                },
-                "ref_point": ref_point,
-                "field_scale": {
-                    "method": method,
-                    "main_range": range1,
-                    "perp_range": range2,
-                    "azimuth": angle,
-                },
-            }
-        ],
-    }
-    conf = LocalisationConfig(observations=ERT_OBS, parameters=ERT_PARAM, **data)
-    assert len(conf.correlations) == 1
-    assert conf.correlations[0].obs_group.result_items == expected
-    assert conf.correlations[0].param_group.result_items == ["PARAM_FIELD1"]
 
 
 @pytest.mark.parametrize(
