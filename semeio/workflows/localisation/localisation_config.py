@@ -57,6 +57,18 @@ def check_for_duplicated_correlation_specifications(correlations):
 
 
 class ObsConfig(BaseModel):
+    """
+    Specification of list of observations. A wildcard notation is allowed.
+    Use  the 'add' keyword to specify observations to include,
+    and the 'remove' keyword to remove some of the observations
+    specified by the 'add' keyword. The 'remove' keyword is useful when
+    observations are specified by wildcard notation.
+    Example:
+    obs_group:
+         add:  ["WELLA_WWCT*", "WELLB_FOPR", "WELLC*_WOPR*"]
+         remove: ["WELLC2*"]
+    """
+
     add: Union[str, List[str]]
     remove: Optional[Union[str, List[str]]]
     context: List[str]
@@ -86,10 +98,43 @@ class ObsConfig(BaseModel):
 
 
 class ParamConfig(ObsConfig):
-    pass
+    """
+    Specification of list of model parameters. Wildcard notation is allowed.
+    The syntax and meaning of  the 'add' and 'remove' keywords are the
+    same as for specification of observations.
+
+    For nodes with parameters defined by the ERT keyword GEN_KW, the
+    parameter name is specified on the format: <NODENAME>:<PARAMETER_NAME>
+    For nodes with parameters defined by the ERT keyword GEN_PARAM, the
+    parameter name is specified on the format: <NODENAME>:<index>.
+    For nodes with parameters defined by the ERT keyword SURFACE and FIELD,
+    the parameters belonging to a surface node is specified by: <NODENAME>
+
+    Example:
+    param_group:
+         add: ["GEO_PARAM:*", "FIELD_PARAM*", "GENERAL:*", "SURF_PARAM_*"]
+         remove: ["FIELD_PARAM_GRF1", "GEO_PARAM:A*", "GENERAL:2", "GENERAL:3"]
+
+    (This includes all model parameters from node GEO_PARAM except parameter A,
+      all field parameter nodes starting with node name FIELD_PARAM except
+      FIELD_PARAM_GRF1,
+      all surface parameter nodes starting with node name SURF_PARAM_,
+      all parameters for node name GENERAL of type GEN_PARAM
+      except parameters with indices 2 and 3.)
+    """
 
 
 class GaussianConfig(BaseModel):
+    """
+    Method for calculating correlation scaling factor using a Gaussian function
+    centered at the specified reference point. The ranges and orientation define
+    how the scaling factor is reduced away from the reference point.
+
+    This method can be used both to scale correlations for model parameter
+    nodes of type FIELD and SURFACE. For nodes of type surface,
+    a file specifying the grid layout of the surface must be specified.
+    """
+
     method: Literal["gaussian_decay"]
     main_range: confloat(gt=0)
     perp_range: confloat(gt=0)
@@ -98,10 +143,39 @@ class GaussianConfig(BaseModel):
 
 
 class ExponentialConfig(GaussianConfig):
+    """
+    Method for calculating correlation scaling factor using Exponential function.
+    See the doc string for Gaussian function for more details.
+    """
+
     method: Literal["exponential_decay"]
 
 
 class CorrelationConfig(BaseModel):
+    """
+    The keyword 'correlations' specify a set of observations and model parameters
+    to have active correlations. For scalar parameters coming from ERT keyword GEN_KW
+    and GEN_PARAM , the correlations estimated by ERT will not be reduced,
+    and the scaling factor is 1.
+
+    For model parameter nodes of type FIELD or SURFACE, additional
+    information about how to adjust the correlations can be specified. The sub-keywords
+    'field_scale' and 'surface_scale' are used for nodes of type FIELD or
+    SURFACE respectively. It is possible to not specify these keywords, and in that
+    case it means that ERT estimated correlations between any field model parameter,
+    e.g the field model parameter belonging to a grid cell (i,j,k) and the observations
+    specified, is not modified and the scaling factor is 1. If on the other hand,
+    a specification of a method for calculating scaling factor exits,
+    the covariance will be reduced by this factor:
+
+    new_cov(field(i,j,k)) = orig_cov(field(i,j,k), obs) * scaling_factor
+
+    For some of methods for calculating scaling factors, a reference point,
+    typically a well location, must be specified. For other methods any reference
+    point is not used.
+
+    """
+
     name: str
     obs_group: ObsConfig
     param_group: ParamConfig
