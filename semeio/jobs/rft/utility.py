@@ -42,7 +42,7 @@ def load_and_parse_well_time_file(filename):
         "Line {line_number} in well_and_time_file {filename} not on proper format: "
     )
 
-    with open(filename) as well_time_file:
+    with open(filename, encoding="utf-8") as well_time_file:
         lines = well_time_file.readlines()
 
     well_time_lines = [(strip_comments(l), i + 1) for i, l in enumerate(lines)]

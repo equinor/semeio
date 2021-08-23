@@ -46,7 +46,7 @@ def test_ots_config_run_parameters(
             "dpv": [["1997-11-06", "1997-12-17"]],
         },
     }
-    with open("ots_config.yml", "w") as f:
+    with open("ots_config.yml", "w", encoding="utf8") as f:
         yaml.dump(conf, f, default_flow_style=False)
     ots_run("ots_config.yml")
 

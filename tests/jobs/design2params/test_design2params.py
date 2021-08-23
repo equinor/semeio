@@ -45,7 +45,7 @@ def test_run(test_file, expected_file):
 
     assert filecmp.cmp(test_file, expected_file)
 
-    with open(design2params._TARGET_FILE_TXT, "r") as status_file:
+    with open(design2params._TARGET_FILE_TXT, "r", encoding="utf-8") as status_file:
         status = status_file.read()
         assert status == "OK\n"
 
@@ -71,7 +71,7 @@ def test_run_with_no_parameters_txt(test_file, expected_file):
 
     assert filecmp.cmp(test_file, expected_file)
 
-    with open(design2params._TARGET_FILE_TXT, "r") as status_file:
+    with open(design2params._TARGET_FILE_TXT, "r", encoding="utf-8") as status_file:
         status = status_file.read()
         assert status == "OK\n"
 
@@ -97,7 +97,7 @@ def test_run_with_default(test_file, expected_file):
 
     assert filecmp.cmp(test_file, expected_file)
 
-    with open(design2params._TARGET_FILE_TXT, "r") as status_file:
+    with open(design2params._TARGET_FILE_TXT, "r", encoding="utf-8") as status_file:
         status = status_file.read()
         assert status == "OK\n"
 
@@ -123,7 +123,7 @@ def test_run_with_spaces_in_cells(test_file, expected_file):
 
     assert filecmp.cmp(test_file, expected_file)
 
-    with open(design2params._TARGET_FILE_TXT, "r") as status_file:
+    with open(design2params._TARGET_FILE_TXT, "r", encoding="utf-8") as status_file:
         status = status_file.read()
         assert status == "OK\n"
 
@@ -138,7 +138,7 @@ def test_runs_different_reals_all_ok(realization_id):
         log_level=logging.DEBUG,
     )
 
-    with open(design2params._TARGET_FILE_TXT, "r") as status_file:
+    with open(design2params._TARGET_FILE_TXT, "r", encoding="utf-8") as status_file:
         status = status_file.read()
         assert status == "OK\n"
 
@@ -270,7 +270,7 @@ def test_existing_parameterstxt(
     tmpdir.chdir()
 
     params_file = "parameters.txt"
-    with open(params_file, "w") as file_h:
+    with open(params_file, "w", encoding="utf-8") as file_h:
         file_h.write(exist_params)
 
     designsheet_df = pd.DataFrame.from_records(data=[design_m])
@@ -342,7 +342,7 @@ def test_single_cell_values(cellvalue, expected_parameters_str, tmpdir):
         parametersfilename=params_file,
         log_level=logging.DEBUG,
     )
-    with open(params_file) as p_file:
+    with open(params_file, encoding="utf-8") as p_file:
         params_lines = p_file.readlines()
     key_vals = extract_key_value(params_lines)
     assert key_vals["SOMEKEY"] == expected_parameters_str
@@ -389,9 +389,9 @@ def test_pair_cell_values(cellvalues, expected_parameters_strs, tmpdir):
         parametersfilename=params_1,
         log_level=logging.DEBUG,
     )
-    with open(params_0) as p_file:
+    with open(params_0, encoding="utf-8") as p_file:
         params_lines_0 = p_file.readlines()
-    with open(params_1) as p_file:
+    with open(params_1, encoding="utf-8") as p_file:
         params_lines_1 = p_file.readlines()
     key_vals_real0 = extract_key_value(params_lines_0)
     key_vals_real1 = extract_key_value(params_lines_1)

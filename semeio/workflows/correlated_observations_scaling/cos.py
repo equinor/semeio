@@ -189,7 +189,7 @@ def load_yaml(job_config):
     if isinstance(job_config, dict) or isinstance(job_config, list):
         return job_config
 
-    with open(job_config, "r") as fin:
+    with open(job_config, "r", encoding="utf-8") as fin:
         return yaml.safe_load(fin)
 
 

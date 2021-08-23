@@ -34,7 +34,7 @@ def test_semeio_script_publish(tmpdir):
             self.reporter.publish(namespace, data)
 
     my_super_script = MySuperScript(ert)
-    my_super_script.run()
+    my_super_script.run()  # pylint: disable=not-callable
 
     expected_outputfile = os.path.join(
         "reports",
@@ -44,7 +44,7 @@ def test_semeio_script_publish(tmpdir):
         namespace + ".json",
     )
 
-    with open(expected_outputfile) as f:
+    with open(expected_outputfile, encoding="utf-8") as f:
         published_data = json.load(f)
 
     assert [data] == published_data
@@ -62,7 +62,7 @@ def test_semeio_script_logging(tmpdir):
             logging.error(msg)
 
     my_super_script = MySuperScript(ert)
-    my_super_script.run()
+    my_super_script.run()  # pylint: disable=not-callable
 
     expected_logfile = os.path.join(
         "reports",
@@ -72,7 +72,7 @@ def test_semeio_script_logging(tmpdir):
         SEMEIOSCRIPT_LOG_FILE,
     )
 
-    with open(expected_logfile) as f:
+    with open(expected_logfile, encoding="utf-8") as f:
         loaded_log = f.readlines()
 
     assert len(loaded_log) == 1
@@ -80,7 +80,7 @@ def test_semeio_script_logging(tmpdir):
 
 
 def assert_log(messages, log_file):
-    with open(log_file) as f:
+    with open(log_file, encoding="utf-8") as f:
         log_data = f.readlines()
 
     assert len(messages) == len(log_data)
@@ -119,7 +119,7 @@ def test_semeio_script_multiple_logging(messages, tmpdir):
     )
 
     my_super_script = MySuperScript(ert)
-    my_super_script.run()
+    my_super_script.run()  # pylint: disable=not-callable
 
     assert_log(messages, expected_logfile)
 
@@ -134,7 +134,7 @@ def test_semeio_script_post_logging(tmpdir):
             logging.error("A message from MySuperScript")
 
     my_super_script = MySuperScript(ert)
-    my_super_script.run()
+    my_super_script.run()  # pylint: disable=not-callable
 
     logging.error("A second message - not from MySuperScript")
 
@@ -146,7 +146,7 @@ def test_semeio_script_post_logging(tmpdir):
         SEMEIOSCRIPT_LOG_FILE,
     )
 
-    with open(expected_logfile) as f:
+    with open(expected_logfile, encoding="utf-8") as f:
         loaded_log = f.readlines()
 
     assert len(loaded_log) == 1
@@ -165,7 +165,7 @@ def test_semeio_script_pre_logging(tmpdir):
 
     logging.error("A message - not from MySuperScript")
 
-    my_super_script.run()
+    my_super_script.run()  # pylint: disable=not-callable
 
     expected_logfile = os.path.join(
         "reports",
@@ -175,7 +175,7 @@ def test_semeio_script_pre_logging(tmpdir):
         SEMEIOSCRIPT_LOG_FILE,
     )
 
-    with open(expected_logfile) as f:
+    with open(expected_logfile, encoding="utf-8") as f:
         loaded_log = f.readlines()
 
     assert len(loaded_log) == 1
@@ -193,7 +193,7 @@ def test_semeio_script_concurrent_logging(tmpdir):
             thread.start()
             thread.join()
 
-    MySuperScript(ert).run()
+    MySuperScript(ert).run()  # pylint: disable=not-callable
 
     expected_logfile = os.path.join(
         "reports",
@@ -203,7 +203,7 @@ def test_semeio_script_concurrent_logging(tmpdir):
         SEMEIOSCRIPT_LOG_FILE,
     )
 
-    with open(expected_logfile) as f:
+    with open(expected_logfile, encoding="utf-8") as f:
         loaded_log = f.readlines()
 
     assert len(loaded_log) == 1
@@ -221,7 +221,7 @@ def test_semeio_script_post_logging_exception(tmpdir):
 
     my_super_script = MySuperScript(ert)
     try:
-        my_super_script.run()
+        my_super_script.run()  # pylint: disable=not-callable
     except AssertionError:
         pass
 
@@ -235,13 +235,14 @@ def test_semeio_script_post_logging_exception(tmpdir):
         SEMEIOSCRIPT_LOG_FILE,
     )
 
-    with open(expected_logfile) as f:
+    with open(expected_logfile, encoding="utf-8") as f:
         loaded_log = f.readlines()
 
     assert len(loaded_log) == 1
 
 
 def test_semeio_script_keyword_args(tmpdir):
+    # pylint: disable=not-callable
     tmpdir.chdir()
     ensemble_path, user_case_name = "storage", "config_file"
     ert = _ert_mock(ensemble_path, user_case_name)
@@ -262,7 +263,7 @@ def test_semeio_script_keyword_args(tmpdir):
         SEMEIOSCRIPT_LOG_FILE,
     )
 
-    with open(expected_outputfile) as f:
+    with open(expected_outputfile, encoding="utf-8") as f:
         published_msgs = f.readlines()
     assert published_msgs[0] == "param_A\n"
     assert published_msgs[1] == "param_B\n"
@@ -279,13 +280,13 @@ def test_semeio_script_relative_report_dir(tmpdir):
             self.reporter.publish_msg(SEMEIOSCRIPT_LOG_FILE, param_A)
 
     my_super_script = MySuperScript(ert)
-    my_super_script.run(param_A="param_A")
+    my_super_script.run(param_A="param_A")  # pylint: disable=not-callable
 
     expected_outputfile = os.path.join(
         "a_new_subdir",
         SEMEIOSCRIPT_LOG_FILE,
     )
-    with open(expected_outputfile) as f:
+    with open(expected_outputfile, encoding="utf-8") as f:
         published_msgs = f.readlines()
     assert published_msgs[0] == "param_A\n"
 
@@ -300,13 +301,13 @@ def test_semeio_script_absolute_report_dir(tmpdir):
             self.reporter.publish_msg(SEMEIOSCRIPT_LOG_FILE, param_A)
 
     my_super_script = MySuperScript(ert)
-    my_super_script.run(param_A="param_A")
+    my_super_script.run(param_A="param_A")  # pylint: disable=not-callable
 
     expected_outputfile = os.path.join(
         tmpdir,
         SEMEIOSCRIPT_LOG_FILE,
     )
-    with open(expected_outputfile) as f:
+    with open(expected_outputfile, encoding="utf-8") as f:
         published_msgs = f.readlines()
     assert published_msgs[0] == "param_A\n"
 
@@ -321,7 +322,7 @@ def test_semeio_script_subdirs(tmpdir):
             self.reporter.publish_msg(SEMEIOSCRIPT_LOG_FILE, param_A)
 
     my_super_script = MySuperScript(ert)
-    my_super_script.run(param_A="param_A")
+    my_super_script.run(param_A="param_A")  # pylint: disable=not-callable
 
     expected_outputfile = os.path.join(
         tmpdir,
@@ -329,6 +330,6 @@ def test_semeio_script_subdirs(tmpdir):
         "sub_dir_2",
         SEMEIOSCRIPT_LOG_FILE,
     )
-    with open(expected_outputfile) as f:
+    with open(expected_outputfile, encoding="utf-8") as f:
         published_msgs = f.readlines()
     assert published_msgs[0] == "param_A\n"

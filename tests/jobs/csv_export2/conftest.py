@@ -73,13 +73,15 @@ def mock_norne_data(reals, iters, parameters=True):
                 os.path.join(runpath, "NORNE_{}.SMSPEC".format(real)),
             )
             if parameters:
-                with open(os.path.join(runpath, "parameters.txt"), "w") as p_fileh:
+                with open(
+                    os.path.join(runpath, "parameters.txt"), "w", encoding="utf-8"
+                ) as p_fileh:
                     p_fileh.write("FOO 1{}{}".format(real, iteration))
             # Ensure fmu-ensemble does not complain on missing STATUS
-            with open(os.path.join(runpath, "STATUS"), "w") as file_h:
+            with open(os.path.join(runpath, "STATUS"), "w", encoding="utf-8") as file_h:
                 file_h.write("a:b\na: 09:00:00 .... 09:00:01")
 
-    with open("runpathfile", "w") as file_h:
+    with open("runpathfile", "w", encoding="utf-8") as file_h:
         for iteration in iters:
             for real in reals:
                 runpath = os.path.join(
