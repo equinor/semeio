@@ -129,7 +129,7 @@ def test_gendata_rft_entry_point_wrong_well_file(
         "-z",
         "zonemap.txt",
     ]
-    with open("well_and_time.txt", "w+") as fh:
+    with open("well_and_time.txt", "w+", encoding="utf-8") as fh:
         fh.write("NO_FILE_HERE 1 12 2005 0\n")
     monkeypatch.setattr(sys, "argv", arguments)
     with pytest.raises(SystemExit, match="NO_FILE_HERE.txt not found"):
@@ -177,10 +177,10 @@ def test_gendata_rft_entry_point(tmpdir, norne_data, monkeypatch):
 
 def test_gendata_inactive_info_point_not_in_grid(tmpdir, norne_data, monkeypatch):
 
-    with open("B-1AH.txt", "a+") as fh:
+    with open("B-1AH.txt", "a+", encoding="utf-8") as fh:
         fh.write("0 1 2 3\n")
 
-    with open("well_and_time.txt", "w+") as fh:
+    with open("well_and_time.txt", "w+", encoding="utf-8") as fh:
         fh.write("B-1AH 1 12 2005 0\n")
 
     arguments = [
@@ -197,7 +197,7 @@ def test_gendata_inactive_info_point_not_in_grid(tmpdir, norne_data, monkeypatch
     monkeypatch.setattr(sys, "argv", arguments)
     main_entry_point()
 
-    with open("RFT_B-1AH_0_inactive_info") as fh:
+    with open("RFT_B-1AH_0_inactive_info", encoding="utf-8") as fh:
         result = fh.read()
         assert result.startswith(
             "TRAJECTORY_POINT_NOT_IN_GRID (utm_x=0.0, utm_y=1.0, measured_depth=2.0)"
@@ -206,16 +206,16 @@ def test_gendata_inactive_info_point_not_in_grid(tmpdir, norne_data, monkeypatch
 
 def test_gendata_inactive_info_zone_mismatch(tmpdir, norne_data, monkeypatch):
 
-    with open("well_and_time.txt", "w+") as fh:
+    with open("well_and_time.txt", "w+", encoding="utf-8") as fh:
         fh.write("B-1AH 1 12 2005 0\n")
 
-    with open(os.path.join(tmpdir.strpath, "B-1AH.txt"), "r+") as fh:
+    with open(os.path.join(tmpdir.strpath, "B-1AH.txt"), "r+", encoding="utf-8") as fh:
         lines = fh.readlines()
 
     line = lines[-1].rsplit(" ", 1)[0]
     line = line + " last_zone"
 
-    with open("B-1AH.txt", "w+") as fh:
+    with open("B-1AH.txt", "w+", encoding="utf-8") as fh:
         fh.write(line)
 
     arguments = [
@@ -232,23 +232,23 @@ def test_gendata_inactive_info_zone_mismatch(tmpdir, norne_data, monkeypatch):
     monkeypatch.setattr(sys, "argv", arguments)
     main_entry_point()
 
-    with open("RFT_B-1AH_0_inactive_info") as fh:
+    with open("RFT_B-1AH_0_inactive_info", encoding="utf-8") as fh:
         result = fh.read()
         assert result.startswith("ZONE_MISMATCH (utm_x=")
 
 
 def test_gendata_inactive_info_not_in_rft(tmpdir, norne_data, monkeypatch):
 
-    with open("well_and_time.txt", "w+") as fh:
+    with open("well_and_time.txt", "w+", encoding="utf-8") as fh:
         fh.write("B-1AH 1 12 2005 0\n")
 
-    with open(os.path.join(tmpdir.strpath, "B-1AH.txt"), "r+") as fh:
+    with open(os.path.join(tmpdir.strpath, "B-1AH.txt"), "r+", encoding="utf-8") as fh:
         lines = fh.readlines()
 
     line = lines[-1].rsplit(" ", 3)[0]
     line += " 2700 2700"
 
-    with open("B-1AH.txt", "w+") as fh:
+    with open("B-1AH.txt", "w+", encoding="utf-8") as fh:
         fh.write(line)
 
     arguments = [
@@ -265,17 +265,17 @@ def test_gendata_inactive_info_not_in_rft(tmpdir, norne_data, monkeypatch):
     monkeypatch.setattr(sys, "argv", arguments)
     main_entry_point()
 
-    with open("RFT_B-1AH_0_inactive_info") as fh:
+    with open("RFT_B-1AH_0_inactive_info", encoding="utf-8") as fh:
         result = fh.read()
         assert result.startswith("TRAJECTORY_POINT_NOT_IN_RFT (utm_x=")
 
 
 def test_gendata_inactive_info_zone_missing_value(tmpdir, norne_data, monkeypatch):
 
-    with open("well_and_time.txt", "w+") as fh:
+    with open("well_and_time.txt", "w+", encoding="utf-8") as fh:
         fh.write("B-1AH 1 12 2005 0\n")
 
-    with open("zonemap.txt", "w+") as fh:
+    with open("zonemap.txt", "w+", encoding="utf-8") as fh:
         fh.write("1 zone1\n")
 
     arguments = [
@@ -292,7 +292,7 @@ def test_gendata_inactive_info_zone_missing_value(tmpdir, norne_data, monkeypatc
     monkeypatch.setattr(sys, "argv", arguments)
     main_entry_point()
 
-    with open("RFT_B-1AH_0_inactive_info") as fh:
+    with open("RFT_B-1AH_0_inactive_info", encoding="utf-8") as fh:
         result = fh.read()
         assert result.startswith("ZONEMAP_MISSING_VALUE (utm_x=")
 
@@ -309,7 +309,7 @@ def test_partial_rft_file(tmpdir, norne_data, monkeypatch, caplog):
     """
 
     # Append an extra non-existing date to the well_and_time.txt test-file
-    with open("well_and_time.txt", "a") as file_h:
+    with open("well_and_time.txt", "a", encoding="utf-8") as file_h:
         file_h.write("B-1AH 1 12 2045 0")
 
     csv_filename = "gendata_rft.csv"
@@ -338,7 +338,7 @@ def test_partial_rft_file(tmpdir, norne_data, monkeypatch, caplog):
 
 
 def test_one_wrong_date(tmpdir, norne_data, monkeypatch, caplog):
-    with open("well_wrongtime.txt", "w") as file_h:
+    with open("well_wrongtime.txt", "w", encoding="utf-8") as file_h:
         file_h.write("B-1AH 1 12 2045 0")
 
     csv_filename = "gendata_rft.csv"
@@ -369,7 +369,7 @@ def test_empty_well_and_time(tmpdir, norne_data, monkeypatch, caplog):
     def file_count_cwd():
         return len(list(os.walk("."))[0][2])
 
-    with open("empty.txt", "w") as file_h:
+    with open("empty.txt", "w", encoding="utf-8") as file_h:
         file_h.write("")
 
     arguments = [

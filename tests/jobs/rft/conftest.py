@@ -42,10 +42,10 @@ def get_mock_data_content_norne():
 
 
 def _assert_almost_equal_line_by_line(file1, file2):
-    with open(file1) as fh:
+    with open(file1, encoding="utf-8") as fh:
         file1_content = fh.readlines()
 
-    with open(file2) as fh:
+    with open(file2, encoding="utf-8") as fh:
         file2_content = fh.readlines()
 
     assert len(file1_content) == len(file2_content)
@@ -60,7 +60,7 @@ def _assert_almost_equal_line_by_line(file1, file2):
 
 def _generate_mock_data_norne(write_directory):
     for fname, content in MOCK_DATA_CONTENT_NORNE.items():
-        with open(os.path.join(write_directory, fname), "w+") as fh:
+        with open(os.path.join(write_directory, fname), "w+", encoding="utf-8") as fh:
             fh.write("\n".join([str(c) for c in content]))
 
 

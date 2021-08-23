@@ -277,7 +277,7 @@ class Trajectory:
         if not os.path.isfile(filename):
             raise IOError(f"Trajectory file {filename} not found!")
 
-        with open(filename, "r") as f:
+        with open(filename, "r", encoding="utf8") as f:
             trajectory_lines = f.readlines()
 
         trajectory_lines = [strip_comments(line) for line in trajectory_lines]

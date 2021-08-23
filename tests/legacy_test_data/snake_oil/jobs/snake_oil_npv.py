@@ -89,7 +89,7 @@ if __name__ == "__main__":
         production_value = oil_price * production_sum
         npv += production_value
 
-    with open("snake_oil_npv.txt", "w") as output_file:
+    with open("snake_oil_npv.txt", "w", encoding="utf-8") as output_file:
         output_file.write("NPV %s\n" % npv)
 
         if npv < 80000:

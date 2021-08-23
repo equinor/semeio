@@ -48,13 +48,15 @@ def test_console_script_integration(
     setup_tmpdir, forward_model, configuration, expected_error
 ):
     config = default_config.format(forward_model, configuration)
-    with open("config.ert", "w") as fh:
+    with open("config.ert", "w", encoding="utf-8") as fh:
         fh.write(config)
 
     with ErtPluginContext(
         plugins=[semeio.hook_implementations.jobs, ert_shared.hook_implementations]
     ):
         subprocess.run(["ert", "test_run", "config.ert", "--verbose"], check=False)
-    with open(f"simulations/realization0/{forward_model}.stderr.0") as fin:
+    with open(
+        f"simulations/realization0/{forward_model}.stderr.0", encoding="utf-8"
+    ) as fin:
         error = fin.read()
     assert expected_error in error

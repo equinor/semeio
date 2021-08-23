@@ -1,3 +1,4 @@
+# pylint: disable=not-callable
 import os
 import shutil
 import json
@@ -47,7 +48,7 @@ def test_main_entry_point_gen_data(monkeypatch, test_data_root):
         job._output_dir,
         "clusters.json",
     )
-    with open(clusters_file) as f:
+    with open(clusters_file, encoding="utf-8") as f:
         cluster_reports = json.load(f)
         assert len(cluster_reports) == 1
 
@@ -170,7 +171,7 @@ def test_main_entry_point_syn_data(monkeypatch, facade, measured_data):
         job._output_dir,
         "clusters.json",
     )
-    with open(clusters_file) as f:
+    with open(clusters_file, encoding="utf-8") as f:
         cluster_reports = json.load(f)
         assert len(cluster_reports) == 1
 
