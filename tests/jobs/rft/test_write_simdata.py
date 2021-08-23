@@ -20,7 +20,7 @@ def test_write_simdata(tmpdir, dataname, input_data, expected_result):
         df = pd.DataFrame(input_data)
         _write_simdata("some_file_name", dataname, df)
 
-        with open("some_file_name", "r") as fin:
+        with open("some_file_name", "r", encoding="utf8") as fin:
             result = fin.readlines()
         assert result == expected_result
 
@@ -36,7 +36,7 @@ def test_write_gen_data_files_always_pressure(tmpdir):
     _write_gen_data_files(dframe, ".", "A-1", 0)
     pressure_file = "RFT_A-1_0"
     assert os.path.exists(pressure_file)
-    with open(pressure_file) as f_handle:
+    with open(pressure_file, encoding="utf8") as f_handle:
         pressure_lines = f_handle.read().splitlines()
     assert pressure_lines == ["-1", "-1"]
 

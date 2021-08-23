@@ -1,3 +1,4 @@
+# pylint: disable=not-callable
 import os
 import shutil
 import yaml
@@ -45,7 +46,7 @@ def test_misfit_preprocessor_main_entry_point_gen_data(
         },
     }
     config_file = "my_config_file.yaml"
-    with open(config_file, "w") as f:
+    with open(config_file, "w", encoding="utf-8") as f:
         yaml.dump(config, f)
 
     misfit_preprocessor.MisfitPreprocessorJob(ert).run(config_file)
@@ -86,7 +87,7 @@ def test_misfit_preprocessor_passing_scaling_parameters(monkeypatch, test_data_r
     }
 
     config_file = "my_config_file.yaml"
-    with open(config_file, "w") as f:
+    with open(config_file, "w", encoding="utf-8") as f:
         yaml.dump(config, f)
 
     misfit_preprocessor.MisfitPreprocessorJob(ert).run(config_file)
@@ -137,7 +138,7 @@ def test_misfit_preprocessor_with_scaling(test_data_root):
         }
     }
     config_file = "my_config_file.yaml"
-    with open(config_file, "w") as f:
+    with open(config_file, "w", encoding="utf-8") as f:
         yaml.dump(config, f)
 
     misfit_preprocessor.MisfitPreprocessorJob(ert).run(config_file)
@@ -179,7 +180,7 @@ def test_misfit_preprocessor_skip_clusters_yielding_empty_data_matrixes(
         },
     }
     config_file = "my_config_file.yaml"
-    with open(config_file, "w") as f:
+    with open(config_file, "w", encoding="utf-8") as f:
         yaml.dump(config, f)
 
     job = misfit_preprocessor.MisfitPreprocessorJob(ert)
@@ -205,7 +206,7 @@ def test_misfit_preprocessor_invalid_config(test_data_root):
         "workflow": {"type": "custom_scale", "clustering": {"threshold": 1.0}},
     }
     config_file = "my_config_file.yaml"
-    with open(config_file, "w") as f:
+    with open(config_file, "w", encoding="utf-8") as f:
         yaml.dump(config, f)
 
     expected_err_msg = (

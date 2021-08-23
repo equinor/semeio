@@ -76,7 +76,7 @@ def test_stea_response(monkeypatch):
     }
     monkeypatch.setattr(sys, "argv", ["script_name", "-c", "stea_input.yml"])
     fm_stea.main_entry_point()
-    with open("stea_response.json", "r") as fin:
+    with open("stea_response.json", "r", encoding="utf-8") as fin:
         result = json.load(fin)
     assert result == expected_result
 

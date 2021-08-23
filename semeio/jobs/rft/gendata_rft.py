@@ -62,7 +62,7 @@ def _write_simdata(fname, dataname, trajectory_df):
     """Write pressure value, one pr line for all points, -1 is used where
     there is no pressure information.
     """
-    with open(fname + "", "w+") as fh:
+    with open(fname + "", "w+", encoding="utf-8") as fh:
         if dataname in trajectory_df:
             fh.write(
                 "\n".join(
@@ -81,7 +81,7 @@ def _write_simdata(fname, dataname, trajectory_df):
 
 def _write_active(fname, trajectory_df):
     """Write a file with "1" pr row if a point is active, "0" if not"""
-    with open(fname, "w+") as fh:
+    with open(fname, "w+", encoding="utf-8") as fh:
         fh.write(
             "\n".join(
                 trajectory_df.sort_values("order")["is_active"]
@@ -94,7 +94,7 @@ def _write_active(fname, trajectory_df):
 
 def _write_inactive_info(fname, trajectory_df):
     """Write a file with explanations to users for inactive points"""
-    with open(fname, "w+") as fh:
+    with open(fname, "w+", encoding="utf-8") as fh:
         if "inactive_info" not in trajectory_df:
             fh.write("")
         else:

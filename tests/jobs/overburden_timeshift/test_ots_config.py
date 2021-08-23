@@ -43,7 +43,7 @@ def test_valid_config(
     if vintages_export_file:
         conf.update({"vintages_export_file": vintages_export_file})
     with tmpdir.as_cwd():
-        with open("ots_config.yml", "w") as f:
+        with open("ots_config.yml", "w", encoding="utf-8") as f:
             yaml.dump(conf, f, default_flow_style=False)
         ots_load_params("ots_config.yml")
 
@@ -76,7 +76,7 @@ def test_eclbase_config(tmpdir, monkeypatch, ecl_files, extension, error_msg):
         },
     }
     with tmpdir.as_cwd():
-        with open("ots_config.yml", "w") as f:
+        with open("ots_config.yml", "w", encoding="utf-8") as f:
             yaml.dump(conf, f, default_flow_style=False)
         # Renaming a needed ecl file to simulate it not existing
         Path(f"NORNE_ATW2013.{extension}").rename("NOT_ECLBASE")

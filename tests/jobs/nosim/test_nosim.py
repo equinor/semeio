@@ -57,10 +57,10 @@ import ert_shared.hook_implementations
 def test_nosim(setup_tmpdir, nosim_command, data_input, data_expected):
     shutil.copy(os.path.join(os.path.dirname(__file__), "data", "nosim.ert"), ".")
 
-    with open("nosim.ert", "a") as fh:
+    with open("nosim.ert", "a", encoding="utf-8") as fh:
         fh.writelines(["FORWARD_MODEL {}".format(nosim_command)])
 
-    with open("TEST.DATA", "w") as fh:
+    with open("TEST.DATA", "w", encoding="utf-8") as fh:
         fh.write(data_input)
 
     with ErtPluginContext(
@@ -69,5 +69,5 @@ def test_nosim(setup_tmpdir, nosim_command, data_input, data_expected):
         subprocess.check_call(
             ["ert", "test_run", "nosim.ert", "--verbose"],
         )
-    with open("nosim/real_0/iter_0/TEST.DATA") as fh:
+    with open("nosim/real_0/iter_0/TEST.DATA", encoding="utf-8") as fh:
         assert fh.read() == data_expected

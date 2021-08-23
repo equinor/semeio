@@ -196,10 +196,10 @@ def verifyExportedFile(exported_file_name, result_header, result_iter_rel):
 @pytest.mark.integration
 def test_ert_integration(norne_mocked_ensembleset):
     """Mock an ERT config and test the workflow"""
-    with open("FOO.DATA", "w") as file_h:
+    with open("FOO.DATA", "w", encoding="utf-8") as file_h:
         file_h.write("--Empty")
 
-    with open("wf_csvexport", "w") as file_h:
+    with open("wf_csvexport", "w", encoding="utf-8") as file_h:
         file_h.write(
             (
                 # This workflow is representing the example in csv_export2.py:
@@ -223,7 +223,7 @@ def test_ert_integration(norne_mocked_ensembleset):
     ]
 
     ert_config_fname = "test.ert"
-    with open(ert_config_fname, "w") as file_h:
+    with open(ert_config_fname, "w", encoding="utf-8") as file_h:
         file_h.write("\n".join(ert_config))
 
     subprocess.run(["ert", "test_run", ert_config_fname], check=True)
@@ -239,14 +239,14 @@ def test_ert_integration_errors(norne_mocked_ensembleset):
     This test proves that CSV_EXPORT2 happily skips non-existing
     realizations, but emits a warning that there is no STATUS file.
     """
-    with open("FOO.DATA", "w") as file_h:
+    with open("FOO.DATA", "w", encoding="utf-8") as file_h:
         file_h.write("--Empty")
 
     # Append a not-existing realizations to the runpathfile:
-    with open("runpathfile", "a") as file_h:
+    with open("runpathfile", "a", encoding="utf-8") as file_h:
         file_h.write("002 realization-2/iter-0 NORNE_1 000")
 
-    with open("wf_csvexport", "w") as file_h:
+    with open("wf_csvexport", "w", encoding="utf-8") as file_h:
         file_h.write("CSV_EXPORT2 runpathfile data.csv monthly FOPT\n")
 
     ert_config = [
@@ -258,7 +258,7 @@ def test_ert_integration_errors(norne_mocked_ensembleset):
     ]
 
     ert_config_fname = "test.ert"
-    with open(ert_config_fname, "w") as file_h:
+    with open(ert_config_fname, "w", encoding="utf-8") as file_h:
         file_h.write("\n".join(ert_config))
 
     ertoutput = subprocess.run(

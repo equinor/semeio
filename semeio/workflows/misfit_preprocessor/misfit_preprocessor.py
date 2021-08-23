@@ -49,7 +49,7 @@ def _fetch_config_record(args):
     if len(args) == 0:
         return {}
     elif len(args) == 1:
-        with open(args[0]) as f:
+        with open(args[0], encoding="utf8") as f:
             return yaml.safe_load(f)
     else:
         raise ValueError(

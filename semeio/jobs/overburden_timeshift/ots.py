@@ -31,7 +31,7 @@ def extract_ots_context(configuration):
 
 
 def ots_load_params(input_file):
-    with open(input_file, "r") as fin:
+    with open(input_file, "r", encoding="utf-8") as fin:
         config = yaml.safe_load(fin)
     config = configsuite.ConfigSuite(
         config,
@@ -123,7 +123,7 @@ def ots_run(parameter_file):
             + len(vintage_pairs.ts_rporv)
         )
         line = "{}, {}, {}" + ", {}" * num_pairs + "\n"
-        with open(parms.vintages_export_file, "w") as f:
+        with open(parms.vintages_export_file, "w", encoding="utf-8") as f:
 
             for point, (x_index, y_index) in enumerate(
                 product(

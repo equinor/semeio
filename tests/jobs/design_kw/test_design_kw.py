@@ -143,12 +143,12 @@ def test_rm_genkw_prefix_ignore(paramsdict, ignores, expected):
 )
 def test_genkw_prefix_handling(paramlines, template, result, tmpdir):
     tmpdir.chdir()
-    with open("parameters.txt", "w") as file_h:
+    with open("parameters.txt", "w", encoding="utf-8") as file_h:
         file_h.write(paramlines)
-    with open("template.tmpl", "w") as file_h:
+    with open("template.tmpl", "w", encoding="utf-8") as file_h:
         file_h.write(template)
     design_kw.run("template.tmpl", "result.txt", logging.DEBUG)
-    with open("result.txt", "r") as file_h:
+    with open("result.txt", "r", encoding="utf-8") as file_h:
         resulttxt = "\n".join(file_h.readlines())
     assert resulttxt == result
 
@@ -204,13 +204,13 @@ def test_run(input_data, filenames):
 
     design_kw.run(template_filename, result_filename, log_level=logging.DEBUG)
 
-    with open(result_filename, "r") as result_file:
+    with open(result_filename, "r", encoding="utf-8") as result_file:
         result = result_file.read()
 
-    with open(reference_filename, "r") as reference_file:
+    with open(reference_filename, "r", encoding="utf-8") as reference_file:
         reference = reference_file.read()
 
-    with open(design_kw._STATUS_FILE_NAME, "r") as status_file:
+    with open(design_kw._STATUS_FILE_NAME, "r", encoding="utf-8") as status_file:
         status = status_file.read()
 
     assert result == reference
