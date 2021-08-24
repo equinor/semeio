@@ -144,7 +144,7 @@ def read_localisation_config(args):
     print(
         "\n" f"Define localisation setup using config file: {specification_file_name}"
     )
-    with open(specification_file_name, "r") as yml_file:
+    with open(specification_file_name, "r", encoding="utf-8") as yml_file:
         localisation_yml = yaml.safe_load(yml_file)
     return localisation_yml
 
