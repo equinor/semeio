@@ -9,7 +9,7 @@ from semeio.workflows.localisation.localisation_config import (
 
 
 @given(
-    angle=st.one_of(
+    azimuth=st.one_of(
         st.integers(min_value=0, max_value=360),
         st.floats(
             min_value=0, max_value=360, width=64, exclude_min=False, exclude_max=False
@@ -20,9 +20,11 @@ from semeio.workflows.localisation.localisation_config import (
     "config_class, method",
     [(GaussianConfig, "gaussian_decay"), (ExponentialConfig, "exponential_decay")],
 )
-def test_gaussian_config_valid_angle(angle, config_class, method):
-    config = config_class(method=method, main_range=0.1, perp_range=0.1, angle=angle)
-    assert config.angle == angle
+def test_gaussian_config_valid_angle(azimuth, config_class, method):
+    config = config_class(
+        method=method, main_range=0.1, perp_range=0.1, azimuth=azimuth
+    )
+    assert config.azimuth == azimuth
 
 
 @pytest.mark.parametrize(
@@ -30,15 +32,15 @@ def test_gaussian_config_valid_angle(angle, config_class, method):
     [(GaussianConfig, "gaussian_decay"), (ExponentialConfig, "exponential_decay")],
 )
 @pytest.mark.parametrize(
-    "angle, expected_error",
+    "azimuth, expected_error",
     [
         (-0.0001, "ensure this value is greater than or equal to 0.0"),
         (360.0001, "ensure this value is less than or equal to 360"),
     ],
 )
-def test_invalid_angle(config_class, method, angle, expected_error):
+def test_invalid_angle(config_class, method, azimuth, expected_error):
     with pytest.raises(pydantic.ValidationError, match=expected_error):
-        config_class(method=method, main_range=0.1, perp_range=0.1, angle=angle)
+        config_class(method=method, main_range=0.1, perp_range=0.1, azimuth=azimuth)
 
 
 @pytest.mark.parametrize("decay_method", ["gaussian_decay", "exponential_decay"])
@@ -47,7 +49,7 @@ def test_field_config_init(decay_method):
         "method": decay_method,
         "main_range": 0.1,
         "perp_range": 0.1,
-        "angle": 10,
+        "azimuth": 10,
     }
     obs_config = {
         "add": "*",
@@ -73,7 +75,7 @@ def test_field_config_init(decay_method):
                 "method": "gaussian_decay",
                 "main_range": 0.1,
                 "perp_range": 0.1,
-                "angle": 10,
+                "azimuth": 10,
             },
             None,
             id="Field scale, not surface scale",
@@ -84,8 +86,8 @@ def test_field_config_init(decay_method):
                 "method": "gaussian_decay",
                 "main_range": 0.1,
                 "perp_range": 0.1,
-                "angle": 10,
-                "filename": "random_name",
+                "azimuth": 10,
+                "surface_file": "surface_file.txt",
             },
             id="Surface scale, not field scale",
         ),
@@ -94,20 +96,24 @@ def test_field_config_init(decay_method):
                 "method": "gaussian_decay",
                 "main_range": 0.1,
                 "perp_range": 0.1,
-                "angle": 10,
+                "azimuth": 10,
             },
             {
                 "method": "gaussian_decay",
                 "main_range": 0.1,
                 "perp_range": 0.1,
-                "angle": 10,
-                "filename": "random_name",
+                "azimuth": 10,
+                "surface_file": "surface_file.txt",
             },
             id="Field scale and surface scale",
         ),
     ],
 )
 def test_correlation_config_ref_point(field_config, surface_config):
+    # Create a surface file (should only exist)
+    with open("surface_file.txt", "w", encoding="utf-8") as fout:
+        fout.write("A test file")
+
     config_dict = {
         "name": "random",
         "obs_group": {
@@ -134,7 +140,7 @@ def test_correlation_config_ref_point(field_config, surface_config):
                 "method": "gaussian_decay",
                 "main_range": 0.1,
                 "perp_range": 0.1,
-                "angle": 10,
+                "azimuth": 10,
             },
             None,
             id="Field scale, not surface scale",
@@ -145,8 +151,8 @@ def test_correlation_config_ref_point(field_config, surface_config):
                 "method": "gaussian_decay",
                 "main_range": 0.1,
                 "perp_range": 0.1,
-                "angle": 10,
-                "filename": "random_name",
+                "azimuth": 10,
+                "surface_file": "surface_file.txt",
             },
             id="Surface scale, not field scale",
         ),
@@ -155,20 +161,24 @@ def test_correlation_config_ref_point(field_config, surface_config):
                 "method": "gaussian_decay",
                 "main_range": 0.1,
                 "perp_range": 0.1,
-                "angle": 10,
+                "azimuth": 10,
             },
             {
                 "method": "gaussian_decay",
                 "main_range": 0.1,
                 "perp_range": 0.1,
-                "angle": 10,
-                "filename": "random_name",
+                "azimuth": 10,
+                "surface_file": "surface_file.txt",
             },
             id="Field scale and surface scale",
         ),
     ],
 )
 def test_correlation_config_no_ref_point(field_config, surface_config):
+    # Create a surface file (should only exist)
+    with open("surface_file.txt", "w", encoding="utf-8") as fout:
+        fout.write("A test file")
+
     config_dict = {
         "name": "random",
         "obs_group": {
@@ -191,7 +201,7 @@ def test_invalid_field_config_init():
         "method": "not_implemented_method",
         "main_range": 0.1,
         "perp_range": 0.1,
-        "angle": 10,
+        "azimuth": 10,
     }
     obs_config = {
         "add": "*",

@@ -47,7 +47,7 @@ def test_localisation(setup_ert, obs_group_add, param_group_add, expected):
             },
         ],
     }
-    with open("local_config.yaml", "w") as fout:
+    with open("local_config.yaml", "w", encoding="utf-8") as fout:
         yaml.dump(config, fout)
     LocalisationConfigJob(ert).run("local_config.yaml")
     assert ert.getLocalConfig().getMinistep("CORR1").name() == "CORR1"
@@ -91,7 +91,7 @@ def test_localisation(setup_ert, obs_group_add, param_group_add, expected):
 def test_localisation_gen_param(
     setup_poly_ert,
 ):
-    with open("poly.ert", "a") as fout:
+    with open("poly.ert", "a", encoding="utf-8") as fout:
         fout.write(
             "GEN_PARAM PARAMS_A parameter_file_A INPUT_FORMAT:ASCII "
             "OUTPUT_FORMAT:ASCII INIT_FILES:initial_param_file_A_%d"
@@ -100,7 +100,7 @@ def test_localisation_gen_param(
     nparam = 10
     for n in range(nreal):
         filename = "initial_param_file_A_" + str(n)
-        with open(filename, "w") as fout:
+        with open(filename, "w", encoding="utf-8") as fout:
             for i in range(nparam):
                 fout.write(f"{i}\n")
 
@@ -121,7 +121,7 @@ def test_localisation_gen_param(
         ],
     }
 
-    with open("local_config.yaml", "w") as fout:
+    with open("local_config.yaml", "w", encoding="utf-8") as fout:
         yaml.dump(config, fout)
     LocalisationConfigJob(ert).run("local_config.yaml")
 
@@ -129,7 +129,7 @@ def test_localisation_gen_param(
 def test_localisation_surf(
     setup_poly_ert,
 ):
-    with open("poly.ert", "a") as fout:
+    with open("poly.ert", "a", encoding="utf-8") as fout:
         fout.write(
             "SURFACE   PARAM_SURF_A     OUTPUT_FILE:surf.txt    "
             "INIT_FILES:surf%d.txt   BASE_SURFACE:surf0.txt"
@@ -187,7 +187,7 @@ def test_localisation_surf(
         ],
     }
 
-    with open("local_config.yaml", "w") as fout:
+    with open("local_config.yaml", "w", encoding="utf-8") as fout:
         yaml.dump(config, fout)
     LocalisationConfigJob(ert).run("local_config.yaml")
 
@@ -215,7 +215,7 @@ def test_localisation_field(
     grid_file_name = "grid3D.EGRID"
     print(f" Write file: {grid_file_name}")
     grid.to_file(grid_file_name, fformat="egrid")
-    with open("poly.ert", "a") as fout:
+    with open("poly.ert", "a", encoding="utf-8") as fout:
         fout.write(f"GRID   {grid_file_name}\n")
 
         property_names = ["G1", "G2", "G3", "G4"]
@@ -278,6 +278,6 @@ def test_localisation_field(
         ],
     }
 
-    with open("local_config.yaml", "w") as fout:
+    with open("local_config.yaml", "w", encoding="utf-8") as fout:
         yaml.dump(config, fout)
     LocalisationConfigJob(ert).run("local_config.yaml")
