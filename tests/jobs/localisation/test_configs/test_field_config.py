@@ -190,7 +190,7 @@ def test_correlation_config_no_ref_point(field_config, surface_config, monkeypat
         config_dict["field_scale"] = field_config
     if surface_config:
         config_dict["surface_scale"] = surface_config
-    with pytest.raises(ValueError, match="ref_point must be provided"):
+    with pytest.raises(ValueError, match="the reference point must be specified"):
         CorrelationConfig(**config_dict)
 
 
