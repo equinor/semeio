@@ -24,3 +24,4 @@ repos:
       language: system
       types: [python]
       entry: "python -m pylint"
+exclude: "tests/jobs/localisation/snapshots/"

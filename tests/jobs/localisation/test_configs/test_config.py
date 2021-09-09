@@ -516,3 +516,233 @@ def test_check_for_duplicates(obs_1, obs_2, param_1, param_2, expected):
     correlations = [correlation_1, correlation_2]
     result = check_for_duplicated_correlation_specifications(correlations)
     assert result == expected
+
+
+@pytest.mark.parametrize(
+    "active_segment_list, scaling_factor_list, smooth_ranges",
+    [
+        (
+            [1, 2, 3],
+            [1.0, 1.0e-5, 0.1],
+            [0, 0],
+        ),
+        (
+            [4, 1, 3],
+            [1.0, 0.5, 0.0],
+            [1, 1],
+        ),
+    ],
+)
+def test_active_region_list(active_segment_list, scaling_factor_list, smooth_ranges):
+    data = {
+        "log_level": 2,
+        "correlations": [
+            {
+                "name": "CORR1_SEGMENT",
+                "obs_group": {
+                    "add": ["OBS1"],
+                },
+                "param_group": {
+                    "add": ["*"],
+                },
+                "ref_point": [250, 250],
+                "field_scale": {
+                    "method": "segment",
+                    "segment_filename": "Region.GRDECL",
+                    "param_name": "Region",
+                    "active_segments": active_segment_list,
+                    "scalingfactors": scaling_factor_list,
+                    "smooth_ranges": smooth_ranges,
+                },
+            },
+        ],
+    }
+    conf = LocalisationConfig(observations=["OBS1"], parameters=["PARAM_NODE1"], **data)
+    assert conf.correlations[0].field_scale.active_segments == active_segment_list
+    assert conf.correlations[0].field_scale.scalingfactors == scaling_factor_list
+    assert conf.correlations[0].field_scale.smooth_ranges == smooth_ranges
+    assert conf.correlations[0].field_scale.segment_filename == "Region.GRDECL"
+    assert conf.correlations[0].field_scale.param_name == "Region"
+
+
+@pytest.mark.parametrize(
+    "active_segment_list, scaling_factor_list, smooth_ranges, expected_error",
+    [
+        (
+            [1, -2, 3],
+            [1.0, 0.5, 0.1],
+            [0, 0],
+            "2 validation errors for LocalisationConfig",
+        ),
+        (
+            [1, 2, 3],
+            [-1.0, -0.5, 0.1],
+            [1, 1],
+            "3 validation errors for LocalisationConfig",
+        ),
+        (
+            [1, 2, 3],
+            [1.0, 0.5, 0.1],
+            [1, -1],
+            "1 validation error for LocalisationConfig",
+        ),
+        (
+            [1, 2, 3, 4],
+            [1.0, 0.5, 0.1],
+            [1, 1],
+            "The specified length of 'active_segments' list",
+        ),
+        (
+            [1, 2, 4],
+            [1.0, 0.5, 0.1, 0.0],
+            [1, 1],
+            "The specified length of 'active_segments' list",
+        ),
+        (
+            [1, 2, 4],
+            [1.0, 0.5, 0.1],
+            [1, 1, 2],
+            "1 validation error for LocalisationConfig",
+        ),
+    ],
+)
+def test_active_region_list_mismatch(
+    active_segment_list, scaling_factor_list, smooth_ranges, expected_error
+):
+    data = {
+        "log_level": 2,
+        "correlations": [
+            {
+                "name": "CORR1_SEGMENT",
+                "obs_group": {
+                    "add": ["OBS1"],
+                },
+                "param_group": {
+                    "add": ["*"],
+                },
+                "ref_point": [250, 250],
+                "field_scale": {
+                    "method": "segment",
+                    "segment_filename": "Region.GRDECL",
+                    "param_name": "Region",
+                    "active_segments": active_segment_list,
+                    "scalingfactors": scaling_factor_list,
+                    "smooth_ranges": smooth_ranges,
+                },
+            },
+        ],
+    }
+    with pytest.raises(ValueError, match=expected_error):
+        LocalisationConfig(observations=["OBS1"], parameters=["PARAM_NODE1"], **data)
+
+
+def test_invalid_keyword_errors_method_segment():
+    expected_error = "extra fields not permitted"
+    data = {
+        "log_level": 2,
+        "correlations": [
+            {
+                "name": "CORR1_SEGMENT",
+                "obs_group": {
+                    "add": ["OBS1"],
+                },
+                "param_group": {
+                    "add": ["*"],
+                },
+                "ref_point": [250, 250],
+                "field_scale": {
+                    "method": "segment",
+                    "segment_filename": "Region.GRDECL",
+                    "param_name": "Region",
+                    "active_segments": [1, 2, 3],
+                    "scalingfactors": [1.0, 0.5, 0.05],
+                    "smooth_ranges": [0, 0],
+                    "dummy1": "unused1",
+                    "dummy2": "unused2",
+                },
+            },
+        ],
+    }
+    with pytest.raises(ValueError, match=expected_error):
+        LocalisationConfig(observations=["OBS1"], parameters=["PARAM_NODE1"], **data)
+
+
+def test_invalid_keyword_errors_method_from_file():
+    expected_error = "extra fields not permitted"
+    data = {
+        "log_level": 2,
+        "correlations": [
+            {
+                "name": "CORR1_FROM_FILE",
+                "obs_group": {
+                    "add": ["OBS1"],
+                },
+                "param_group": {
+                    "add": ["*"],
+                },
+                "ref_point": [250, 250],
+                "field_scale": {
+                    "method": "from_file",
+                    "segment_filename": "dummy.GRDECL",
+                    "param_name": "Scaling",
+                    "active_segments": [1, 2, 3],
+                },
+            },
+        ],
+    }
+    with pytest.raises(ValueError, match=expected_error):
+        LocalisationConfig(observations=["OBS1"], parameters=["PARAM_NODE1"], **data)
+
+
+def test_invalid_keyword_errors_in_obs_group_or_param_group():
+    expected_error = "extra fields not permitted"
+    data = {
+        "log_level": 2,
+        "correlations": [
+            {
+                "name": "CORR1",
+                "obs_group": {
+                    "add": ["OBS1"],
+                    "unknown_obs_keyword": "dummy",
+                },
+                "param_group": {
+                    "add": ["*"],
+                    "unknown_param_keyword": "dummy",
+                },
+                "ref_point": [250, 250],
+                "field_scale": {
+                    "method": "from_file",
+                    "segment_filename": "dummy.GRDECL",
+                    "param_name": "Scaling",
+                    "active_segments": [1, 2, 3],
+                },
+            },
+        ],
+    }
+    with pytest.raises(ValueError, match=expected_error):
+        LocalisationConfig(observations=["OBS1"], parameters=["PARAM_NODE1"], **data)
+
+
+def test_missing_keyword_errors_method_gaussian_decay():
+    expected_error = "correlations -> 0 -> field_scale -> perp_range\n  field required"
+    data = {
+        "log_level": 2,
+        "correlations": [
+            {
+                "name": "CORR1_SEGMENT",
+                "obs_group": {
+                    "add": ["OBS1"],
+                },
+                "param_group": {
+                    "add": ["*"],
+                },
+                "ref_point": [250, 250],
+                "field_scale": {
+                    "method": "gaussian_decay",
+                    "main_range": 1000,
+                },
+            },
+        ],
+    }
+    with pytest.raises(ValueError, match=expected_error):
+        LocalisationConfig(observations=["OBS1"], parameters=["PARAM_NODE1"], **data)

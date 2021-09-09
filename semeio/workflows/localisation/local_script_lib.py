@@ -1,18 +1,22 @@
 # pylint: disable=W0201
 import math
-from collections import defaultdict
-from typing import List
-
 import yaml
 import cwrap
 import numpy as np
+from numpy import ma
 import logging
+import itertools
+
+from collections import defaultdict
+from typing import List
+from dataclasses import dataclass, field
 
 from ecl.util.geometry import Surface
+from ecl.eclfile import Ecl3DKW
+from ecl.ecl_type import EclDataType
+from ecl.grid.ecl_grid import EclGrid
 from res.enkf.enums.ert_impl_type_enum import ErtImplType
 from res.enkf.enums.enkf_var_type_enum import EnkfVarType
-
-from dataclasses import dataclass, field
 
 from semeio.workflows.localisation.localisation_debug_settings import (
     LogLevel,
@@ -207,34 +211,312 @@ def activate_gen_param(
         active_param_list.addActiveIndex(index)
 
 
-def activate_and_scale_correlation(
-    grid,
+def apply_decay(
     method,
     row_scaling,
-    ref_pos,
     data_size,
+    grid,
+    ref_pos,
     main_range,
     perp_range,
     azimuth,
+    calculate_qc_parameter=False,
+):
+    """Calculates the scaling factor, assign it to ERT instance by row_scaling
+    and returns a full sized grid parameter with scaling factors for active
+    grid cells and 0 elsewhere to be used for QC purpose.
+    """
+
+    if method == "gaussian_decay":
+        decay_obj = GaussianDecay(ref_pos, main_range, perp_range, azimuth, grid)
+    elif method == "exponential_decay":
+        decay_obj = ExponentialDecay(ref_pos, main_range, perp_range, azimuth, grid)
+    else:
+        _valid_methods = ["gaussian_decay", "exponential_decay"]
+        raise NotImplementedError(
+            f"The only allowed methods for function 'apply_decay' are: {_valid_methods}"
+        )
+
+    scaling_vector = np.zeros(data_size, dtype=np.float32)
+    for index in range(data_size):
+        scaling_vector[index] = decay_obj(index)
+    row_scaling.assign_vector(scaling_vector)
+
+    scaling_values = None
+    if calculate_qc_parameter:
+        if isinstance(grid, EclGrid):
+            nx = grid.getNX()
+            ny = grid.getNY()
+            nz = grid.getNZ()
+            scaling_values = np.zeros(nx * ny * nz, dtype=np.float32)
+            for index in range(data_size):
+                global_index = grid.global_index(active_index=index)
+                scaling_values[global_index] = scaling_vector[index]
+
+    return scaling_values
+
+
+def apply_from_file(row_scaling, data_size, grid, filename, param_name, log_level):
+    debug_print(
+        f"Read scaling factors as parameter {param_name}", LogLevel.LEVEL3, log_level
+    )
+    debug_print(f"File name:  {filename}", LogLevel.LEVEL3, log_level)
+    with cwrap.open(filename, "r") as file:
+        scaling_parameter = Ecl3DKW.read_grdecl(
+            grid,
+            file,
+            param_name,
+            strict=True,
+            ecl_type=EclDataType.ECL_FLOAT,
+        )
+        for index in range(data_size):
+            global_index = grid.global_index(active_index=index)
+            row_scaling[index] = scaling_parameter[global_index]
+
+
+def active_region(region_parameter, user_defined_active_region_list):
+    """
+     Find all region parameter values matching any of the regions defined
+    to be used in localisation and mask the unused values
+    """
+    active_region_values_used = ma.zeros(len(region_parameter), dtype=np.int32)
+    active_region_values_used[:] = -9999
+    for region_number in user_defined_active_region_list:
+        found_values = region_parameter == region_number
+        active_region_values_used[found_values] = region_number
+    is_not_used = active_region_values_used == -9999
+    active_region_values_used.mask = is_not_used
+    return active_region_values_used
+
+
+def define_look_up_index(user_defined_active_region_list, max_region_number):
+    """
+    Define an array taking region number as input and returning the index in the
+    user define active region list. Is used for fast lookup of scaling parameter
+    corresponding to the region number.
+    """
+    active_segment_array = np.array(user_defined_active_region_list)
+    index_per_used_region = ma.zeros((max_region_number + 1), dtype=np.uint16)
+    index_values = np.arange(len(active_segment_array))
+    index_per_used_region[active_segment_array[index_values]] = index_values
+    return index_per_used_region
+
+
+def calculate_scaling_factors_in_regions(
+    grid, region_parameter, active_segment_list, scaling_value_list, smooth_range_list
+):
+    min_region_number = region_parameter.min()
+    max_region_number = region_parameter.max()
+
+    # Get a list of region numbers that exists in region parameter
+    regions_in_param = []
+    for region_number in range(min_region_number, max_region_number + 1):
+        has_region = region_parameter == region_number
+        if has_region.any():
+            regions_in_param.append(region_number)
+
+    active_region_values_used = active_region(region_parameter, active_segment_list)
+    index_per_used_region = define_look_up_index(active_segment_list, max_region_number)
+    scaling_value_array = np.array(scaling_value_list)
+
+    # Get selected (not masked) region values
+    selected_grid_cells = np.logical_not(active_region_values_used.mask)
+    selected_region_values = active_region_values_used[selected_grid_cells]
+
+    # Look up scaling values for selected region values
+    scaling_values_active = scaling_value_array[
+        index_per_used_region[selected_region_values]
+    ]
+
+    # Create a full sized 3D parameter for scaling values
+    # where all but the selected region values have 0 scaling value.
+    scaling_values = np.zeros(len(region_parameter), dtype=np.float32)
+    scaling_values[selected_grid_cells] = scaling_values_active
+
+    return scaling_values, active_region_values_used, regions_in_param
+
+
+def smooth_parameter(
+    grid, smooth_range_list, scaling_values, active_region_values_used
+):
+    """
+    Function taking as input a 3D parameter  scaling_values and calculates a new
+    3D parameter scaling_values_smooth using local average within a rectangular window
+    around the cell to be assigned the smoothed value. The smoothing window is
+    defined by the two range parameters in smooth_range_list.
+    They contain integer values >=0 and smooth_range_list = [0,0] means no smoothing.
+    The input parameter active_region_values_used has non-negative integer values
+    with region number for all grid cells containing values for the input 3D parameter
+    scaling_values. All other grid cells are masked.
+    The smoothing algorithm is defined such that only values not masked are used.
+    If the  scaling_values contain constant values for each
+    active region and e.g 0 for all inactive regions and for inactive grid cells,
+    then the smoothing will only appear on the border between active regions.
+    """
+    nx = grid.get_nx()
+    ny = grid.get_ny()
+    nz = grid.get_nz()
+    di = smooth_range_list[0]
+    dj = smooth_range_list[1]
+    scaling_values_smooth = np.zeros(nx * ny * nz, dtype=np.float32)
+    for k, j0, i0 in itertools.product(range(nz), range(ny), range(nx)):
+        index0 = i0 + j0 * nx + k * nx * ny
+        if not active_region_values_used[index0] is ma.masked:
+            sumv = 0.0
+            nval = 0
+            ilow = max(0, i0 - di)
+            ihigh = min(i0 + di + 1, nx)
+            jlow = max(0, j0 - dj)
+            jhigh = min(j0 + dj + 1, ny)
+            for i in range(ilow, ihigh):
+                for j in range(jlow, jhigh):
+                    index = i + j * nx + k * nx * ny
+                    if not active_region_values_used[index] is ma.masked:
+                        # Only use values from grid cells that are active
+                        # and from regions defined as active by the user.
+                        v = scaling_values[index]
+                        sumv += v
+                        nval += 1
+            if nval > 0:
+                scaling_values_smooth[index0] = sumv / nval
+    return scaling_values_smooth
+
+
+def apply_segment(
+    row_scaling,
+    data_size,
+    grid,
+    region_param_dict,
+    active_segment_list,
+    scaling_factor_list,
+    smooth_range_list,
+    corr_name,
     log_level=LogLevel.OFF,
 ):
-    debug_print(
-        f"Scale correlations using method: {method}",
-        LogLevel.LEVEL3,
-        log_level,
+    """
+    Purpose: Use region numbers and list of scaling factors per region to
+                   create scaling factors per active .
+                   Input dictionary with keyword which is correlation group name,
+                   where values are numpy vector with region parameters
+                   for each grid cell in ERTBOX grid.
+                   A scaling factor is specified for each specified active region.
+                   Optionally also a spatial smoothing of the scaling factors
+                   can be done by specifying smooth ranges in number of
+                   grid cells in I and J direction. If this is not specified,
+                   no smoothing is done.
+                   NOTE: Smoothing is done only between active segments,
+                   and no smoothing between active segments and inactive
+                   segments or inactive grid cells.
+    """
+
+    debug_print(f"Active segments: {active_segment_list}", LogLevel.LEVEL3, log_level)
+
+    max_region_number_specified = max(active_segment_list)
+
+    region_parameter = region_param_dict[corr_name]
+    max_region_parameter = region_parameter.max()
+    if max_region_parameter < max_region_number_specified:
+        raise ValueError(
+            "Specified an active region with number "
+            f"{max_region_number_specified} which is larger \n"
+            f"than max region parameter {max_region_parameter} for "
+            f"correlation group {corr_name}."
+        )
+
+    (
+        scaling_values,
+        active_localisation_region,
+        regions_in_param,
+    ) = calculate_scaling_factors_in_regions(
+        grid,
+        region_parameter,
+        active_segment_list,
+        scaling_factor_list,
+        smooth_range_list,
     )
-    if method == "gaussian_decay":
-        row_scaling.assign(
-            data_size,
-            GaussianDecay(ref_pos, main_range, perp_range, azimuth, grid),
+    if smooth_range_list is not None:
+        scaling_values = smooth_parameter(
+            grid, smooth_range_list, scaling_values, active_localisation_region
         )
-    elif method == "exponential_decay":
-        row_scaling.assign(
-            data_size,
-            ExponentialDecay(ref_pos, main_range, perp_range, azimuth, grid),
+
+    # Assign values to row_scaling object
+    for index in range(data_size):
+        global_index = grid.global_index(active_index=index)
+        row_scaling[index] = scaling_values[global_index]
+
+    not_defined_in_region_param = []
+    for n in active_segment_list:
+        if n not in regions_in_param:
+            not_defined_in_region_param.append(n)
+    if len(not_defined_in_region_param) > 0:
+        debug_print(
+            f"Warning: The following region numbers are specified in \n"
+            "                config file for correlation group "
+            f"{corr_name}, \n"
+            "                but not found in region parameter: "
+            f"{not_defined_in_region_param}",
+            LogLevel.LEVEL3,
+            log_level,
         )
-    else:
-        logging.warning("Scaling method: %s is not implemented.", method)
+    return scaling_values
+
+
+def read_region_files_for_all_correlation_groups(user_config, grid):
+    # pylint: disable-msg=R1702
+    if grid is None:
+        # No grid is defined. Not relevant to look for region files to read.
+        return None
+
+    region_param_dict = {}
+    corr_name_dict = {}
+    nx = grid.get_nx()
+    ny = grid.get_ny()
+    nz = grid.get_nz()
+    for count, corr_spec in enumerate(user_config.correlations):
+        region_param_dict[corr_spec.name] = None
+        if corr_spec.field_scale is not None:
+            if corr_spec.field_scale.method == "segment":
+                filename = corr_spec.field_scale.segment_filename
+                param_name = corr_spec.field_scale.param_name
+                debug_print(
+                    f"Use parameter: {param_name} from file: {filename} "
+                    f"in {corr_spec.name}",
+                    LogLevel.LEVEL2,
+                    user_config.log_level,
+                )
+
+                if filename not in corr_name_dict:
+                    # Read the file
+                    with cwrap.open(filename, "r") as file:
+                        region_parameter_read = Ecl3DKW.read_grdecl(
+                            grid,
+                            file,
+                            param_name,
+                            strict=True,
+                            ecl_type=EclDataType.ECL_INT,
+                        )
+                    # Ensure the region_parameter is a numpy 1D array of uint16
+                    region_parameter = np.zeros(nx * ny * nz, dtype=np.uint16)
+                    not_active = np.zeros(nx * ny * nz, dtype=np.uint16)
+                    for k, j, i in itertools.product(range(nz), range(ny), range(nx)):
+                        index = i + j * nx + k * nx * ny
+                        v = region_parameter_read[i, j, k]
+                        region_parameter[index] = v
+                        if grid.get_active_index(ijk=(i, j, k)) == -1:
+                            not_active[index] = 1
+                    region_parameter_masked = ma.masked_array(
+                        region_parameter, mask=not_active
+                    )
+                    region_param_dict[corr_spec.name] = region_parameter_masked
+                    corr_name_dict[filename] = corr_spec.name
+                else:
+                    # The region_parameter is already read for a previous
+                    # correlation group. Re-use it instead of re-reading the file
+                    existing_corr_name = corr_name_dict[filename]
+                    region_param_dict[corr_spec.name] = region_param_dict[
+                        existing_corr_name
+                    ]
+    return region_param_dict
 
 
 def add_ministeps(
@@ -249,6 +531,13 @@ def add_ministeps(
 
     debug_print("Add all ministeps:", LogLevel.LEVEL1, user_config.log_level)
     ScalingValues.initialize()
+    # Read all region files used in correlation groups,
+    # but only once per unique region file.
+
+    region_param_dict = read_region_files_for_all_correlation_groups(
+        user_config, grid_for_field
+    )
+
     for count, corr_spec in enumerate(user_config.correlations):
         ministep_name = corr_spec.name
         ministep = ert_local_config.createMinistep(ministep_name)
@@ -285,23 +574,78 @@ def add_ministeps(
                     user_config.log_level,
                 )
             elif impl_type == ErtImplType.FIELD:
+                assert grid_for_field is not None
+                _decay_methods_fields = ["gaussian_decay", "exponential_decay"]
                 if corr_spec.field_scale is not None:
-                    field_config = node.getFieldModelConfig()
-                    check_if_ref_point_in_grid(corr_spec.ref_point, grid_for_field)
-                    activate_and_scale_correlation(
-                        grid_for_field,
-                        corr_spec.field_scale.method,
-                        model_param_group.row_scaling(node_name),
-                        corr_spec.ref_point,
-                        field_config.get_data_size(),
-                        corr_spec.field_scale.main_range,
-                        corr_spec.field_scale.perp_range,
-                        corr_spec.field_scale.azimuth,
+                    debug_print(
+                        "Scale field parameter correlations using method: "
+                        f"{corr_spec.field_scale.method}",
+                        LogLevel.LEVEL3,
                         user_config.log_level,
                     )
+                    field_config = node.getFieldModelConfig()
+                    row_scaling = model_param_group.row_scaling(node_name)
+                    data_size = grid_for_field.get_num_active()
+                    data_size2 = field_config.get_data_size()
+                    assert data_size == data_size2
+                    param_for_field = None
+                    if corr_spec.field_scale.method in _decay_methods_fields:
+                        ref_pos = corr_spec.ref_point
+                        main_range = corr_spec.field_scale.main_range
+                        perp_range = corr_spec.field_scale.perp_range
+                        azimuth = corr_spec.field_scale.azimuth
+                        check_if_ref_point_in_grid(ref_pos, grid_for_field)
+                        param_for_field = apply_decay(
+                            corr_spec.field_scale.method,
+                            row_scaling,
+                            data_size,
+                            grid_for_field,
+                            ref_pos,
+                            main_range,
+                            perp_range,
+                            azimuth,
+                            user_config.write_scaling_factors,
+                        )
+                    elif corr_spec.field_scale.method == "from_file":
+                        apply_from_file(
+                            row_scaling,
+                            data_size,
+                            grid_for_field,
+                            corr_spec.field_scale.filename,
+                            corr_spec.field_scale.param_name,
+                            user_config.log_level,
+                        )
+
+                    elif corr_spec.field_scale.method == "segment":
+                        param_for_field = apply_segment(
+                            row_scaling,
+                            data_size,
+                            grid_for_field,
+                            region_param_dict,
+                            corr_spec.field_scale.active_segments,
+                            corr_spec.field_scale.scalingfactors,
+                            corr_spec.field_scale.smooth_ranges,
+                            corr_spec.name,
+                            user_config.log_level,
+                        )
+                    else:
+                        logging.error(
+                            "Scaling method: %s is not implemented.",
+                            corr_spec.field_scale.method,
+                        )
+                        raise ValueError(
+                            f"Scaling method: {corr_spec.field_scale.method} "
+                            "is not implemented"
+                        )
+
                     if user_config.write_scaling_factors:
-                        ScalingValues.write(
-                            node_name, corr_spec, grid_for_field, user_config.log_level
+                        ScalingValues.write_qc_parameter(
+                            node_name,
+                            corr_spec.name,
+                            corr_spec.field_scale,
+                            grid_for_field,
+                            param_for_field,
+                            user_config.log_level,
                         )
                 else:
                     debug_print(
@@ -329,6 +673,7 @@ def add_ministeps(
                         user_config.log_level,
                     )
             elif impl_type == ErtImplType.SURFACE:
+                _decay_methods_surf = ["gaussian_decay", "exponential_decay"]
                 if corr_spec.surface_scale is not None:
                     surface_file = corr_spec.surface_scale.surface_file
                     debug_print(
@@ -336,18 +681,31 @@ def add_ministeps(
                         LogLevel.LEVEL3,
                         user_config.log_level,
                     )
+                    debug_print(
+                        "Scale surface parameter correlations using method: "
+                        f"{corr_spec.surface_scale.method}",
+                        LogLevel.LEVEL3,
+                        user_config.log_level,
+                    )
+
                     surface = Surface(surface_file)
                     data_size = surface.getNX() * surface.getNY()
-                    activate_and_scale_correlation(
-                        surface,
-                        corr_spec.surface_scale.method,
-                        model_param_group.row_scaling(node_name),
-                        corr_spec.ref_point,
-                        data_size,
-                        corr_spec.surface_scale.main_range,
-                        corr_spec.surface_scale.perp_range,
-                        corr_spec.surface_scale.azimuth,
-                    )
+                    row_scaling = model_param_group.row_scaling(node_name)
+                    if corr_spec.surface_scale.method in _decay_methods_surf:
+                        ref_pos = corr_spec.ref_point
+                        main_range = corr_spec.surface_scale.main_range
+                        perp_range = corr_spec.surface_scale.perp_range
+                        azimuth = corr_spec.surface_scale.azimuth
+                        apply_decay(
+                            corr_spec.surface_scale.method,
+                            row_scaling,
+                            data_size,
+                            surface,
+                            ref_pos,
+                            main_range,
+                            perp_range,
+                            azimuth,
+                        )
                 else:
                     debug_print(
                         f"No correlation scaling for node {node_name} "
@@ -417,8 +775,10 @@ class Decay:
 
     def get_dx_dy(self, data_index):
         try:
+            # Assume the grid is 3D EclGrid
             x, y, _ = self.grid.get_xyz(active_index=data_index)
         except AttributeError:
+            # Assume the grid is a 2D Surface grid
             x, y = self.grid.getXY(data_index)
         x_unrotated = x - self.obs_pos[0]
         y_unrotated = y - self.obs_pos[1]
@@ -457,61 +817,42 @@ class ScalingValues:
         cls.corr_name = None
 
     @classmethod
-    def write(cls, node_name, corr_spec, grid_for_field, log_level):
-        corr_name = corr_spec.name
-        ref_point = corr_spec.ref_point
-        grid = grid_for_field
-        if corr_spec.field_scale is None:
-            raise ValueError(
-                "Scaling values for 3D parameters require "
-                f"specification of keyword 'field_scale' for {cls.corr_name}"
-            )
-        method_name = corr_spec.field_scale.method
+    def write_qc_parameter(
+        cls,
+        node_name,
+        corr_name,
+        field_scale,
+        grid,
+        param_for_field,
+        log_level=LogLevel.OFF,
+    ):
+        if param_for_field is None or field_scale is None:
+            return
 
-        if method_name == "gaussian_decay":
-            decay_obj = GaussianDecay(
-                ref_point,
-                corr_spec.field_scale.main_range,
-                corr_spec.field_scale.perp_range,
-                corr_spec.field_scale.azimuth,
-                grid,
-            )
-            scaling_values = cls._calculate_scaling_param(grid, decay_obj)
-        elif method_name == "exponential_decay":
-            decay_obj = ExponentialDecay(
-                ref_point,
-                corr_spec.field_scale.main_range,
-                corr_spec.field_scale.perp_range,
-                corr_spec.field_scale.azimuth,
-                grid,
-            )
-            scaling_values = cls._calculate_scaling_param(grid, decay_obj)
-        else:
-            raise KeyError(f" Method name: {method_name} is not implemented")
+        scaling_values = np.reshape(
+            param_for_field, (grid.getNX(), grid.getNY(), grid.getNZ()), "F"
+        )
 
         # Write scaling parameter  once per corr_name
         if corr_name != cls.corr_name:
             cls.corr_name = corr_name
+            # Need a parameter name <= 8 character long
             scaling_kw_name = "S_" + str(cls.scaling_param_number)
             scaling_kw = grid.create_kw(scaling_values, scaling_kw_name, False)
             filename = (
                 cls.corr_name + "_" + node_name + "_" + scaling_kw_name + ".GRDECL"
             )
-            debug_print(f"Write file: {filename}", LogLevel.LEVEL3, log_level)
+            print(
+                "Write calculated scaling factor  with name: "
+                f"{scaling_kw_name} to file: {filename}"
+            )
+            debug_print(
+                f"Write calculated scaling factor with name: "
+                f"{scaling_kw_name} to file: {filename}",
+                LogLevel.LEVEL3,
+                log_level,
+            )
             with cwrap.open(filename, "w") as file:
                 grid.write_grdecl(scaling_kw, file)
             # Increase parameter number to define unique parameter name
             cls.scaling_param_number = cls.scaling_param_number + 1
-
-    @classmethod
-    def _calculate_scaling_param(cls, grid, decay_obj):
-        nx = grid.getNX()
-        ny = grid.getNY()
-        nz = grid.getNZ()
-        scaling_values = np.zeros((nx, ny, nz), dtype=np.float32)
-        for k in range(nz):
-            for j in range(ny):
-                for i in range(nx):
-                    global_index = grid.global_index(ijk=(i, j, k))
-                    scaling_values[i, j, k] = decay_obj(global_index)
-        return scaling_values

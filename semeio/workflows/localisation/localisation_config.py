@@ -4,8 +4,8 @@ import pathlib
 
 from typing import List, Optional, Union, Dict
 from typing_extensions import Literal
-
-from pydantic import BaseModel, validator, confloat, conint, conlist, root_validator
+from pydantic import BaseModel as PydanticBaseModel
+from pydantic import validator, confloat, conint, conlist, root_validator, Extra
 
 from semeio.workflows.localisation.localisation_debug_settings import (
     LogLevel,
@@ -52,6 +52,12 @@ def check_for_duplicated_correlation_specifications(correlations):
         else:
             seen.add(combination)
     return errors
+
+
+class BaseModel(PydanticBaseModel):
+    # pylint: disable=R0903
+    class Config:
+        extra = Extra.forbid
 
 
 class ObsConfig(BaseModel):
@@ -149,6 +155,40 @@ class ExponentialConfig(GaussianConfig):
     method: Literal["exponential_decay"]
 
 
+class ScalingFromFileConfig(BaseModel):
+    method: Literal["from_file"]
+    filename: str
+    param_name: str
+
+
+class ScalingForSegmentsConfig(BaseModel):
+    method: Literal["segment"]
+    segment_filename: str
+    param_name: str
+    active_segments: Union[conint(ge=0), conlist(item_type=conint(ge=0), min_items=1)]
+    scalingfactors: Union[
+        confloat(ge=0), conlist(item_type=confloat(ge=0, le=1), min_items=1)
+    ]
+    smooth_ranges: Optional[
+        conlist(item_type=conint(ge=0), min_items=2, max_items=2)
+    ] = [0, 0]
+
+    @validator("scalingfactors")
+    def check_length_consistency(cls, v, values):
+        # Ensure that active segment list and scaling factor lists are of equal length.
+        scalingfactors = v
+        active_segment_list = values.get("active_segments", None)
+        if not active_segment_list:
+            return scalingfactors
+        if len(scalingfactors) != len(active_segment_list):
+            raise ValueError(
+                "The specified length of 'active_segments' list"
+                f"{active_segment_list }\n"
+                f"  and 'scalingfactors' list {scalingfactors} are different."
+            )
+        return scalingfactors
+
+
 class CorrelationConfig(BaseModel):
     """
     The keyword 'correlations' specify a set of observations and model parameters
@@ -178,7 +218,14 @@ class CorrelationConfig(BaseModel):
     obs_group: ObsConfig
     param_group: ParamConfig
     ref_point: Optional[conlist(float, min_items=2, max_items=2)]
-    field_scale: Optional[Union[GaussianConfig, ExponentialConfig]]
+    field_scale: Optional[
+        Union[
+            GaussianConfig,
+            ExponentialConfig,
+            ScalingFromFileConfig,
+            ScalingForSegmentsConfig,
+        ]
+    ]
     surface_scale: Optional[Union[GaussianConfig, ExponentialConfig]]
     obs_context: list
     params_context: list
@@ -203,12 +250,15 @@ class CorrelationConfig(BaseModel):
         _valid_methods = {
             "gaussian_decay": GaussianConfig,
             "exponential_decay": ExponentialConfig,
+            "from_file": ScalingFromFileConfig,
+            "segment": ScalingForSegmentsConfig,
         }
         if method in _valid_methods:
             return _valid_methods[method](**value)
         else:
+            valid_list = list(_valid_methods.keys())
             raise ValueError(
-                f"Unknown method: {method}, valid methods are: {_valid_methods.keys()}"
+                f"Unknown method: {method}, valid methods are: {valid_list}"
             )
 
     @root_validator()
@@ -216,8 +266,29 @@ class CorrelationConfig(BaseModel):
         field_scale = values.get("field_scale", None)
         surface_scale = values.get("surface_scale", None)
         ref_point = values.get("ref_point")
-        if (field_scale or surface_scale) and not ref_point:
-            raise ValueError("If scaling surface or field ref_point must be provided")
+        if field_scale is not None:
+            # ref_point is required for method:
+            # - gaussian_decay
+            # - exponential_decay
+            if field_scale.method in ["gaussian_decay", "exponential_decay"]:
+                if ref_point is None:
+                    raise ValueError(
+                        "When using FIELD with scaling of correlation with "
+                        f"method {field_scale.method}, "
+                        "the reference point must be specified."
+                    )
+        if surface_scale is not None:
+            # ref_point is required for method:
+            # - gaussian_decay
+            # - exponential_decay
+            if surface_scale.method in ["gaussian_decay", "exponential_decay"]:
+                if ref_point is None:
+                    raise ValueError(
+                        "When using SURFACE with scaling of correlation with "
+                        f"method {surface_scale.method}, "
+                        "the reference point must be specified."
+                    )
+
         return values
 
     @validator("surface_scale", pre=True)
@@ -246,11 +317,13 @@ class CorrelationConfig(BaseModel):
             "gaussian_decay": GaussianConfig,
             "exponential_decay": ExponentialConfig,
         }
+
         if method in _valid_methods:
             return _valid_methods[method](**value)
         else:
+            valid_list = list(_valid_methods.keys())
             raise ValueError(
-                f"Unknown method: {method}, valid methods are: {_valid_methods.keys()}"
+                f"Unknown method: {method}, valid methods are: {valid_list}"
             )
 
 
