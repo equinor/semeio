@@ -9,7 +9,13 @@ import semeio.hook_implementations.jobs
 import ert_shared.hook_implementations
 
 
-@pytest.mark.skipif(sys.platform == "darwin", reason="Skip test for Mac OS")
+@pytest.mark.skipif(
+    sys.platform == "darwin", reason="Skip test for Mac OS - invalid use of sed"
+)
+# The GNU extension for the sed command on osx behaves slightly different.
+# The result when running the forward model job is as follow:
+# cat insert_nosim.stderr.1
+# sed: 1: "TEST.DATA": invalid command code T
 @pytest.mark.parametrize(
     "nosim_command,data_input,data_expected",
     [
