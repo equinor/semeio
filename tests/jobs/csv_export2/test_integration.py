@@ -261,14 +261,14 @@ def test_ert_integration_errors(norne_mocked_ensembleset):
     with open(ert_config_fname, "w") as file_h:
         file_h.write("\n".join(ert_config))
 
-    ertoutput = subprocess.run(
+    subprocess.run(
         ["ert", "test_run", ert_config_fname], check=True, capture_output=True
     )
 
-    assert "fmu.ensemble.realization - WARNING - No STATUS file" in str(
-        ertoutput.stdout
-    )
-    assert "realization-2/iter-0" in str(ertoutput.stdout)
+    with open("ert-log.txt") as fin:
+        ertlog = fin.read()
+    assert "fmu.ensemble.realization - WARNING - No STATUS file" in ertlog
+    assert "realization-2/iter-0" in ertlog
 
     assert os.path.exists("data.csv")
     assert pd.read_csv("data.csv").shape == (16, 5)
