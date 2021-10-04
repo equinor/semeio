@@ -204,7 +204,7 @@ class CorrelationConfig(BaseModel):
             "gaussian_decay": GaussianConfig,
             "exponential_decay": ExponentialConfig,
         }
-        if method in _valid_methods.keys():
+        if method in _valid_methods:
             return _valid_methods[method](**value)
         else:
             raise ValueError(
@@ -246,7 +246,7 @@ class CorrelationConfig(BaseModel):
             "gaussian_decay": GaussianConfig,
             "exponential_decay": ExponentialConfig,
         }
-        if method in _valid_methods.keys():
+        if method in _valid_methods:
             return _valid_methods[method](**value)
         else:
             raise ValueError(

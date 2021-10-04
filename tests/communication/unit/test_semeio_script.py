@@ -93,7 +93,7 @@ def assert_log(messages, log_file):
     [
         ("msg",),
         ("This is a message!", "And this is another one"),
-        tuple("message_{}".format(idx) for idx in range(10)),
+        tuple(f"message_{idx}" for idx in range(10)),
     ],
 )
 def test_semeio_script_multiple_logging(messages, tmpdir):

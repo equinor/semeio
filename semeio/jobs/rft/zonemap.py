@@ -40,9 +40,7 @@ class ZoneMap:
             return None
 
         if not os.path.isfile(filename):
-            raise argparse.ArgumentTypeError(
-                "ZoneMap file {filename} not found!".format(filename=filename)
-            )
+            raise argparse.ArgumentTypeError(f"ZoneMap file {filename} not found!")
 
         zones_at_k_value = {}
 
@@ -72,7 +70,7 @@ class ZoneMap:
             except ValueError as err:
                 raise argparse.ArgumentTypeError(
                     basic_err_msg.format(line_number=line_number, filename=filename)
-                    + "k must be integer, was {k}".format(k=zonemap_line[0])
+                    + f"k must be integer, was {zonemap_line[0]}"
                 ) from err
             if raw_k == 0:
                 raise argparse.ArgumentTypeError(
@@ -99,7 +97,7 @@ class ZoneMap:
             return self._zones_at_k_value[item]
         elif isinstance(item, str):
             return self._k_values_at_zone[item]
-        raise KeyError("{item} is neither a k value nor a zone".format(item=item))
+        raise KeyError(f"{item} is neither a k value nor a zone")
 
     def has_relationship(self, zone, k):
         return k in self._k_values_at_zone.get(zone, [])

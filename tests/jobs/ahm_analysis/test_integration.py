@@ -77,8 +77,8 @@ def test_ahmanalysis_run_field(test_data_root, grid_prop):
     os.makedirs("fields")
     grid = EclGridGenerator.createRectangular((10, 12, 5), (1, 1, 1))
     for iens in range(10):
-        grid_prop("PERMX", 10, grid.getGlobalSize(), "fields/permx%d.grdecl" % iens)
-        grid_prop("PORO", 0.2, grid.getGlobalSize(), "fields/poro%d.grdecl" % iens)
+        grid_prop("PERMX", 10, grid.getGlobalSize(), f"fields/permx{iens}.grdecl")
+        grid_prop("PORO", 0.2, grid.getGlobalSize(), f"fields/poro{iens}.grdecl")
 
     res_config = ResConfig("snake_oil_field.ert")
     res_config.convertToCReference(None)

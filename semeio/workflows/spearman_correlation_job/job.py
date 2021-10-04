@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=logging-fstring-interpolation
 import itertools
 import logging
 
@@ -46,7 +47,7 @@ def spearman_job(
     job_configs = _config_creation(clustered_data)
 
     for cluster, val in clustered_data.items():
-        logging.info("Cluster nr: {}, clustered data: {}".format(cluster, val))
+        logging.info(f"Cluster nr: {cluster}, clustered data: {val}")
 
     return job_configs
 
@@ -71,9 +72,7 @@ def _remove_singular_obs(clusters):
             multiobs_clusters[new_cluster_index] = cluster
             new_cluster_index += 1
         else:
-            logging.info(
-                "Removed cluster with singular observation: {}".format(cluster)
-            )
+            logging.info(f"Removed cluster with singular observation: {cluster}")
     return multiobs_clusters
 
 

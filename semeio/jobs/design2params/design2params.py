@@ -1,3 +1,4 @@
+# pylint: disable=logging-fstring-interpolation
 import numpy as np
 import pandas as pd
 
@@ -53,12 +54,10 @@ def run(
     try:
         parameters = pd.read_csv(parametersfilename, delimiter=" ", header=None)
     except IOError:
-        logger.info(
-            "No {} exists, creating a new, empty one.".format(parametersfilename)
-        )
+        logger.info(f"No {parametersfilename} exists, creating a new, empty one.")
         parameters = pd.DataFrame(columns=[0, 1])
     except pd.errors.EmptyDataError:
-        logger.info("{} existed but was empty.".format(parametersfilename))
+        logger.info(f"{parametersfilename} existed but was empty.")
         parameters = pd.DataFrame(columns=[0, 1])
     parameters.rename(columns={0: "keys", 1: "parameters"}, inplace=True)
 
@@ -88,9 +87,7 @@ def _complete_parameters_file(
         realization_values = pd.DataFrame(design_matrix_sheet.iloc[realization, 1:])
     except IndexError as err:
         raise SystemExit(
-            "Provided realization arg {} does not exist in design matrix".format(
-                realization
-            )
+            f"Provided realization arg {realization} does not exist in design matrix"
         ) from err
     realization_values.reset_index(inplace=True)
     realization_values.rename(
@@ -136,7 +133,7 @@ def _complete_parameters_file(
     if not conflicts.empty:
         for _, row in conflicts.iterrows():
             msg = (
-                "Parameter {} already exists in {} with value {}, "
+                "Parameter {} already exists in {} with value {}, "  # pylint: disable=consider-using-f-string
                 "design matrix value {} ignored"
             ).format(
                 row["keys"], parametersfilename, row["parameters"], row["realization"]
@@ -190,12 +187,13 @@ def _read_excel(file_name, sheet_name, header=0):
         df = pd.read_excel(file_name, sheet_name, header=header, dtype=str)
         return df.dropna(axis=1, how="all")
     except IOError as err:
-        raise SystemExit("File {} not found".format(file_name)) from err
+        raise SystemExit(f"File {file_name} not found") from err
     except Exception as err:
         raise SystemExit(
             (
-                "File {} is probably not of correct type. Failed with exception '{}'"
-            ).format(file_name, str(err))
+                f"File {file_name} is probably not of correct type. "
+                f"Failed with exception '{err}'"
+            )
         ) from err
 
 
@@ -214,9 +212,7 @@ def _validate_design_matrix_header(design_matrix):
         ) from err
     column_indexes = [int(x.split(":")[1]) for x in unnamed.columns.values]
     if len(column_indexes) > 0:
-        raise ValueError(
-            "Column headers not present in column {}".format(column_indexes)
-        )
+        raise ValueError(f"Column headers not present in column {column_indexes}")
 
 
 def _invalid_design_realizations(design_matrix):
@@ -235,20 +231,18 @@ def _invalid_design_realizations(design_matrix):
     empty_cell_coords = list(zip(*np.where(pd.isnull(design_matrix))))
 
     empties = [
-        "Realization {}, column {}".format(i, design_matrix.columns[j])
+        f"Realization {i}, column {design_matrix.columns[j]}"
         for i, j in zip(*np.where(pd.isnull(design_matrix)))
     ]
     if len(empties) > 0:
-        logger.warning("Design matrix contains empty cells {}".format(empties))
+        logger.warning(f"Design matrix contains empty cells {empties}")
 
     # Look for initial or trailing whitespace in column headers. This
     # is disallowed as it can create user confusion and has no use-case.
     for col_header in design_matrix:
         if col_header != col_header.strip():
             raise SystemExit(
-                'Column header "{}" contains initial or trailing whitespace.'.format(
-                    col_header
-                )
+                f'Column header "{col_header}" contains initial or trailing whitespace.'
             )
 
     # pd.read_excel() will always allow duplicated column names, but will
@@ -262,13 +256,13 @@ def _invalid_design_realizations(design_matrix):
     ]
     if dot1columns:
         logger.warning(
-            "Column(s) {} are probably duplicated in design matrix".format(dot1columns)
+            f"Column(s) {dot1columns} are probably duplicated in design matrix"
         )
 
     denied_params = set(design_matrix.columns).intersection(set(DENYLIST))
     if denied_params:
         raise SystemExit(
-            "Column name(s) {} is not allowed in design matrix.".format(denied_params)
+            f"Column name(s) {denied_params} is not allowed in design matrix."
         )
 
     return {cell_coord[0] for cell_coord in empty_cell_coords}
@@ -309,17 +303,15 @@ def _read_defaultssheet(xlsfilename, defaultssheetname):
             if paramname != paramname.strip():
                 raise SystemExit(
                     (
-                        'Parameter name "{}" in default values contains '
+                        f'Parameter name "{paramname}" in default values contains '
                         "initial or trailing whitespace."
-                    ).format(paramname)
+                    )
                 )
 
         denied_params = set(default_df.loc[:, 0]).intersection(set(DENYLIST_DEFAULTS))
         if denied_params:
             raise SystemExit(
-                "Column name(s) {} is not allowed in design matrix defaults.".format(
-                    denied_params
-                )
+                f"Column name(s) {denied_params} not allowed in design matrix defaults."
             )
 
     else:

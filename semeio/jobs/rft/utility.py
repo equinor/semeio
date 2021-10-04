@@ -13,7 +13,7 @@ def strip_comments(line):
 def existing_directory(path):
     if not os.path.isdir(path):
         raise argparse.ArgumentTypeError(
-            "The path {} is not an existing directory".format(path)
+            f"The path {path} is not an existing directory"
         )
     return path
 
@@ -35,7 +35,7 @@ def load_and_parse_well_time_file(filename):
     """
 
     if not os.path.isfile(filename):
-        raise argparse.ArgumentTypeError("The path {} does not exist".format(filename))
+        raise argparse.ArgumentTypeError(f"The path {filename} does not exist")
 
     well_times = []
     base_error_msg = (
@@ -120,36 +120,32 @@ def valid_eclbase(file_path):
     """
     rft_filepath = file_path + ".RFT"
     if not os.path.isfile(rft_filepath):
-        raise argparse.ArgumentTypeError(
-            "The path {} does not exist".format(rft_filepath)
-        )
+        raise argparse.ArgumentTypeError(f"The path {rft_filepath} does not exist")
 
     try:
         ecl_rft = EclRFTFile(rft_filepath)
     except (IOError, OSError) as err:
         raise argparse.ArgumentTypeError(
             (
-                "Could not load eclipse RFT from file: {fname}\n"
-                "With the following error:"
-                "\n{ecl_err}"
-            ).format(fname=rft_filepath, ecl_err=err)
+                f"Could not load eclipse RFT from file: {rft_filepath}\n"
+                f"With the following error:"
+                f"\n{err}"
+            )
         )
 
     grid_filepath = file_path + ".EGRID"
     if not os.path.isfile(grid_filepath):
-        raise argparse.ArgumentTypeError(
-            "The path {} does not exist".format(grid_filepath)
-        )
+        raise argparse.ArgumentTypeError(f"The path {grid_filepath} does not exist")
 
     try:
         ecl_grid = EclGrid(grid_filepath)
     except (IOError, OSError) as err:
         raise argparse.ArgumentTypeError(
             (
-                "Could not load eclipse Grid from file: {fname}\n"
-                "With the following error:\n"
-                "{ecl_err}"
-            ).format(fname=grid_filepath, ecl_err=err)
+                f"Could not load eclipse Grid from file: {grid_filepath}\n"
+                f"With the following error:\n"
+                f"{err}"
+            )
         )
 
     return ecl_grid, ecl_rft

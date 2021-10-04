@@ -56,7 +56,7 @@ def _realize_list(input_string):
         if elem.startswith("-"):
             raise ValueError(
                 "Elements can not be negative, neither singletons nor in range,"
-                " got: {}".format(elem)
+                f" got: {elem}"
             )
         bounds = elem.split("-")
         if len(bounds) == 1:

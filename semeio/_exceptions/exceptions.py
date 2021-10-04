@@ -5,9 +5,9 @@ class ConfigurationError(Exception):
         self.message = message
 
     def __str__(self):
-        msg = "{}".format(self.message)
+        msg = f"{self.message}"
         for error in self.errors:
-            msg += "\n{}".format(error)
+            msg += f"\n{error}"
         return msg
 
 

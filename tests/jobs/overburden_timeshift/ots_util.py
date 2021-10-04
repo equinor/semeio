@@ -11,13 +11,13 @@ def create_init(grid, case):
     poro = EclKW("PORO", grid.getNumActive(), EclDataType.ECL_FLOAT)
     porv = EclKW("PORV", grid.getGlobalSize(), EclDataType.ECL_FLOAT)
 
-    with openFortIO("%s.INIT" % case, mode=FortIO.WRITE_MODE) as f:
+    with openFortIO(f"{case}.INIT", mode=FortIO.WRITE_MODE) as f:
         poro.fwrite(f)
         porv.fwrite(f)
 
 
 def create_restart(grid, case, rporv=None):
-    with openFortIO("%s.UNRST" % case, mode=FortIO.WRITE_MODE) as f:
+    with openFortIO(f"{case}.UNRST", mode=FortIO.WRITE_MODE) as f:
         seq_hdr = EclKW("SEQNUM", 1, EclDataType.ECL_FLOAT)
         seq_hdr[0] = 1
         p = EclKW("PRESSURE", grid.getNumActive(), EclDataType.ECL_FLOAT)

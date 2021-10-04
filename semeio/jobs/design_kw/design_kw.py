@@ -1,3 +1,4 @@
+# pylint: disable=logging-fstring-interpolation
 import logging
 import shlex
 import re
@@ -38,7 +39,7 @@ def run(
             for line in template:
                 if not is_comment(line):
                     for key, value in key_vals.items():
-                        line = line.replace("<{}>".format(key), str(value))
+                        line = line.replace(f"<{key}>", str(value))
 
                     if not all_matched(line, template_file_name, template):
                         valid = False
@@ -54,13 +55,16 @@ def all_matched(line, template_file_name, template):
     valid = True
     for unmatched in unmatched_templates(line):
         if is_perl(template_file_name, template):
-            _logger.warn(
+            _logger.warning(  # pylint: disable=logging-fstring-interpolation
                 (
-                    "{} not found in design matrix, but this is probably a Perl file"
-                ).format(unmatched)
+                    f"{unmatched} not found in design matrix, "
+                    f"but this is probably a Perl file"
+                )
             )
         else:
-            _logger.error("{} not found in design matrix".format(unmatched))
+            _logger.error(  # pylint: disable=logging-fstring-interpolation
+                f"{unmatched} not found in design matrix"
+            )
             valid = False
     return valid
 
@@ -106,14 +110,14 @@ def extract_key_value(parameters):
         if not line_parts:
             continue
         if len(line_parts) == 1:
-            errors += ["No value found in line {}".format(line)]
+            errors += [f"No value found in line {line}"]
             continue
         if len(line_parts) > 2:
-            errors += ["Too many values found in line {}".format(line)]
+            errors += [f"Too many values found in line {line}"]
             continue
         key, value = line_parts
         if key in res:
-            errors += ["{} is defined multiple times".format(key)]
+            errors += [f"{key} is defined multiple times"]
             continue
         res[key] = value
     if errors:
@@ -163,9 +167,7 @@ def rm_genkw_prefix(paramsdict, ignoreprefixes="LOG10_"):
 
     duplicates = {keyvalue[0] for keyvalue in keyvalues if keys.count(keyvalue[0]) > 1}
     if duplicates:
-        _logger.warning(
-            "Key(s) {} can only be used with prefix.".format(list(duplicates))
-        )
+        _logger.warning(f"Key(s) {list(duplicates)} can only be used with prefix.")
 
     return {
         keyvalue[0]: keyvalue[1]
