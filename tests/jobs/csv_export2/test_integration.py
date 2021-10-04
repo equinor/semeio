@@ -233,7 +233,7 @@ def test_ert_integration(norne_mocked_ensembleset):
 
 @pytest.mark.skipif(sys.version_info < (3, 7), reason="Py 3.7 for capture_output")
 @pytest.mark.integration
-def test_ert_integration_errors(norne_mocked_ensembleset):
+def test_ert_integration_errors(norne_mocked_ensembleset, snapshot):
     """Test CSV_EXPORT2 when runpathfile points to non-existing realizations
 
     This test proves that CSV_EXPORT2 happily skips non-existing
@@ -271,4 +271,8 @@ def test_ert_integration_errors(norne_mocked_ensembleset):
     assert "realization-2/iter-0" in ertlog
 
     assert os.path.exists("data.csv")
-    assert pd.read_csv("data.csv").shape == (16, 5)
+    data = pd.read_csv("data.csv")
+    snapshot.assert_match(
+        data.to_csv(line_terminator="\n"),
+        "csv_data.csv",
+    )
