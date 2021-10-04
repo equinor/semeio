@@ -49,8 +49,8 @@ def main_entry_point():
     stea_input = stea.SteaInput([options.config, "--ecl_case", options.ecl_case])
     result = stea.calculate(stea_input)
     for res, value in result.results(stea.SteaKeys.CORPORATE).items():
-        with open("{}_0".format(res), "w") as ofh:
-            ofh.write("{}\n".format(value))
+        with open(f"{res}_0", "w") as ofh:
+            ofh.write(f"{value}\n")
     profiles = _get_profiles(
         stea_input.stea_server,
         stea_input.project_id,

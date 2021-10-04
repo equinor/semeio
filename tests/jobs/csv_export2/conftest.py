@@ -44,6 +44,7 @@ def ert_statoil_test_data(tmpdir):
 
 
 def mock_norne_data(reals, iters, parameters=True):
+    # pylint: disable=consider-using-f-string
     """From a single UNSMRY file, produce arbitrary sized ensembles.
 
     Summary data will be equivalent over realizations, but the
@@ -58,25 +59,23 @@ def mock_norne_data(reals, iters, parameters=True):
     """
     for real in reals:
         for iteration in iters:
-            runpath = os.path.join(
-                "realization-{}".format(real), "iter-{}".format(iteration)
-            )
+            runpath = os.path.join(f"realization-{real}", f"iter-{iteration}")
 
             os.makedirs(runpath, exist_ok=True)
 
             os.symlink(
                 os.path.join(NORNE_DIR, "NORNE_ATW2013.UNSMRY"),
-                os.path.join(runpath, "NORNE_{}.UNSMRY".format(real)),
+                os.path.join(runpath, f"NORNE_{real}.UNSMRY"),
             )
             os.symlink(
                 os.path.join(NORNE_DIR, "NORNE_ATW2013.SMSPEC"),
-                os.path.join(runpath, "NORNE_{}.SMSPEC".format(real)),
+                os.path.join(runpath, f"NORNE_{real}.SMSPEC"),
             )
             if parameters:
                 with open(
                     os.path.join(runpath, "parameters.txt"), "w", encoding="utf-8"
                 ) as p_fileh:
-                    p_fileh.write("FOO 1{}{}".format(real, iteration))
+                    p_fileh.write(f"FOO 1{real}{iteration}")
             # Ensure fmu-ensemble does not complain on missing STATUS
             with open(os.path.join(runpath, "STATUS"), "w", encoding="utf-8") as file_h:
                 file_h.write("a:b\na: 09:00:00 .... 09:00:01")
@@ -84,9 +83,7 @@ def mock_norne_data(reals, iters, parameters=True):
     with open("runpathfile", "w", encoding="utf-8") as file_h:
         for iteration in iters:
             for real in reals:
-                runpath = os.path.join(
-                    "realization-{}".format(real), "iter-{}".format(iteration)
-                )
+                runpath = os.path.join(f"realization-{real}", f"iter-{iteration}")
                 file_h.write(
                     "{0:03d} {1} NORNE_{0} {2:03d}\n".format(real, runpath, iteration)
                 )

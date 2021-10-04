@@ -107,7 +107,7 @@ def main(args):
         column_keys=args.column_keys,
     )
 
-    print("{} csv-export written to {}".format(args.time_index, args.outputfile))
+    print(f"{args.time_index} csv-export written to {args.outputfile}")
 
 
 def csv_export_parser():

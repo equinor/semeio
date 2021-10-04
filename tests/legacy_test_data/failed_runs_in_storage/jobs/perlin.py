@@ -1,4 +1,5 @@
 #! /usr/bin/env python
+# pylint: disable=consider-using-f-string
 import math
 import random
 

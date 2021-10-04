@@ -57,11 +57,11 @@ class DataMatrix(object):
             pc is the number of primary components from PCA analysis
                 below a user threshold
         """
-        logging.info(
+        logging.info(  # pylint: disable=logging-fstring-interpolation
             (
-                "Calculation scaling factor, nr of primary components: "
-                "{:d}, number of observations: {:d}"
-            ).format(nr_components, nr_observations)
+                f"Calculation scaling factor, nr of primary components: "
+                f"{nr_components}, number of observations: {nr_observations}"
+            )
         )
         return np.sqrt(nr_observations / float(nr_components))
 

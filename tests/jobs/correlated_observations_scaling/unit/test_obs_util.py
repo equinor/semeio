@@ -125,7 +125,7 @@ def test_failed_wildcard_expansion(config_dict, obs_list, expected_fails, err_ms
         try:
             find_and_expand_wildcards(obs_list, config_dict)
         except ValueError:
-            pytest.fail("unexpectedly raised with config: {}".format(config_dict))
+            pytest.fail(f"unexpectedly raised with config: {config_dict}")
 
 
 @pytest.mark.usefixtures("setup_ert")

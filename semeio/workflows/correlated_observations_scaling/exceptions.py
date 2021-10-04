@@ -9,7 +9,7 @@ class ValidationError(ValueError):
         self.message = message
 
     def __str__(self):
-        msg = "{}\n".format(self.message)
+        msg = f"{self.message}\n"
         for error in self.errors:
-            msg += "\t{}".format(error)
+            msg += f"\t{error}"
         return msg

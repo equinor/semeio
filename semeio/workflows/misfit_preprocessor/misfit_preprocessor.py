@@ -55,8 +55,8 @@ def _fetch_config_record(args):
         raise ValueError(
             (
                 "Excepted at most one argument, namely the path to a "
-                "configuration file. Received {} arguments: {}"
-            ).format(len(args), args)
+                f"configuration file. Received {len(args)} arguments: {args}"
+            )
         )
 
 

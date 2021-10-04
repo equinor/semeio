@@ -1,3 +1,4 @@
+# pylint: disable=logging-fstring-interpolation
 import argparse
 import logging
 
