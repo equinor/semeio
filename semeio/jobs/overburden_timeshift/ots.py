@@ -41,7 +41,7 @@ def ots_load_params(input_file):
     )
     if not config.valid:
         raise ConfigurationError(
-            "Invalid configuration for config file: {}".format(input_file),
+            f"Invalid configuration for config file: {input_file}",
             config.errors,
         )
 
@@ -177,9 +177,9 @@ class OverburdenTimeshift(object):
         overburden timeshift calculations.
         """
         case = os.path.splitext(eclbase)[0]
-        self._init_file = EclFile("%s.INIT" % case)
-        self._rst_file = EclFile("%s.UNRST" % case)
-        self._grid = EclGrid("%s.EGRID" % case, apply_mapaxes=mapaxes)
+        self._init_file = EclFile(f"{case}.INIT")
+        self._rst_file = EclFile(f"{case}.UNRST")
+        self._grid = EclGrid(f"{case}.EGRID", apply_mapaxes=mapaxes)
 
         self.subsidence = EclSubsidence(self._grid, self._init_file)
 
@@ -314,7 +314,7 @@ class OverburdenTimeshift(object):
         ts_surfaces = []
         for vintage in vintages:
             logging.info(
-                "{:%x %X} {}: Calculating vintage {:%Y.%m.%d}".format(
+                "{:%x %X} {}: Calculating vintage {:%Y.%m.%d}".format(  # pylint: disable=consider-using-f-string
                     dt.now(), method_name, vintage.date
                 )
             )
@@ -387,7 +387,7 @@ class OverburdenTimeshift(object):
         for base, monitor in vintage_pairs:
             surf_displacement = np.zeros(len(surface))
             logging.info(
-                "{:%x %X} TS: Calculating vintage"
+                "{:%x %X} TS: Calculating vintage"  # pylint: disable=consider-using-f-string
                 " {:%Y.%m.%d} - {:%Y.%m.%d}".format(dt.now(), base, monitor)
             )
 
@@ -448,7 +448,7 @@ class OverburdenTimeshift(object):
         vintages_date = list(vintages)
         vintages_name = []
         for i in range(len(vintages_date)):
-            vintages_name.append("S{}".format(i))
+            vintages_name.append(f"S{i}")
 
         Vintage = namedtuple("Vintages", "name date")
         return [Vintage(name, date) for name, date in zip(vintages_name, vintages_date)]
@@ -459,11 +459,9 @@ class OverburdenTimeshift(object):
         elif self._convention == -1:
             start_date, end_date = base, monitor
         else:
-            raise ValueError(
-                "Convention must be 1 or -1, was {}".format(self._convention)
-            )
+            raise ValueError(f"Convention must be 1 or -1, was {self._convention}")
         logging.debug(
-            "{:%x %X} {}: Calculating shift"
+            "{:%x %X} {}: Calculating shift"  # pylint: disable=consider-using-f-string
             " {:%Y.%m.%d}-{:%Y.%m.%d} in {} points".format(
                 dt.now(), func_name, start_date, end_date, num_points_calculated
             )
@@ -510,7 +508,7 @@ class OverburdenTimeshift(object):
 
         for vintage in vintages:
             logging.info(
-                "{:%x %X} DPV: Calculating vintage"
+                "{:%x %X} DPV: Calculating vintage"  # pylint: disable=consider-using-f-string
                 " {:%Y.%m.%d}".format(dt.now(), vintage.date)
             )
             self.add_survey(vintage.name, vintage.date)

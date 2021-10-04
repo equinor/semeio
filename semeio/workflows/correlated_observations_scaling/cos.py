@@ -1,3 +1,4 @@
+# pylint: disable=consider-using-f-string,logging-fstring-interpolation
 import collections
 import logging
 import yaml
@@ -166,9 +167,7 @@ class CorrelatedObservationsScalingJob(
             job = ObservationScaleFactor(self.reporter, measured_data)
             scale_factor = job.get_scaling_factor(config.get_threshold())
             logging.info(
-                "Scaling factor calculated from keys: {}".format(
-                    config.get_calculation_keys()
-                )
+                f"Scaling factor calculated from keys: {config.get_calculation_keys()}"
             )
             scale_observations(obs, scale_factor, config.get_update_keys())
 

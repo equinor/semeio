@@ -45,7 +45,7 @@ def job_documentation(job_name):
         insert = verb == "insert"
         return {
             "description": (
-                "{} NOSIM {} the ECLIPSE data file. "
+                "{} NOSIM {} the ECLIPSE data file. "  # pylint: disable=consider-using-f-string
                 "This will {} simulation in ECLIPSE."
             ).format(
                 verb.capitalize(),
@@ -57,11 +57,11 @@ def job_documentation(job_name):
         }
 
     if job_name == "STEA" or job_name == "PYSCAL":
-        module_name = "semeio.jobs.scripts.fm_{}".format(job_name.lower())
+        module_name = f"semeio.jobs.scripts.fm_{job_name.lower()}"
     elif job_name == "OTS":
         module_name = "semeio.jobs.scripts.overburden_timeshift"
     else:
-        module_name = "semeio.jobs.scripts.{}".format(job_name.lower())
+        module_name = f"semeio.jobs.scripts.{job_name.lower()}"
 
     description = _get_module_variable_if_exists(
         module_name=module_name, variable_name="description"

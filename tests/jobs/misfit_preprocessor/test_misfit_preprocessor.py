@@ -81,7 +81,7 @@ def generate_simulated_responses(
     for poly_idx, (poly_fm, states) in enumerate(zip(forward_polynomials, poly_states)):
         new_parameters = np.random.uniform(0, 10, 3 * ensemble_size)
         new_parameters.resize(ensemble_size, 3)
-        simulated["poly_{}".format(poly_idx)] = {
+        simulated[f"poly_{poly_idx}"] = {
             (state, state): sum((new_parameters * np.array((state ** 2, state, 1))).T)
             for state in states
         }
@@ -97,7 +97,7 @@ def generate_observations(
     true_parameters = parameter_distribution()
 
     return {
-        "poly_{}".format(poly_idx): {
+        f"poly_{poly_idx}": {
             (state, state): (
                 poly_fm(
                     a=true_parameters[poly_idx]["a"],

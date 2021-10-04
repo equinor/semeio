@@ -86,17 +86,17 @@ class TrajectoryPoint:
             str
         """
         if self.grid_ijk is None:
-            return "TRAJECTORY_POINT_NOT_IN_GRID {}".format(str(self))
+            return f"TRAJECTORY_POINT_NOT_IN_GRID {str(self)}"
         if self.pressure is None:
-            return "TRAJECTORY_POINT_NOT_IN_RFT {}".format(str(self))
+            return f"TRAJECTORY_POINT_NOT_IN_RFT {str(self)}"
         if not self.valid_zone and zonemap is not None:
             if self.grid_ijk[2] not in zonemap:
-                return "ZONEMAP_MISSING_VALUE {} {} {}".format(
-                    str(self), self.grid_ijk[2], None
-                )
+                return f"ZONEMAP_MISSING_VALUE {str(self)} {self.grid_ijk[2]} {None}"
 
-            return "ZONE_MISMATCH {} {} {}".format(
-                str(self), self.grid_ijk[2], zonemap[self.grid_ijk[2]]
+            return (
+                f"ZONE_MISMATCH {str(self)} "
+                f"{self.grid_ijk[2]} "
+                f"{zonemap[self.grid_ijk[2]]}"
             )
 
     def get_pressure(self):
@@ -138,8 +138,10 @@ class TrajectoryPoint:
                         self.soil = 1 - self.swat
 
     def __str__(self):
-        return "(utm_x={utm_x}, utm_y={utm_y}, measured_depth={measured_depth})".format(
-            utm_x=self.utm_x, utm_y=self.utm_y, measured_depth=self.measured_depth
+        return (
+            f"(utm_x={self.utm_x}, "
+            f"utm_y={self.utm_y}, "
+            f"measured_depth={self.measured_depth})"
         )
 
 
@@ -220,9 +222,7 @@ class Trajectory:
         tuplelengths = {len(value) for value in dframe.loc[non_nulls, tuplecolumn]}
         if len(tuplelengths) != 1:
             raise ValueError(
-                "Uneven tuple lengths {} in non-null dataframe data".format(
-                    tuplelengths
-                )
+                f"Uneven tuple lengths {tuplelengths} in non-null dataframe data"
             )
         if list(tuplelengths)[0] != len(components):
             raise ValueError("Mismatch between tuple length and given column names")

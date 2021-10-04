@@ -49,8 +49,8 @@ def find_and_expand_wildcards(obs_list, user_dict):
 
             if len(non_matching_wildcards) > 0:
                 raise ValidationError(
-                    "Invalid {}".format(main_key),
-                    ["{} had no match".format(wc) for wc in non_matching_wildcards],
+                    f"Invalid {main_key}",
+                    [f"{wc} had no match" for wc in non_matching_wildcards],
                 )
     return new_dict
 

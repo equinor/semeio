@@ -1,3 +1,4 @@
+# pylint: disable=logging-fstring-interpolation
 import os
 
 import logging
@@ -42,18 +43,17 @@ def _write_gen_data_files(trajectory_df, directory, well, report_step):
         _write_simdata(
             os.path.join(
                 directory,
-                "RFT_{}{}_{}".format(data2fname[dataname], well, report_step),
+                f"RFT_{data2fname[dataname]}{well}_{report_step}",
             ),
             dataname,
             trajectory_df,
         )
     _write_active(
-        os.path.join(directory, "RFT_{}_{}".format(well, report_step)) + "_active",
+        os.path.join(directory, f"RFT_{well}_{report_step}") + "_active",
         trajectory_df,
     )
     _write_inactive_info(
-        os.path.join(directory, "RFT_{}_{}".format(well, report_step))
-        + "_inactive_info",
+        os.path.join(directory, f"RFT_{well}_{report_step}") + "_inactive_info",
         trajectory_df,
     )
 
@@ -76,7 +76,7 @@ def _write_simdata(fname, dataname, trajectory_df):
         else:
             fh.write("\n".join(["-1"] * len(trajectory_df)) + "\n")
 
-    logger.info("Forward model script gendata_rft.py: Wrote file {}".format(fname))
+    logger.info(f"Forward model script gendata_rft.py: Wrote file {fname}")
 
 
 def _write_active(fname, trajectory_df):
@@ -136,8 +136,8 @@ def _populate_trajectory_points(
         logger.error(
             (
                 "Forward model script gendata_rft.py: "
-                "No RFT data found for well {} at date {}"
-            ).format(well, date)
+                f"No RFT data found for well {well} at date {date}"
+            )
         )
         return []
 
@@ -167,9 +167,8 @@ def run(
 
     for well, time, report_step in well_times:
         logger.debug(
-            "Collecting RFT for well: {} at date: {}, report step: {}".format(
-                well, time, report_step
-            )
+            f"Collecting RFT for well: {well} at date: {time}, "
+            f"report step: {report_step}"
         )
 
         trajectory_points = _populate_trajectory_points(
@@ -190,9 +189,7 @@ def run(
             # Aggregate dataframe for all wells and report steps.
             dframes.append(trajectory_df)
         else:
-            logger.error(
-                "No trajectory points for well {} at date: {} found".format(well, time)
-            )
+            logger.error(f"No trajectory points for well {well} at date: {time} found")
 
     if csvfile is not None and dframes:
         pd.concat(dframes, ignore_index=True, sort=False).to_csv(csvfile, index=None)

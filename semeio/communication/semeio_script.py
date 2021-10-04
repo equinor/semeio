@@ -39,11 +39,10 @@ class _ReportHandler(BufferingHandler):
         super().flush()
 
     def _format_record(self, log_record):
-        log_fmt = "{log_level} [{log_time}]: {log_message}"
-        return log_fmt.format(
-            log_level=log_record.levelname,
-            log_time=datetime.datetime.fromtimestamp(log_record.created),
-            log_message=log_record.message,
+        return (
+            f"{log_record.levelname} "
+            f"[{datetime.datetime.fromtimestamp(log_record.created)}]: "
+            f"{log_record.message}"
         )
 
 

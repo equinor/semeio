@@ -12,7 +12,7 @@ def _observations_present(observations, context) -> List[Dict[str, Any]]:
             errors.append(
                 {
                     "loc": ("observations",),
-                    "msg": "Found no match for observation {}".format(observation_key),
+                    "msg": f"Found no match for observation {observation_key}",
                 }
             )
     return errors

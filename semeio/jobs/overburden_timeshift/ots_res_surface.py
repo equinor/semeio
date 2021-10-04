@@ -45,7 +45,7 @@ class OTSResSurface(object):
         return len(self.x)
 
     def __str__(self):
-        return "x: {}\ny: {}\nz: {}".format(self.x, self.y, self.z)
+        return f"x: {self.x}\ny: {self.y}\nz: {self.z}"
 
     @property
     def cell_corners(self):

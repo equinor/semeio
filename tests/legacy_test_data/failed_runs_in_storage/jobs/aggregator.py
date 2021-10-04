@@ -14,7 +14,7 @@ if __name__ == "__main__":
             with open(file, "r", encoding="utf-8") as input_file:
                 sum += float(input_file.readline())
             sum_of_sum += sum
-            output_file.write("%s %f\n" % (key, sum))
+            output_file.write(f"{key} {sum}\n")
 
         if sum_of_sum < 0:
             state = "Negative"
@@ -23,4 +23,4 @@ if __name__ == "__main__":
         else:
             state = "Positive"
 
-        output_file.write("STATE %s" % state)
+        output_file.write(f"STATE {state}")
