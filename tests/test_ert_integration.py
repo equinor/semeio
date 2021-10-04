@@ -1,4 +1,3 @@
-import sys
 import subprocess
 import pytest
 
@@ -21,14 +20,6 @@ FORWARD_MODEL {}({})
 """
 
 
-@pytest.mark.skipif(
-    sys.platform == "darwin",
-    reason=(
-        "Forward models have same name as executable and "
-        "libres will find wrong exe on case insensitive system "
-        "bug report here: https://github.com/equinor/libres/issues/1053"
-    ),
-)
 @pytest.mark.parametrize(
     "forward_model, configuration, expected_error",
     [

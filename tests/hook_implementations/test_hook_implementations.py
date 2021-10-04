@@ -26,14 +26,14 @@ def test_hook_implementations():
     )
 
     expected_jobs = {
-        "DESIGN_KW": "semeio/jobs/config_jobs/DESIGN_KW",
-        "DESIGN2PARAMS": "semeio/jobs/config_jobs/DESIGN2PARAMS",
-        "STEA": "semeio/jobs/config_jobs/STEA",
-        "GENDATA_RFT": "semeio/jobs/config_jobs/GENDATA_RFT",
-        "PYSCAL": "semeio/jobs/config_jobs/PYSCAL",
-        "INSERT_NOSIM": "semeio/jobs/config_jobs/INSERT_NOSIM",
-        "REMOVE_NOSIM": "semeio/jobs/config_jobs/REMOVE_NOSIM",
-        "OTS": "semeio/jobs/config_jobs/OTS",
+        "DESIGN_KW": "semeio/jobs/config_jobs/DESIGN_KW_CONFIG",
+        "DESIGN2PARAMS": "semeio/jobs/config_jobs/DESIGN2PARAMS_CONFIG",
+        "STEA": "semeio/jobs/config_jobs/STEA_CONFIG",
+        "GENDATA_RFT": "semeio/jobs/config_jobs/GENDATA_RFT_CONFIG",
+        "PYSCAL": "semeio/jobs/config_jobs/PYSCAL_CONFIG",
+        "INSERT_NOSIM": "semeio/jobs/config_jobs/INSERT_NOSIM_CONFIG",
+        "REMOVE_NOSIM": "semeio/jobs/config_jobs/REMOVE_NOSIM_CONFIG",
+        "OTS": "semeio/jobs/config_jobs/OTS_CONFIG",
     }
     installable_jobs = pm.get_installable_jobs()
     for wf_name, wf_location in expected_jobs.items():

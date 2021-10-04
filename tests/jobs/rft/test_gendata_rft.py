@@ -411,7 +411,7 @@ def test_defaults():
     import semeio.jobs
 
     job_description_file = os.path.join(
-        os.path.dirname(semeio.jobs.__file__), "config_jobs", "GENDATA_RFT"
+        os.path.dirname(semeio.jobs.__file__), "config_jobs", "GENDATA_RFT_CONFIG"
     )
 
     # Crude parsing of the file
