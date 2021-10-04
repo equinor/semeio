@@ -1,6 +1,5 @@
 # pylint: disable=unsubscriptable-object  # pylint issue
 import os
-import sys
 import subprocess
 
 import pytest
@@ -231,7 +230,6 @@ def test_ert_integration(norne_mocked_ensembleset):
     assert pd.read_csv("csv_output/data.csv").shape == (16, 5)
 
 
-@pytest.mark.skipif(sys.version_info < (3, 7), reason="Py 3.7 for capture_output")
 @pytest.mark.integration
 def test_ert_integration_errors(norne_mocked_ensembleset, snapshot):
     """Test CSV_EXPORT2 when runpathfile points to non-existing realizations
@@ -261,9 +259,7 @@ def test_ert_integration_errors(norne_mocked_ensembleset, snapshot):
     with open(ert_config_fname, "w", encoding="utf-8") as file_h:
         file_h.write("\n".join(ert_config))
 
-    subprocess.run(
-        ["ert", "test_run", ert_config_fname], check=True, capture_output=True
-    )
+    subprocess.run(["ert", "test_run", ert_config_fname], check=True)
 
     with open("ert-log.txt") as fin:
         ertlog = fin.read()
