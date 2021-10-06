@@ -1,9 +1,13 @@
 import sys
+import logging
+import argparse
+
 from semeio._exceptions.exceptions import ConfigurationError
 from semeio.jobs.overburden_timeshift.ots import ots_run
 from semeio.jobs.overburden_timeshift.ots_config import generate_rst_doc
-import argparse
 from semeio import valid_file
+
+logger = logging.getLogger(__name__)
 
 short_description = (
     "Overburden timeshift (OTS) generates evolution of reservoir surfaces "
@@ -35,12 +39,20 @@ def _get_args_parser():
         dest="help_params",
         default=False,
     )
+    parser.add_argument(
+        "--log-level",
+        required=False,
+        default="WARNING",
+        type=logging.getLevelName,
+    )
     return parser
 
 
 def main_entry_point():
     parser = _get_args_parser()
     options = parser.parse_args()
+    logger.setLevel(options.log_level)
+
     if options.help_params:
         print(generate_rst_doc())
     else:
