@@ -26,7 +26,12 @@ EXAMPLE_WATEROIL = pd.DataFrame(columns=["SATNUM", "Nw", "NOW"], data=[[1, 2, 2]
     [
         (EXAMPLE_STATIC_DFRAME, ["__NONE__", "__NONE__", "__NONE__", "sgof", 1]),
         (EXAMPLE_STATIC_DFRAME, ["__NONE__", "__NONE__", "__NONE__", "slgof", 1]),
-        (EXAMPLE_STATIC_DFRAME, ["__NONE__", "__NONE__", "__NONE__", "slgof", 2]),
+        pytest.param(
+            EXAMPLE_STATIC_DFRAME,
+            ["__NONE__", "__NONE__", "__NONE__", "slgof", 2],
+            marks=pytest.mark.xfail(raises=SystemExit),
+            id="SLGOF_family_2_not_meaningful",
+        ),
         (EXAMPLE_STATIC_DFRAME, ["__NONE__", "__NONE__", "__NONE__", "sgof", 2]),
         (EXAMPLE_WATEROIL, ["__NONE__", "__NONE__", "__NONE__", "sgof", 1]),
         (EXAMPLE_SCAL, ["__NONE__", "INTERPOLATE_WO", "INTERPOLATE_GO", "sgof", 1]),
