@@ -57,15 +57,15 @@ Features
 ----------
 The following features are implemented:
 
- - The user define groups of model parameters and observations.
+ - The user defines groups of model parameters and observations.
  - Wildcard notation can be used to specify a selection of model parameter groups
    and observation groups.
- - For scalar parameters coming from the ERT keyword GEN_KW and GEN_PARAM,
+ - For scalar parameters coming from the ERT keywords GEN_KW and GEN_PARAM,
    the correlation with observations can be specified to be active or inactive.
- - For field parameters coming from the ERT keyword FIELD and SURFACE,
+ - For field parameters coming from the ERT keywords FIELD and SURFACE,
    it is also possible to specify that the correlation between observations and
    model parameters may vary from location to location. A field parameter
-   value corresponding to a grid cell (i,j,k) in location (x,y,z) are reduced by a
+   value corresponding to a grid cell (i,j,k) in location (x,y,z) is reduced by a
    scaling factor varying by distance from a reference point e.g at a location (X,Y,Z),
    usually specified to be close to an observation group.
  - Multiple pairs of groups of model parameters and observations can be specified
@@ -81,9 +81,9 @@ To setup localisation:
    LOCALISATION_JOB <localisation_config_file>
  - Specify to load the workflow file in the ERT config file using
    LOAD_WORKFLOW keyword in ERT.
- - Specify to automatically run the workflow after initial ensemble is created,
-   but before the first update by using the keyword using the
-   HOOK_WORKFLOW keyword with the option PRE_FIRST_UPDATE.
+ - Specify to automatically run the workflow after the initial ensemble is created,
+   but before the first update by using the HOOK_WORKFLOW keyword
+   with the option PRE_FIRST_UPDATE.
 """
 
 EXAMPLES = """
@@ -96,21 +96,20 @@ and groups of model parameters are specified.
 Per default, all correlations between the
 observations from the observation group and model parameters from the model
 parameter group are active and unmodified. All other combinations of pairs of
-observations and model parameters not specified in a correlation group, is inactive
+observations and model parameters not specified in a correlation group, are inactive
 or set to 0. But it is possible to specify many correlation groups. If a pair of
 observation and model parameter appear multiple times
 (e.g. because they are member of multiple correlation groups),
 an error message is raised.
 
 It is also possible to scale down correlations that are specified for 3D and 2D fields.
-In the example below, the first correlation group is called ``CORR1`` , a user
-defined name, define all observations to have active correlation with all model
-parameters starting with ``aps_``. The keyword ``field_scale`` define a scaling of
+In the example below, the first correlation group is called ``CORR1``, a user
+defined name that defines all observations to have active correlation with all model
+parameters starting with ``aps_``. The keyword ``field_scale`` defines a scaling of
 the correlations between the observations in the group and the model parameters
-selected which are of type FIELD. In this example two correlation groups are defined.
-The first group( with name ``CORR1`` ) activates correlations with parameters
-starting with ``aps_`` while the second correlation group (with name ``CORR2`` )
-activates correlations with all parameters except those starting with ``aps_``::
+selected which are of type FIELD.
+The second correlation group, called ``CORR2``, activates correlations with all
+parameters except those starting with ``aps_``.::
 
   log_level:3
   correlations:
@@ -151,17 +150,17 @@ Keywords
       Name of correlation groups.
 
 :obs_group:
-      Define  which observations belong to the group.
+      Define which observations belong to the group.
 
 :param_group:
-      Define which model parameters to belong to the group.
+      Define which model parameters belong to the group.
 
 :field_scale:
       Optional.
       Define how correlations between field parameters and observations
       in the observation group are modified. For distance based localisation
       typically the correlations are reduced by distance from the observations
-      to field parameter value. A reference point is specified in separate keyword
+      to field parameter value. A reference point is specified in a separate keyword
       and should usually be located close to the observations in the observation group
       when using scaling of correlations between field parameters and observations.
 
@@ -175,11 +174,11 @@ Keywords
       The keyword is followed by a list of x and y coordinates for the reference point.
 
 :add:
-      Sub keyword for specification of obs_group and param_group. Both **add**
-      and **remove** keywords is followed by a list of observations or
+      Sub keyword for specification of **obs_group** and **param_group**. Both **add**
+      and **remove** keywords are followed by a list of observations or
       parameter names. Wildcard notation can be specified, and all observations
       or parameters specified in the ERT config file matching the wildcard expansion
-      is included.
+      are included.
 
       The keyword **add** will add new observations or parameters to the list of
       selected observations or parameters while the keyword **remove** will remove
@@ -187,27 +186,26 @@ Keywords
 
       Specification of parameters in the list is of the form
       ``node_name:parameter_name`` where node_name is an ERT identifier and
-      parameter_name is the name of a parameter belonging to the ERT node.
+      ``parameter_name`` is the name of a parameter belonging to the ERT node.
 
       For instance if the ``GEN_KW`` ERT keyword is used, the ERT identifier is
       the node name while the parameter names used in the distribution file contains
       names of the parameters for that node.
 
-      For ERT node of type ``GEN_PARAM`` the parameter names are only referred to
-      by indices, no names, so in this case the parameter index is specified instead
-      such that a parameter in a GEN_PARAM node is referred to
-      by ``node_name:index``
+      For ERT nodes of type ``GEN_PARAM`` the parameter names are only referred to
+      by indices, not names, so in this case the parameter index is specified instead,
+      such that a parameter in a ``GEN_PARAM`` node is referred to
+      by ``node_name:index``.
 
 :remove:
-      For details see the keyword **add:**
+      For details see the keyword **add:**.
+
 :method:
       Define a method for calculating the scaling factor. It depends on whether it
       is a part of the **field_scale** or **surface_scale** keyword.
       Available methods are **gaussian_decay** and **exponential_decay**.
       Parameters defining these functions are defined by the
-      keywords **main_range**,  **perp_range**  and **azimuth**
-
-
+      keywords **main_range**,  **perp_range** and **azimuth**.
 
 """
 
