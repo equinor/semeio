@@ -795,14 +795,14 @@ class Decay:
 class GaussianDecay(Decay):
     def __call__(self, data_index):
         dx, dy = super().get_dx_dy(data_index)
-        exp_arg = -0.5 * (dx * dx + dy * dy)
+        exp_arg = -3.0 * (dx * dx + dy * dy)
         return math.exp(exp_arg)
 
 
 class ExponentialDecay(Decay):
     def __call__(self, data_index):
         dx, dy = super().get_dx_dy(data_index)
-        exp_arg = -0.5 * math.sqrt(dx * dx + dy * dy)
+        exp_arg = -3.0 * math.sqrt(dx * dx + dy * dy)
         return math.exp(exp_arg)
 
 

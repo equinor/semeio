@@ -1,11 +1,14 @@
 import numpy as np
 from numpy import ma
 import itertools
+import pytest
 import cwrap
 
 from semeio.workflows.localisation.local_script_lib import (
     smooth_parameter,
     calculate_scaling_factors_in_regions,
+    GaussianDecay,
+    ExponentialDecay,
 )
 from ecl.grid.ecl_grid_generator import EclGridGenerator
 
@@ -82,6 +85,75 @@ def write_param(filename, grid, param_values, param_name, nx, ny, nz):
     kw = grid.create_kw(values, param_name, False)
     with cwrap.open(filename, "w") as file:
         grid.write_grdecl(kw, file)
+
+
+# The selected grid cell values below should have same value for both
+# the GaussianDecay and the ExponentialDecay method since the
+# normalized distance is 1 for those grid cells not at the reference point grid
+# cells at (4,4,0) (4,4,1) and(4,4,2). Values as reference point grid cells
+# should be 1.0
+#  index = 44   is (i,j,k) = (4,4,0)
+#  index = 144  is (i,j,k) = (4,4,1)
+#  index = 244  is (i,j,k) = (4,4,2)
+#  index = 49  is (i,j,k) = (9,4,0)
+#  index = 149  is (i,j,k) = (9,4,1)
+#  index = 174  is (i,j,k) = (4,7,1)
+#  index = 114  is (i,j,k) = (4,1,1)
+@pytest.mark.parametrize(
+    "index_list, expected",
+    [
+        pytest.param(
+            (44, 144, 244),
+            1.0,
+            id=(
+                "cells at (4,4,0) (4,4,1) and(4,4,2). Values "
+                "as reference point grid cells should be 1.0"
+            ),
+        ),
+        pytest.param(
+            (49, 149),
+            0.049787066876888275,
+            id=(
+                "Values at distance 5 grid cells aways (corresponding to 250 m) "
+                "which is 1 range in x direction which corresponds to the "
+                "perp_range since azimuth is 0."
+            ),
+        ),
+        pytest.param(
+            (114, 174),
+            0.049787066876888275,
+            id=(
+                "Values at distance 3 grid cells away (corresponding to 150m) "
+                "which is 1 range in y direction which corresponds to the "
+                "main_range since azimuth is 0."
+            ),
+        ),
+    ],
+)
+@pytest.mark.parametrize(
+    "method",
+    [
+        ExponentialDecay,
+        GaussianDecay,
+    ],
+)
+def test_exponentialtype_decay_functions(method, index_list, expected):
+    ref_pos = [225.0, 225.0]
+    grid, nx, ny, nz = create_box_grid()
+
+    main_range = 150.0
+    perp_range = 250.0
+    azimuth = 0.0
+    decay_obj = method(ref_pos, main_range, perp_range, azimuth, grid)
+
+    data_size = nx * ny * nz
+    scaling_vector = np.zeros(data_size, dtype=np.float32)
+    for k, j, i in itertools.product(range(nz), range(ny), range(nx)):
+        index = i + j * nx + k * nx * ny
+        scaling_vector[index] = decay_obj(index)
+
+    result = [scaling_vector[i] for i in index_list]
+    assert result == [expected] * len(index_list)
 
 
 def test_calculate_scaling_factors_in_regions(snapshot):
