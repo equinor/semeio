@@ -106,11 +106,11 @@ It is also possible to scale down correlations that are specified for 3D and 2D 
 
 In the example below, four correlation groups are defined.
 The first correlation group is called ``CORR1`` (a user defined name),
-and define all observations to have active correlation with all model
+and defines all observations to have active correlation with all model
 parameters starting with ``aps_valysar_grf`` and with ``GEO:PARAM``.
-The keyword **field_scale** define a scaling of the correlations between the
-observations in the group and the model parameters selected which specified
-with the keyword ``FIELD`` in the ERT configuration file.
+The keyword **field_scale** defines a scaling of the correlations between the
+observations in the group and the model parameters selected of type
+``FIELD`` in the ERT configuration file.
 
 The second correlation group (with name ``CORR2`` ) activates correlations
 between observations matching the wildcard specification
@@ -201,35 +201,35 @@ Keywords
 
 :obs_group:
       Sub keyword under a correlation group.
-      Define  a group of observations using the sub keywords **add**
+      Defines  a group of observations using the sub keywords **add**
       and **remove**.
 
 :param_group:
       Sub keyword under a correlation group.
-      Define a group of  model parameters using sub keywords **add**
+      Defines a group of  model parameters using sub keywords **add**
       and **remove**.
 
 :field_scale:
       Optional.
       Sub keyword under a correlation group.
-      Define how correlations between *field* parameters and observations
+      Defines how correlations between *field* parameters and observations
       in the observation group are modified.
       Default (when this keyword is not used) is to keep the correlations between
       the observations  and model parameters of type *field* unchanged for
       the correlation group.
 
-      For distance based localisation, this keyword is used. Typically the correlations
+      For distance based localisation, this keyword is used. Typically, the correlations
       are reduced by distance from the observations to field parameter value.
       A reference point is specified in separate keyword
       and should usually be located close to the observations in the observation group
       when using scaling of correlations between field parameters and observations.
-      Sub keywords: **method** and depending on methods, additional other
-      keywords must be specified.
+      Sub keywords: **method**. Depending on which method is chosen,
+      additional keywords must be specified.
 
 :surface_scale:
       Optional.
       Sub keyword under a correlation group.
-      Define how correlations between *surface* parameters and observations
+      Defines how correlations between *surface* parameters and observations
       in the observation group are modified.
       Default (when this keyword is not used) is to keep the correlations between
       the observations  and model parameters of type *surface* unchanged for
@@ -237,21 +237,21 @@ Keywords
 
       Similar to fields, surface parameters are also field parameters, but in 2D.
       Scaling of this is also done in a similar way as for 3D field parameters.
-      Sub keywords: **method** and **surface_file** and depending on method
-      additional other keywords must be specified.
+      Sub keywords: **method** and **surface_file**. Depending on which
+      method is chosen, additional keywords must be specified.
 
 :ref_point:
-      Optional but required if  **field_scale**  or **surface_scale** keywords are used.
-      Sub keyword under a correlation group.
+      Optional, but required if  **field_scale**  or **surface_scale** keywords
+      are used. Sub keyword under a correlation group.
       The keyword is followed by a list of x and y coordinates for the reference point.
 
 
 :add:
       Sub keyword under **obs_group** and **param_group**. Both **add**
-      and **remove** keywords is followed by a list of observations or
+      and **remove** keywords are followed by a list of observations or
       parameter names. Wildcard notation can be specified, and all observations
       or parameters specified in the ERT config file which matches the wildcard
-      expansion,  is included in the list.
+      expansion,  are included in the list.
 
 
       The keyword **add** will add new observations or parameters to the list of
@@ -259,7 +259,7 @@ Keywords
       the specified observations or parameter from the selection. The **add** keyword
       is required while the **remove** keyword is optional.
 
-      Specification of parameters in the list is of the form
+      The specification of parameters in the list is of the form
       *node_name:parameter_name* where *node_name* is an ERT identifier
       and *parameter_name* is the name of a parameter belonging to the ERT node.
 
@@ -269,7 +269,7 @@ Keywords
       names of the parameters for that node.
 
       For ERT node of type ``GEN_PARAM`` the parameter names are only referred to
-      by indices, no names, so in this case the parameter index is specified instead
+      by indices and not names. So in this case the parameter index is specified instead
       such that a parameter in a GEN_PARAM node is referred to
       by *node_name:index*.
 
@@ -298,7 +298,7 @@ Keywords
 
 :exponential_decay:
       Name of a method or scaling function of the form *exp(-3d/R)* where *d* is
-      distance from reference point to location of a field value and *R* is the
+      distance from reference point to location of a field value, and *R* is the
       range function, an ellipse with half-axes equal to **main_range** and
       **perp_range**.
       Requires specification of keywords **main_range**, **perp_range**
@@ -311,14 +311,14 @@ Keywords
 :main_range:
       Sub keyword under **field_scale** or **surface_scale**. Is only used for
       method **exponential_decay** and **gaussian_decay**.
-      It defines the distance where the scaling values are reduced to 0.05 and is
-      measured in the **azimuth** direction.
+      It defines the distance where the scaling values are reduced to approximately
+      0.05 and is measured in the **azimuth** direction.
 
 :perp_range:
       Sub keyword under **field_scale** or **surface_scale**. Is only used for
       method  **exponential_decay** and **gaussian_decay**.
-      It defines the distance where the scaling values are reduced to 0.05 and is
-      measured orthogonal to the **azimuth** direction.
+      It defines the distance where the scaling values are reduced to approximately
+      0.05 and is measured orthogonal to the **azimuth** direction.
 
 :azimuth:
       Sub keyword under **field_scale** or **surface_scale**. Is only used for
@@ -328,7 +328,8 @@ Keywords
 
 :surface_file:
       Sub keyword under **surface_scale**. Is required and specify filename for
-      a surface file. Is used to find the size of the surface parameters.
+      a surface file. Is used to find the size (number of grid cells) of the
+      surface parameters.
 
 :from_file:
       Scaling function defined externally and read from file. Requires keywords
@@ -336,11 +337,13 @@ Keywords
       of the parameter in the GRDECL file to be used.
 
 :segment:
-      Scaling function method and specified for methods under **field_scale**.
+      Scaling function method available for FIELDS, and is specified for methods
+      under **field_scale**.
       Requires the following keywords: **segment_file**, **param_name**,
       **active_segments** and **scalingfactors**, all as sub keywords
       under **field_scale**. The segment file must contain integer values
-      for segment numbers for each grid cell value for the field.
+      for segment numbers for each grid cell value for the field. The file format
+      is GRDECL text format.
       The parameter name is the parameter to read from the supplied file
       for keyword **segment_file**.
 
@@ -351,11 +354,11 @@ Keywords
 
 :scalingfactors:
       Sub keyword under **field_scale**. Is only used if method is ``segment``.
-      A list of float values between 0 and 1 and define scaling factor to be used
-      in the different segments. The list in **active_segments** and
-      **scalingfactors** must of same length and the first value in the
-      **scalingfactors** list corresponds to the first segment number in the
-      **active_segments** list and so on.
+      A list of float values between 0 and 1 is specified. The values are
+      scaling factors to be used in the active segments specified.
+      The list in **active_segments** and **scalingfactors** must of same
+      length and the first value in the **scalingfactors** list corresponds to
+      the first segment number in the **active_segments** list and so on.
 
 
 """
