@@ -346,6 +346,7 @@ class LocalisationConfig(BaseModel):
     correlations: List[CorrelationConfig]
     log_level: Optional[conint(ge=0, le=5)] = 1
     write_scaling_factors: Optional[bool] = False
+    verify_active_parameters: Optional[bool] = False
 
     @validator("log_level")
     def validate_log_level(cls, level):

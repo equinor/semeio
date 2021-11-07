@@ -2,6 +2,7 @@
 import yaml
 import pytest
 from res.enkf import EnKFMain, ResConfig
+
 from semeio.workflows.localisation.local_config_script import LocalisationConfigJob
 
 from xtgeo.surface.regular_surface import RegularSurface
@@ -88,6 +89,75 @@ def test_localisation(setup_ert, obs_group_add, param_group_add, expected):
         "CORR3": {"obs": ["FOPR", "WOPR_OP1_190"], "key": "CORR3_param_group"},
     }
     assert result == expected_result
+
+
+def test_localisation_gen_kw(setup_ert):
+    ert = EnKFMain(setup_ert, verbose=True)
+    config = {
+        "log_level": 4,
+        "verify_active_parameters": True,
+        "correlations": [
+            {
+                "name": "CORR12",
+                "obs_group": {"add": "*"},
+                "param_group": {
+                    "add": [
+                        "SNAKE_OIL_PARAM:OP1_PERSISTENCE",
+                        "SNAKE_OIL_PARAM:OP1_OCTAVES",
+                    ],
+                },
+            },
+            {
+                "name": "CORR3",
+                "obs_group": {"add": "*"},
+                "param_group": {
+                    "add": "SNAKE_OIL_PARAM:OP1_DIVERGENCE_SCALE",
+                },
+            },
+            {
+                "name": "CORR4",
+                "obs_group": {"add": "*"},
+                "param_group": {
+                    "add": "SNAKE_OIL_PARAM:OP1_OFFSET",
+                },
+            },
+            {
+                "name": "CORR5",
+                "obs_group": {"add": "*"},
+                "param_group": {
+                    "add": "SNAKE_OIL_PARAM:OP2_PERSISTENCE",
+                },
+            },
+            {
+                "name": "CORR6",
+                "obs_group": {"add": "*"},
+                "param_group": {
+                    "add": "SNAKE_OIL_PARAM:OP2_OCTAVES",
+                },
+            },
+            {
+                "name": "CORR789",
+                "obs_group": {"add": "*"},
+                "param_group": {
+                    "add": [
+                        "SNAKE_OIL_PARAM:OP2_DIVERGENCE_SCALE",
+                        "SNAKE_OIL_PARAM:OP2_OFFSET",
+                        "SNAKE_OIL_PARAM:BPR_555_PERSISTENCE",
+                    ],
+                },
+            },
+            {
+                "name": "CORR10",
+                "obs_group": {"add": "*"},
+                "param_group": {
+                    "add": "SNAKE_OIL_PARAM:BPR_138_PERSISTENCE",
+                },
+            },
+        ],
+    }
+    with open("local_config.yaml", "w", encoding="utf-8") as fout:
+        yaml.dump(config, fout)
+    LocalisationConfigJob(ert).run("local_config.yaml")
 
 
 # This test does not work properly since it is run before initial ensemble is
@@ -251,7 +321,7 @@ def test_localisation_field1(
                 },
                 "ref_point": [700, 370],
                 "field_scale": {
-                    "method": "gaussian_decay",
+                    "method": "exponential_decay",
                     "main_range": 1700,
                     "perp_range": 850,
                     "azimuth": 200,

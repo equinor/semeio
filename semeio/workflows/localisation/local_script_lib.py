@@ -17,6 +17,7 @@ from ecl.ecl_type import EclDataType
 from ecl.grid.ecl_grid import EclGrid
 from res.enkf.enums.ert_impl_type_enum import ErtImplType
 from res.enkf.enums.enkf_var_type_enum import EnkfVarType
+from res.enkf.enums.active_mode_enum import ActiveMode
 
 from semeio.workflows.localisation.localisation_debug_settings import (
     LogLevel,
@@ -742,6 +743,103 @@ def add_ministeps(
             user_config.log_level,
         )
         ert_local_config.getUpdatestep().attachMinistep(ministep)
+
+
+def get_corr_group_spec(correlations_spec_list, name):
+    found = False
+    corr_spec = None
+    for count, corr_spec in enumerate(correlations_spec_list):
+        corr_group_name = corr_spec.name
+        if name == corr_group_name:
+            found = True
+            break
+    if not found:
+        raise ValueError(
+            f"Can not find correlation group: {name} in user specification."
+        )
+    return corr_spec
+
+
+def verify_ministep(
+    corr_spec_list, ert_local_config, ert_ensemble_config, ert_param_dict
+):
+    """
+    Script to verify that the local config matches the specified user config for
+    parameters of type GEN_KW and GEN_PARAM.
+    Reports mismatch if found and silent if OK.
+    Used for test purpose.
+    """
+    print("\nVerify ministep setup:")
+    updatestep = ert_local_config.getUpdatestep()
+    for ministep in updatestep:
+        print(f"Ministep: {ministep.name()}")
+        # User specification
+        corr_spec = get_corr_group_spec(corr_spec_list, ministep.name())
+        param_dict = Parameters.from_list(corr_spec.param_group.result_items).to_dict()
+
+        # Data from local config, only one param group in a ministep here.
+        param_group_name = ministep.name() + "_param_group"
+        if param_group_name not in ministep:
+            raise ValueError(
+                f"For ministep: {ministep.name()} there does not exist "
+                f"any parameter group : {param_group_name}"
+            )
+        param_group = ministep[param_group_name]
+        node_names = list(param_group.keys())
+        for node_name in node_names:
+            node = ert_ensemble_config.getNode(node_name)
+            impl_type = node.getImplementationType()
+            active_list_obj = param_group.getActiveList(node_name)
+            if node_name not in param_dict:
+                raise ValueError(
+                    f"Ministep {ministep.name()} with parameter group "
+                    f"{param_group_name} has node name {node_name} "
+                    "that is not specified."
+                )
+            user_spec_param_list = param_dict[node_name]
+
+            # Check only cases with partly active set of parameter
+            if active_list_obj.getMode() == ActiveMode.PARTLY_ACTIVE:
+                if impl_type == ErtImplType.GEN_KW:
+                    spec_index_list = []
+                    for nr, user_param_name in enumerate(user_spec_param_list):
+                        spec_index_list.append(
+                            active_index_for_parameter(
+                                node_name, user_param_name, ert_param_dict
+                            )
+                        )
+
+                elif impl_type == ErtImplType.GEN_DATA:
+                    spec_index_list = [
+                        int(user_spec_param_list[i])
+                        for i in range(len(user_spec_param_list))
+                    ]
+
+                active_index_list = active_list_obj.getActiveIndexList()
+                spec_index_list.sort()
+                active_index_list.sort()
+                print(f"Spec_index_list: {spec_index_list}")
+                print(f"Ministep index_list: {active_index_list}")
+                if len(spec_index_list) != len(active_index_list):
+                    raise ValueError(
+                        f"For ministep: {ministep.name()} the number of "
+                        "active parameters are: "
+                        f"{len(active_index_list)} \n"
+                        "while the specified number of active parameters "
+                        f"are: {len(spec_index_list)}"
+                    )
+                err = False
+                for nr, index in enumerate(active_index_list):
+                    if index != int(spec_index_list[nr]):
+                        err = True
+                if err:
+                    raise ValueError(
+                        f" In ministep: {ministep.name()} there is a "
+                        "mismatch between specified "
+                        "active parameters and active parameters in the ministep.\n"
+                        f"Specified: {spec_index_list}\n"
+                        f"In ministep: {active_index_list}\n"
+                    )
 
 
 def clear_correlations(ert):

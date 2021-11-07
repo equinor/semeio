@@ -37,6 +37,13 @@ class LocalisationConfigJob(SemeioScript):
             ert.ensembleConfig(),
             ert.eclConfig().getGrid(),
         )
+        if config.verify_active_parameters:
+            local.verify_ministep(
+                config.correlations,
+                ert.getLocalConfig(),
+                ert.ensembleConfig(),
+                ert_parameters.to_dict(),
+            )
 
 
 DESCRIPTION = """
