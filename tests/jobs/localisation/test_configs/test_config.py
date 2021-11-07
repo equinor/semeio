@@ -12,6 +12,20 @@ from res.enkf.enums.ert_impl_type_enum import ErtImplType
 
 
 ERT_OBS = ["OBS1", "OBS2", "OBS11", "OBS22", "OBS12", "OBS13", "OBS14", "OBS3"]
+ERT_GEN_OBS = [
+    "GENOBSA:0",
+    "GENOBSA:1",
+    "GENOBSA:2",
+    "GENOBSB:0",
+    "GENOBSB:1",
+    "GENOBSC:0",
+]
+ERT_SUMMARY_OBS = [
+    "WBP9:OP_1",
+    "WBP9:OP_2",
+    "WBP9:OP_3",
+]
+
 ERT_PARAM = [
     "PARAM_NODE1:PARAM1",
     "PARAM_NODE1:PARAM2",
@@ -139,6 +153,88 @@ def test_simple_config(param_group_add, expected):
     }
     conf = LocalisationConfig(observations=ERT_OBS, parameters=ERT_PARAM, **data)
     assert sorted(conf.correlations[0].param_group.result_items) == sorted(expected)
+
+
+@pytest.mark.parametrize(
+    "obs_group_add, obs_group_remove, expected",
+    [
+        (
+            "GENOBS*",
+            [],
+            [
+                "GENOBSA:0",
+                "GENOBSA:1",
+                "GENOBSA:2",
+                "GENOBSB:0",
+                "GENOBSB:1",
+                "GENOBSC:0",
+            ],
+        ),
+        (
+            ["GENOBSB:*"],
+            ["GENOBSB:0"],
+            ["GENOBSB:1"],
+        ),
+        (
+            ["*"],
+            ["*B:0"],
+            ["GENOBSA:0", "GENOBSA:1", "GENOBSA:2", "GENOBSB:1", "GENOBSC:0"],
+        ),
+    ],
+)
+def test_gen_obs_config(obs_group_add, obs_group_remove, expected):
+    data = {
+        "log_level": 2,
+        "max_gen_obs_size": 10,
+        "correlations": [
+            {
+                "name": "some_name",
+                "obs_group": {
+                    "add": obs_group_add,
+                    "remove": obs_group_remove,
+                },
+                "param_group": {"add": ["PARAM_NODE1:*"]},
+            }
+        ],
+    }
+    conf = LocalisationConfig(observations=ERT_GEN_OBS, parameters=ERT_PARAM, **data)
+    assert sorted(conf.correlations[0].obs_group.result_items) == sorted(expected)
+
+
+@pytest.mark.parametrize(
+    "obs_group_add, obs_group_remove, expected",
+    [
+        (
+            ["WBP9:*"],
+            [],
+            ["WBP9:OP_1", "WBP9:OP_2", "WBP9:OP_3"],
+        ),
+        (
+            ["WBP9:*"],
+            ["WBP9:OP_1", "WBP9:OP_3"],
+            ["WBP9:OP_2"],
+        ),
+    ],
+)
+def test_summary_obs_config(obs_group_add, obs_group_remove, expected):
+    data = {
+        "log_level": 2,
+        "max_gen_obs_size": 10,
+        "correlations": [
+            {
+                "name": "some_name",
+                "obs_group": {
+                    "add": obs_group_add,
+                    "remove": obs_group_remove,
+                },
+                "param_group": {"add": ["PARAM_NODE1:*"]},
+            }
+        ],
+    }
+    conf = LocalisationConfig(
+        observations=ERT_SUMMARY_OBS, parameters=ERT_PARAM, **data
+    )
+    assert sorted(conf.correlations[0].obs_group.result_items) == sorted(expected)
 
 
 @pytest.mark.parametrize(
@@ -707,6 +803,58 @@ def test_missing_keyword_errors_method_gaussian_decay():
                 "param_group": {
                     "add": ["*"],
                 },
+                "field_scale": {
+                    "method": "gaussian_decay",
+                    "main_range": 1000,
+                },
+            },
+        ],
+    }
+    with pytest.raises(ValueError, match=expected_error):
+        LocalisationConfig(observations=["OBS1"], parameters=["PARAM_NODE1"], **data)
+
+
+def test_missing_param():
+    expected_error = "correlations -> 0 -> param_group -> result_items"
+    data = {
+        "log_level": 2,
+        "correlations": [
+            {
+                "name": "CORR",
+                "obs_group": {
+                    "add": ["OBS1"],
+                },
+                "param_group": {
+                    "add": ["*"],
+                    "remove": ["*"],
+                },
+                "ref_point": [250, 250],
+                "field_scale": {
+                    "method": "gaussian_decay",
+                    "main_range": 1000,
+                },
+            },
+        ],
+    }
+    with pytest.raises(ValueError, match=expected_error):
+        LocalisationConfig(observations=["OBS1"], parameters=["PARAM_NODE1"], **data)
+
+
+def test_missing_obs():
+    expected_error = "correlations -> 0 -> obs_group -> result_items"
+    data = {
+        "log_level": 2,
+        "correlations": [
+            {
+                "name": "CORR",
+                "obs_group": {
+                    "add": ["OBS1"],
+                    "remove": ["OBS1"],
+                },
+                "param_group": {
+                    "add": ["*"],
+                },
+                "ref_point": [250, 250],
                 "field_scale": {
                     "method": "gaussian_decay",
                     "main_range": 1000,

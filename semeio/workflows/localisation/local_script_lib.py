@@ -1,4 +1,5 @@
 # pylint: disable=W0201
+# pylint: disable=C0302
 import math
 import yaml
 import cwrap
@@ -15,13 +16,16 @@ from ecl.util.geometry import Surface
 from ecl.eclfile import Ecl3DKW
 from ecl.ecl_type import EclDataType
 from ecl.grid.ecl_grid import EclGrid
+
 from res.enkf.enums.ert_impl_type_enum import ErtImplType
 from res.enkf.enums.enkf_var_type_enum import EnkfVarType
+from res.enkf import EnkfObservationImplementationType
 
 from semeio.workflows.localisation.localisation_debug_settings import (
     LogLevel,
     debug_print,
 )
+from ert_shared.libres_facade import LibresFacade
 
 
 @dataclass
@@ -170,14 +174,14 @@ def active_index_for_parameter(node_name, param_name, ert_param_dict):
 
 
 def activate_gen_kw_param(
-    model_param_group, node_name, param_list, ert_param_dict, log_level=LogLevel.OFF
+    ministep, node_name, param_list, ert_param_dict, log_level=LogLevel.OFF
 ):
     """
     Activate the selected parameters for the specified node.
     The param_list contains the list of parameters defined in GEN_KW
     for this node to be activated.
     """
-    active_param_list = model_param_group.getActiveList(node_name)
+    active_param_list = ministep.getActiveList(node_name)
     debug_print("Set active parameters", LogLevel.LEVEL2, log_level)
     for param_name in param_list:
         index = active_index_for_parameter(node_name, param_name, ert_param_dict)
@@ -191,7 +195,7 @@ def activate_gen_kw_param(
 
 
 def activate_gen_param(
-    model_param_group, node_name, param_list, data_size, log_level=LogLevel.OFF
+    ministep, node_name, param_list, data_size, log_level=LogLevel.OFF
 ):
     """
     Activate the selected parameters for the specified node.
@@ -199,7 +203,7 @@ def activate_gen_param(
     for the parameter indices to be activated for parameters belonging
     to the specified GEN_PARAM node.
     """
-    active_param_list = model_param_group.getActiveList(node_name)
+    active_param_list = ministep.getActiveList(node_name)
     for param_name in param_list:
         index = int(param_name)
         if index < 0 or index >= data_size:
@@ -524,11 +528,12 @@ def add_ministeps(
     ert_param_dict,
     ert_local_config,
     ert_ensemble_config,
+    ert_obs,
     grid_for_field,
 ):
     # pylint: disable-msg=too-many-branches
     # pylint: disable-msg=R0915
-
+    # pylint: disable-msg=R1702
     debug_print("Add all ministeps:", LogLevel.LEVEL1, user_config.log_level)
     ScalingValues.initialize()
     # Read all region files used in correlation groups,
@@ -539,17 +544,17 @@ def add_ministeps(
     )
 
     for count, corr_spec in enumerate(user_config.correlations):
+
         ministep_name = corr_spec.name
         ministep = ert_local_config.createMinistep(ministep_name)
         debug_print(
             f"Define ministep: {ministep_name}", LogLevel.LEVEL1, user_config.log_level
         )
 
-        param_group_name = ministep_name + "_param_group"
         obs_group_name = ministep_name + "_obs_group"
         obs_group = ert_local_config.createObsdata(obs_group_name)
 
-        obs_list = corr_spec.obs_group.result_items
+        obs_dict = Parameters.from_list(corr_spec.obs_group.result_items).to_dict()
         param_dict = Parameters.from_list(corr_spec.param_group.result_items).to_dict()
 
         # Setup model parameter group
@@ -712,20 +717,40 @@ def add_ministeps(
                         user_config.log_level,
                     )
 
-        # Setup observation group
-        for obs_name in obs_list:
+        # Setup observation group. For GEN_OBS type
+        # the observation specification can be of the form obs_node_name:index
+        # if individual observations from a GEN_OBS node is chosen or
+        # only obs_node_name if all observations in GEN_OBS is active.
+        obs_type = EnkfObservationImplementationType.GEN_OBS
+        key_list_gen_obs = ert_obs.getTypedKeylist(obs_type)
+        for obs_node_name, obs_index_list in obs_dict.items():
+            obs_group.addNode(obs_node_name)
             debug_print(
-                f"Add obs node: {obs_name}", LogLevel.LEVEL2, user_config.log_level
+                f"Add obs node: {obs_node_name}", LogLevel.LEVEL2, user_config.log_level
             )
-            obs_group.addNode(obs_name)
+            if obs_node_name in key_list_gen_obs:
+                # An observation node of type GEN_OBS
+                if len(obs_index_list) > 0:
+                    active_obs_list = obs_group.getActiveList(obs_node_name)
+                    if len(obs_index_list) > 50:
+                        debug_print(
+                            f"More than 50 active obs for {obs_node_name}",
+                            LogLevel.LEVEL3,
+                            user_config.log_level,
+                        )
+
+                    for string_index in obs_index_list:
+                        index = int(string_index)
+                        if len(obs_index_list) <= 50:
+                            debug_print(
+                                f"Active obs for {obs_node_name}  index: {index}",
+                                LogLevel.LEVEL3,
+                                user_config.log_level,
+                            )
+
+                        active_obs_list.addActiveIndex(index)
 
         # Setup ministep
-        debug_print(
-            f"Attach {param_group_name} to ministep {ministep_name}",
-            LogLevel.LEVEL1,
-            user_config.log_level,
-        )
-
         debug_print(
             f"Attach {obs_group_name} to ministep {ministep_name}",
             LogLevel.LEVEL1,
@@ -853,3 +878,31 @@ class ScalingValues:
                 grid.write_grdecl(scaling_kw, file)
             # Increase parameter number to define unique parameter name
             cls.scaling_param_number = cls.scaling_param_number + 1
+
+
+def get_obs_from_ert(ert, expand_gen_obs_max_size):
+    facade = LibresFacade(ert)
+    ert_obs = facade.get_observations()
+    obs_keys = []
+    if expand_gen_obs_max_size == 0:
+        obs_keys = [facade.get_observation_key(nr) for nr, _ in enumerate(ert_obs)]
+        return obs_keys
+
+    for nr, _ in enumerate(ert_obs):
+        key = facade.get_observation_key(nr)
+        impl_type = facade.get_impl_type_name_for_obs_key(key)
+        if impl_type == "GEN_OBS":
+            obs_vector = ert_obs[key]
+            timestep = obs_vector.activeStep()
+            obs_node = obs_vector.getNode(timestep)
+            data_size = obs_node.getSize()
+            if data_size <= expand_gen_obs_max_size:
+                obs_key_with_index_list = [
+                    key + ":" + str(item) for item in range(data_size)
+                ]
+                obs_keys.extend(obs_key_with_index_list)
+            else:
+                obs_keys.append(key)
+        else:
+            obs_keys.append(key)
+    return obs_keys

@@ -40,3 +40,18 @@ def setup_poly_ert(tmpdir, test_data_root):
 
     yield
     os.chdir(cwd)
+
+
+@pytest.fixture()
+def setup_poly_gen_param_ert(tmpdir, test_data_root):
+    cwd = os.getcwd()
+    tmpdir.chdir()
+    test_data_dir = os.path.join(test_data_root, "poly_gen_param")
+    shutil.copytree(test_data_dir, "test_data")
+    os.chdir(os.path.join("test_data"))
+
+    res_config = ResConfig("poly.ert")
+
+    yield res_config
+
+    os.chdir(cwd)

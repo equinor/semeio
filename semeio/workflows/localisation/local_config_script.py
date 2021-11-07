@@ -1,26 +1,25 @@
-from ert_shared.libres_facade import LibresFacade
 from ert_shared.plugins.plugin_manager import hook_implementation
 
 import semeio.workflows.localisation.local_script_lib as local
 from semeio.communication import SemeioScript
-from semeio.workflows.localisation.localisation_config import LocalisationConfig
+from semeio.workflows.localisation.localisation_config import (
+    LocalisationConfig,
+    get_max_gen_obs_size_for_expansion,
+)
 
 
 class LocalisationConfigJob(SemeioScript):
     def run(self, *args):
         ert = self.ert()
-        facade = LibresFacade(self.ert())
+
         # Clear all correlations
         local.clear_correlations(ert)
 
         # Read yml file with specifications
         config_dict = local.read_localisation_config(args)
 
-        # Get all observations from ert instance
-        obs_keys = [
-            facade.get_observation_key(nr)
-            for nr, _ in enumerate(facade.get_observations())
-        ]
+        expand_gen_obs_max_size = get_max_gen_obs_size_for_expansion(config_dict)
+        obs_keys = local.get_obs_from_ert(ert, expand_gen_obs_max_size)
 
         ert_parameters = local.get_param_from_ert(ert.ensembleConfig())
 
@@ -35,6 +34,7 @@ class LocalisationConfigJob(SemeioScript):
             ert_parameters.to_dict(),
             ert.getLocalConfig(),
             ert.ensembleConfig(),
+            ert.getObservations(),
             ert.eclConfig().getGrid(),
         )
 
@@ -362,7 +362,6 @@ Keywords
       The list in **active_segments** and **scalingfactors** must of same
       length and the first value in the **scalingfactors** list corresponds to
       the first segment number in the **active_segments** list and so on.
-
 
 """
 

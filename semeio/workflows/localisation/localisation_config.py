@@ -297,6 +297,28 @@ class CorrelationConfig(BaseModel):
             )
 
 
+class MaxGenObsSize(PydanticBaseModel):
+    """
+    max_gen_obs_size:  Integer >=0. Default: 0
+                             If it is > 0, it defines that all GEN_OBS observations is
+                             expanded into the form nodename:index. The user
+                             must specify GEN_OBS type observations in
+                             the form nodename:index or nodename:* if
+                             all observations for a GEN_OBS node is used.
+                             The max_gen_obs_size value is a threshold value.
+                             If a GEN_OBS node has more observations than
+                             max_gen_obs_size specified by the user,
+                             the obs node is not expanded and the
+                             user also must specify the obs node only by its
+                             nodename, not in expanded form. Typical use of this is
+                             to let nodes containing moderate number of observations
+                             be expanded, while nodes having large number of
+                             observations are not expanded.
+    """
+
+    max_gen_obs_size: Optional[conint(ge=0)] = 0
+
+
 class LocalisationConfig(BaseModel):
     """
     observations:  A list of observations from ERT in format nodename
@@ -309,6 +331,15 @@ class LocalisationConfig(BaseModel):
     log_level:       Integer defining how much log output to write to screen
     write_scaling_factors: Turn on writing calculated scaling parameters to file.
                             Possible values: True/False. Default: False
+    max_gen_obs_size:  Integer defining max size for a GEN_OBS node to
+                            be expanded in the form nodename:index.
+                            If the observation node of type GEN_OBS has more
+                            observations than this number, it can only be specified with
+                            node name which then represents the whole set of
+                            observations for the node.
+                            Possible values: Integers >= 0
+                            Default: 0 which means that GEN_OBS nodes are specified
+                            with node name only.
     """
 
     observations: List[str]
@@ -316,6 +347,7 @@ class LocalisationConfig(BaseModel):
     correlations: List[CorrelationConfig]
     log_level: Optional[conint(ge=0, le=5)] = 1
     write_scaling_factors: Optional[bool] = False
+    max_gen_obs_size: Optional[conint(ge=0)] = 0
 
     @validator("log_level")
     def validate_log_level(cls, level):
@@ -348,3 +380,9 @@ def _check_specification(items_to_add, items_to_remove, valid_items):
         added_items = added_items.difference(removed_items)
     added_items = list(added_items)
     return sorted(added_items)
+
+
+def get_max_gen_obs_size_for_expansion(config_dict):
+    tmp_config = MaxGenObsSize(**config_dict)
+    value = tmp_config.max_gen_obs_size
+    return value

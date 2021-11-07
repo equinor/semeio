@@ -2,12 +2,184 @@
 import yaml
 import pytest
 from res.enkf import EnKFMain, ResConfig
+from ert_shared.libres_facade import LibresFacade
+
 from semeio.workflows.localisation.local_config_script import LocalisationConfigJob
+from semeio.workflows.localisation.localisation_config import LocalisationConfig
+from semeio.workflows.localisation.local_script_lib import (
+    get_obs_from_ert,
+    get_param_from_ert,
+    active_index_for_parameter,
+    Parameters,
+)
 
 from xtgeo.surface.regular_surface import RegularSurface
 import xtgeo
 import numpy as np
 import itertools
+
+
+def verify_ministep_active_param(
+    corr_spec_list, ert_local_config, ert_ensemble_config, ert_param_dict
+):
+    """
+    Script to verify that the local config matches the specified user config for
+    parameters of type GEN_KW and GEN_PARAM.
+    Reports mismatch if found and silent if OK.
+    Used for test purpose.
+    """
+    from res.enkf.enums.active_mode_enum import ActiveMode
+    from res.enkf.enums.ert_impl_type_enum import ErtImplType
+
+    updatestep = ert_local_config.getUpdatestep()
+    for ministep in updatestep:
+        # User specification
+        corr_spec = get_corr_group_spec(corr_spec_list, ministep.name())
+        param_dict = Parameters.from_list(corr_spec.param_group.result_items).to_dict()
+        if len(param_dict) != ministep.numActiveData():
+            raise ValueError(
+                f"len(param_dict):{len(param_dict)}\n"
+                f"active nodes i ministep:{ministep.numActiveData()} "
+            )
+        print(
+            f"\nMinistep:{ministep.name()}\n"
+            f"Number of parameter nodes:{len(param_dict)}"
+        )
+
+        for node_name, user_spec_param_list in param_dict.items():
+            print(f"Node_name:{node_name} ")
+            print(f"Param list:{user_spec_param_list} ")
+
+            active_list_obj = ministep.getActiveList(node_name)
+            node = ert_ensemble_config.getNode(node_name)
+            impl_type = node.getImplementationType()
+
+            # Check only cases with partly active set of parameter
+            spec_index_list = []
+            if active_list_obj.getMode() == ActiveMode.PARTLY_ACTIVE:
+                if impl_type == ErtImplType.GEN_KW:
+                    for user_param_name in user_spec_param_list:
+                        spec_index_list.append(
+                            active_index_for_parameter(
+                                node_name, user_param_name, ert_param_dict
+                            )
+                        )
+
+                elif impl_type == ErtImplType.GEN_DATA:
+                    for item in user_spec_param_list:
+                        spec_index_list.append(int(item))
+
+                active_index_list = active_list_obj.get_active_index_list()
+                spec_index_list.sort()
+                active_index_list.sort()
+                print(f"Spec index list:{spec_index_list} ")
+                print(f"Ministep has active index list: {active_index_list} ")
+                if len(spec_index_list) != len(active_index_list):
+                    raise ValueError(
+                        f"For ministep: {ministep.name()} the number of "
+                        "active parameters are: "
+                        f"{len(active_index_list)} \n"
+                        "while the specified number of active parameters "
+                        f"are: {len(spec_index_list)}"
+                    )
+                if active_index_list != spec_index_list:
+                    raise ValueError(
+                        f" For ministep: {ministep.name()} and "
+                        f"parameter node: {node_name}:\n"
+                        "Mismatch between specified active parameters "
+                        f"and active parameters in the ministep.\n"
+                        f"Specified: {spec_index_list}\n"
+                        f"In ministep: {active_index_list}\n"
+                    )
+
+
+def verify_ministep_active_obs(corr_spec_list, ert):
+    # pylint: disable=R1702
+    """
+    Script to verify that the local config matches the specified user config for
+    active observations.
+    Reports mismatch if found and silent if OK.
+    Used for test purpose.
+    """
+    from res.enkf.enums.active_mode_enum import ActiveMode
+
+    facade = LibresFacade(ert)
+    ert_obs = facade.get_observations()
+    ert_local_config = ert.getLocalConfig()
+
+    updatestep = ert_local_config.getUpdatestep()
+    for ministep in updatestep:
+        # User specification
+        corr_spec = get_corr_group_spec(corr_spec_list, ministep.name())
+        obs_dict = Parameters.from_list(corr_spec.obs_group.result_items).to_dict()
+
+        # Data from local config, only one obs group in a ministep here.
+        local_obs_data = ministep.getLocalObsData()
+        for obs_node in local_obs_data:
+            key = obs_node.key()
+            impl_type = facade.get_impl_type_name_for_obs_key(key)
+            if impl_type == "GEN_OBS":
+                active_list_obj = obs_node.getActiveList()
+                if active_list_obj.getMode() == ActiveMode.PARTLY_ACTIVE:
+                    obs_vector = ert_obs[key]
+                    # Always 1 timestep for a GEN_OBS
+                    timestep = obs_vector.activeStep()
+                    genobs_node = obs_vector.getNode(timestep)
+                    data_size = genobs_node.getSize()
+                    active_list_obj = obs_node.getActiveList()
+                    active_index_list = active_list_obj.get_active_index_list()
+                    active_index_list.sort()
+                    # From user specification
+                    str_list = obs_dict[key]
+                    spec_index_list = [int(str_list[i]) for i in range(len(str_list))]
+                    spec_index_list.sort()
+                    err = False
+                    for nr, index in enumerate(active_index_list):
+                        if index != spec_index_list[nr]:
+                            err = True
+                    if err:
+                        raise ValueError(
+                            f" For ministep: {ministep.name()} and "
+                            f"observation node: {key}:\n"
+                            "Mismatch between specified active observations and "
+                            "active observations  defined in the ministep.\n"
+                            f"Specified: {spec_index_list}\n"
+                            f"In ministep: {active_index_list}\n"
+                            f"Total number of observations for node {key} "
+                            f"is {data_size}."
+                        )
+
+
+def get_corr_group_spec(correlations_spec_list, name):
+    corr_spec_found = None
+    for corr_spec in correlations_spec_list:
+        if name == corr_spec.name:
+            corr_spec_found = corr_spec
+            break
+    if not corr_spec_found:
+        raise ValueError(
+            f"Can not find correlation group: {name} in user specification."
+        )
+    return corr_spec_found
+
+
+def check_consistency_for_active_param_and_obs(
+    ert, config_dict, expand_gen_obs_max_size=20
+):
+    obs_keys = get_obs_from_ert(ert, expand_gen_obs_max_size)
+    ert_parameters = get_param_from_ert(ert.ensembleConfig())
+    config = LocalisationConfig(
+        observations=obs_keys,
+        parameters=ert_parameters.to_list(),
+        **config_dict,
+    )
+    verify_ministep_active_param(
+        config.correlations,
+        ert.getLocalConfig(),
+        ert.ensembleConfig(),
+        ert_parameters.to_dict(),
+    )
+    verify_ministep_active_obs(config.correlations, ert)
 
 
 @pytest.mark.parametrize(
@@ -22,7 +194,7 @@ import itertools
 )
 def test_localisation(setup_ert, obs_group_add, param_group_add, expected):
     ert = EnKFMain(setup_ert)
-    config = {
+    config_dict = {
         "log_level": 4,
         "correlations": [
             {
@@ -50,7 +222,7 @@ def test_localisation(setup_ert, obs_group_add, param_group_add, expected):
         ],
     }
     with open("local_config.yaml", "w", encoding="utf-8") as fout:
-        yaml.dump(config, fout)
+        yaml.dump(config_dict, fout)
     LocalisationConfigJob(ert).run("local_config.yaml")
     assert ert.getLocalConfig().getMinistep("CORR1").name() == "CORR1"
     assert (
@@ -90,45 +262,100 @@ def test_localisation(setup_ert, obs_group_add, param_group_add, expected):
     assert result == expected_result
 
 
-# This test does not work properly since it is run before initial ensemble is
-# created and in that case the number of parameters attached to a GEN_PARAM node
-# is 0.
-def test_localisation_gen_param(
-    setup_poly_ert,
-):
-    with open("poly.ert", "a", encoding="utf-8") as fout:
-        fout.write(
-            "GEN_PARAM PARAMS_A parameter_file_A INPUT_FORMAT:ASCII "
-            "OUTPUT_FORMAT:ASCII INIT_FILES:initial_param_file_A_%d"
-        )
-    nreal = 5
-    nparam = 10
-    for n in range(nreal):
-        filename = "initial_param_file_A_" + str(n)
-        with open(filename, "w", encoding="utf-8") as fout:
-            for i in range(nparam):
-                fout.write(f"{i}\n")
-
-    res_config = ResConfig("poly.ert")
-    ert = EnKFMain(res_config)
-    config = {
-        "log_level": 2,
+def test_localisation_gen_kw(setup_ert):
+    ert = EnKFMain(setup_ert, verbose=True)
+    config_dict = {
+        "log_level": 4,
+        "max_gen_obs_size": 1000,
         "correlations": [
             {
-                "name": "CORR1",
+                "name": "CORR12",
+                "obs_group": {"add": ["WPR_DIFF_1:0", "WPR_DIFF_1:3"]},
+                "param_group": {
+                    "add": [
+                        "SNAKE_OIL_PARAM:OP1_PERSISTENCE",
+                        "SNAKE_OIL_PARAM:OP1_OCTAVES",
+                    ],
+                },
+            },
+            {
+                "name": "CORR3",
+                "obs_group": {"add": "WPR_DIFF_1:2"},
+                "param_group": {
+                    "add": "SNAKE_OIL_PARAM:OP1_DIVERGENCE_SCALE",
+                },
+            },
+            {
+                "name": "CORR4",
                 "obs_group": {
                     "add": "*",
+                    "remove": ["WPR_DIFF_1:1", "WPR_DIFF_1:0"],
                 },
                 "param_group": {
-                    "add": "*",
+                    "add": "SNAKE_OIL_PARAM:OP1_OFFSET",
+                },
+            },
+            {
+                "name": "CORR5",
+                "obs_group": {"add": "*"},
+                "param_group": {
+                    "add": "SNAKE_OIL_PARAM:OP2_PERSISTENCE",
+                },
+            },
+            {
+                "name": "CORR6",
+                "obs_group": {"add": "*"},
+                "param_group": {
+                    "add": "SNAKE_OIL_PARAM:OP2_OCTAVES",
+                },
+            },
+            {
+                "name": "CORR789",
+                "obs_group": {"add": "*"},
+                "param_group": {
+                    "add": [
+                        "SNAKE_OIL_PARAM:OP2_DIVERGENCE_SCALE",
+                        "SNAKE_OIL_PARAM:OP2_OFFSET",
+                        "SNAKE_OIL_PARAM:BPR_555_PERSISTENCE",
+                    ],
+                },
+            },
+            {
+                "name": "CORR10",
+                "obs_group": {"add": "*"},
+                "param_group": {
+                    "add": "SNAKE_OIL_PARAM:BPR_138_PERSISTENCE",
                 },
             },
         ],
     }
+    with open("local_config_gen_kw.yaml", "w", encoding="utf-8") as fout:
+        yaml.dump(config_dict, fout)
+    LocalisationConfigJob(ert).run("local_config_gen_kw.yaml")
+    check_consistency_for_active_param_and_obs(ert, config_dict)
 
-    with open("local_config.yaml", "w", encoding="utf-8") as fout:
-        yaml.dump(config, fout)
-    LocalisationConfigJob(ert).run("local_config.yaml")
+
+def test_localisation_gen_param(
+    setup_poly_gen_param_ert,
+):
+    ert = EnKFMain(setup_poly_gen_param_ert, verbose=True)
+    fs = ert.getEnkfFsManager().getFileSystem("default_smoother_update")
+    ert.getEnkfFsManager().switchFileSystem(fs)
+    config_dict = {
+        "log_level": 2,
+        "max_gen_obs_size": 1000,
+        "correlations": [
+            {
+                "name": "CORR1",
+                "obs_group": {"add": ["POLY_OBS:0", "POLY_OBS:3", "POLY_OBS:4"]},
+                "param_group": {"add": ["COEFFS:COEFF_B", "PARAMS_A"]},
+            },
+        ],
+    }
+    with open("local_config_gen_param.yaml", "w", encoding="utf-8") as fout:
+        yaml.dump(config_dict, fout)
+    LocalisationConfigJob(ert).run("local_config_gen_param.yaml")
+    check_consistency_for_active_param_and_obs(ert, config_dict)
 
 
 def test_localisation_surf(
@@ -169,7 +396,7 @@ def test_localisation_surf(
 
     res_config = ResConfig("poly.ert")
     ert = EnKFMain(res_config)
-    config = {
+    config_dict = {
         "log_level": 3,
         "correlations": [
             {
@@ -193,7 +420,7 @@ def test_localisation_surf(
     }
 
     with open("local_config.yaml", "w", encoding="utf-8") as fout:
-        yaml.dump(config, fout)
+        yaml.dump(config_dict, fout)
     LocalisationConfigJob(ert).run("local_config.yaml")
 
 
@@ -226,7 +453,6 @@ def test_localisation_field1(
                 values = np.zeros((nx, ny, nz), dtype=np.float32)
                 property_field.values = values + 0.1 * n
                 filename = pname + "_" + str(n) + ".roff"
-                print(f"Write file: {filename}")
                 property_field.to_file(filename, fformat="roff", name=pname)
 
             fout.write(
@@ -237,7 +463,7 @@ def test_localisation_field1(
 
     res_config = ResConfig("poly.ert")
     ert = EnKFMain(res_config)
-    config = {
+    config_dict = {
         "log_level": 3,
         "write_scaling_factors": True,
         "correlations": [
@@ -250,7 +476,7 @@ def test_localisation_field1(
                     "add": ["G1", "G2"],
                 },
                 "field_scale": {
-                    "method": "gaussian_decay",
+                    "method": "exponential_decay",
                     "main_range": 1700,
                     "perp_range": 850,
                     "azimuth": 200,
@@ -277,13 +503,14 @@ def test_localisation_field1(
     }
 
     with open("local_config.yaml", "w", encoding="utf-8") as fout:
-        yaml.dump(config, fout)
+        yaml.dump(config_dict, fout)
     LocalisationConfigJob(ert).run("local_config.yaml")
 
 
 def create_box_grid_with_inactive_and_active_cells(
     output_grid_file, has_inactive_values=True
 ):
+    # pylint: disable=E1120
     nx = 30
     ny = 25
     nz = 3
@@ -326,7 +553,6 @@ def create_box_grid_with_inactive_and_active_cells(
     if has_inactive_values:
         grid.inactivate_outside(polygon, force_close=True)
 
-    print(f" Write file: {output_grid_file}")
     grid.to_file(output_grid_file, fformat="egrid")
     return grid
 
@@ -367,7 +593,6 @@ def create_region_parameter(filename, grid):
             else:
                 values[i, j, k] = 4
     region_param.values = values
-    print(f"Write file: {filename}")
     region_param.to_file(filename, fformat="grdecl", name=region_param_name)
 
 
@@ -396,9 +621,8 @@ def create_field_and_scaling_param_and_update_poly_ert(
                 values = np.zeros((nx, ny, nz), dtype=np.float32)
                 property_field.values = values + 0.1 * n
                 filename = property_name + "_" + str(n) + ".roff"
-                print(f"Write file: {filename}")
                 property_field.to_file(filename, fformat="roff", name=property_name)
-            print(f"Write file: {scaling_filename}\n")
+
             scaling_field.to_file(scaling_filename, fformat="grdecl", name=scaling_name)
 
             fout.write(
@@ -427,7 +651,7 @@ def test_localisation_field2(setup_poly_ert):
 
     res_config = ResConfig("poly.ert")
     ert = EnKFMain(res_config)
-    config = {
+    config_dict = {
         "log_level": 3,
         "write_scaling_factors": True,
         "correlations": [
@@ -515,5 +739,98 @@ def test_localisation_field2(setup_poly_ert):
     }
 
     with open("local_config.yaml", "w") as fout:
-        yaml.dump(config, fout)
+        yaml.dump(config_dict, fout)
     LocalisationConfigJob(ert).run("local_config.yaml")
+
+
+def test_localisation_gen_obs(
+    setup_poly_ert,
+):
+    res_config = ResConfig("poly.ert")
+    ert = EnKFMain(res_config)
+    config_dict = {
+        "log_level": 2,
+        "max_gen_obs_size": 1000,
+        "correlations": [
+            {
+                "name": "CORR1",
+                "obs_group": {
+                    "add": ["POLY_OBS:*"],
+                },
+                "param_group": {
+                    "add": ["*"],
+                },
+            },
+        ],
+    }
+    with open("local_config_gen_obs.yaml", "w", encoding="utf-8") as fout:
+        yaml.dump(config_dict, fout)
+    LocalisationConfigJob(ert).run("local_config_gen_obs.yaml")
+    check_consistency_for_active_param_and_obs(ert, config_dict)
+
+
+@pytest.mark.parametrize(
+    "obs_group_add1, obs_group_remove1, obs_group_add2, obs_group_remove2, expected",
+    [
+        (
+            ["POLY_OBS:0", "POLY_OBS:1", "POLY_OBS:2"],
+            [],
+            ["POLY_OBS:3", "POLY_OBS:4"],
+            ["POLY_OBS:3"],
+            {
+                "CORR1": [0, 1, 2],
+                "CORR2": [4],
+            },
+        ),
+        (
+            ["POLY_OBS:*"],
+            ["POLY_OBS:1*", "POLY_OBS:3"],
+            ["POLY_OBS:3"],
+            ["POLY_OBS:1"],
+            {
+                "CORR1": [0, 2, 4],
+                "CORR2": [3],
+            },
+        ),
+    ],
+)
+def test_localisation_gen_obs2(
+    setup_poly_ert,
+    obs_group_add1,
+    obs_group_remove1,
+    obs_group_add2,
+    obs_group_remove2,
+    expected,
+):
+    res_config = ResConfig("poly.ert")
+    ert = EnKFMain(res_config)
+    config_dict = {
+        "log_level": 2,
+        "max_gen_obs_size": 1000,
+        "correlations": [
+            {
+                "name": "CORR1",
+                "obs_group": {
+                    "add": obs_group_add1,
+                    "remove": obs_group_remove1,
+                },
+                "param_group": {
+                    "add": ["*"],
+                },
+            },
+            {
+                "name": "CORR2",
+                "obs_group": {
+                    "add": obs_group_add2,
+                    "remove": obs_group_remove2,
+                },
+                "param_group": {
+                    "add": ["*"],
+                },
+            },
+        ],
+    }
+    with open("local_config_gen_obs2.yaml", "w", encoding="utf-8") as fout:
+        yaml.dump(config_dict, fout)
+    LocalisationConfigJob(ert).run("local_config_gen_obs2.yaml")
+    check_consistency_for_active_param_and_obs(ert, config_dict)
