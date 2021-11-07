@@ -1,26 +1,25 @@
-from ert_shared.libres_facade import LibresFacade
 from ert_shared.plugins.plugin_manager import hook_implementation
 
 import semeio.workflows.localisation.local_script_lib as local
 from semeio.communication import SemeioScript
-from semeio.workflows.localisation.localisation_config import LocalisationConfig
+from semeio.workflows.localisation.localisation_config import (
+    LocalisationConfig,
+    get_max_gen_obs_size_for_expansion,
+)
 
 
 class LocalisationConfigJob(SemeioScript):
     def run(self, *args):
         ert = self.ert()
-        facade = LibresFacade(self.ert())
+
         # Clear all correlations
         local.clear_correlations(ert)
 
         # Read yml file with specifications
         config_dict = local.read_localisation_config(args)
 
-        # Get all observations from ert instance
-        obs_keys = [
-            facade.get_observation_key(nr)
-            for nr, _ in enumerate(facade.get_observations())
-        ]
+        expand_gen_obs_max_size = get_max_gen_obs_size_for_expansion(config_dict)
+        obs_keys = local.get_obs_from_ert(ert, expand_gen_obs_max_size)
 
         ert_parameters = local.get_param_from_ert(ert.ensembleConfig())
 
@@ -35,6 +34,7 @@ class LocalisationConfigJob(SemeioScript):
             ert_parameters.to_dict(),
             ert.getLocalConfig(),
             ert.ensembleConfig(),
+            ert.getObservations(),
             ert.eclConfig().getGrid(),
         )
 
@@ -195,6 +195,51 @@ discontinuities of the scaling factor field between segments is also applied.
           scalingfactors: [1.0, 0.5, 0.3]
           smooth_ranges: [2,3]
 
+Example 2:
+------------
+In this example the optional keyword **max_gen_obs_size** is specified.
+The value 1000 means that all observation nodes of type GEN_OBS having less
+than 1000 observations are specified in the form::
+
+ nodename:index
+
+where **index** is an integer from 0 to 999.
+All GEN_OBS nodes with more than 1000 observations
+are specified in the form nodename only. The reason not to enable to specify
+individual observations from GEN_OBS of any size is performance e.g. when
+GEN_OBS nodes of seismic data is used.
+
+The first example below (2A) specifies all observations by::
+
+ GENOBS_NODE:*
+
+The second example (2B) has selected a few observations from the
+GENOBS_NODE::
+
+  ["GENOBS_NODE:0","GENOBS_NODE:3","GENOBS_NODE:55"]
+
+Example 2A::
+
+  max_gen_obs_size: 1000
+  log_level:2
+  correlations:
+    - name: CORR1
+       obs_group:
+          add: ["GENOBS_NODE:*"]
+       param_group:
+          add: ["PARAM_NODE:*"]
+
+Example 2B::
+
+  max_gen_obs_size: 100
+  log_level:2
+  correlations:
+    - name: CORR1
+       obs_group:
+          add: ["GENOBS_NODE:0","GENOBS_NODE:3","GENOBS_NODE:55"]
+       param_group:
+          add: ["PARAM_NODE:*"]
+
 
 Keywords
 -----------
@@ -211,6 +256,16 @@ Keywords
       created or not. The purpose is to QC the calculated scaling factors
       and make it possible to visualise them. Is only relevant when using
       **field_scale** with methods calculating the scaling factors.
+
+:max_gen_obs_size:
+      Specify the max size of GEN_OBS type of observation nodes that
+      can specify individual observations. Individual observations are specified
+      by nodename:index where index is the observation number in the
+      observation file associated with the GEN_OBS type node.
+      The keyword is optional. If not specified or specified with value 0,
+      this means that observations of type GEN_OBS is specified by
+      nodename only. Individual observations can not be specified in this case
+      which means that all observations in the GEN_OBS node is used.
 
 :correlations:
       List of specifications of correlation groups. A correlation group
@@ -295,6 +350,13 @@ Keywords
       only the nodename is specified like ``aps_Valysar_grf1``.
       The nodename represents all field values for all grid cells in the whole
       3D or 2D grid the field belongs to.
+
+      For observations specified with GENERAL_OBSERVATION keyword in ERT config file,
+      it is possible to specify the observations by either *node_name*
+      or *node_name:index*. Default is to specify by *node_name* only which means
+      to include all observation from this ERT identifier.
+      The alternative option is to use the keyword **max_gen_obs_size**
+      described above and specify individual observations by *node_name:index*.
 
 :remove:
       For details see the keyword **add:**. The main purpose of **remove** is to
