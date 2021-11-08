@@ -17,22 +17,22 @@ logger = logging.getLogger(__name__)
 description = """
 The GENDATA_RFT forward model is used to extract RFT data (pressure and
 saturation) for specific points in the reservoir (typically along well
-trajectories) from an Eclipse output (or equivalent data format), given a file
+trajectories) from an Eclipse output file (or equivalent data format), given a file
 containing relevant well names and their corresponding dates. It is also
 possible to specify a zonemap that validates each zone specified in the
 trajectory files.
 
-Pressure data is ouputted to files like ``RFT_A-1_0`` to a selected
-directory, this would correspond to well A-1 at report step 0. Saturation data
-if available would be exported to ``RFT_A-1_SWAT_0``, and similarly for SGAS
+Pressure data is outputted to files like ``RFT_A-1_0`` to a selected
+directory, this would correspond to well A-1 at report step 0. Saturation data,
+if available, would be exported to ``RFT_A-1_SWAT_0``, and similarly for SGAS
 and SOIL.
 
-The user will be error messages and the applications stops if there is no RFT
+The user will be given error messages and the applications stops if there is no RFT
 available for the well(s) at the date(s).
 
 A CSV file is prepared with all extracted data. This can be further used for
 visualization in Webviz. In order to merge this CSV with observed values, see
-`` merge_rft_ertobs``  from subscript.
+``merge_rft_ertobs`` from subscript.
 
 The pressure or saturation data is set to -1 and the inactive value to 0 if any
 of the following applies:
