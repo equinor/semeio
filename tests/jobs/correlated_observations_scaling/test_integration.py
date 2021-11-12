@@ -26,21 +26,6 @@ def assert_obs_vector(vector, val_1, index_list=None, val_2=None):
                 assert node.getStdScaling(index) == val_1
 
 
-def test_old_enkf_scaling_job(setup_ert):
-    res_config = setup_ert
-    ert = EnKFMain(res_config)
-
-    obs = ert.getObservations()
-    obs_vector = obs["WPR_DIFF_1"]
-
-    assert_obs_vector(obs_vector, 1.0)
-
-    job = ert.getWorkflowList().getJob("STD_SCALE_CORRELATED_OBS")
-    job.run(ert, ["WPR_DIFF_1"])
-
-    assert_obs_vector(obs_vector, np.sqrt(4.0 / 2.0))
-
-
 def test_installed_python_version_of_enkf_scaling_job(setup_ert, monkeypatch):
 
     pm = ErtPluginManager(
@@ -84,29 +69,6 @@ def test_installed_python_version_of_enkf_scaling_job(setup_ert, monkeypatch):
         index_list=[0, 1, 2],
         val_2=np.sqrt(3.0 / 2.0),
     )
-
-
-def test_compare_different_jobs(setup_ert):
-    cos_config = {"CALCULATE_KEYS": {"keys": [{"key": "WPR_DIFF_1"}]}}
-
-    res_config = setup_ert
-
-    ert = EnKFMain(res_config)
-    obs = ert.getObservations()
-    obs_vector = obs["WPR_DIFF_1"]
-
-    assert_obs_vector(obs_vector, 1.0)
-
-    job = ert.getWorkflowList().getJob("STD_SCALE_CORRELATED_OBS")
-    job.run(ert, ["WPR_DIFF_1"])
-
-    # Result of old job:
-    assert_obs_vector(obs_vector, np.sqrt(4 / 2))
-
-    CorrelatedObservationsScalingJob(ert).run(cos_config)
-
-    # Result of new job with no sub-indexing:
-    assert_obs_vector(obs_vector, np.sqrt(4 / 2))
 
 
 def test_main_entry_point_gen_data(setup_ert):
