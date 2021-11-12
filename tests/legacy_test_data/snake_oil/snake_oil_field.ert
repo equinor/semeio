@@ -27,7 +27,6 @@ FORWARD_MODEL SNAKE_OIL_DIFF
 
 RUN_TEMPLATE templates/seed_template.txt seed.txt
 GEN_KW SNAKE_OIL_PARAM templates/snake_oil_template.txt snake_oil_params.txt parameters/snake_oil_parameters.txt
-CUSTOM_KW SNAKE_OIL_NPV snake_oil_npv.txt
 
 FIELD PERMX  PARAMETER snake_oil_permx.grdecl   INIT_FILES:fields/permx%d.grdecl
 FIELD PORO  PARAMETER snake_oil_poro.grdecl   INIT_FILES:fields/poro%d.grdecl
