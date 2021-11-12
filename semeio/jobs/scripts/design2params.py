@@ -12,7 +12,7 @@ Reads a design matrix in XLSX-format and
   key-value pairs to parameters.txt
 * Converts specified worksheet to txt-format and puts designmatrix.txt in RUNPATH
 * Creates designparameters.txt which only contains variables taken from the design
-  matrix, this can be given to CUSTOM_KW
+  matrix
 
 Requires a matrix with column header as strings in topmost row in xls-file.
 Row 2 in xls-file must then correspond with the data you want for realization-0
