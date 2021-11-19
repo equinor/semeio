@@ -50,6 +50,9 @@ def ots_load_params(input_file):
 
 
 def write_surface(vintage_pairs, ts, output_dir, type_str, file_format="irap_binary"):
+    # If there is nothing to write we return early to avoid creating an empty folder
+    if not vintage_pairs:
+        return
     output_path = Path(output_dir + type_str)
     if not output_path.is_dir():
         output_path.mkdir()
