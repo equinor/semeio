@@ -590,7 +590,7 @@ def add_ministeps(
                     assert data_size == data_size2
                     param_for_field = None
                     if corr_spec.field_scale.method in _decay_methods_fields:
-                        ref_pos = corr_spec.ref_point
+                        ref_pos = corr_spec.field_scale.ref_point
                         main_range = corr_spec.field_scale.main_range
                         perp_range = corr_spec.field_scale.perp_range
                         azimuth = corr_spec.field_scale.azimuth
@@ -692,7 +692,7 @@ def add_ministeps(
                     data_size = surface.getNX() * surface.getNY()
                     row_scaling = model_param_group.row_scaling(node_name)
                     if corr_spec.surface_scale.method in _decay_methods_surf:
-                        ref_pos = corr_spec.ref_point
+                        ref_pos = corr_spec.surface_scale.ref_point
                         main_range = corr_spec.surface_scale.main_range
                         perp_range = corr_spec.surface_scale.perp_range
                         azimuth = corr_spec.surface_scale.azimuth

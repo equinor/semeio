@@ -275,7 +275,13 @@ def test_simple_config_ref_point_error(ref_point, expected_error):
                 "param_group": {
                     "add": "PARAM_NODE1",
                 },
-                "ref_point": ref_point,
+                "field_scale": {
+                    "method": "gaussian_decay",
+                    "main_range": 1000,
+                    "perp_range": 1000,
+                    "azimuth": 200,
+                    "ref_point": ref_point,
+                },
             }
         ],
     }
@@ -434,36 +440,6 @@ def test_add_remove_obs_config(obs_group_add, obs_group_remove, expected):
 
 
 @pytest.mark.parametrize(
-    "ref_point",
-    [
-        [550, 1050],
-        [100, 150],
-        [0, 750],
-        [500, 750],
-        ["10", 1.0],
-    ],
-)
-def test_ref_point_config(ref_point):
-    data = {
-        "correlations": [
-            {
-                "name": "some_name",
-                "obs_group": {
-                    "add": "OBS",
-                },
-                "param_group": {
-                    "add": "PARAM_NODE1",
-                },
-                "ref_point": ref_point,
-            }
-        ],
-    }
-    conf = LocalisationConfig(observations=["OBS"], parameters=["PARAM_NODE1"], **data)
-    expected_refpoint = [float(item) for item in ref_point]
-    assert conf.correlations[0].ref_point == expected_refpoint
-
-
-@pytest.mark.parametrize(
     "pattern, list_of_words, expected_result",
     [(["*"], ["OBS_1", "2"], {"OBS_1", "2"}), ((["OBS*"], ["OBS_1", "2"], {"OBS_1"}))],
 )
@@ -545,7 +521,6 @@ def test_active_region_list(active_segment_list, scaling_factor_list, smooth_ran
                 "param_group": {
                     "add": ["*"],
                 },
-                "ref_point": [250, 250],
                 "field_scale": {
                     "method": "segment",
                     "segment_filename": "Region.GRDECL",
@@ -620,7 +595,6 @@ def test_active_region_list_mismatch(
                 "param_group": {
                     "add": ["*"],
                 },
-                "ref_point": [250, 250],
                 "field_scale": {
                     "method": "segment",
                     "segment_filename": "Region.GRDECL",
@@ -649,7 +623,6 @@ def test_invalid_keyword_errors_method_segment():
                 "param_group": {
                     "add": ["*"],
                 },
-                "ref_point": [250, 250],
                 "field_scale": {
                     "method": "segment",
                     "segment_filename": "Region.GRDECL",
@@ -680,7 +653,6 @@ def test_invalid_keyword_errors_method_from_file():
                 "param_group": {
                     "add": ["*"],
                 },
-                "ref_point": [250, 250],
                 "field_scale": {
                     "method": "from_file",
                     "segment_filename": "dummy.GRDECL",
@@ -709,7 +681,6 @@ def test_invalid_keyword_errors_in_obs_group_or_param_group():
                     "add": ["*"],
                     "unknown_param_keyword": "dummy",
                 },
-                "ref_point": [250, 250],
                 "field_scale": {
                     "method": "from_file",
                     "segment_filename": "dummy.GRDECL",
@@ -736,7 +707,6 @@ def test_missing_keyword_errors_method_gaussian_decay():
                 "param_group": {
                     "add": ["*"],
                 },
-                "ref_point": [250, 250],
                 "field_scale": {
                     "method": "gaussian_decay",
                     "main_range": 1000,
