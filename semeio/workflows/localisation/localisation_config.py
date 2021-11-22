@@ -143,6 +143,7 @@ class GaussianConfig(BaseModel):
     main_range: confloat(gt=0)
     perp_range: confloat(gt=0)
     azimuth: confloat(ge=0.0, le=360)
+    ref_point: conlist(float, min_items=2, max_items=2)
     surface_file: Optional[str]
 
 
@@ -217,7 +218,6 @@ class CorrelationConfig(BaseModel):
     name: str
     obs_group: ObsConfig
     param_group: ParamConfig
-    ref_point: Optional[conlist(float, min_items=2, max_items=2)]
     field_scale: Optional[
         Union[
             GaussianConfig,
@@ -260,36 +260,6 @@ class CorrelationConfig(BaseModel):
             raise ValueError(
                 f"Unknown method: {method}, valid methods are: {valid_list}"
             )
-
-    @root_validator()
-    def valid_ref_point_and_scale(cls, values: Dict) -> Dict:
-        field_scale = values.get("field_scale", None)
-        surface_scale = values.get("surface_scale", None)
-        ref_point = values.get("ref_point")
-        if field_scale is not None:
-            # ref_point is required for method:
-            # - gaussian_decay
-            # - exponential_decay
-            if field_scale.method in ["gaussian_decay", "exponential_decay"]:
-                if ref_point is None:
-                    raise ValueError(
-                        "When using FIELD with scaling of correlation with "
-                        f"method {field_scale.method}, "
-                        "the reference point must be specified."
-                    )
-        if surface_scale is not None:
-            # ref_point is required for method:
-            # - gaussian_decay
-            # - exponential_decay
-            if surface_scale.method in ["gaussian_decay", "exponential_decay"]:
-                if ref_point is None:
-                    raise ValueError(
-                        "When using SURFACE with scaling of correlation with "
-                        f"method {surface_scale.method}, "
-                        "the reference point must be specified."
-                    )
-
-        return values
 
     @validator("surface_scale", pre=True)
     def validate_surface_scale(cls, value):

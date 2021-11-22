@@ -131,7 +131,7 @@ with ``aps_``. ::
           main_range: 1700
           perp_range: 850
           azimuth: 310
-       ref_point: [463400, 5932915]
+          ref_point: [463400, 5932915]
 
     - name: CORR2
        obs_group:
@@ -144,8 +144,9 @@ with ``aps_``. ::
           main_range: 800
           perp_range: 350
           azimuth: 120
+          ref_point: [463000, 5932850]
           surface_file: "../../rms/output/hum/TopVolantis.irap"
-       ref_point: [463000, 5932850]
+
 
    - name: CORR3
        obs_group:
@@ -156,7 +157,6 @@ with ``aps_``. ::
           method: from_file
           filename: "scaling_aps_volon_grf.grdecl"
           param_name: "SCALING"
-       ref_point: [463000, 5932850]
 
    - name: CORR4
        obs_group:
@@ -169,7 +169,7 @@ with ``aps_``. ::
           param_name: "REGION"
           active_segments: [ 1,2,4]
           scalingfactors: [1.0, 0.5, 0.3]
-       ref_point: [463000, 5932850]
+
 
 Keywords
 -----------
@@ -240,12 +240,6 @@ Keywords
       Sub keywords: **method** and **surface_file**. Depending on which
       method is chosen, additional keywords must be specified.
 
-:ref_point:
-      Optional, but required if  **field_scale**  or **surface_scale** keywords
-      are used. Sub keyword under a correlation group.
-      The keyword is followed by a list of x and y coordinates for the reference point.
-
-
 :add:
       Sub keyword under **obs_group** and **param_group**. Both **add**
       and **remove** keywords are followed by a list of observations or
@@ -301,8 +295,8 @@ Keywords
       distance from reference point to location of a field value, and *R* is the
       range function, an ellipse with half-axes equal to **main_range** and
       **perp_range**.
-      Requires specification of keywords **main_range**, **perp_range**
-      and **azimuth**.
+      Requires specification of keywords **main_range**, **perp_range**,
+      **azimuth** and **ref_point**.
 
 :gaussian_decay:
       Scaling function of the form *exp(-3(d/R)^2)*.
@@ -325,6 +319,15 @@ Keywords
       method **exponential_decay** and **gaussian_decay**.
       It defines the azimuth direction for main anisotropy direction
       for the decay function for scaling factor.
+
+:ref_point:
+      Sub keyword under  **field_scale**  or **surface_scale**. Is only used for
+      method **exponential_decay** and **gaussian_decay**.
+      It defines the (x,y) position the used by the scaling functions when calculating
+      distance to a grid cell with a field parameter value. A grid cell located at the
+      reference point will have distance 0 which means that the scaling function is
+      1.0 for correlations between observations and the field parameter in that
+      location.
 
 :surface_file:
       Sub keyword under **surface_scale**. Is required and specify filename for
