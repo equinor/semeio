@@ -180,12 +180,12 @@ def test_localisation_surf(
                 "param_group": {
                     "add": "*",
                 },
-                "ref_point": [250, 250],
                 "surface_scale": {
                     "method": "gaussian_decay",
                     "main_range": 1700,
                     "perp_range": 850,
                     "azimuth": 200,
+                    "ref_point": [250, 250],
                     "surface_file": "surf0.txt",
                 },
             },
@@ -249,12 +249,12 @@ def test_localisation_field1(
                 "param_group": {
                     "add": ["G1", "G2"],
                 },
-                "ref_point": [700, 370],
                 "field_scale": {
                     "method": "gaussian_decay",
                     "main_range": 1700,
                     "perp_range": 850,
                     "azimuth": 200,
+                    "ref_point": [700, 370],
                 },
             },
             {
@@ -265,12 +265,12 @@ def test_localisation_field1(
                 "param_group": {
                     "add": ["G3", "G4"],
                 },
-                "ref_point": [700, 370],
                 "field_scale": {
                     "method": "gaussian_decay",
                     "main_range": 1000,
                     "perp_range": 950,
                     "azimuth": 100,
+                    "ref_point": [700, 370],
                 },
             },
         ],
@@ -440,12 +440,12 @@ def test_localisation_field2(setup_poly_ert):
                 "param_group": {
                     "add": "FIELD1",
                 },
-                "ref_point": [500, 0],
                 "field_scale": {
                     "method": "gaussian_decay",
                     "main_range": 700,
                     "perp_range": 150,
                     "azimuth": 30,
+                    "ref_point": [500, 0],
                 },
             },
             {

@@ -24,7 +24,11 @@ from unittest.mock import MagicMock
 )
 def test_gaussian_config_valid_angle(azimuth, config_class, method):
     config = config_class(
-        method=method, main_range=0.1, perp_range=0.1, azimuth=azimuth
+        method=method,
+        main_range=0.1,
+        perp_range=0.1,
+        ref_point=[100.0, 120.0],
+        azimuth=azimuth,
     )
     assert config.azimuth == azimuth
 
@@ -42,7 +46,13 @@ def test_gaussian_config_valid_angle(azimuth, config_class, method):
 )
 def test_invalid_angle(config_class, method, azimuth, expected_error):
     with pytest.raises(pydantic.ValidationError, match=expected_error):
-        config_class(method=method, main_range=0.1, perp_range=0.1, azimuth=azimuth)
+        config_class(
+            method=method,
+            main_range=0.1,
+            perp_range=0.1,
+            ref_point=[0.0, 10.0],
+            azimuth=azimuth,
+        )
 
 
 @pytest.mark.parametrize("decay_method", ["gaussian_decay", "exponential_decay"])
@@ -52,6 +62,7 @@ def test_field_config_init(decay_method):
         "main_range": 0.1,
         "perp_range": 0.1,
         "azimuth": 10,
+        "ref_point": [0.0, 100.0],
     }
     obs_config = {
         "add": "*",
@@ -62,7 +73,6 @@ def test_field_config_init(decay_method):
         obs_group=obs_config,
         param_group=param_group,
         field_scale=field_config,
-        ref_point=[10, 10],
         obs_context=["a", "b", "c"],
         params_context=["a", "b", "c"],
     )
@@ -78,6 +88,7 @@ def test_field_config_init(decay_method):
                 "main_range": 0.1,
                 "perp_range": 0.1,
                 "azimuth": 10,
+                "ref_point": [100.0, 100.0],
             },
             None,
             id="Field scale, not surface scale",
@@ -89,6 +100,7 @@ def test_field_config_init(decay_method):
                 "main_range": 0.1,
                 "perp_range": 0.1,
                 "azimuth": 10,
+                "ref_point": [10.0, 10.0],
                 "surface_file": "surface_file.txt",
             },
             id="Surface scale, not field scale",
@@ -99,12 +111,14 @@ def test_field_config_init(decay_method):
                 "main_range": 0.1,
                 "perp_range": 0.1,
                 "azimuth": 10,
+                "ref_point": [100.0, 100.0],
             },
             {
                 "method": "gaussian_decay",
                 "main_range": 0.1,
                 "perp_range": 0.1,
                 "azimuth": 10,
+                "ref_point": [10.0, 10.0],
                 "surface_file": "surface_file.txt",
             },
             id="Field scale and surface scale",
@@ -120,16 +134,17 @@ def test_correlation_config_ref_point(field_config, surface_config, monkeypatch)
             "add": "*",
         },
         "param_group": {"add": "*"},
-        "ref_point": [1, 1],
         "obs_context": ["a", "b", "c"],
         "params_context": ["a", "b", "c"],
     }
     if field_config:
         config_dict["field_scale"] = field_config
+        config = CorrelationConfig(**config_dict)
+        assert config.field_scale.ref_point == [100.0, 100.0]
     if surface_config:
         config_dict["surface_scale"] = surface_config
-    config = CorrelationConfig(**config_dict)
-    assert config.ref_point == [1, 1]
+        config = CorrelationConfig(**config_dict)
+        assert config.surface_scale.ref_point == [10.0, 10.0]
 
 
 @pytest.mark.parametrize(
@@ -188,10 +203,13 @@ def test_correlation_config_no_ref_point(field_config, surface_config, monkeypat
     }
     if field_config:
         config_dict["field_scale"] = field_config
+        with pytest.raises(ValueError, match="field_scale -> ref_point"):
+            CorrelationConfig(**config_dict)
+
     if surface_config:
         config_dict["surface_scale"] = surface_config
-    with pytest.raises(ValueError, match="the reference point must be specified"):
-        CorrelationConfig(**config_dict)
+        with pytest.raises(ValueError, match="surface_scale -> ref_point"):
+            CorrelationConfig(**config_dict)
 
 
 def test_invalid_field_config_init():
@@ -200,6 +218,7 @@ def test_invalid_field_config_init():
         "main_range": 0.1,
         "perp_range": 0.1,
         "azimuth": 10,
+        "ref_point": [0.0, 10.0],
     }
     obs_config = {
         "add": "*",
