@@ -57,7 +57,9 @@ Features
 ----------
 The following features are implemented:
 
- - The user defines groups of model parameters and observations.
+ - The user defines groups of model parameters and observations,
+   called correlation groups or ministeps. It is possible to specify many correlation
+   groups.
  - Wildcard notation can be used to specify a selection of model parameter groups
    and observation groups.
  - For scalar parameters coming from the ERT keywords GEN_KW and GEN_PARAM,
@@ -68,8 +70,9 @@ The following features are implemented:
    value corresponding to a grid cell (i,j,k) in location (x,y,z) is reduced by a
    scaling factor varying by distance from a reference point e.g at a location (X,Y,Z),
    usually specified to be close to an observation group.
- - Multiple pairs of groups of model parameters and observations can be specified
-   to have active correlations.
+ - A requirement is that a pair of observation and model parameter (obs, param)
+   is only appearing once to avoid double specification of the same active
+   correlation.
 
 
 Using the localisation setup in ERT
@@ -84,6 +87,12 @@ To setup localisation:
  - Specify to automatically run the workflow after the initial ensemble is created,
    but before the first update by using the HOOK_WORKFLOW keyword
    with the option PRE_FIRST_UPDATE.
+ - To QC the specification of the config file for localisation, it is possible to
+   run the workflow before running initial ensemble also, but due to limitations
+   in ERT implementation GEN_PARAM type of parameter nodes will have empty
+   list of parameters if the workflow is run before initialization. If  GEN_PARAM
+   nodes are used in correlation groups, an error message may appear.
+
 """
 
 EXAMPLES = """
