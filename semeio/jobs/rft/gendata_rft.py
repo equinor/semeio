@@ -179,7 +179,7 @@ def run(
             # Aggregate the same data to a dataframe,
             # each trajectory tagged by well and time:
             trajectory_df = trajectory_points.to_dataframe(zonemap=zonemap).assign(
-                well=well, time=time
+                well=well, time=time, report_step=report_step
             )
 
             # Write trajectory and associated data to ASCII files, one file pr.

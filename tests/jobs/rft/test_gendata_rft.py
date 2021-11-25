@@ -53,9 +53,12 @@ def test_gendata_rft_csv(tmpdir, norne_data, monkeypatch):
         "inactive_info",
         "well",
         "time",
+        "report_step",
     }
     assert required_columns.issubset(set(dframe.columns))
     assert len(dframe["well"].unique()) == len(MOCK_DATA_CONTENT_NORNE)
+
+    assert set(dframe["report_step"]) == {0}
 
     # i-j-k always non-null together:
     assert (dframe["i"].isnull() == dframe["j"].isnull()).all()
@@ -173,6 +176,42 @@ def test_gendata_rft_entry_point(tmpdir, norne_data, monkeypatch):
             result_file = os.path.join(tmpdir.strpath, filename)
 
             conftest._assert_almost_equal_line_by_line(expected_file, result_file)
+
+
+def test_multiple_report_steps(tmpdir, reek_data, monkeypatch):
+    with open("well_and_time.txt", "w+", encoding="utf-8") as fh:
+        fh.write("OP_1 1 2 2000 0\n")
+        fh.write("OP_1 1 1 2001 1\n")
+
+    arguments = [
+        "script_name",
+        "-e",
+        ECL_BASE_REEK,
+        "-w",
+        "well_and_time.txt",
+        "-t",
+        tmpdir.strpath,
+    ]
+    monkeypatch.setattr(sys, "argv", arguments)
+    main_entry_point()
+    csvdata = pd.read_csv("gendata_rft.csv")
+    assert (csvdata["report_step"].values == [0, 1]).all()
+    assert (csvdata["time"].values == ["2000-02-01", "2001-01-01"]).all()
+    assert numpy.isclose(csvdata["pressure"].values, [304.370087, 249.214965]).all()
+
+    # Testing only the data for report step 1:
+    assert numpy.isclose(
+        float(Path("RFT_OP_1_1").read_text(encoding="utf8")), 249.214965
+    )
+    assert Path("RFT_OP_1_1_active").read_text(encoding="utf8") == "1"
+    assert Path("RFT_OP_1_1_inactive_info").read_text(encoding="utf8") == ""
+    assert numpy.isclose(float(Path("RFT_SGAS_OP_1_1").read_text(encoding="utf8")), 0.0)
+    assert numpy.isclose(
+        float(Path("RFT_SOIL_OP_1_1").read_text(encoding="utf8")), 0.6119158
+    )
+    assert numpy.isclose(
+        float(Path("RFT_SWAT_OP_1_1").read_text(encoding="utf8")), 0.3880841
+    )
 
 
 def test_gendata_inactive_info_point_not_in_grid(tmpdir, norne_data, monkeypatch):
