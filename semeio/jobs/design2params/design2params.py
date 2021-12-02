@@ -1,9 +1,13 @@
 # pylint: disable=logging-fstring-interpolation
-import numpy as np
-import pandas as pd
-
-import warnings
 import logging
+import warnings
+import zipfile
+from pathlib import Path
+
+import numpy as np
+import openpyxl
+import pandas as pd
+import xlrd
 
 from semeio._exceptions.exceptions import ValidationError
 
@@ -20,6 +24,8 @@ DENYLIST = ["ENSEMBLE", "DATE"]
 DENYLIST_DEFAULTS = DENYLIST + ["REAL"]
 
 logger = logging.getLogger(__name__)
+
+warnings.filterwarnings("default", category=DeprecationWarning, module="semeio")
 
 
 def run(
@@ -176,25 +182,70 @@ def _complete_parameters_file(
         target_file.write("OK\n")
 
 
+def _infer_excel_file_format(file_name):
+    """Determine if an excel file is xls or xlsx (XML-style)
+
+    This is needed in order to pick correct excel engine for parsing,
+    while supporting muliple versions of Python, Pandas and xlrd.
+    """
+    # < Pandas 1.2, we get InvalidFileException from openpyxl
+    # Pandas 1.2.0 - 1.2.1: txt gives ValueError,
+    #                       XLS gives OSError
+    # >= Pandas 1.2.2:      CSV gives zipfile.BadZipFile,
+    #                       txt gives OSError
+
+    try:
+        pd.read_excel(file_name, engine="openpyxl")
+        return "xlsx"
+    except (
+        openpyxl.utils.exceptions.InvalidFileException,
+        OSError,
+        zipfile.BadZipFile,
+    ):
+        pass
+
+    try:
+        pd.read_excel(file_name, engine="xlrd")
+        return "xls"
+    except (ValueError, TypeError, xlrd.biffh.XLRDError):
+        return None
+
+
 def _read_excel(file_name, sheet_name, header=0):
     """
-    Make dataframe from excel file
+    Make dataframe from excel file.
+
+    Support for XLS is deprecated.
+
     :return: Dataframe
     :raises: SystemExit if file not found
     :raises: SystemExit if file not loaded correctly
     """
-    try:
-        df = pd.read_excel(file_name, sheet_name, header=header, dtype=str)
-        return df.dropna(axis=1, how="all")
-    except IOError as err:
-        raise SystemExit(f"File {file_name} not found") from err
-    except Exception as err:
-        raise SystemExit(
-            (
-                f"File {file_name} is probably not of correct type. "
-                f"Failed with exception '{err}'"
+    if not Path(file_name).exists():
+        raise SystemExit(f"File {file_name} not found")
+
+    fileformat = _infer_excel_file_format(file_name)
+    excel_engines = {"xls": "xlrd", "xlsx": "openpyxl"}
+    if fileformat == "xls":
+        warnings.warn(
+            "Support for XLS files is deprecated. Use XLSX", DeprecationWarning
+        )
+
+    if fileformat is not None:
+        try:
+            df = pd.read_excel(
+                file_name,
+                sheet_name,
+                header=header,
+                dtype=str,
+                engine=excel_engines[fileformat],
             )
-        ) from err
+            return df.dropna(axis=1, how="all")
+        except (ValueError, KeyError) as err:
+            # Exception raised depends on Pandas version.
+            raise SystemExit("Check sheet_name") from err
+    else:
+        raise SystemExit(f"File {file_name} is probably not of correct type. ")
 
 
 def _validate_design_matrix_header(design_matrix):
