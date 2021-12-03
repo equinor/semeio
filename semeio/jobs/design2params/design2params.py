@@ -1,11 +1,15 @@
 # pylint: disable=logging-fstring-interpolation
+import logging
+import warnings
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
-
-import warnings
-import logging
+from xlrd.biffh import XLRDError
 
 from semeio._exceptions.exceptions import ValidationError
+
+warnings.filterwarnings("default", category=DeprecationWarning, module="semeio")
 
 # Filenames created/modified by this script.
 # Don't change unless you understand the consequences.
@@ -176,7 +180,7 @@ def _complete_parameters_file(
         target_file.write("OK\n")
 
 
-def _read_excel(file_name, sheet_name, header=0):
+def _read_excel(file_name, sheet_name, header=0, engine=None):
     """
     Make dataframe from excel file
     :return: Dataframe
@@ -184,8 +188,15 @@ def _read_excel(file_name, sheet_name, header=0):
     :raises: SystemExit if file not loaded correctly
     """
     try:
-        df = pd.read_excel(file_name, sheet_name, header=header, dtype=str)
-        return df.dropna(axis=1, how="all")
+        df = pd.read_excel(
+            file_name, sheet_name, header=header, dtype=str, engine=engine
+        )
+    except XLRDError:
+        # pandas above 1.3.0 handles evaluating the proper reader, but lower has xlrd
+        # as default.
+        # pandas 1.1.5 is highest for python 3.6 - hence we handle the exception
+        # for as long as we support python 3.6
+        return _read_excel(file_name, sheet_name, header=header, engine="openpyxl")
     except IOError as err:
         raise SystemExit(f"File {file_name} not found") from err
     except Exception as err:
@@ -195,6 +206,14 @@ def _read_excel(file_name, sheet_name, header=0):
                 f"Failed with exception '{err}'"
             )
         ) from err
+
+    p = Path(file_name)
+    if p.suffix == ".xls":
+        warnings.warn(
+            "Support for XLS files is deprecated. Use XLSX", DeprecationWarning
+        )
+
+    return df.dropna(axis=1, how="all")
 
 
 def _validate_design_matrix_header(design_matrix):
