@@ -12,10 +12,9 @@ class TrajectoryPoint:
     determined by UTM x and y, measured depth along the wellpath, and
     true vertical depth.
 
-    Points can be *active*, which means that (i,j,k) in a given grid
-    is determined, there is simulated pressure available in that cell,
-    and the cell in in the correct zone (mostly important for long
-    horizontals).
+    Points can be *active*, which means that (i,j,k) (zero-indexed) in a given
+    grid is determined, there is simulated pressure available in that cell, and
+    the cell in in the correct zone (mostly important for long horizontals).
 
     RKB for MD must match MD in Eclipse RFT data.
 
@@ -164,8 +163,9 @@ class Trajectory:
     def to_dataframe(self, zonemap=None):
         """Expose the trajectory data as a Pandas DataFrame.
 
-        The data grid_ijk in self is a tuple, this is split into
-        three distinct columns, i, j and k.
+        The data grid_ijk in self is a tuple, this is split into three distinct
+        columns, i, j and k. The i-, j- and k-columns from this function are
+        1-indexed.
 
         The dataframe is sorted first by measured_depth, if not available
         it is sorted by true_vertical_depth. The original order from the
@@ -186,6 +186,10 @@ class Trajectory:
         dframe = Trajectory.split_tuple_column(
             dframe, tuplecolumn="grid_ijk", components=["i", "j", "k"]
         )
+
+        # Convert from libecl 0-indexed coordinates to Eclipse-style 1-indexed:
+        if {"i", "j", "k"}.issubset(dframe.columns):
+            dframe[["i", "j", "k"]] += 1
 
         # Conserve original order before sorting - original order from
         # well input files is needed by some export routines.
