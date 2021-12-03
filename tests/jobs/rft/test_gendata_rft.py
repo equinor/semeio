@@ -90,6 +90,11 @@ def test_gendata_rft_csv_reek(tmpdir, reek_data, monkeypatch):
     assert numpy.isclose(dframe["soil"].values[0], 1 - 0.151044)
     assert numpy.isclose(dframe["sgas"].values[0], 0.0)
 
+    # This requires 1-indexed ijk in the dataframe:
+    assert dframe["i"].values[0] == 29
+    assert dframe["j"].values[0] == 28
+    assert dframe["k"].values[0] == 8
+
 
 def test_gendata_rft_directory(tmpdir, norne_data, monkeypatch):
     outputdirectory = "rft_output_dir"
