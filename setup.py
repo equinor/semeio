@@ -56,7 +56,7 @@ setup(
         "pydantic",
         "scikit-learn",
         "scipy",
-        "xlrd<2",
+        "xlrd",
         "stea",
         "pyscal>=0.4.0",
         "fmu-ensemble",
