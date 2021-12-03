@@ -180,7 +180,7 @@ def _complete_parameters_file(
         target_file.write("OK\n")
 
 
-def _read_excel(file_name, sheet_name, header=0, engine=None):
+def _read_excel(file_name, sheet_name, header=0, usecols=None, engine=None):
     """
     Make dataframe from excel file
     :return: Dataframe
@@ -189,14 +189,21 @@ def _read_excel(file_name, sheet_name, header=0, engine=None):
     """
     try:
         df = pd.read_excel(
-            file_name, sheet_name, header=header, dtype=str, engine=engine
+            file_name,
+            sheet_name,
+            header=header,
+            dtype=str,
+            usecols=usecols,
+            engine=engine,
         )
     except XLRDError:
         # pandas above 1.3.0 handles evaluating the proper reader, but lower has xlrd
         # as default.
         # pandas 1.1.5 is highest for python 3.6 - hence we handle the exception
         # for as long as we support python 3.6
-        return _read_excel(file_name, sheet_name, header=header, engine="openpyxl")
+        return _read_excel(
+            file_name, sheet_name, header=header, usecols=usecols, engine="openpyxl"
+        )
     except IOError as err:
         raise SystemExit(f"File {file_name} not found") from err
     except Exception as err:
@@ -289,8 +296,8 @@ def _invalid_design_realizations(design_matrix):
 
 def _read_defaultssheet(xlsfilename, defaultssheetname):
     """
-    Reads a XLSX file and tries to return a dataframe
-    with defaults for design matrix parameters.
+    Construct a dataframe of keys and values to be used as defaults from the
+    first two columns in a spreadsheet.
 
     A dataframe is always returned, possibly empty.
     Columns are always exactly named "keys" and "defaults"
@@ -298,24 +305,14 @@ def _read_defaultssheet(xlsfilename, defaultssheetname):
     :raises: SystemExit if defaults sheet is non-empty but non-parsable
     """
     if defaultssheetname:
-        default_df = _read_excel(xlsfilename, defaultssheetname, header=None)
+        default_df = _read_excel(
+            xlsfilename, defaultssheetname, usecols=[0, 1], header=None
+        )
         if default_df.empty:
             logger.info("Empty defaultssheet provided")
             default_df = pd.DataFrame(columns=[0, 1])
         if len(default_df.columns) < 2:
-            raise SystemExit(
-                "Defaults sheet must have exactly two columns, only one found"
-            )
-        if len(default_df.columns) > 2:
-            warnings.warn(
-                (
-                    "DEPRECATION: You supplied more than two columns for "
-                    "the default values. This is not supported and will stop "
-                    "working in the future."
-                ),
-                UserWarning,
-            )
-            default_df = default_df[[0, 1]]  # Slicing columns
+            raise SystemExit("Defaults sheet must have at least two columns")
         # Look for initial or trailing whitespace in parameter names. This
         # is disallowed as it can create user confusion and has no use-case.
         for paramname in default_df.loc[:, 0]:

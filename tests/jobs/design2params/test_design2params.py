@@ -164,11 +164,7 @@ def test_one_column_defaults(tmpdir):
 
 
 def test_three_column_defaults(tmpdir):
-    """
-    A deprecation warning will be emitted in this test.
-
-    Change this test later to assert the code will fail hard.
-    """
+    """Anything other than the two first columns is ignored"""
     # pylint: disable=abstract-class-instantiated
     tmpdir.chdir()
     write_design_xlsx(
@@ -178,8 +174,10 @@ def test_three_column_defaults(tmpdir):
     parsed_defaults = design2params._read_defaultssheet(
         "design_matrix.xlsx", "DefaultValues"
     )
-    assert len(parsed_defaults) == 1
-    assert (parsed_defaults.columns == ["keys", "defaults"]).all()
+    pd.testing.assert_frame_equal(
+        pd.DataFrame(columns=["keys", "defaults"], data=[["foo", "bar"]]),
+        parsed_defaults,
+    )
 
 
 @pytest.mark.parametrize(
