@@ -1,9 +1,9 @@
-pytest
+hypothesis
+odfpy
 openpyxl
-rstcheck
+pytest
 pytest-console-scripts
 pytest-httpserver
 pytest-snapshot
-hypothesis
+rstcheck
 xlwt
-odfpy
