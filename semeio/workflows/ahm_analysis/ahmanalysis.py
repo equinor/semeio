@@ -12,7 +12,7 @@ from scipy.stats.stats import ks_2samp
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
-from xtgeo.grid3d import Grid
+import xtgeo
 from xtgeo.grid3d import GridProperty
 from semeio.communication import SemeioScript
 from semeio._exceptions.exceptions import ValidationError
@@ -340,7 +340,9 @@ def _get_field_params(ert, ensemble_size, field_parameters, target_name):
 
 
 def _import_field_param(input_grid, param_name, files):
-    grid_param = Grid(input_grid.rsplit(".", 1)[0], fformat="eclipserun")
+    grid_param = xtgeo.grid_from_file(
+        input_grid.rsplit(".", 1)[0], fformat="eclipserun"
+    )
     all_input = []
     for file_path in files:
         proproff = GridProperty(file_path, name=param_name, grid=grid_param)
@@ -455,7 +457,7 @@ def load_grid_to_dataframe(grid_path):
     """Get field grid characteristics/coordinates"""
     grid_path = Path(grid_path).with_suffix("")
     try:
-        grid = Grid(grid_path, fformat="eclipserun")
+        grid = xtgeo.grid_from_file(grid_path, fformat="eclipserun")
         return grid.dataframe(activeonly=False)
     except OSError as err:
         raise OSError("A grid with .EGRID format is expected.") from err
