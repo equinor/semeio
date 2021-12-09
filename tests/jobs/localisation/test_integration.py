@@ -292,8 +292,7 @@ def create_box_grid_with_inactive_and_active_cells(
     zinc = 10.0
     xori = 0.0
     yori = 0.0
-    grid = xtgeo.Grid()
-    grid.create_box(
+    grid = xtgeo.create_box_grid(
         dimension=(nx, ny, nz),
         origin=(xori, yori, 0.0),
         increment=(xinc, yinc, zinc),
