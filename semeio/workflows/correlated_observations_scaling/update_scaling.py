@@ -25,7 +25,7 @@ def _update_scaling(obs, scale_factor, obs_list):
     """
     for event in obs_list:
         obs_vector = obs[event.key]
-        step_list = list(obs_vector.getStepList())  # List of steps, 1-indexed
+        step_list = obs_vector.getStepList()  # List of steps, 1-indexed
         for step in step_list:
             obs_node = obs_vector.getNode(step)
             if obs_vector.getImplementationType().name == "SUMMARY_OBS":

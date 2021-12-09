@@ -49,7 +49,7 @@ setup(
     ],
     install_requires=[
         "ecl",
-        "ert >= 2.27.0rc1",
+        "ert >= 2.31.0b0",
         "configsuite>=0.6",
         "numpy",
         "pandas>0.24",
