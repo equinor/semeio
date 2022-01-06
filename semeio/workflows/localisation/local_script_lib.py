@@ -546,8 +546,6 @@ def add_ministeps(
         )
 
         param_group_name = ministep_name + "_param_group"
-        model_param_group = ert_local_config.createDataset(param_group_name)
-
         obs_group_name = ministep_name + "_obs_group"
         obs_group = ert_local_config.createObsdata(obs_group_name)
 
@@ -564,10 +562,10 @@ def add_ministeps(
                 LogLevel.LEVEL2,
                 user_config.log_level,
             )
-            model_param_group.addNode(node_name)
+            ministep.addActiveData(node_name)
             if impl_type == ErtImplType.GEN_KW:
                 activate_gen_kw_param(
-                    model_param_group,
+                    ministep,
                     node_name,
                     param_list,
                     ert_param_dict,
@@ -584,7 +582,7 @@ def add_ministeps(
                         user_config.log_level,
                     )
                     field_config = node.getFieldModelConfig()
-                    row_scaling = model_param_group.row_scaling(node_name)
+                    row_scaling = ministep.row_scaling(node_name)
                     data_size = grid_for_field.get_num_active()
                     data_size2 = field_config.get_data_size()
                     assert data_size == data_size2
@@ -659,7 +657,7 @@ def add_ministeps(
                 data_size = gen_data_config.get_initial_size()
                 if data_size > 0:
                     activate_gen_param(
-                        model_param_group,
+                        ministep,
                         node_name,
                         param_list,
                         data_size,
@@ -690,7 +688,7 @@ def add_ministeps(
 
                     surface = Surface(surface_file)
                     data_size = surface.getNX() * surface.getNY()
-                    row_scaling = model_param_group.row_scaling(node_name)
+                    row_scaling = ministep.row_scaling(node_name)
                     if corr_spec.surface_scale.method in _decay_methods_surf:
                         ref_pos = corr_spec.surface_scale.ref_point
                         main_range = corr_spec.surface_scale.main_range
@@ -727,7 +725,6 @@ def add_ministeps(
             LogLevel.LEVEL1,
             user_config.log_level,
         )
-        ministep.attachDataset(model_param_group)
 
         debug_print(
             f"Attach {obs_group_name} to ministep {ministep_name}",
