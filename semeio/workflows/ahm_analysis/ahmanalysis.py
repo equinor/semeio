@@ -296,15 +296,13 @@ def _run_ministep(
     # Make more ministeps to condition different groups together
     ministep = local_config.createMinistep("MINISTEP")
     # Add all dataset to localize
-    data_all = local_config.createDataset("DATASET")
     for data in data_parameters:
-        data_all.addNode(data)
+        ministep.addActiveData(data)
     # Add all obs to be used in this updating scheme
     obsdata = local_config.createObsdata("OBS")
     for obs in obs_group:
         obsdata.addNode(obs)
-    # Attach the created dataset and obsset to the ministep
-    ministep.attachDataset(data_all)
+    # Attach the obsset to the ministep
     ministep.attachObsset(obsdata)
     # Then attach the ministep to the update step
     local_config.getUpdatestep().attachMinistep(ministep)
