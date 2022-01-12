@@ -56,8 +56,9 @@ or reduce the correlations by a factor between 0 and 1.
 Features
 ----------
 The following features are implemented:
-
- - The user defines groups of model parameters and observations.
+ - The user defines groups of model parameters and observations,
+   called correlation groups or ministeps. It is possible to specify many correlation
+   groups.
  - Wildcard notation can be used to specify a selection of model parameter groups
    and observation groups.
  - For scalar parameters coming from the ERT keywords GEN_KW and GEN_PARAM,
@@ -68,8 +69,9 @@ The following features are implemented:
    value corresponding to a grid cell (i,j,k) in location (x,y,z) is reduced by a
    scaling factor varying by distance from a reference point e.g at a location (X,Y,Z),
    usually specified to be close to an observation group.
- - Multiple pairs of groups of model parameters and observations can be specified
-   to have active correlations.
+ - A requirement is that a pair of observation and model parameter (obs, param)
+   is only appearing once to avoid double specification of the same active
+   correlation.
 
 
 Using the localisation setup in ERT
@@ -84,27 +86,35 @@ To setup localisation:
  - Specify to automatically run the workflow after the initial ensemble is created,
    but before the first update by using the HOOK_WORKFLOW keyword
    with the option PRE_FIRST_UPDATE.
+ - To QC the specification of the config file for localisation, it is possible to
+   run the workflow before running initial ensemble also, but due to limitations
+   in ERT implementation, GEN_PARAM type of parameter nodes will have empty
+   list of parameters if the workflow is run before initialization. If  GEN_PARAM
+   nodes are used in correlation groups, an error message may appear in this case.
+
 """
 
 EXAMPLES = """
-Example configuration
+Example configurations
 -------------------------
 
 The configuration file is a YAML format file where pairs of groups of observations
 and groups of model parameters are specified.
 
-Per default, all correlations between the
-observations from the observation group and model parameters from the model
-parameter group are active and unmodified. All other combinations of pairs of
-observations and model parameters not specified in a correlation group, are inactive
-or set to 0. But it is possible to specify many correlation groups. If a pair of
-observation and model parameter appear multiple times
+Per default, all correlations between the observations from the observation
+group and model parameters from the model parameter group are active
+and unmodified. All other combinations of pairs of observations and model
+parameters not specified in a correlation group, are inactive and correlations are 0.
+But it is possible to specify many correlation groups. If a pair of observation
+and model parameter appear multiple times
 (e.g. because they are member of multiple correlation groups),
 an error message is raised.
 
 It is also possible to scale down correlations that are specified for 3D and 2D fields.
 
-In the example below, four correlation groups are defined.
+Example 1:
+------------
+In the first example below, four correlation groups are defined.
 The first correlation group is called ``CORR1`` (a user defined name),
 and defines all observations to have active correlation with all model
 parameters starting with ``aps_valysar_grf`` and with ``GEO:PARAM``.
@@ -115,7 +125,21 @@ observations in the group and the model parameters selected of type
 The second correlation group (with name ``CORR2`` ) activates correlations
 between observations matching the wildcard specification
 ["OP_2_WWCT*", "OP_5_*"] and all parameters except those starting
-with ``aps_``. ::
+with ``aps_``.
+
+The third correlation group (with name ''CORR3'' ) activates correlations
+between all observations and all parameters starting with ''aps_volon_grf''.
+In this case, the scaling factor for correlations are defined by a 3D parameter
+read from file. This example shows that it is possible to use scaling
+factor defined by the user outside of ERT.
+
+The fourth correlation group (with name ''CORR4'' ) activates correlations
+between all observations and all parameters starting with ''aps_therys_grf''.
+For this case, the scaling factor is specified per segment or region of
+the modelling grid. For each segment specified to be active, a corresponding
+scaling factor is assigned for all correlations between the observations and
+the field parameter values in the segment.
+::
 
 
   log_level:3
@@ -170,6 +194,51 @@ with ``aps_``. ::
           active_segments: [ 1,2,4]
           scalingfactors: [1.0, 0.5, 0.3]
 
+Example 2:
+------------
+In this example the optional keyword **max_gen_obs_size** is specified.
+The value 1000 means that all observation nodes of type GEN_OBS having less
+than 1000 observations are specified in the form::
+
+ nodename:index
+
+where **index** is an integer from 0 to 999.
+All GEN_OBS nodes with more than 1000 observations
+are specified in the form nodename only. The reason not to enable to specify
+individual observations from GEN_OBS of any size is performance e.g. when
+GEN_OBS nodes of seismic data is used.
+
+The first example below (2A) specifies all observations by::
+
+ GENOBS_NODE:*
+
+The second example (2B) has selected a few observations from the
+GENOBS_NODE::
+
+  ["GENOBS_NODE:0","GENOBS_NODE:3","GENOBS_NODE:55"]
+
+Example 2A::
+
+  max_gen_obs_size: 1000
+  log_level:2
+  correlations:
+    - name: CORR1
+       obs_group:
+          add: ["GENOBS_NODE:*"]
+       param_group:
+          add: ["PARAM_NODE:*"]
+
+Example 2B::
+
+  max_gen_obs_size: 100
+  log_level:2
+  correlations:
+    - name: CORR1
+       obs_group:
+          add: ["GENOBS_NODE:0","GENOBS_NODE:3","GENOBS_NODE:55"]
+       param_group:
+          add: ["PARAM_NODE:*"]
+
 
 Keywords
 -----------
@@ -186,6 +255,16 @@ Keywords
       created or not. The purpose is to QC the calculated scaling factors
       and make it possible to visualise them. Is only relevant when using
       **field_scale** with methods calculating the scaling factors.
+
+:max_gen_obs_size:
+      Specify the max size of GEN_OBS type of observation nodes that
+      can specify individual observations. Individual observations are specified
+      by nodename:index where index is the observation number in the
+      observation file associated with the GEN_OBS type node.
+      The keyword is optional. If not specified or specified with value 0,
+      this means that observations of type GEN_OBS is specified by
+      nodename only. Individual observations can not be specified in this case
+      which means that all observations in the GEN_OBS node is used.
 
 :correlations:
       List of specifications of correlation groups. A correlation group
@@ -257,7 +336,6 @@ Keywords
       *node_name:parameter_name* where *node_name* is an ERT identifier
       and *parameter_name* is the name of a parameter belonging to the ERT node.
 
-
       For instance if the ``GEN_KW`` ERT keyword is used, the ERT identifier is
       the node name while the parameter names used in the distribution file, contains
       names of the parameters for that node.
@@ -271,6 +349,13 @@ Keywords
       only the nodename is specified like ``aps_Valysar_grf1``.
       The nodename represents all field values for all grid cells in the whole
       3D or 2D grid the field belongs to.
+
+      For observations specified with GENERAL_OBSERVATION keyword in ERT config file,
+      it is possible to specify the observations by either *node_name*
+      or *node_name:index*. Default is to specify by *node_name* only which means
+      to include all observation from this ERT identifier.
+      The alternative option is to use the keyword **max_gen_obs_size**
+      described above and specify individual observations by *node_name:index*.
 
 :remove:
       For details see the keyword **add:**. The main purpose of **remove** is to
@@ -323,7 +408,7 @@ Keywords
 :ref_point:
       Sub keyword under  **field_scale**  or **surface_scale**. Is only used for
       method **exponential_decay** and **gaussian_decay**.
-      It defines the (x,y) position the used by the scaling functions when calculating
+      It defines the (x,y) position used by the scaling functions when calculating
       distance to a grid cell with a field parameter value. A grid cell located at the
       reference point will have distance 0 which means that the scaling function is
       1.0 for correlations between observations and the field parameter in that
