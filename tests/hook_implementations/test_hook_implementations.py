@@ -34,6 +34,7 @@ def test_hook_implementations():
         "INSERT_NOSIM": "semeio/jobs/config_jobs/INSERT_NOSIM_CONFIG",
         "REMOVE_NOSIM": "semeio/jobs/config_jobs/REMOVE_NOSIM_CONFIG",
         "OTS": "semeio/jobs/config_jobs/OTS_CONFIG",
+        "REPLACE_STRING": "semeio/jobs/config_jobs/REPLACE_STRING_CONFIG",
     }
     installable_jobs = pm.get_installable_jobs()
     for wf_name, wf_location in expected_jobs.items():
