@@ -56,8 +56,9 @@ or reduce the correlations by a factor between 0 and 1.
 Features
 ----------
 The following features are implemented:
-
- - The user defines groups of model parameters and observations.
+ - The user defines groups of model parameters and observations,
+   called correlation groups or ministeps. It is possible to specify many correlation
+   groups.
  - Wildcard notation can be used to specify a selection of model parameter groups
    and observation groups.
  - For scalar parameters coming from the ERT keywords GEN_KW and GEN_PARAM,
@@ -68,8 +69,7 @@ The following features are implemented:
    value corresponding to a grid cell (i,j,k) in location (x,y,z) is reduced by a
    scaling factor varying by distance from a reference point e.g at a location (X,Y,Z),
    usually specified to be close to an observation group.
- - Multiple pairs of groups of model parameters and observations can be specified
-   to have active correlations.
+ - Pairs of observations and model parameters (obs, param) must only be spesified once.
 
 
 Using the localisation setup in ERT
@@ -84,27 +84,36 @@ To setup localisation:
  - Specify to automatically run the workflow after the initial ensemble is created,
    but before the first update by using the HOOK_WORKFLOW keyword
    with the option PRE_FIRST_UPDATE.
+ - To QC the specification of the config file for localisation, it is possible to
+   run the workflow before running initial ensemble also, but due to limitations
+   in ERT implementation, GEN_PARAM type of parameter nodes will have empty
+   list of parameters if the workflow is run before initialization. If  GEN_PARAM
+   nodes are used in correlation groups, an error message will appear if the
+   initial ensemble does not exist.
+
 """
 
 EXAMPLES = """
-Example configuration
+Example configurations
 -------------------------
 
 The configuration file is a YAML format file where pairs of groups of observations
 and groups of model parameters are specified.
 
-Per default, all correlations between the
-observations from the observation group and model parameters from the model
-parameter group are active and unmodified. All other combinations of pairs of
-observations and model parameters not specified in a correlation group, are inactive
-or set to 0. But it is possible to specify many correlation groups. If a pair of
-observation and model parameter appear multiple times
+Per default, all correlations between the observations from the observation
+group and model parameters from the model parameter group are active
+and unmodified. All other combinations of pairs of observations and model
+parameters not specified in a correlation group, are inactive and correlations are 0.
+But it is possible to specify many correlation groups. If a pair of observation
+and model parameter appear multiple times
 (e.g. because they are member of multiple correlation groups),
 an error message is raised.
 
 It is also possible to scale down correlations that are specified for 3D and 2D fields.
 
-In the example below, four correlation groups are defined.
+Example 1:
+------------
+In the first example below, four correlation groups are defined.
 The first correlation group is called ``CORR1`` (a user defined name),
 and defines all observations to have active correlation with all model
 parameters starting with ``aps_valysar_grf`` and with ``GEO:PARAM``.
@@ -115,7 +124,22 @@ observations in the group and the model parameters selected of type
 The second correlation group (with name ``CORR2`` ) activates correlations
 between observations matching the wildcard specification
 ["OP_2_WWCT*", "OP_5_*"] and all parameters except those starting
-with ``aps_``. ::
+with ``aps_``.
+
+The third correlation group (with name ''CORR3'' ) activates correlations
+between all observations and all parameters starting with ''aps_volon_grf''.
+In this case, the scaling factor for correlations are defined by a 3D parameter
+read from file. This example shows that it is possible to use scaling
+factor defined by the user outside of ERT.
+
+The fourth correlation group (with name ''CORR4'' ) activates correlations
+between all observations and all parameters starting with ''aps_therys_grf''.
+For this case, the scaling factor is specified per segment or region of
+the modelling grid. For each segment specified to be active, a corresponding
+scaling factor is assigned for all correlations between the observations and
+the field parameter values in the segment. The option to smooth out the
+discontinuities of the scaling factor field between segments is also applied.
+::
 
 
   log_level:3
@@ -169,6 +193,7 @@ with ``aps_``. ::
           param_name: "REGION"
           active_segments: [ 1,2,4]
           scalingfactors: [1.0, 0.5, 0.3]
+          smooth_ranges: [2,3]
 
 
 Keywords
@@ -257,7 +282,6 @@ Keywords
       *node_name:parameter_name* where *node_name* is an ERT identifier
       and *parameter_name* is the name of a parameter belonging to the ERT node.
 
-
       For instance if the ``GEN_KW`` ERT keyword is used, the ERT identifier is
       the node name while the parameter names used in the distribution file, contains
       names of the parameters for that node.
@@ -323,7 +347,7 @@ Keywords
 :ref_point:
       Sub keyword under  **field_scale**  or **surface_scale**. Is only used for
       method **exponential_decay** and **gaussian_decay**.
-      It defines the (x,y) position the used by the scaling functions when calculating
+      It defines the (x,y) position used by the scaling functions when calculating
       distance to a grid cell with a field parameter value. A grid cell located at the
       reference point will have distance 0 which means that the scaling function is
       1.0 for correlations between observations and the field parameter in that
@@ -363,6 +387,19 @@ Keywords
       length and the first value in the **scalingfactors** list corresponds to
       the first segment number in the **active_segments** list and so on.
 
+:smooth_ranges:
+      It is possible to remove the discontinuities for the scaling factor across
+      two different segments. This is done by using a smoothing operation
+      on the scaling factor field. A rectangular area of specified size is used in
+      a moving average operation to modify the scaling factor field. The size
+      of this moving average rectangular area is per default set to size 0 in
+      both I-direction and J-direction of the grid specified in ERT config file,
+      and no moving average is done. But by specifying size in I and J direction
+      (DI, DJ) as integer values greater than 0, the moving average window
+      defined by the  2D interval around a grid cell with
+      index (I,J,K)  is [I - DI, I + DI]  x  [J - DJ, J + DJ]  x [ K, K] .  The keyword
+      smooth_ranges is followed by a list of two non-negative integer.
+      Default: [0, 0]
 
 """
 
