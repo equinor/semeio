@@ -1,2 +1,2 @@
-EXECUTABLE sed
-ARGLIST -i s/<FROM>/<TO>/g <FILE>
+EXECUTABLE replace_string
+ARGLIST -o <FROM> -n <TO> -f <FILE>

@@ -29,6 +29,7 @@ setup(
             "design_kw=semeio.jobs.scripts.design_kw:main_entry_point",
             "fm_pyscal=semeio.jobs.scripts.fm_pyscal:main_entry_point",
             "semeio_stea=semeio.jobs.scripts.fm_stea:main_entry_point",
+            "replace_string=semeio.jobs.scripts.replace_string:main_entry_point",
         ],
     },
     license="GPL-3.0",
