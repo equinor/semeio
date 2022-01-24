@@ -1,4 +1,3 @@
-import sys
 import subprocess
 import pytest
 
@@ -8,16 +7,21 @@ JOBNAME TEST
 QUEUE_SYSTEM LOCAL
 NUM_REALIZATIONS 1
 FORWARD_MODEL COPY_FILE(<FROM>=<CONFIG_PATH>/file.txt, <TO>=file.txt)
-FORWARD_MODEL REPLACE_STRING(<FROM>={FROM}, <TO>={TO}, <FILE>=file.txt)
+FORWARD_MODEL REPLACE_STRING(<FROM>={FROM}, <TO>="{TO}", <FILE>=file.txt)
 """
 
 
-@pytest.mark.skipif(
-    sys.platform == "darwin", reason="Skip test for Mac OS - invalid use of sed"
-)
 @pytest.mark.parametrize(
     "input_text, replace_from, replace_to, expected",
-    [("something", "something", "else", "else"), ("1,2,3,4", "[0-9]", "N", "N,N,N,N")],
+    [
+        ("something", "something", "else", "else"),
+        (
+            "I got some/thing to tell you",
+            "some/thing",
+            "a story",
+            "I got a story to tell you",
+        ),
+    ],
 )
 def test_replace_string(tmpdir, input_text, replace_from, replace_to, expected):
     with tmpdir.as_cwd():
