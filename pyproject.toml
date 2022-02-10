@@ -18,3 +18,8 @@ exclude = '''
 
 )
 '''
+
+[tool.pytest.ini_options]
+markers = [
+  "ert_integration",
+]
