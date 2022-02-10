@@ -563,7 +563,8 @@ GEN_DATA OP_1_RFT_SIM1 INPUT_FORMAT:ASCII REPORT_STEPS:1 RESULT_FILE:RFT_OP_1_%d
     assert "gen_obs_assert_data_size: size mismatch" not in stdouterr
 
     # This is probably an 'ok' from the smoother, as there are no parameters involved:
-    assert "No active observations/parameters for MINISTEP: ALL_ACTIVE." in stdouterr
+    assert "Deactivating: OP_1_OBS1" in stdouterr
+    assert "Simulations completed" in stdouterr
 
     # Asserts on GENDATA_RFT output:
     assert Path("realization-0/iter-0/RFT_OP_1_1").is_file()
@@ -679,7 +680,8 @@ GEN_DATA OP_1_RFT_SIM2 INPUT_FORMAT:ASCII REPORT_STEPS:2 RESULT_FILE:gendata_rft
     assert "gen_obs_assert_data_size: size mismatch" not in stdouterr
 
     # This is probably an 'ok' from the smoother, as there are no parameters involved:
-    assert "No active observations/parameters for MINISTEP: ALL_ACTIVE." in stdouterr
+    assert "Deactivating: OP_1_OBS1" in stdouterr
+    assert "Simulations completed" in stdouterr
 
     # Asserts on GENDATA_RFT output:
     assert Path("realization-0/iter-0/gendata_rft/RFT_OP_1_1").is_file()
