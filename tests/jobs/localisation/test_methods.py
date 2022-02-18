@@ -13,19 +13,26 @@ from semeio.workflows.localisation.local_script_lib import (
 from ecl.grid.ecl_grid_generator import EclGridGenerator
 
 
-def create_box_grid(use_actnum=False):
-    nx = 10
-    ny = 10
-    nz = 3
-    dx = 50.0
-    dy = 50.0
-    dz = 10.0
+def create_box_grid(
+    nx=10,
+    ny=10,
+    nz=3,
+    dx=50.0,
+    dy=50.0,
+    dz=10.0,
+    write_grid_file=False,
+    use_actnum=False,
+):
+
     dimensions = (nx, ny, nz)
     increments = (dx, dy, dz)
     actnum = None
     if use_actnum:
         actnum = actnum_parameter(nx, ny, nz)
     grid = EclGridGenerator.create_rectangular(dimensions, increments, actnum=actnum)
+
+    if write_grid_file:
+        grid.save_EGRID("tmp_grid.EGRID")
     return grid, nx, ny, nz
 
 
@@ -77,6 +84,63 @@ def create_region_parameter(
                     region_param[index] = ma.masked
 
     return region_param, scaling_param
+
+
+def create_parameter_from_decay_functions(method_name, grid):
+    ref_pos = (250.0, 250.0)
+    main_range = 150.0
+    perp_range = 100.0
+    azimuth = 0.0
+    tapering_range = 2
+    use_cutoff = True
+    decay_obj = None
+
+    nx = grid.getNX()
+    ny = grid.getNY()
+    nz = grid.getNZ()
+    use_one_in_range = tapering_range > 1
+    filename = "tmp_" + method_name + ".grdecl"
+    if method_name == "gaussian_decay":
+        decay_obj = GaussianDecay(
+            ref_pos,
+            main_range,
+            perp_range,
+            azimuth,
+            use_one_in_range,
+            tapering_range,
+            use_cutoff,
+            grid,
+        )
+    else:
+        decay_obj = ExponentialDecay(
+            ref_pos,
+            main_range,
+            perp_range,
+            azimuth,
+            use_one_in_range,
+            tapering_range,
+            use_cutoff,
+            grid,
+        )
+
+    data_size = nx * ny * nz
+    scaling_vector = np.zeros(data_size, dtype=np.float32)
+    for index in range(data_size):
+        scaling_vector[index] = decay_obj(index)
+
+    scaling_values = np.zeros(nx * ny * nz, dtype=np.float32)
+
+    for index in range(data_size):
+        global_index = grid.global_index(active_index=index)
+        scaling_values[global_index] = scaling_vector[index]
+
+    scaling_values_3d = np.reshape(scaling_values, (nx, ny, nz), "F")
+    scaling_kw_name = "SCALING"
+    scaling_kw = grid.create_kw(scaling_values_3d, scaling_kw_name, False)
+    with cwrap.open(filename, "w") as file:
+        grid.write_grdecl(scaling_kw, file)
+
+    return scaling_values
 
 
 def write_param(filename, grid, param_values, param_name, nx, ny, nz):
@@ -144,7 +208,19 @@ def test_exponentialtype_decay_functions(method, index_list, expected):
     main_range = 150.0
     perp_range = 250.0
     azimuth = 0.0
-    decay_obj = method(ref_pos, main_range, perp_range, azimuth, grid)
+    use_one_in_range = False
+    tapering_range = 0
+    use_cutoff = False
+    decay_obj = method(
+        ref_pos,
+        main_range,
+        perp_range,
+        azimuth,
+        use_one_in_range,
+        tapering_range,
+        use_cutoff,
+        grid,
+    )
 
     data_size = nx * ny * nz
     scaling_vector = np.zeros(data_size, dtype=np.float32)
@@ -215,3 +291,22 @@ def test_smooth_parameter(snapshot):
     )
 
     snapshot.assert_match(str(smooth_param), "testdata_scaling_smooth.txt")
+
+
+def test_decay_function_with_new_options(snapshot):
+    grid, nx, ny, nz = create_box_grid(
+        nx=25,
+        ny=25,
+        nz=10,
+        dx=20.0,
+        dy=20.0,
+        dz=10.0,
+        write_grid_file=True,
+        use_actnum=False,
+    )
+    method_name = "gaussian_decay"
+    scaling_values = create_parameter_from_decay_functions(method_name, grid)
+    snapshot.assert_match(str(scaling_values), "testdata_scaling_decay_method1.txt")
+    method_name = "exponential_decay"
+    scaling_values = create_parameter_from_decay_functions(method_name, grid)
+    snapshot.assert_match(str(scaling_values), "testdata_scaling_decay_method2.txt")
