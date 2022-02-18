@@ -263,7 +263,7 @@ def test_localisation_field1(
                     "add": "*",
                 },
                 "param_group": {
-                    "add": ["G3", "G4"],
+                    "add": ["G3"],
                 },
                 "field_scale": {
                     "method": "gaussian_decay",
@@ -271,6 +271,24 @@ def test_localisation_field1(
                     "perp_range": 950,
                     "azimuth": 100,
                     "ref_point": [700, 370],
+                },
+            },
+            {
+                "name": "CORR3",
+                "obs_group": {
+                    "add": "*",
+                },
+                "param_group": {
+                    "add": ["G4"],
+                },
+                "field_scale": {
+                    "method": "exponential_decay",
+                    "main_range": 1000,
+                    "perp_range": 950,
+                    "azimuth": 100,
+                    "ref_point": [700, 370],
+                    "normalised_tapering_range": 1.2,
+                    "set_to_zero_outside_range": True,
                 },
             },
         ],

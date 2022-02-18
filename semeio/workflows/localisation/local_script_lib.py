@@ -220,17 +220,39 @@ def apply_decay(
     main_range,
     perp_range,
     azimuth,
+    use_cutoff=False,
+    tapering_range=None,
     calculate_qc_parameter=False,
 ):
     """Calculates the scaling factor, assign it to ERT instance by row_scaling
     and returns a full sized grid parameter with scaling factors for active
     grid cells and 0 elsewhere to be used for QC purpose.
     """
-
+    use_one_in_range = False
+    if tapering_range is not None:
+        use_one_in_range = tapering_range > 1
     if method == "gaussian_decay":
-        decay_obj = GaussianDecay(ref_pos, main_range, perp_range, azimuth, grid)
+        decay_obj = GaussianDecay(
+            ref_pos,
+            main_range,
+            perp_range,
+            azimuth,
+            use_one_in_range,
+            tapering_range,
+            use_cutoff,
+            grid,
+        )
     elif method == "exponential_decay":
-        decay_obj = ExponentialDecay(ref_pos, main_range, perp_range, azimuth, grid)
+        decay_obj = ExponentialDecay(
+            ref_pos,
+            main_range,
+            perp_range,
+            azimuth,
+            use_one_in_range,
+            tapering_range,
+            use_cutoff,
+            grid,
+        )
     else:
         _valid_methods = ["gaussian_decay", "exponential_decay"]
         raise NotImplementedError(
@@ -592,6 +614,8 @@ def add_ministeps(
                         main_range = corr_spec.field_scale.main_range
                         perp_range = corr_spec.field_scale.perp_range
                         azimuth = corr_spec.field_scale.azimuth
+                        use_cutoff = corr_spec.field_scale.set_to_zero_outside_range
+                        tapering_range = corr_spec.field_scale.normalised_tapering_range
                         check_if_ref_point_in_grid(ref_pos, grid_for_field)
                         param_for_field = apply_decay(
                             corr_spec.field_scale.method,
@@ -602,6 +626,8 @@ def add_ministeps(
                             main_range,
                             perp_range,
                             azimuth,
+                            use_cutoff,
+                            tapering_range,
                             user_config.write_scaling_factors,
                         )
                     elif corr_spec.field_scale.method == "from_file":
@@ -694,6 +720,10 @@ def add_ministeps(
                         main_range = corr_spec.surface_scale.main_range
                         perp_range = corr_spec.surface_scale.perp_range
                         azimuth = corr_spec.surface_scale.azimuth
+                        use_cutoff = corr_spec.surface_scale.set_to_zero_outside_range
+                        tapering_range = (
+                            corr_spec.surface_scale.normalised_tapering_range
+                        )
                         apply_decay(
                             corr_spec.surface_scale.method,
                             row_scaling,
@@ -703,6 +733,8 @@ def add_ministeps(
                             main_range,
                             perp_range,
                             azimuth,
+                            use_cutoff,
+                            tapering_range,
                         )
                 else:
                     debug_print(
@@ -763,6 +795,9 @@ class Decay:
     main_range: float
     perp_range: float
     azimuth: float
+    use_one_in_range: bool
+    normalised_tapering_range: float
+    use_cutoff: bool
     grid: object
 
     def __post_init__(self):
@@ -788,19 +823,52 @@ class Decay:
         ) / self.perp_range
         return dx, dy
 
+    def norm_dist_square(self, data_index):
+        dx, dy = self.get_dx_dy(data_index)
+        d2 = dx * dx + dy * dy
+        return d2
+
 
 class GaussianDecay(Decay):
     def __call__(self, data_index):
-        dx, dy = super().get_dx_dy(data_index)
-        exp_arg = -3.0 * (dx * dx + dy * dy)
-        return math.exp(exp_arg)
+        d2 = super().norm_dist_square(data_index)
+        if self.use_one_in_range:
+            d = math.sqrt(d2)
+            if d <= 1.0:
+                return 1.0
+            if self.use_cutoff and d > self.normalised_tapering_range:
+                return 0.0
+
+            distance_from_inner_ellipse = (d - 1) / (self.normalised_tapering_range - 1)
+            exp_arg = -3 * distance_from_inner_ellipse * distance_from_inner_ellipse
+            return math.exp(exp_arg)
+
+        else:
+            if self.use_cutoff and d2 > 1.0:
+                return 0.0
+            exp_arg = -3.0 * d2
+            return math.exp(exp_arg)
 
 
 class ExponentialDecay(Decay):
     def __call__(self, data_index):
-        dx, dy = super().get_dx_dy(data_index)
-        exp_arg = -3.0 * math.sqrt(dx * dx + dy * dy)
-        return math.exp(exp_arg)
+        d2 = super().norm_dist_square(data_index)
+        d = math.sqrt(d2)
+        if self.use_one_in_range:
+            if d <= 1.0:
+                return 1.0
+            if self.use_cutoff and d > self.normalised_tapering_range:
+                return 0.0
+
+            distance_from_inner_ellipse = (d - 1) / (self.normalised_tapering_range - 1)
+            exp_arg = -3 * distance_from_inner_ellipse
+            return math.exp(exp_arg)
+
+        else:
+            if self.use_cutoff and d > 1.0:
+                return 0.0
+            exp_arg = -3.0 * d
+            return math.exp(exp_arg)
 
 
 class ScalingValues:

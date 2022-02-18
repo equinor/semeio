@@ -315,15 +315,31 @@ Keywords
       **exponential_decay**.
 
 :exponential_decay:
-      Name of a method or scaling function of the form *exp(-3d/R)* where *d* is
-      distance from reference point to location of a field value, and *R* is the
-      range function, an ellipse with half-axes equal to **main_range** and
-      **perp_range**.
-      Requires specification of keywords **main_range**, **perp_range**,
+      Name of a method or scaling function having default expression defined by
+      *f(d) = exp(-3d)* where *d* is the normalised distance. The normalised
+      distance is *d = sqrt[(dx/Rx)^2 + (dy/Ry)^2]* where dx and dy are the differences
+      in x and y coordinates between reference point and grid cell midpoint for
+      grid cells having field parameter values. Rx and Ry are the *main_range*
+      and *perp_range* range parameters. A rotation of the ellipse defined by *d=1*
+      is also possible by specifying azimuth direction different from 0.
+      There are options to modify the default definition of this function.
+      If cutoff is specified using **set_to_zero_outside_range**, the function
+      returns 0 if the normalised distance *d > 1*.
+      The user can choose an alternative version of this function by using
+      **normalised_tapering_range** (called *dT* below) with value *dT > 1*.
+      Then the function is defined by:
+      *f(d) = 1* for *d <= 1*,
+      *f(d) = exp(-3(d-1)/(dT-1))* for *d > 1*,
+      with the option that
+      *f(d) = 0* for *d > dT* if cutoff is activated by **set_to_zero_outside_range**.
+      This method requires specification of keywords **main_range**, **perp_range**,
       **azimuth** and **ref_point**.
+      Optional specification of keywords **set_to_zero_outside_range**,
+      **normalised_tapering_range**.
 
 :gaussian_decay:
-      Scaling function of the form *exp(-3(d/R)^2)*.
+      Scaling function with default expression defined by
+      *f(d) = exp(-3 d^2)* where *d* is normalised distance.
       For more details see **exponential_decay** above.
 
 :main_range:
@@ -352,6 +368,37 @@ Keywords
       reference point will have distance 0 which means that the scaling function is
       1.0 for correlations between observations and the field parameter in that
       location.
+
+:set_to_zero_outside_range:
+      Optional sub keyword under **field_scale**  or **surface_scale**.
+      Is only used for method **exponential_decay** and **gaussian_decay**.
+      Takes True/False as values. Default is False. If a distance from reference
+      point to a grid cell is larger than the specified range, the scaling
+      function is set to 0 if this keyword is set to True.
+      If the keyword is used together with **normalised_tapering_range**,
+      the scaling function is set to 0 for distances outside the
+      normalised tapering range. See keyword **normalised_tapering_range**.
+
+:normalised_tapering_range:
+      Optional sub keyword under **field_scale**  or **surface_scale**.
+      Is only used for method **exponential_decay** and **gaussian_decay**.
+      Has only an effect if the value > 1. If value is less than or equal
+      to 1, it is ignored. Default is to not use this option.
+      When using this option with value > 1, the scaling function is set
+      to 1.0 for all grid cells with normalised distance <= 1.
+      For normalised distance > 1 the function decays from 1 and approach 0
+      with increasing distance. The normalised distance is defined to be
+      the distance measured in number of ranges. Normalised distance equal to 1
+      corresponds to all points on the ellipse with half axes equal to the
+      specified **main_range** and **perp_range** centered at the reference
+      point. By using this option described here, a second ellipse
+      is defined corresponding to normalised distance  equal to the specified
+      value for this keyword. At this distance the scaling factor has decreased
+      to around 0.05.Typical values for **normalised_tapering_range** are
+      between 1 and 3.
+      If **set_to_zero_outside_range** is True, the scaling function is
+      set to 0 for normalised distance larger than the specified value
+      for the keyword **normalised_tapering_range**.
 
 :surface_file:
       Sub keyword under **surface_scale**. Is required and specify filename for
