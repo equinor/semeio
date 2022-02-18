@@ -134,6 +134,37 @@ class GaussianConfig(BaseModel):
     centered at the specified reference point. The ranges and orientation define
     how the scaling factor is reduced away from the reference point.
 
+    The following equation for the scaling is defined:
+    First the normalised distance is calculated:
+       d = sqrt( (dx/main_range)^2 + (dy/perp_range)^2) )
+    where dx is distance in azimuth direction and dy perpendicular to
+    azimuth direction.
+
+    The default scaling function is defined for gaussian decay by:
+        f(d) = exp(-3 * d^2)
+
+    Optionally using cutoff when normalised distance > 1:
+        f(d) = exp(-3 * d^2) for d <= 1
+        f(d) = 0 for d > 1
+    This will create a discontinuity at d=1 of size 0.05 for the scaling value.
+    This is achieved by setting set_to_zero_outside_range to True.
+
+    The second option is to use a function of type:
+        f(d) = 1 if d <= 1
+        f(d) = exp(-3 * ((d-1)/(dT-1))^2 )  if d > 1 and dT > 1
+    Here d=1 represents the ellipse defined by the range settings, and
+    dT > 1 a second ellipse with larger size. The scaling function decays
+    from 1 to 0.05 between the two ellipses.
+    This is achieved by setting normalised_tapering_range to a value > 1.
+    The value represents the dT in the equations. A value of dT <= 1.0 is
+    interpreted as not using this option but use the default
+    expression of the scaling function.
+
+    Optionally also here the scaling function can be set to 0 outside the
+    largest ellipse using the setting set_to_zero_outside_range to True
+    such that
+        f(d) = 0 for d > dT.
+
     This method can be used both to scale correlations for model parameter
     nodes of type FIELD and SURFACE. For nodes of type surface,
     a file specifying the grid layout of the surface must be specified.
@@ -144,6 +175,8 @@ class GaussianConfig(BaseModel):
     perp_range: confloat(gt=0)
     azimuth: confloat(ge=0.0, le=360)
     ref_point: conlist(float, min_items=2, max_items=2)
+    normalised_tapering_range: Optional[float]
+    set_to_zero_outside_range: Optional[bool] = False
     surface_file: Optional[str]
 
 
