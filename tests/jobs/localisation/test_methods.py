@@ -9,6 +9,8 @@ from semeio.workflows.localisation.local_script_lib import (
     calculate_scaling_factors_in_regions,
     GaussianDecay,
     ExponentialDecay,
+    ConstGaussianDecay,
+    ConstExponentialDecay,
 )
 from ecl.grid.ecl_grid_generator import EclGridGenerator
 
@@ -98,30 +100,47 @@ def create_parameter_from_decay_functions(method_name, grid):
     nx = grid.getNX()
     ny = grid.getNY()
     nz = grid.getNZ()
-    use_one_in_range = tapering_range > 1
     filename = "tmp_" + method_name + ".grdecl"
-    if method_name == "gaussian_decay":
+    if method_name == "const_gaussian_decay":
+        decay_obj = ConstGaussianDecay(
+            ref_pos,
+            main_range,
+            perp_range,
+            azimuth,
+            grid,
+            tapering_range,
+            use_cutoff,
+        )
+    elif method_name == "const_exponential_decay":
+        decay_obj = ConstExponentialDecay(
+            ref_pos,
+            main_range,
+            perp_range,
+            azimuth,
+            grid,
+            tapering_range,
+            use_cutoff,
+        )
+    elif method_name == "gaussian_decay":
         decay_obj = GaussianDecay(
             ref_pos,
             main_range,
             perp_range,
             azimuth,
-            use_one_in_range,
-            tapering_range,
-            use_cutoff,
             grid,
+            use_cutoff,
         )
-    else:
+    elif method_name == "exponential_decay":
         decay_obj = ExponentialDecay(
             ref_pos,
             main_range,
             perp_range,
             azimuth,
-            use_one_in_range,
-            tapering_range,
-            use_cutoff,
             grid,
+            use_cutoff,
         )
+    else:
+        raise ValueError(f"Not implemented:  {method_name}")
 
     data_size = nx * ny * nz
     scaling_vector = np.zeros(data_size, dtype=np.float32)
@@ -208,18 +227,14 @@ def test_exponentialtype_decay_functions(method, index_list, expected):
     main_range = 150.0
     perp_range = 250.0
     azimuth = 0.0
-    use_one_in_range = False
-    tapering_range = 0
     use_cutoff = False
     decay_obj = method(
         ref_pos,
         main_range,
         perp_range,
         azimuth,
-        use_one_in_range,
-        tapering_range,
-        use_cutoff,
         grid,
+        use_cutoff,
     )
 
     data_size = nx * ny * nz
@@ -304,9 +319,18 @@ def test_decay_function_with_new_options(snapshot):
         write_grid_file=True,
         use_actnum=False,
     )
-    method_name = "gaussian_decay"
+    method_name = "const_gaussian_decay"
     scaling_values = create_parameter_from_decay_functions(method_name, grid)
     snapshot.assert_match(str(scaling_values), "testdata_scaling_decay_method1.txt")
-    method_name = "exponential_decay"
+
+    method_name = "const_exponential_decay"
     scaling_values = create_parameter_from_decay_functions(method_name, grid)
     snapshot.assert_match(str(scaling_values), "testdata_scaling_decay_method2.txt")
+
+    method_name = "gaussian_decay"
+    scaling_values = create_parameter_from_decay_functions(method_name, grid)
+    snapshot.assert_match(str(scaling_values), "testdata_scaling_decay_method3.txt")
+
+    method_name = "exponential_decay"
+    scaling_values = create_parameter_from_decay_functions(method_name, grid)
+    snapshot.assert_match(str(scaling_values), "testdata_scaling_decay_method4.txt")
