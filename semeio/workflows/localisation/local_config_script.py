@@ -310,9 +310,12 @@ Keywords
       or **surface_scale** keyword.
 
       For **field_scale** the available methods are **gaussian_decay**,
-      **exponential_decay**, **from_file** and **segment**.
-      For **surface_scale** the available methods are **gaussian_decay** and
-      **exponential_decay**.
+      **exponential_decay**, **const_gaussian_decay**, **const_exponential_decay**,
+      **from_file** and **segment**.
+
+      For **surface_scale** the available methods are **gaussian_decay**,
+      **exponential_decay**,  **const_gaussian_decay**,
+      **const_exponential_decay**
 
 :exponential_decay:
       Name of a method or scaling function having default expression defined by
@@ -323,24 +326,42 @@ Keywords
       and *perp_range* range parameters. A rotation of the ellipse defined by *d=1*
       is also possible by specifying azimuth direction different from 0.
       There are options to modify the default definition of this function.
-      If cutoff is specified using **set_to_zero_outside_range**, the function
+      If cutoff is specified using **cutoff**, the function
       returns 0 if the normalised distance *d > 1*.
-      The user can choose an alternative version of this function by using
-      **normalised_tapering_range** (called *dT* below) with value *dT > 1*.
-      Then the function is defined by:
-      *f(d) = 1* for *d <= 1*,
-      *f(d) = exp(-3(d-1)/(dT-1))* for *d > 1*,
-      with the option that
-      *f(d) = 0* for *d > dT* if cutoff is activated by **set_to_zero_outside_range**.
       This method requires specification of keywords **main_range**, **perp_range**,
       **azimuth** and **ref_point**.
-      Optional specification of keywords **set_to_zero_outside_range**,
-      **normalised_tapering_range**.
+      Optional specification of keywords **cutoff**.
 
 :gaussian_decay:
-      Scaling function with default expression defined by
-      *f(d) = exp(-3 d^2)* where *d* is normalised distance.
+      Name of a method or scaling function defined by  *f(d) = exp(-3 d^2)* where *d* is
+      normalised distance.
       For more details see **exponential_decay** above.
+
+:const_exponential_decay:
+      Name of a method or scaling function defined by
+      *f(d) = 1* for *d <= 1*,
+      *f(d) = exp(-3(d-1)/(D-1))* for *d > 1*  where D is **normalised_tapering_range**.
+      and *d* is the normalised distance.
+      See description above for **exponential_decay**.
+      There are options to modify the default definition of this function.
+      If cutoff is specified using **cutoff**, then
+      *f(d) = 0* for *d > D*.
+      This method requires specification of keywords **main_range**, **perp_range**,
+      **azimuth**, **ref_point** and **normalised_tapering_range**.
+      Optional specification of keywords **cutoff**.
+
+:const_gaussian_decay:
+      Name of a method or scaling function having default expression defined by
+      *f(d) = 1* for *d <= 1*,
+      *f(d) = exp(-3 [ (d-1)/(D-1)]^2 )* for *d > 1*  where D
+      is **normalised_tapering_range**.  and *d* is the normalised distance.
+      See description above for **exponential_decay**.
+      There are options to modify the default definition of this function.
+      If cutoff is specified using **cutoff**, then
+      *f(d) = 0* for *d > D*.
+      This method requires specification of keywords **main_range**, **perp_range**,
+      **azimuth**, **ref_point** and **normalised_tapering_range**.
+      Optional specification of keywords **cutoff**.
 
 :main_range:
       Sub keyword under **field_scale** or **surface_scale**. Is only used for
@@ -369,24 +390,23 @@ Keywords
       1.0 for correlations between observations and the field parameter in that
       location.
 
-:set_to_zero_outside_range:
+:cutoff:
       Optional sub keyword under **field_scale**  or **surface_scale**.
-      Is only used for method **exponential_decay** and **gaussian_decay**.
+      Is only used for method **exponential_decay**, **gaussian_decay**,
+      **const_exponential_decay** and  **const_gaussian_decay**.
       Takes True/False as values. Default is False. If a distance from reference
       point to a grid cell is larger than the specified range, the scaling
       function is set to 0 if this keyword is set to True.
-      If the keyword is used together with **normalised_tapering_range**,
-      the scaling function is set to 0 for distances outside the
-      normalised tapering range. See keyword **normalised_tapering_range**.
 
 :normalised_tapering_range:
       Optional sub keyword under **field_scale**  or **surface_scale**.
-      Is only used for method **exponential_decay** and **gaussian_decay**.
-      Has only an effect if the value > 1. If value is less than or equal
-      to 1, it is ignored. Default is to not use this option.
-      When using this option with value > 1, the scaling function is set
-      to 1.0 for all grid cells with normalised distance <= 1.
-      For normalised distance > 1 the function decays from 1 and approach 0
+      Is only used for method **const_exponential_decay** and
+      **const_gaussian_decay**.
+      Legal values for normalised_tapering range *D* are *D > 1*.
+      Default value is D=1.5.
+      When using this option, the scaling function is set
+      to 1.0 for all grid cells with normalised distance *d <= 1*.
+      For normalised distance *d > 1* the function decays from 1 and approach 0
       with increasing distance. The normalised distance is defined to be
       the distance measured in number of ranges. Normalised distance equal to 1
       corresponds to all points on the ellipse with half axes equal to the
@@ -396,9 +416,8 @@ Keywords
       value for this keyword. At this distance the scaling factor has decreased
       to around 0.05.Typical values for **normalised_tapering_range** are
       between 1 and 3.
-      If **set_to_zero_outside_range** is True, the scaling function is
-      set to 0 for normalised distance larger than the specified value
-      for the keyword **normalised_tapering_range**.
+      If **cutoff** is True, the scaling function is
+      set to 0 for normalised distance *d > D*.
 
 :surface_file:
       Sub keyword under **surface_scale**. Is required and specify filename for
@@ -422,12 +441,12 @@ Keywords
       for keyword **segment_file**.
 
 :active_segments:
-      Sub keyword under **field_scale**. Is only used if method is ``segment``.
+      Sub keyword under **field_scale**. Is only used if method is **segment**.
       A list of integer numbers for the segments to use to define active field
       parameter values.
 
 :scalingfactors:
-      Sub keyword under **field_scale**. Is only used if method is ``segment``.
+      Sub keyword under **field_scale**. Is only used if method is **segment**.
       A list of float values between 0 and 1 is specified. The values are
       scaling factors to be used in the active segments specified.
       The list in **active_segments** and **scalingfactors** must of same
