@@ -143,28 +143,6 @@ class GaussianConfig(BaseModel):
     The default scaling function is defined for gaussian decay by:
         f(d) = exp(-3 * d^2)
 
-    Optionally using cutoff when normalised distance > 1:
-        f(d) = exp(-3 * d^2) for d <= 1
-        f(d) = 0 for d > 1
-    This will create a discontinuity at d=1 of size 0.05 for the scaling value.
-    This is achieved by setting set_to_zero_outside_range to True.
-
-    The second option is to use a function of type:
-        f(d) = 1 if d <= 1
-        f(d) = exp(-3 * ((d-1)/(dT-1))^2 )  if d > 1 and dT > 1
-    Here d=1 represents the ellipse defined by the range settings, and
-    dT > 1 a second ellipse with larger size. The scaling function decays
-    from 1 to 0.05 between the two ellipses.
-    This is achieved by setting normalised_tapering_range to a value > 1.
-    The value represents the dT in the equations. A value of dT <= 1.0 is
-    interpreted as not using this option but use the default
-    expression of the scaling function.
-
-    Optionally also here the scaling function can be set to 0 outside the
-    largest ellipse using the setting set_to_zero_outside_range to True
-    such that
-        f(d) = 0 for d > dT.
-
     This method can be used both to scale correlations for model parameter
     nodes of type FIELD and SURFACE. For nodes of type surface,
     a file specifying the grid layout of the surface must be specified.
@@ -175,8 +153,7 @@ class GaussianConfig(BaseModel):
     perp_range: confloat(gt=0)
     azimuth: confloat(ge=0.0, le=360)
     ref_point: conlist(float, min_items=2, max_items=2)
-    normalised_tapering_range: Optional[float]
-    set_to_zero_outside_range: Optional[bool] = False
+    cutoff: Optional[bool] = False
     surface_file: Optional[str]
 
 
@@ -187,6 +164,41 @@ class ExponentialConfig(GaussianConfig):
     """
 
     method: Literal["exponential_decay"]
+
+
+class ConstWithGaussianTaperingConfig(GaussianConfig):
+    """
+    Method for calculating correlation scaling factor which is 1 inside range
+    and fall off using Gaussian function outside range.
+
+    The function is defined by:
+        f(d) = 1 if d <= 1
+        f(d) = exp(-3 * ((d-1)/(D-1))^2 )  for  d > 1 and here D > 1.
+    Here d=1 represents the ellipse defined by the range settings, and D= 1
+    represents the second ellipse at which the scaling function is reduced
+    to about 0.05 .
+
+    Optionally the use of cutoff set the values for the function to 0 for d > D.
+        f(d) = 0 for d > D
+    This will create a discontinuity at d=D of size 0.05 for the scaling value.
+
+    This method can be used both to scale correlations for model parameter
+    nodes of type FIELD and SURFACE. For nodes of type surface,
+    a file specifying the grid layout of the surface must be specified.
+    """
+
+    method: Literal["const_gaussian_decay"]
+    normalised_tapering_range: Optional[confloat(gt=1)] = 1.5
+
+
+class ConstWithExponentialTaperingConfig(ConstWithGaussianTaperingConfig):
+    """
+    Method for calculating correlation scaling factor which is 1 inside range
+    and fall off using Exponential function outside range. See above for
+    ConstWithGaussianTaperingConfig.
+    """
+
+    method: Literal["const_exponential_decay"]
 
 
 class ScalingFromFileConfig(BaseModel):
@@ -255,11 +267,20 @@ class CorrelationConfig(BaseModel):
         Union[
             GaussianConfig,
             ExponentialConfig,
+            ConstWithGaussianTaperingConfig,
+            ConstWithExponentialTaperingConfig,
             ScalingFromFileConfig,
             ScalingForSegmentsConfig,
         ]
     ]
-    surface_scale: Optional[Union[GaussianConfig, ExponentialConfig]]
+    surface_scale: Optional[
+        Union[
+            GaussianConfig,
+            ExponentialConfig,
+            ConstWithGaussianTaperingConfig,
+            ConstWithExponentialTaperingConfig,
+        ]
+    ]
     obs_context: list
     params_context: list
 
@@ -283,6 +304,8 @@ class CorrelationConfig(BaseModel):
         _valid_methods = {
             "gaussian_decay": GaussianConfig,
             "exponential_decay": ExponentialConfig,
+            "const_gaussian_decay": ConstWithGaussianTaperingConfig,
+            "const_exponential_decay": ConstWithExponentialTaperingConfig,
             "from_file": ScalingFromFileConfig,
             "segment": ScalingForSegmentsConfig,
         }
@@ -319,6 +342,8 @@ class CorrelationConfig(BaseModel):
         _valid_methods = {
             "gaussian_decay": GaussianConfig,
             "exponential_decay": ExponentialConfig,
+            "const_gaussian_decay": ConstWithGaussianTaperingConfig,
+            "const_exponential_decay": ConstWithExponentialTaperingConfig,
         }
 
         if method in _valid_methods:
