@@ -92,5 +92,5 @@ class DataMatrix(object):
         data_matrix = self.get_data_matrix()
         data_matrix = data_matrix - data_matrix.mean(axis=0)
         _, s, _ = np.linalg.svd(data_matrix.astype(np.float), full_matrices=False)
-        variance_ratio = np.cumsum(s ** 2) / np.sum(s ** 2)
+        variance_ratio = np.cumsum(s**2) / np.sum(s**2)
         return len([1 for i in variance_ratio[:-1] if i < threshold]) + 1, s

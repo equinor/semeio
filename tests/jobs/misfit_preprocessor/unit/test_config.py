@@ -128,7 +128,7 @@ def test_default_spearman_threshold(criterion, default_threshold):
 
 @pytest.mark.parametrize(
     "depth",
-    [1, 2, 10 ** 10],
+    [1, 2, 10**10],
 )
 def test_valid_depth(depth):
     config_data = {"fcluster": {"depth": depth}}
