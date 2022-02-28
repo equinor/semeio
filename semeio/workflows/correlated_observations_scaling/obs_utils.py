@@ -83,7 +83,7 @@ def _get_active_list(observation_data, key, index_list):
     if index_list is not None:
         return _active_list_from_index_list(index_list)
     else:
-        return observation_data.copy_active_list(key).setParent()
+        return observation_data.copy_active_list(key)
 
 
 def _make_tuple(
