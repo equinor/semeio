@@ -82,7 +82,7 @@ def generate_simulated_responses(
         new_parameters = np.random.uniform(0, 10, 3 * ensemble_size)
         new_parameters.resize(ensemble_size, 3)
         simulated[f"poly_{poly_idx}"] = {
-            (state, state): sum((new_parameters * np.array((state ** 2, state, 1))).T)
+            (state, state): sum((new_parameters * np.array((state**2, state, 1))).T)
             for state in states
         }
 
@@ -120,7 +120,7 @@ def generate_measurements(num_polynomials, poly_states=None, ensemble_size=10000
         poly_states = [range(3) for _ in range(num_polynomials)]
 
     forward_polynomials = [
-        lambda a, b, c, x: a * x ** 2 + b * x + c for _ in range(num_polynomials)
+        lambda a, b, c, x: a * x**2 + b * x + c for _ in range(num_polynomials)
     ]
 
     def parameter_distribution():
