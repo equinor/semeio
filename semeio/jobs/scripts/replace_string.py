@@ -6,14 +6,14 @@ from pathlib import Path
 description = """
 Performs inplace string replacement in a files.
 
-ARGS
-FROM: string to match what to replace
-TO: expression to replace the match
-FILE: name of file to perform replacement in.
+| ARGS
+| FROM: string to match what to replace
+| TO: expression to replace the match
+| FILE: name of file to perform replacement in.
 
-Example:
-FORWARD_MODEL_JOB REPLACE_STRING(<FROM>=something, <TO>=else, <FILE>=file.txt)
- > replace all something to else in file.txt
+| Example:
+| FORWARD_MODEL_JOB REPLACE_STRING(<FROM>=something, <TO>=else, <FILE>=file.txt)
+|  > replace all something to else in file.txt
 
 Due to ERT particular way of parsing config files, there are some curiosities
 To escape characters like , use '', however this misses white space
