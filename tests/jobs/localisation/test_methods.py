@@ -224,15 +224,13 @@ def test_exponentialtype_decay_functions(method, index_list, expected):
     perp_range = 250.0
     azimuth = 0.0
     use_cutoff = False
-    tapering_range = 1.2
     decay_obj = method(
         ref_pos,
         main_range,
         perp_range,
         azimuth,
-        use_cutoff,
         grid,
-        tapering_range,
+        use_cutoff,
     )
 
     data_size = nx * ny * nz

@@ -234,9 +234,8 @@ def apply_decay(
             main_range,
             perp_range,
             azimuth,
-            use_cutoff,
             grid,
-            None,
+            use_cutoff,
         )
     elif method == "exponential_decay":
         decay_obj = ExponentialDecay(
@@ -244,9 +243,8 @@ def apply_decay(
             main_range,
             perp_range,
             azimuth,
-            use_cutoff,
             grid,
-            None,
+            use_cutoff,
         )
     elif method == "const_gaussian_decay":
         decay_obj = ConstGaussianDecay(
@@ -254,9 +252,9 @@ def apply_decay(
             main_range,
             perp_range,
             azimuth,
-            use_cutoff,
             grid,
             tapering_range,
+            use_cutoff,
         )
     elif method == "const_exponential_decay":
         decay_obj = ConstExponentialDecay(
@@ -264,9 +262,9 @@ def apply_decay(
             main_range,
             perp_range,
             azimuth,
-            use_cutoff,
             grid,
             tapering_range,
+            use_cutoff,
         )
     else:
         _valid_methods = [
@@ -833,9 +831,7 @@ class Decay:
     main_range: float
     perp_range: float
     azimuth: float
-    cutoff: bool
     grid: object
-    normalised_tapering_range: float
 
     def __post_init__(self):
         angle = (90.0 - self.azimuth) * math.pi / 180.0
@@ -866,7 +862,9 @@ class Decay:
         return d2
 
 
+@dataclass
 class GaussianDecay(Decay):
+    cutoff: bool
     def __call__(self, data_index):
         d2 = super().norm_dist_square(data_index)
         if self.cutoff and d2 > 1.0:
@@ -875,7 +873,10 @@ class GaussianDecay(Decay):
         return math.exp(exp_arg)
 
 
+@dataclass
 class ConstGaussianDecay(Decay):
+    normalised_tapering_range: float
+    cutoff: bool
     def __call__(self, data_index):
         d2 = super().norm_dist_square(data_index)
         d = math.sqrt(d2)
@@ -889,7 +890,9 @@ class ConstGaussianDecay(Decay):
         return math.exp(exp_arg)
 
 
+@dataclass
 class ExponentialDecay(Decay):
+    cutoff: bool
     def __call__(self, data_index):
         d2 = super().norm_dist_square(data_index)
         d = math.sqrt(d2)
@@ -899,7 +902,10 @@ class ExponentialDecay(Decay):
         return math.exp(exp_arg)
 
 
+@dataclass
 class ConstExponentialDecay(Decay):
+    normalised_tapering_range: float
+    cutoff: bool
     def __call__(self, data_index):
         d2 = super().norm_dist_square(data_index)
         d = math.sqrt(d2)
