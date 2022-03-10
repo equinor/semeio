@@ -15,15 +15,12 @@ from ert_shared.plugins.plugin_manager import ErtPluginManager
 from unittest.mock import MagicMock
 
 
-def assert_obs_vector(vector, val_1, index_list=None, val_2=None):
-    if index_list is None:
-        index_list = []
+def get_std_from_obs_vector(vector):
+    result = []
     for node in vector:
-        for index in range(len(node)):
-            if index in index_list:
-                assert node.getStdScaling(index) == val_2
-            else:
-                assert node.getStdScaling(index) == val_1
+        for i, _ in enumerate(node):
+            result.append(node.getStdScaling(i))
+    return result
 
 
 def test_installed_python_version_of_enkf_scaling_job(setup_ert, monkeypatch):
@@ -41,7 +38,9 @@ def test_installed_python_version_of_enkf_scaling_job(setup_ert, monkeypatch):
     obs = ert.getObservations()
     obs_vector = obs["WPR_DIFF_1"]
 
-    assert_obs_vector(obs_vector, 1.0)
+    result = get_std_from_obs_vector(obs_vector)
+
+    assert result == [1.0, 1.0, 1.0, 1.0]
 
     job_config = {"CALCULATE_KEYS": {"keys": [{"key": "WPR_DIFF_1"}]}}
 
@@ -56,19 +55,23 @@ def test_installed_python_version_of_enkf_scaling_job(setup_ert, monkeypatch):
     job = ert.getWorkflowList().getJob("CORRELATE_OBSERVATIONS_SCALING")
     job.run(ert, ["job_config.yml"])
 
-    assert_obs_vector(obs_vector, np.sqrt(4.0 / 2.0))
+    result = get_std_from_obs_vector(obs_vector)
+    assert result == [np.sqrt(4.0 / 2.0)] * 4
 
     job_config["CALCULATE_KEYS"]["keys"][0].update({"index": [400, 800, 1200]})
     with open("job_config.yml", "w") as fout:
         yaml.dump(job_config, fout)
     job.run(ert, ["job_config.yml"])
 
-    assert_obs_vector(
+    result = get_std_from_obs_vector(
         obs_vector,
-        np.sqrt(4.0 / 2.0),
-        index_list=[0, 1, 2],
-        val_2=np.sqrt(3.0 / 2.0),
     )
+    assert result == [
+        np.sqrt(3.0 / 2.0),
+        np.sqrt(3.0 / 2.0),
+        np.sqrt(3.0 / 2.0),
+        np.sqrt(4.0 / 2.0),
+    ]
 
 
 def test_main_entry_point_gen_data(setup_ert):
@@ -84,17 +87,19 @@ def test_main_entry_point_gen_data(setup_ert):
     obs = ert.getObservations()
     obs_vector = obs["WPR_DIFF_1"]
 
-    assert_obs_vector(obs_vector, 1.0, [0, 1], np.sqrt(4 / 2))
+    result = get_std_from_obs_vector(obs_vector)
+    assert result == [np.sqrt(4 / 2), np.sqrt(4 / 2), 1.0, 1.0], "Only update subset"
 
     cos_config["CALCULATE_KEYS"]["keys"][0].update({"index": [400, 800, 1200]})
 
     CorrelatedObservationsScalingJob(ert).run(cos_config)
-    assert_obs_vector(
-        obs_vector,
-        1.0,
-        [0, 1],
+    result = get_std_from_obs_vector(obs_vector)
+    assert result == [
         np.sqrt(3.0 / 2.0),
-    )
+        np.sqrt(3.0 / 2.0),
+        1.0,
+        1.0,
+    ], "Change basis for update"
 
     svd_file = os.path.join(
         "storage",  # ens_path == storage/snake_oil/ensemble
@@ -148,14 +153,67 @@ def test_main_entry_point_summary_data_calc(setup_ert, monkeypatch):
     obs = ert.getObservations()
 
     obs_vector = obs["WOPR_OP1_108"]
-
+    result = []
     for index, node in enumerate(obs_vector):
-        assert node.getStdScaling(index) == 1.0
+        result.append(node.getStdScaling(index))
+    assert result == [1]
 
     CorrelatedObservationsScalingJob(ert).run(cos_config)
 
     for index, node in enumerate(obs_vector):
         assert node.getStdScaling(index) == 1.0
+
+
+@pytest.mark.parametrize(
+    "config, expected_result",
+    [
+        pytest.param(
+            {"CALCULATE_KEYS": {"keys": [{"key": "FOPR"}]}},
+            np.sqrt(200 / 5),
+            id="All indecies should update",
+        ),
+        pytest.param(
+            {"CALCULATE_KEYS": {"keys": [{"key": "WOPR_OP1_108"}]}},
+            1.0,
+            id="No indecies on FOPR should update",
+        ),
+    ],
+)
+def test_main_entry_point_history_data_calc(
+    setup_ert, monkeypatch, config, expected_result
+):
+
+    res_config = setup_ert
+
+    ert = EnKFMain(res_config)
+    obs = ert.getObservations()
+    CorrelatedObservationsScalingJob(ert).run(config)
+    obs_vector = obs["FOPR"]
+    result = []
+    for index, node in enumerate(obs_vector):
+        result.append(node.getStdScaling(index))
+    assert result == [expected_result] * 200
+
+
+def test_main_entry_point_history_data_calc_subset(setup_ert, monkeypatch):
+    config = {"CALCULATE_KEYS": {"keys": [{"key": "FOPR", "index": [10, 20]}]}}
+    res_config = setup_ert
+
+    ert = EnKFMain(res_config)
+    obs = ert.getObservations()
+    obs_vector = obs["FOPR"]
+
+    expected_result = [1.0] * 200
+    expected_result[10] = np.sqrt(2)
+    expected_result[20] = np.sqrt(2)
+    CorrelatedObservationsScalingJob(ert).run(config)
+
+    result = []
+    for index, node in enumerate(obs_vector):
+        result.append(node.getStdScaling(index))
+    assert (
+        result == expected_result
+    ), "Check that only the selected subset of obs have updated scaling"
 
 
 @pytest.mark.skipif(TEST_DATA_DIR is None, reason="no equinor libres test-data")

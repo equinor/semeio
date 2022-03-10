@@ -62,9 +62,9 @@ def create_active_lists(enkf_observations, events):
     the active list where the scaling factor will be applied.
     """
     new_events = []
-    observation_data = LocalObsdata("some_name", enkf_observations)
+    observation_data = LocalObsdata("some_name")
     for event in events:
-        observation_data.addObsVector(enkf_observations[event.key])
+        observation_data.addNode(event.key)
 
         obs_index = _data_index_to_obs_index(enkf_observations, event.key, event.index)
         new_active_list = _get_active_list(observation_data, event.key, obs_index)
