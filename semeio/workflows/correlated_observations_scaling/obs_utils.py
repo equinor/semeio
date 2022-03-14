@@ -3,7 +3,7 @@ from collections import namedtuple
 from copy import deepcopy
 
 from ecl.util.util import BoolVector
-from res.enkf import ActiveList, LocalObsdata, RealizationStateEnum
+from res.enkf import ActiveList, RealizationStateEnum
 from semeio.workflows.correlated_observations_scaling.exceptions import ValidationError
 
 
@@ -62,28 +62,24 @@ def create_active_lists(enkf_observations, events):
     the active list where the scaling factor will be applied.
     """
     new_events = []
-    observation_data = LocalObsdata("some_name")
     for event in events:
-        observation_data.addNode(event.key)
-
         obs_index = _data_index_to_obs_index(enkf_observations, event.key, event.index)
-        new_active_list = _get_active_list(observation_data, event.key, obs_index)
+        new_active_list = _get_active_list(obs_index)
 
         new_events.append(_make_tuple(event.key, event.index, new_active_list))
 
     return new_events
 
 
-def _get_active_list(observation_data, key, index_list):
+def _get_active_list(index_list):
     """
-    If the user doesn't supply an index list, the existing active
-    list from the observation is used, otherwise an active list is
+    If the user doesn't supply an index list, we assume ALL-ACTIVE on the
+    observations, otherwise an active list is
     created from the index list.
     """
-    if index_list is not None:
-        return _active_list_from_index_list(index_list)
-    else:
-        return observation_data.copy_active_list(key)
+    if index_list is None:
+        index_list = []
+    return _active_list_from_index_list(index_list)
 
 
 def _make_tuple(
@@ -100,7 +96,7 @@ def _active_list_from_index_list(index_list):
     Creates an ActiveList from a list of indexes
     :param index_list: list of index
     :type index_list:  list
-    :return: Active list, a c-object with mode (ALL-ACTIVE, PARTIALLY-ACTIVE, INACTIVE)
+    :return: Active list, a c-object with mode (ALL-ACTIVE, PARTIALLY-ACTIVE)
         and list of indices
     :rtype: active_list
     """
