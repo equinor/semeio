@@ -106,7 +106,7 @@ def _active_list_from_index_list(index_list):
     return active_list
 
 
-def keys_with_data(observations, keys, ensamble_size, storage):
+def keys_with_data(observations, keys, ensemble_size, storage):
     """
     Checks that all keys have data and returns a list of error messages
     """
@@ -115,7 +115,7 @@ def keys_with_data(observations, keys, ensamble_size, storage):
     if len(active_realizations) == 0:
         return []
 
-    active_mask = BoolVector.createFromList(ensamble_size, active_realizations)
+    active_mask = BoolVector.createFromList(ensemble_size, active_realizations)
     return [key for key in keys if observations[key].hasData(active_mask, storage)]
 
 
