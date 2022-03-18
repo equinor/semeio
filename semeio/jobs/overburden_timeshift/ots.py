@@ -248,7 +248,7 @@ class OverburdenTimeshift(object):
         ip = CloughTocher2DInterpolator((x, y), z, fill_value=0)
         irap_z = ip(irap_x, irap_y)
 
-        surf_geo.set_zval(irap_z)
+        surf_geo.set_values1d(irap_z, order="F")
 
         return surf_geo
 

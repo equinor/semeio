@@ -192,7 +192,7 @@ def verifyExportedFile(exported_file_name, result_header, result_iter_rel):
     )
 
 
-@pytest.mark.integration
+@pytest.mark.ert_integration
 def test_ert_integration(norne_mocked_ensembleset):
     """Mock an ERT config and test the workflow"""
     with open("FOO.DATA", "w", encoding="utf-8") as file_h:
@@ -230,7 +230,7 @@ def test_ert_integration(norne_mocked_ensembleset):
     assert pd.read_csv("csv_output/data.csv").shape == (16, 5)
 
 
-@pytest.mark.integration
+@pytest.mark.ert_integration
 def test_ert_integration_errors(norne_mocked_ensembleset, snapshot):
     """Test CSV_EXPORT2 when runpathfile points to non-existing realizations
 

@@ -375,6 +375,7 @@ def make_update_log_df(update_log_dir):
         skiprows=6,
         usecols=[2, 3, 5, 6, 8, 10],
         header=None,
+        engine="python",
         skipfooter=1,
     )
     # define header
@@ -456,7 +457,7 @@ def load_grid_to_dataframe(grid_path):
     grid_path = Path(grid_path).with_suffix("")
     try:
         grid = xtgeo.grid_from_file(grid_path, fformat="eclipserun")
-        return grid.dataframe(activeonly=False)
+        return grid.get_dataframe(activeonly=False)
     except OSError as err:
         raise OSError("A grid with .EGRID format is expected.") from err
 
