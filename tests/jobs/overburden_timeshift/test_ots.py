@@ -433,4 +433,4 @@ def test_irap_surface(set_up):
     assert s.get_nx() == 2
     assert s.get_ny() == 2
 
-    assert list(s.get_zval()) == [90.0, 90.0, 90.0, 90.0]
+    assert s.values.ravel().tolist() == [90.0, 90.0, 90.0, 90.0]

@@ -180,6 +180,7 @@ def test_three_column_defaults(tmpdir):
     )
 
 
+@pytest.mark.filterwarnings("ignore::DeprecationWarning")
 @pytest.mark.parametrize(
     "ext, engine", [("ods", "odf"), ("xls", "xlwt"), ("xlsx", None)]
 )

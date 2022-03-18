@@ -21,5 +21,6 @@ exclude = '''
 
 [tool.pytest.ini_options]
 markers = [
-  "ert_integration",
+  "ert_integration: Involves running the ert application explicitly",
+  "equinor_test: Requires presences of test data in specified location"
 ]
