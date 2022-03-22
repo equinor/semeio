@@ -1,2 +1,2 @@
 INTERNAL TRUE
-SCRIPT test_workflow_job.py
+SCRIPT logging_test_workflow_job.py
