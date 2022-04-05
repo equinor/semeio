@@ -473,14 +473,6 @@ def test_defaults():
 
 
 @pytest.mark.ert_integration
-@pytest.mark.skipif(
-    sys.platform == "darwin",
-    reason=(
-        "Forward models have same name as executable and "
-        "libres will find wrong exe on case insensitive system "
-        "bug report here: https://github.com/equinor/libres/issues/1053"
-    ),
-)
 def test_ert_setup_one_well_one_rft_point(tmpdir):
     """Test a simple ERT integration of GENDATA_RFT with one RFT point at one time instant.
 
@@ -577,14 +569,6 @@ GEN_DATA OP_1_RFT_SIM1 INPUT_FORMAT:ASCII REPORT_STEPS:1 RESULT_FILE:RFT_OP_1_%d
 
 
 @pytest.mark.ert_integration
-@pytest.mark.skipif(
-    sys.platform == "darwin",
-    reason=(
-        "Forward models have same name as executable and "
-        "libres will find wrong exe on case insensitive system "
-        "bug report here: https://github.com/equinor/libres/issues/1053"
-    ),
-)
 def test_ert_setup_one_well_two_points_different_time_and_depth(tmpdir):
     """Test a simple ERT integration of GENDATA_RFT with one RFT point at one time
     instant and another RFT point at another time and another depth.
