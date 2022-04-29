@@ -510,7 +510,7 @@ def test_ert_setup_one_well_one_rft_point(tmpdir):
 
     # Time-map needed for loading observations with no summary file. It seems we need
     # one date for start-date, and one date for every report_step in use.
-    Path("time_map.txt").write_text("01/01/2000\n01/02/2000")  # No ISO-8601 support..
+    Path("time_map.txt").write_text("2000-01-01\n2000-02-01")
 
     # Write an ERT config file
     Path("config.ert").write_text(
@@ -616,8 +616,8 @@ def test_ert_setup_one_well_two_points_different_time_and_depth(tmpdir):
     # Time-map needed for loading observations with no summary file. It seems we need
     # one date for start-date, and one date for every report_step in use.
     Path("time_map.txt").write_text(
-        "01/01/2000\n01/02/2000\n01/01/2001"
-    )  # No ISO-8601 support..
+        "2000-01-01\n2000-02-01\n2001-01-01"
+    )
 
     # Write an ERT config file
     Path("config.ert").write_text(
