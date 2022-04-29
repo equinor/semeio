@@ -505,7 +505,7 @@ def test_ert_setup_one_well_one_rft_point(tmpdir):
     )
 
     # Chosen filename syntax for obs file: <wellname>_<report_step>.obs
-    Path("observations/OP_1_1.obs").write_text("200 1")
+    Path("observations/OP_1_1.obs").write_text("304 1")
     # measured pressure, abs error
 
     # Time-map needed for loading observations with no summary file. It seems we need
@@ -555,17 +555,12 @@ GEN_DATA OP_1_RFT_SIM1 INPUT_FORMAT:ASCII REPORT_STEPS:1 RESULT_FILE:RFT_OP_1_%d
     assert "gen_obs_assert_data_size: size mismatch" not in stdouterr
 
     # This is probably an 'ok' from the smoother, as there are no parameters involved:
-    assert "Deactivating: OP_1_OBS1" in stdouterr
-    assert "Simulations completed" in stdouterr
+    assert "Deactivating: OP_1_OBS1(0) : No ensemble variation" in stdouterr
 
     # Asserts on GENDATA_RFT output:
     assert Path("realization-0/iter-0/RFT_OP_1_1").is_file()
-    assert Path("realization-0/iter-1/RFT_OP_1_1").is_file()
 
     assert Path("realization-0/iter-0/OK").is_file()
-    assert Path("realization-0/iter-1/OK").is_file()
-
-    assert result.returncode == 0
 
 
 @pytest.mark.ert_integration
@@ -609,15 +604,13 @@ def test_ert_setup_one_well_two_points_different_time_and_depth(tmpdir):
     )
 
     # Chosen filename syntax for obs file: <wellname>_<report_step>.obs
-    Path("observations/OP_1_1.obs").write_text("200 1\n-1 0\n")
-    Path("observations/OP_1_2.obs").write_text("-1 0.1\n190 1\n")
+    Path("observations/OP_1_1.obs").write_text("304 1\n-1 0\n")
+    Path("observations/OP_1_2.obs").write_text("-1 0.1\n249 1\n")
     # measured pressure, abs error
 
     # Time-map needed for loading observations with no summary file. It seems we need
     # one date for start-date, and one date for every report_step in use.
-    Path("time_map.txt").write_text(
-        "2000-01-01\n2000-02-01\n2001-01-01"
-    )
+    Path("time_map.txt").write_text("2000-01-01\n2000-02-01\n2001-01-01")
 
     # Write an ERT config file
     Path("config.ert").write_text(
@@ -664,14 +657,9 @@ GEN_DATA OP_1_RFT_SIM2 INPUT_FORMAT:ASCII REPORT_STEPS:2 RESULT_FILE:gendata_rft
     assert "gen_obs_assert_data_size: size mismatch" not in stdouterr
 
     # This is probably an 'ok' from the smoother, as there are no parameters involved:
-    assert "Deactivating: OP_1_OBS1" in stdouterr
-    assert "Simulations completed" in stdouterr
+    assert "Deactivating: OP_1_OBS1(0) : No ensemble variation" in stdouterr
 
     # Asserts on GENDATA_RFT output:
     assert Path("realization-0/iter-0/gendata_rft/RFT_OP_1_1").is_file()
-    assert Path("realization-0/iter-1/gendata_rft/RFT_OP_1_1").is_file()
 
     assert Path("realization-0/iter-0/OK").is_file()
-    assert Path("realization-0/iter-1/OK").is_file()
-
-    assert result.returncode == 0
