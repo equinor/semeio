@@ -4,6 +4,8 @@ import rstcheck
 
 from semeio.workflows.correlated_observations_scaling import cos, job_config
 
+# pylint: disable=protected-access
+
 
 @pytest.mark.parametrize(
     "input_config",

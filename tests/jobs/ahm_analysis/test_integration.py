@@ -1,18 +1,16 @@
 # pylint: disable=unsubscriptable-object  # pylint issue
 import os
 import shutil
-import pytest
-import pandas as pd
-from semeio.workflows.ahm_analysis import ahmanalysis
-from semeio._exceptions.exceptions import ValidationError
-
 from pathlib import Path
-from res.enkf import EnKFMain, ResConfig
-from res.enkf.export import (
-    SummaryObservationCollector,
-    GenDataObservationCollector,
-)
+
+import pandas as pd
+import pytest
 from ecl.grid import EclGridGenerator
+from res.enkf import EnKFMain, ResConfig
+from res.enkf.export import GenDataObservationCollector, SummaryObservationCollector
+
+from semeio._exceptions.exceptions import ValidationError
+from semeio.workflows.ahm_analysis import ahmanalysis
 
 
 @pytest.mark.usefixtures("setup_tmpdir")

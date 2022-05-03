@@ -1,13 +1,14 @@
 # pylint: disable=logging-fstring-interpolation
+import logging
 import os
 
-import logging
 import pandas as pd
 
 logger = logging.getLogger(__name__)
 
 
 def _write_gen_data_files(trajectory_df, directory, well, report_step):
+    # pylint: disable=line-too-long
     """Generate three files with the information GEN_DATA needs
     from the trajectory dataframe.
 
@@ -62,9 +63,9 @@ def _write_simdata(fname, dataname, trajectory_df):
     """Write pressure value, one pr line for all points, -1 is used where
     there is no pressure information.
     """
-    with open(fname + "", "w+", encoding="utf-8") as fh:
+    with open(fname + "", "w+", encoding="utf-8") as file_handle:
         if dataname in trajectory_df:
-            fh.write(
+            file_handle.write(
                 "\n".join(
                     trajectory_df.sort_values("order")[dataname]
                     .fillna(value=-1)
@@ -74,15 +75,15 @@ def _write_simdata(fname, dataname, trajectory_df):
                 + "\n"
             )
         else:
-            fh.write("\n".join(["-1"] * len(trajectory_df)) + "\n")
+            file_handle.write("\n".join(["-1"] * len(trajectory_df)) + "\n")
 
     logger.info(f"Forward model script gendata_rft.py: Wrote file {fname}")
 
 
 def _write_active(fname, trajectory_df):
     """Write a file with "1" pr row if a point is active, "0" if not"""
-    with open(fname, "w+", encoding="utf-8") as fh:
-        fh.write(
+    with open(fname, "w+", encoding="utf-8") as file_handle:
+        file_handle.write(
             "\n".join(
                 trajectory_df.sort_values("order")["is_active"]
                 .astype(int)
@@ -94,11 +95,11 @@ def _write_active(fname, trajectory_df):
 
 def _write_inactive_info(fname, trajectory_df):
     """Write a file with explanations to users for inactive points"""
-    with open(fname, "w+", encoding="utf-8") as fh:
+    with open(fname, "w+", encoding="utf-8") as file_handle:
         if "inactive_info" not in trajectory_df:
-            fh.write("")
+            file_handle.write("")
         else:
-            fh.write(
+            file_handle.write(
                 "\n".join(
                     trajectory_df[~trajectory_df["is_active"]]
                     .sort_values("order")["inactive_info"]
@@ -111,6 +112,7 @@ def _write_inactive_info(fname, trajectory_df):
 def _populate_trajectory_points(
     well, date, trajectory_points, ecl_grid, ecl_rft, zonemap=None
 ):
+    # pylint: disable=too-many-arguments
     """
     Populate a list of trajectory points, that only contain UTM coordinates
     for a well-path, with (i,j,k) indices corresponding to a given Eclipse grid,
@@ -160,6 +162,7 @@ def run(
     csvfile=None,
     outputdirectory=".",
 ):
+    # pylint: disable=too-many-arguments
     dframes = []
 
     if not well_times:

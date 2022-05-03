@@ -1,8 +1,10 @@
-import numpy as np
-from semeio.jobs.overburden_timeshift.ots_res_surface import OTSResSurface
-from ecl.grid import EclGrid, EclGridGenerator
 import os
+
+import numpy as np
 import pytest
+from ecl.grid import EclGrid, EclGridGenerator
+
+from semeio.jobs.overburden_timeshift.ots_res_surface import OTSResSurface
 
 
 def get_source_ert(grid):

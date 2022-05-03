@@ -1,15 +1,14 @@
 from unittest.mock import MagicMock
 
-import pytest
 import pydantic
+import pytest
+from res.enkf.enums.ert_impl_type_enum import ErtImplType
 
 from semeio.workflows.localisation.localisation_config import (
     LocalisationConfig,
-    expand_wildcards,
     check_for_duplicated_correlation_specifications,
+    expand_wildcards,
 )
-from res.enkf.enums.ert_impl_type_enum import ErtImplType
-
 
 ERT_OBS = ["OBS1", "OBS2", "OBS11", "OBS22", "OBS12", "OBS13", "OBS14", "OBS3"]
 ERT_PARAM = [

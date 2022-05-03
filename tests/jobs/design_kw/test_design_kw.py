@@ -245,6 +245,7 @@ def test_run(input_data, filenames):
     with open(reference_filename, "r", encoding="utf-8") as reference_file:
         reference = reference_file.read()
 
+    # pylint: disable=protected-access
     with open(design_kw._STATUS_FILE_NAME, "r", encoding="utf-8") as status_file:
         status = status_file.read()
 
@@ -262,6 +263,7 @@ def test_run_unmatched(input_data):
         parameters_file_name="parameters.txt",
     )
 
+    # pylint: disable=protected-access
     assert not os.path.isfile(design_kw._STATUS_FILE_NAME)
 
 
@@ -276,4 +278,5 @@ def test_run_duplicate_keys(input_data):
             parameters_file_name="parameters_w_duplicates.txt",
         )
 
+    # pylint: disable=protected-access
     assert not os.path.isfile(design_kw._STATUS_FILE_NAME)

@@ -2,7 +2,7 @@ import json
 import os
 
 
-class FileReporter(object):
+class FileReporter:
     def __init__(self, output_dir):
         self._output_dir = output_dir
 
@@ -19,19 +19,19 @@ class FileReporter(object):
         output_file = self._prepare_output_file(namespace) + ".json"
 
         if os.path.exists(output_file):
-            with open(output_file) as f:
-                all_data = json.load(f)
+            with open(output_file, encoding="utf-8") as f_handle:
+                all_data = json.load(f_handle)
         else:
             all_data = []
 
         all_data.append(data)
-        with open(output_file, "w") as f:
-            json.dump(all_data, f)
+        with open(output_file, "w", encoding="utf-8") as f_handle:
+            json.dump(all_data, f_handle)
 
     def publish_msg(self, namespace, msg):
         output_file = self._prepare_output_file(namespace)
-        with open(output_file, "a") as f:
-            f.write(f"{msg}\n")
+        with open(output_file, "a", encoding="utf-8") as f_handle:
+            f_handle.write(f"{msg}\n")
 
     def _prepare_output_file(self, namespace):
         if not os.path.exists(self._output_dir):

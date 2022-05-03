@@ -15,8 +15,7 @@ def _wildcard_to_dict_list(matching_keys, entry):
     """
     if "index" in entry:
         return [{"key": key, "index": entry["index"]} for key in matching_keys]
-    else:
-        return [{"key": key} for key in matching_keys]
+    return [{"key": key} for key in matching_keys]
 
 
 def _expand_wildcard(obs_list, wildcard_key, entry):
@@ -122,7 +121,7 @@ def keys_with_data(observations, keys, ensemble_size, storage):
 def _data_index_to_obs_index(obs, obs_key, data_index_list):
     if obs[obs_key].getImplementationType().name != "GEN_OBS":
         return data_index_list
-    elif data_index_list is None:
+    if data_index_list is None:
         return data_index_list
 
     for timestep in obs[obs_key].getStepList():

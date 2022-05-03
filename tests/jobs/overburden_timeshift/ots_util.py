@@ -1,10 +1,11 @@
-from ecl.eclfile import EclKW, openFortIO, FortIO
-from ecl import EclDataType
-from ecl.grid import EclGrid
 import os
-import segyio
-from segyio import TraceField
+
 import numpy as np
+import segyio
+from ecl import EclDataType
+from ecl.eclfile import EclKW, FortIO, openFortIO
+from ecl.grid import EclGrid
+from segyio import TraceField
 
 
 def create_init(grid, case):

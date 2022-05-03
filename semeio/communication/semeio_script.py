@@ -13,7 +13,7 @@ from semeio.communication.reporter import FileReporter
 SEMEIOSCRIPT_LOG_FILE = "workflow-log.txt"
 
 
-class _LogHandlerContext(object):
+class _LogHandlerContext:
     def __init__(self, log, handler):
         self._log = log
         self._handler = handler
@@ -34,16 +34,17 @@ class _ReportHandler(BufferingHandler):
 
     def flush(self):
         for log_record in self.buffer:
-            self._reporter.publish_msg(self._namespace, self._format_record(log_record))
+            self._reporter.publish_msg(self._namespace, _format_record(log_record))
 
         super().flush()
 
-    def _format_record(self, log_record):
-        return (
-            f"{log_record.levelname} "
-            f"[{datetime.datetime.fromtimestamp(log_record.created)}]: "
-            f"{log_record.message}"
-        )
+
+def _format_record(log_record):
+    return (
+        f"{log_record.levelname} "
+        f"[{datetime.datetime.fromtimestamp(log_record.created)}]: "
+        f"{log_record.message}"
+    )
 
 
 class SemeioScript(ErtScript):  # pylint: disable=too-few-public-methods
@@ -93,10 +94,12 @@ class SemeioScript(ErtScript):  # pylint: disable=too-few-public-methods
 
     @property
     def _reports_dir(self):
+        # pylint: disable=protected-access
         return self.reporter._output_dir
 
     @_reports_dir.setter
     def _reports_dir(self, output_dir):
+        # pylint: disable=protected-access
         output_dir = Path(output_dir)
         if not output_dir.is_absolute():
             res_config = self.ert().resConfig()

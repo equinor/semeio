@@ -1,16 +1,15 @@
-import pytest
-import pandas as pd
-import numpy as np
-
-from semeio.workflows.ahm_analysis import ahmanalysis
-from semeio._exceptions.exceptions import ValidationError
-
-from unittest.mock import MagicMock
 from itertools import product
 from pathlib import Path
+from unittest.mock import MagicMock
 
-from scipy import stats
+import numpy as np
+import pandas as pd
+import pytest
 from ecl.grid import EclGridGenerator
+from scipy import stats
+
+from semeio._exceptions.exceptions import ValidationError
+from semeio.workflows.ahm_analysis import ahmanalysis
 
 
 def test_make_update_log_df(test_data_root):
@@ -160,6 +159,7 @@ def test_import_field_param(input_parameter, expected_result, grid_prop):
         grid_prop("PORO", iens + 5, grid.getGlobalSize(), f"{iens}_PORO_field.grdecl")
 
     files = [f"{ens_nr}_{input_parameter}_field.grdecl" for ens_nr in range(5)]
+    # pylint: disable=protected-access
     result = ahmanalysis._import_field_param("MY_GRID", input_parameter, files)
     assert flatten(result) == flatten(expected_result)
 
@@ -429,6 +429,7 @@ def create_facade(keys):
 )
 def test_group_obs_data_key(keys, expected_result):
     facade = create_facade(keys)
+    # pylint: disable=protected-access
     result = ahmanalysis._group_observations(facade, keys.keys(), group_by="data_key")
     assert result == expected_result
 
@@ -448,6 +449,7 @@ def test_group_obs_data_key(keys, expected_result):
 )
 def test_group_obs_obs_key(obs_keys, expected_result):
     facade = MagicMock()
+    # pylint: disable=protected-access
     result = ahmanalysis._group_observations(facade, obs_keys, group_by="obs_key")
     assert result == expected_result
     facade.assert_not_called()

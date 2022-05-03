@@ -397,7 +397,7 @@ PRIME_INDEX_3 = [
 ]
 
 
-class PerlinNoise(object):
+class PerlinNoise:
     def __init__(
         self,
         persistence=0.5,

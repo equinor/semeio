@@ -1,7 +1,4 @@
-# -*- coding: utf-8 -*-
 from copy import deepcopy
-
-import six
 
 import configsuite
 from configsuite import MetaKeys as MK
@@ -27,15 +24,15 @@ def _min_value(value):
     return value >= 0
 
 
-_num_convert_msg = "Will go through the input and try to convert to list of int"
+_NUM_CONVERT_MSG = "Will go through the input and try to convert to list of int"
 
 
-@configsuite.transformation_msg(_num_convert_msg)
+@configsuite.transformation_msg(_NUM_CONVERT_MSG)
 def _to_int_list(value):
     value = deepcopy(value)
-    if isinstance(value, six.integer_types):
+    if isinstance(value, int):
         return [value]
-    elif isinstance(value, (list, tuple)):
+    if isinstance(value, (list, tuple)):
         value = ",".join([str(x) for x in value])
     return _realize_list(value)
 
@@ -78,10 +75,10 @@ def _realize_list(input_string):
     return real_list
 
 
-_num_convert_msg = "Create UPDATE_KEYS from CALCULATE_KEYS as it was not specified"
+_NUM_CONVERT_MSG = "Create UPDATE_KEYS from CALCULATE_KEYS as it was not specified"
 
 
-@configsuite.transformation_msg(_num_convert_msg)
+@configsuite.transformation_msg(_NUM_CONVERT_MSG)
 def _expand_input(input_value):
     expanded_values = deepcopy(input_value)
     if "CALCULATE_KEYS" in expanded_values and "UPDATE_KEYS" not in expanded_values:
@@ -98,6 +95,7 @@ def _min_max_value(value):
 
 @configsuite.validator_msg("keys must be provided for CALCULATE_KEYS")
 def _CALCULATE_KEYS_key_not_empty_list(content):
+    # pylint: disable=invalid-name
     return len(content) > 0
 
 

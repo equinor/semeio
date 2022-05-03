@@ -19,6 +19,7 @@ from semeio.workflows.misfit_preprocessor.workflow_config import MisfitConfig
 
 
 class MisfitPreprocessorJob(SemeioScript):
+    # pylint: disable=method-hidden
     def run(self, *args):
         facade = LibresFacade(self.ert())
         config_record = _fetch_config_record(args)
@@ -40,6 +41,7 @@ class MisfitPreprocessorJob(SemeioScript):
         # to run.
 
         try:
+            # pylint: disable=not-callable
             CorrelatedObservationsScalingJob(self.ert()).run(scaling_configs)
         except EmptyDatasetException:
             pass
@@ -48,16 +50,15 @@ class MisfitPreprocessorJob(SemeioScript):
 def _fetch_config_record(args):
     if len(args) == 0:
         return {}
-    elif len(args) == 1:
+    if len(args) == 1:
         with open(args[0], encoding="utf8") as f:
             return yaml.safe_load(f)
-    else:
-        raise ValueError(
-            (
-                "Excepted at most one argument, namely the path to a "
-                f"configuration file. Received {len(args)} arguments: {args}"
-            )
+    raise ValueError(
+        (
+            "Excepted at most one argument, namely the path to a "
+            f"configuration file. Received {len(args)} arguments: {args}"
         )
+    )
 
 
 def _load_measured_record(facade, obs_keys):

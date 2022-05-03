@@ -2,7 +2,6 @@ import os
 import copy
 from distutils.dir_util import copy_tree
 
-import numpy
 import pytest
 
 ECL_BASE_NORNE = os.path.join(
@@ -39,23 +38,6 @@ def get_expected_results_path_norne():
 
 def get_mock_data_content_norne():
     return copy.deepcopy(MOCK_DATA_CONTENT_NORNE)
-
-
-def _assert_almost_equal_line_by_line(file1, file2):
-    with open(file1, encoding="utf-8") as fh:
-        file1_content = fh.readlines()
-
-    with open(file2, encoding="utf-8") as fh:
-        file2_content = fh.readlines()
-
-    assert len(file1_content) == len(file2_content)
-
-    for line1, line2 in zip(file1_content, file2_content):
-        try:
-            line1, line2 = float(line1), float(line2)
-        except ValueError:
-            continue
-        numpy.testing.assert_almost_equal(line1, line2, decimal=7)
 
 
 def _generate_mock_data_norne(write_directory):

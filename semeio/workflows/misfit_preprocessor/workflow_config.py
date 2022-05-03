@@ -79,7 +79,6 @@ class MisfitConfig(BaseMisfitPreprocessorConfig):
         workflow = value.get("type")
         if workflow == "auto_scale":
             return AutoScaleConfig(**value)
-        elif workflow == "custom_scale":
+        if workflow == "custom_scale":
             return CustomScaleConfig(**value)
-        else:
-            raise ValueError(f"Unknown workflow {workflow}")
+        raise ValueError(f"Unknown workflow {workflow}")

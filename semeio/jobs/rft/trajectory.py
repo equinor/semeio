@@ -27,7 +27,9 @@ class TrajectoryPoint:
         zone (str)
     """
 
+    # pylint: disable=too-many-instance-attributes
     def __init__(self, utm_x, utm_y, measured_depth, true_vertical_depth, zone=None):
+        # pylint: disable=too-many-arguments
         self.utm_x = utm_x
         self.utm_y = utm_y
         self.measured_depth = measured_depth
@@ -97,6 +99,7 @@ class TrajectoryPoint:
                 f"{self.grid_ijk[2]} "
                 f"{zonemap[self.grid_ijk[2]]}"
             )
+        return None
 
     def get_pressure(self):
         """Returns the simulated pressure for the point, or -1 if
@@ -281,8 +284,8 @@ class Trajectory:
         if not os.path.isfile(filename):
             raise IOError(f"Trajectory file {filename} not found!")
 
-        with open(filename, "r", encoding="utf8") as f:
-            trajectory_lines = f.readlines()
+        with open(filename, "r", encoding="utf8") as file_handle:
+            trajectory_lines = file_handle.readlines()
 
         trajectory_lines = [strip_comments(line) for line in trajectory_lines]
 

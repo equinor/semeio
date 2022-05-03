@@ -1,13 +1,14 @@
 import json
+import os
+import shutil
 import sys
 from unittest import mock
-import pytest
-from semeio.jobs.scripts import fm_stea
-import shutil
-import os
-from stea import SteaResult, SteaKeys
-import stea
 
+import pytest
+import stea
+from stea import SteaKeys, SteaResult
+
+from semeio.jobs.scripts import fm_stea
 
 TEST_STEA_PATH, _ = os.path.split(os.path.abspath(__file__))
 
