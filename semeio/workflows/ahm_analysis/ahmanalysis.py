@@ -1,37 +1,25 @@
 import collections
-import tempfile
 import glob
-import os
 import itertools
+import os
+import tempfile
 import warnings
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
-
-from pathlib import Path
+import xtgeo
+from ert_shared.libres_facade import LibresFacade
+from ert_shared.plugins.plugin_manager import hook_implementation
+from res.enkf import EnkfNode, ErtImplType, ErtRunContext, ESUpdate
+from res.enkf.export import GenKwCollector, MisfitCollector
 from scipy.stats.stats import ks_2samp
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
-
-import xtgeo
 from xtgeo.grid3d import GridProperty
-from semeio.communication import SemeioScript
+
 from semeio._exceptions.exceptions import ValidationError
-from res.enkf import (
-    ErtImplType,
-    EnkfNode,
-)
-from res.enkf import (
-    ESUpdate,
-    ErtRunContext,
-)
-from res.enkf.export import (
-    GenKwCollector,
-    MisfitCollector,
-)
-
-from ert_shared.plugins.plugin_manager import hook_implementation
-from ert_shared.libres_facade import LibresFacade
-
+from semeio.communication import SemeioScript
 
 DESCRIPTION = """
 AHM_ANALYSIS will calculate the degree of update (using Kolmogorov Smirnov test)
@@ -126,6 +114,11 @@ class AhmAnalysisJob(SemeioScript):  # pylint: disable=too-few-public-methods
         group_by="data_key",
         output_dir=None,
     ):
+        # pylint: disable=method-hidden
+        # (SemeioScript wraps this run method)
+
+        # pylint: disable=too-many-locals
+
         """Perform analysis of parameters change per obs group
         prior to posterior of ahm"""
         if output_dir is not None:
@@ -416,11 +409,6 @@ def count_active_observations(df_update_log):
     return len(df_active)
 
 
-def create_path(runpathdf, target_name):
-    """to create path for output data"""
-    return tempfile.mkdtemp()
-
-
 def calc_observationsgroup_misfit(obs_keys, df_update_log, misfit_df):
     """To get the misfit for total observations (active/inactive)."""
 
@@ -513,8 +501,8 @@ def check_names(ert_currentname, prior_name, target_name):
 def raise_if_empty(dataframes, messages):
     """Check input ensemble prior is not empty
     and if ensemble contains parameters for hm"""
-    for df, msg in zip(dataframes, messages):
-        if df.empty:
+    for dframe in dataframes:
+        if dframe.empty:
             raise ValidationError(f"{messages}")
 
 

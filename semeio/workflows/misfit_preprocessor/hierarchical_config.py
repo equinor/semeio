@@ -2,23 +2,25 @@ try:
     from typing import Literal
 except ImportError:
     from typing_extensions import Literal
-from typing import Union
-from pydantic import (
-    BaseModel,
-    root_validator,
-    validator,
-    conint,
-    Extra,
-    StrictFloat,
-    StrictInt,
-    PyObject,
-    PrivateAttr,
-)
+
 import collections
 
-from semeio.workflows.spearman_correlation_job.cluster_analysis import (
-    fcluster_analysis,
+# pylint: disable=ungrouped-imports
+from typing import Union
+
+from pydantic import (
+    BaseModel,
+    Extra,
+    PrivateAttr,
+    PyObject,
+    StrictFloat,
+    StrictInt,
+    conint,
+    root_validator,
+    validator,
 )
+
+from semeio.workflows.spearman_correlation_job.cluster_analysis import fcluster_analysis
 
 #  pylint: disable=too-few-public-methods,no-self-argument
 

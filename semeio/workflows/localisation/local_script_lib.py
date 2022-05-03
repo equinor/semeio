@@ -1,23 +1,22 @@
-# pylint: disable=W0201
+# pxylint: disable=attribute-defined-outside-init
+import itertools
+import logging
 import math
-import yaml
+from collections import defaultdict
+from dataclasses import dataclass, field
+from typing import List
+
 import cwrap
 import numpy as np
-from numpy import ma
-import logging
-import itertools
-
-from collections import defaultdict
-from typing import List
-from dataclasses import dataclass, field
-
-from ecl.util.geometry import Surface
-from ecl.eclfile import Ecl3DKW
+import yaml
 from ecl.ecl_type import EclDataType
+from ecl.eclfile import Ecl3DKW
 from ecl.grid.ecl_grid import EclGrid
-from res.enkf.row_scaling import RowScaling
-from res.enkf.enums.ert_impl_type_enum import ErtImplType
+from ecl.util.geometry import Surface
+from numpy import ma
 from res.enkf.enums.enkf_var_type_enum import EnkfVarType
+from res.enkf.enums.ert_impl_type_enum import ErtImplType
+from res.enkf.row_scaling import RowScaling
 
 from semeio.workflows.localisation.localisation_debug_settings import (
     LogLevel,
@@ -34,8 +33,7 @@ class Parameter:
     def to_list(self):
         if self.parameters:
             return [f"{self.name}:{parameter}" for parameter in self.parameters]
-        else:
-            return [f"{self.name}"]
+        return [f"{self.name}"]
 
     def to_dict(self):
         return {self.name: self.parameters}
@@ -46,17 +44,21 @@ class Parameters:
     parameters: List[Parameter] = field(default_factory=list)
 
     def append(self, new):
+        # pylint: disable=no-member
+        # (false positive)
         self.parameters.append(new)
 
     def to_list(self):
-        # pylint: disable=E1133
+        # pylint: disable=not-an-iterable
+        # (false positive)
         result = []
         for parameter in self.parameters:
             result.extend(parameter.to_list())
         return result
 
     def to_dict(self):
-        # pylint: disable=E1133
+        # pylint: disable=not-an-iterable
+        # (false positive)
         result = {}
         for parameter in self.parameters:
             if parameter.name in result:
@@ -346,6 +348,9 @@ def define_look_up_index(user_defined_active_region_list, max_region_number):
 def calculate_scaling_factors_in_regions(
     grid, region_parameter, active_segment_list, scaling_value_list, smooth_range_list
 ):
+    # pylint: disable=unused-argument
+    # ('grid' and 'smooth-range-list' are not currently used)
+
     min_region_number = region_parameter.min()
     max_region_number = region_parameter.max()
 
@@ -503,7 +508,7 @@ def apply_segment(
 
 
 def read_region_files_for_all_correlation_groups(user_config, grid):
-    # pylint: disable-msg=R1702
+    # pylint: disable=too-many-nested-blocks,too-many-locals,invalid-name
     if grid is None:
         # No grid is defined. Not relevant to look for region files to read.
         return None
@@ -513,7 +518,7 @@ def read_region_files_for_all_correlation_groups(user_config, grid):
     nx = grid.get_nx()
     ny = grid.get_ny()
     nz = grid.get_nz()
-    for count, corr_spec in enumerate(user_config.correlations):
+    for _, corr_spec in enumerate(user_config.correlations):
         region_param_dict[corr_spec.name] = None
         if corr_spec.field_scale is not None:
             if corr_spec.field_scale.method == "segment":
@@ -567,8 +572,8 @@ def add_ministeps(
     grid_for_field,
 ):
     # pylint: disable-msg=too-many-branches
-    # pylint: disable-msg=R0915
-    # pylint: disable-msg=R1702
+    # pylint: disable-msg=too-many-statements
+    # pylint: disable-msg=too-many-nested-blocks
     debug_print("Add all ministeps:", LogLevel.LEVEL1, user_config.log_level)
     ScalingValues.initialize()
     # Read all region files used in correlation groups,
@@ -578,7 +583,7 @@ def add_ministeps(
         user_config, grid_for_field
     )
     update_steps = []
-    for count, corr_spec in enumerate(user_config.correlations):
+    for corr_spec in user_config.correlations:
         debug_print(
             f"Define ministep: {corr_spec.name}", LogLevel.LEVEL1, user_config.log_level
         )
@@ -808,6 +813,7 @@ class Decay:
     grid: object
 
     def __post_init__(self):
+        # pylint: disable=attribute-defined-outside-init
         angle = (90.0 - self.azimuth) * math.pi / 180.0
         self.cosangle = math.cos(angle)
         self.sinangle = math.sin(angle)
@@ -818,6 +824,7 @@ class Decay:
             x, y, _ = self.grid.get_xyz(active_index=data_index)
         except AttributeError:
             # Assume the grid is a 2D Surface grid
+            # pylint: disable=no-member
             x, y = self.grid.getXY(data_index)
         x_unrotated = x - self.obs_pos[0]
         y_unrotated = y - self.obs_pos[1]

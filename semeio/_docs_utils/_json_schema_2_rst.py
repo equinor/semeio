@@ -2,13 +2,13 @@ from copy import deepcopy
 
 
 def _insert_ref(schema):
-    for k, v in schema.items():
-        if isinstance(v, dict):
-            _insert_ref(v)
-        elif isinstance(v, list):
-            for index, val in enumerate(v.copy()):
+    for value in schema.values():
+        if isinstance(value, dict):
+            _insert_ref(value)
+        elif isinstance(value, list):
+            for index, val in enumerate(value.copy()):
                 if "$ref" in val:
-                    v[index] = val["$ref"] + "_"
+                    value[index] = val["$ref"] + "_"
 
 
 def _remove_key(schema, del_key):

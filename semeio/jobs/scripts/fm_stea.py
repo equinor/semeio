@@ -1,6 +1,8 @@
-import json
-import stea
 import argparse
+import json
+
+import stea
+
 from semeio import valid_file
 
 description = (
@@ -49,7 +51,7 @@ def main_entry_point():
     stea_input = stea.SteaInput([options.config, "--ecl_case", options.ecl_case])
     result = stea.calculate(stea_input)
     for res, value in result.results(stea.SteaKeys.CORPORATE).items():
-        with open(f"{res}_0", "w") as ofh:
+        with open(f"{res}_0", "w", encoding="utf-8") as ofh:
             ofh.write(f"{value}\n")
     profiles = _get_profiles(
         stea_input.stea_server,
@@ -60,7 +62,7 @@ def main_entry_point():
     full_response = _build_full_response(
         result.data[stea.SteaKeys.KEY_VALUES], profiles
     )
-    with open(options.response_file, "w") as fout:
+    with open(options.response_file, "w", encoding="utf-8") as fout:
         json.dump(full_response, fout, indent=4)
 
 

@@ -1,13 +1,14 @@
-# pylint: disable=R0915
-import yaml
-import pytest
-from res.enkf import EnKFMain, ResConfig
-from semeio.workflows.localisation.local_config_script import LocalisationConfigJob
-
-from xtgeo.surface.regular_surface import RegularSurface
-import xtgeo
-import numpy as np
+# pylint: disable=too-many-statements
 import itertools
+
+import numpy as np
+import pytest
+import xtgeo
+import yaml
+from res.enkf import EnKFMain, ResConfig
+from xtgeo.surface.regular_surface import RegularSurface
+
+from semeio.workflows.localisation.local_config_script import LocalisationConfigJob
 
 
 @pytest.mark.parametrize(

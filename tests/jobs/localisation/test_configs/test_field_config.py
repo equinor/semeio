@@ -1,13 +1,16 @@
-import pytest
-from hypothesis import strategies as st, given
-import pydantic
 import pathlib
+from unittest.mock import MagicMock
+
+import pydantic
+import pytest
+from hypothesis import given
+from hypothesis import strategies as st
+
 from semeio.workflows.localisation.localisation_config import (
-    GaussianConfig,
     CorrelationConfig,
     ExponentialConfig,
+    GaussianConfig,
 )
-from unittest.mock import MagicMock
 
 
 @given(

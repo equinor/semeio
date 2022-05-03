@@ -1,6 +1,7 @@
 import os
-import pytest
 import shutil
+
+import pytest
 
 from tests import test_data
 

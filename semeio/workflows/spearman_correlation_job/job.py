@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=logging-fstring-interpolation
 import itertools
 import logging
@@ -78,7 +77,7 @@ def _remove_singular_obs(clusters):
 
 def _config_creation(clusters):
     config = []
-    for cluster_nr, cluster in clusters.items():
+    for cluster in clusters.values():
         config.append(
             {
                 "CALCULATE_KEYS": {

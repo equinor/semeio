@@ -1,9 +1,10 @@
 import pytest
-
-from ecl.grid import EclGridGenerator
-from semeio.jobs.overburden_timeshift.ots_vel_surface import OTSVelSurface
-from semeio.jobs.overburden_timeshift.ots_res_surface import OTSResSurface
 import segyio
+from ecl.grid import EclGridGenerator
+
+from semeio.jobs.overburden_timeshift.ots_res_surface import OTSResSurface
+from semeio.jobs.overburden_timeshift.ots_vel_surface import OTSVelSurface
+
 from .ots_util import create_segy_file
 
 

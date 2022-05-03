@@ -38,6 +38,7 @@ Correlated Observations Scaling Configuration
 =============================================
 {}
 """.format(
+    # pylint: disable=protected-access
     configsuite.docs.generate(job_config._CORRELATED_OBSERVATIONS_SCHEMA)
 )
 
@@ -134,12 +135,13 @@ of passing two different configs.
 )
 
 
-class CorrelatedObservationsScalingJob(
-    SemeioScript
-):  # pylint: disable=too-few-public-methods
-    def run(self, job_config):
+class CorrelatedObservationsScalingJob(SemeioScript):
+    # pylint: disable=too-few-public-methods
+    def run(self, job_configuration):
+        # pylint: disable=method-hidden
+        # (SemeioScript wraps this run method)
         facade = LibresFacade(self.ert())
-        user_config = load_yaml(job_config)
+        user_config = load_yaml(job_configuration)
         user_config = _insert_default_group(user_config)
 
         obs = facade.get_observations()
@@ -183,12 +185,11 @@ def _get_measured_data(
     return measured_data
 
 
-def load_yaml(job_config):
-    # Allow job_config to be both list and dict.
-    if isinstance(job_config, dict) or isinstance(job_config, list):
-        return job_config
+def load_yaml(job_configuration):
+    if isinstance(job_configuration, (dict, list)):
+        return job_configuration
 
-    with open(job_config, "r", encoding="utf-8") as fin:
+    with open(job_configuration, "r", encoding="utf-8") as fin:
         return yaml.safe_load(fin)
 
 

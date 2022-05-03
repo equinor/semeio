@@ -13,7 +13,7 @@ ignore=CVS
 # regex matches against base names, not paths. Note that pre-commit runs
 # pylint on individual files, so if some patters should be ignored, put that
 # in .pre-commit-config.yaml
-ignore-patterns=
+ignore-patterns=version.py
 
 # Python code to execute, usually for sys.path manipulation such as
 # pygtk.require().
@@ -54,37 +54,21 @@ confidence=
 # --disable=W"
 disable=
     duplicate-code,
-    wrong-import-order,
-    unused-import,
+    import-outside-toplevel,
+    invalid-name,
+    logging-format-interpolation,
+    missing-class-docstring,
     missing-function-docstring,
     missing-module-docstring,
-    protected-access,
-    invalid-name,
-    redefined-outer-name,
-    unused-argument,
-    bad-continuation,
     no-member,
-    singleton-comparison,
-    import-outside-toplevel,
-    line-too-long,
+    no-self-use,
+    not-callable,
+    redefined-outer-name,
     too-many-arguments,
     too-many-locals,
-    misplaced-comparison-constant,
-    missing-class-docstring,
-    no-else-return,
-    too-many-instance-attributes,
-    inconsistent-return-statements,
-    logging-format-interpolation,
-    useless-object-inheritance,
-    unused-variable,
-    no-self-use,
-    consider-merging-isinstance,
-    consider-using-in,
-    deprecated-method,
-    method-hidden,
-    not-callable,
+    unused-argument,
     unspecified-encoding
-
+#
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option
 # multiple time (only on the command line, not in the configuration file where
@@ -169,7 +153,7 @@ function-name-hint=(([a-z][a-z0-9_]{2,30})|(_[a-z0-9_]*))$
 function-rgx=(([a-z][a-z0-9_]{2,30})|(_[a-z0-9_]*))$
 
 # Good variable names which should always be accepted, separated by a comma
-good-names=i,j,k,ex,Run,_
+good-names=i,j,k,ex,Run,_,description,category,short_description,examples
 
 # Include a hint for the correct naming format with invalid-name
 include-naming-hint=no

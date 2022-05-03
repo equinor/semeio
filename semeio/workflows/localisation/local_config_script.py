@@ -8,6 +8,8 @@ from semeio.workflows.localisation.localisation_config import LocalisationConfig
 
 class LocalisationConfigJob(SemeioScript):
     def run(self, *args):
+        # pylint: disable=method-hidden
+        # (SemeioScript wraps this run method)
         ert = self.ert()
         facade = LibresFacade(self.ert())
         # Read yml file with specifications

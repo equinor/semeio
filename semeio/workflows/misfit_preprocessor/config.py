@@ -1,8 +1,10 @@
 import fnmatch
-from typing import List, Dict, Any
+from typing import Any, Dict, List
+
+import pydantic
+
 from semeio.workflows.misfit_preprocessor.exceptions import ValidationError
 from semeio.workflows.misfit_preprocessor.workflow_config import MisfitConfig
-import pydantic
 
 
 def _observations_present(observations, context) -> List[Dict[str, Any]]:

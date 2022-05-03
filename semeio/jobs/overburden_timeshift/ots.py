@@ -1,27 +1,26 @@
+# pylint: disable=invalid-name
 import logging
 import os.path
 from collections import namedtuple
-from itertools import product
 from datetime import datetime as dt
+from itertools import product
 from pathlib import Path
 
-
 import configsuite
-import yaml
-import xtgeo
 import numpy as np
-from scipy.interpolate import CloughTocher2DInterpolator
-from ecl.grid import EclGrid
-from ecl.gravimetry import EclSubsidence
+import xtgeo
+import yaml
 from ecl.eclfile import Ecl3DKW, EclFile
+from ecl.gravimetry import EclSubsidence
+from ecl.grid import EclGrid
+from scipy.interpolate import CloughTocher2DInterpolator
 
-from semeio.jobs.overburden_timeshift.ots_vel_surface import OTSVelSurface
-from semeio.jobs.overburden_timeshift.ots_res_surface import OTSResSurface
-from semeio.jobs.overburden_timeshift.ots_config import build_schema
 from semeio._exceptions.exceptions import ConfigurationError
+from semeio.jobs.overburden_timeshift.ots_config import build_schema
+from semeio.jobs.overburden_timeshift.ots_res_surface import OTSResSurface
+from semeio.jobs.overburden_timeshift.ots_vel_surface import OTSVelSurface
 
 
-# pylint: disable=consider-using-enumerate
 def extract_ots_context(configuration):
     rstfile_path = Path(f"{configuration.eclbase}.UNRST")
     if not rstfile_path.exists():
@@ -63,7 +62,7 @@ def write_surface(vintage_pairs, ts, output_dir, type_str, file_format="irap_bin
 
 
 def ots_run(parameter_file):
-
+    # pylint: disable=too-many-locals
     parms = ots_load_params(parameter_file)
     vintage_pairs = parms.vintages
 
@@ -156,7 +155,8 @@ def ots_run(parameter_file):
                 )
 
 
-class OverburdenTimeshift(object):
+class OverburdenTimeshift:
+    # pylint: disable=too-many-instance-attributes
     def __init__(
         self,
         eclbase,
@@ -169,6 +169,7 @@ class OverburdenTimeshift(object):
         above,
         velocity_model,
     ):
+        # pylint: disable=too-many-arguments
         """
         The OTS class manages the information required to calculate
         overburden timeshift.
@@ -207,6 +208,7 @@ class OverburdenTimeshift(object):
 
         :param z: replace z values of surface
         """
+        # pylint: disable=too-many-locals
         nx = self._surface.nx
         ny = self._surface.ny
         x = self._surface.x
@@ -270,9 +272,9 @@ class OverburdenTimeshift(object):
 
     @staticmethod
     def _divide_negative_shift(ts, div_val=5.0):
-        for i in range(len(ts)):
-            if ts[i] < 0:
-                ts[i] /= div_val
+        for index, value in enumerate(ts):
+            if value < 0:
+                ts[index] = value / div_val
 
     def geertsma_ts_rporv(self, vintage_pairs):
         """
@@ -306,7 +308,7 @@ class OverburdenTimeshift(object):
         :param subsidence_func: specify subsidence method to be used
         :param method_name: string represeting the subsudence func name
         """
-
+        # pylint: disable=too-many-locals
         if len(vintage_pairs) < 1:
             return 0, []
 
@@ -377,6 +379,7 @@ class OverburdenTimeshift(object):
 
         :param vintage_pairs:
         """
+        # pylint: disable=too-many-locals
 
         if len(vintage_pairs) < 1:
             return 0, []
@@ -497,6 +500,7 @@ class OverburdenTimeshift(object):
         :param vintage_pairs: list of pairs of vintages
         :return:
         """
+        # pylint: disable=too-many-locals
 
         if len(vintage_pairs) < 1:
             return 0, []

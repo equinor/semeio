@@ -1,17 +1,18 @@
 # pylint: disable=not-callable
+import json
 import os
 import shutil
-import json
-import pytest
+from unittest.mock import Mock
+
 import pandas as pd
-import semeio.workflows.spearman_correlation_job.spearman_correlation as sc
-from scipy import stats
+import pytest
 from res.enkf import EnKFMain, ResConfig
+from scipy import stats
+
+import semeio.workflows.spearman_correlation_job.spearman_correlation as sc
 from semeio.workflows.correlated_observations_scaling.exceptions import (
     EmptyDatasetException,
 )
-
-from unittest.mock import Mock
 
 
 @pytest.mark.usefixtures("setup_tmpdir")
@@ -37,6 +38,7 @@ def test_main_entry_point_gen_data(monkeypatch, test_data_root):
     # again is a tuple containing the configuration which is a list of configs.
     assert len(list(run_mock.call_args)[0][0]) == 47, "wrong number of clusters"
 
+    # pylint: disable=protected-access
     cor_matrix_file = os.path.join(
         job._output_dir,
         "correlation_matrix.csv",
@@ -149,6 +151,7 @@ def test_main_entry_point_syn_data(monkeypatch, facade, measured_data):
     job = sc.SpearmanCorrelationJob(ert_mock)
     job.run(*["-t", "1.0"])
     cor_matrix_file = os.path.join(
+        # pylint: disable=protected-access
         job._output_dir,
         "correlation_matrix.csv",
     )
@@ -168,6 +171,7 @@ def test_main_entry_point_syn_data(monkeypatch, facade, measured_data):
 
     assert (expected_corr_matrix == corr_matrix.values).all()
     clusters_file = os.path.join(
+        # pylint: disable=protected-access
         job._output_dir,
         "clusters.json",
     )

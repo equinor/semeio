@@ -1,11 +1,10 @@
-# -*- coding: utf-8 -*-
-import configsuite
 import datetime
+from copy import deepcopy
 from pathlib import Path
 
+import configsuite
 from configsuite import MetaKeys as MK
 from configsuite import types
-from copy import deepcopy
 
 
 @configsuite.validator_msg("List needs to be of size 2")
@@ -15,7 +14,7 @@ def _is_length_equal_2(value):
 
 @configsuite.validator_msg("Only value of 1 or -1 is allowed")
 def _is_int_one(value):
-    return value == 1 or value == -1
+    return value in (1, -1)
 
 
 @configsuite.validator_msg("Vintages must contain at least an entry!")
@@ -42,11 +41,11 @@ def _unrst_exists(value):
 def _str2dates(value):
     value = deepcopy(value)
     dates = []
-    for x in value:
-        if isinstance(x, str):
-            dates.append(datetime.datetime.strptime(x, "%Y-%m-%d").date())
+    for date in value:
+        if isinstance(date, str):
+            dates.append(datetime.datetime.strptime(date, "%Y-%m-%d").date())
         else:
-            dates.append(x)
+            dates.append(date)
     return dates
 
 

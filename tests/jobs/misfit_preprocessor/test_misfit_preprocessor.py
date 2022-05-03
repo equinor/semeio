@@ -1,15 +1,15 @@
+import random
+from unittest.mock import Mock
+
 import numpy as np
 import pandas as pd
 import pytest
-import random
+
 from semeio.workflows import misfit_preprocessor
-
-from unittest.mock import Mock
-
 from semeio.workflows.misfit_preprocessor import assemble_config
 
 
-class MockedMeasuredData(object):
+class MockedMeasuredData:
     def __init__(self, observations, responses):
         self._data = self._build_data(observations, responses)
 
@@ -78,7 +78,7 @@ def generate_simulated_responses(
     ensemble_size,
 ):
     simulated = {}
-    for poly_idx, (poly_fm, states) in enumerate(zip(forward_polynomials, poly_states)):
+    for poly_idx, states in enumerate(poly_states):
         new_parameters = np.random.uniform(0, 10, 3 * ensemble_size)
         new_parameters.resize(ensemble_size, 3)
         simulated[f"poly_{poly_idx}"] = {
