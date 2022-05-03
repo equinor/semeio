@@ -3,6 +3,8 @@ import logging
 import shlex
 import re
 
+from typing import List
+
 
 _STATUS_FILE_NAME = "DESIGN_KW.OK"
 
@@ -61,6 +63,13 @@ def all_matched(line, template_file_name, template):
                     f"but this is probably a Perl file"
                 )
             )
+        elif is_xml(template_file_name, template):
+            _logger.warning(  # pylint: disable=logging-fstring-interpolation
+                (
+                    f"{unmatched} not found in design matrix, "
+                    f"but this is probably an xml file"
+                )
+            )
         else:
             _logger.error(  # pylint: disable=logging-fstring-interpolation
                 f"{unmatched} not found in design matrix"
@@ -71,6 +80,10 @@ def all_matched(line, template_file_name, template):
 
 def is_perl(file_name, template):
     return file_name.endswith(".pl") or template[0].find("perl") != -1
+
+
+def is_xml(file_name: str, template: List[str]):
+    return file_name.endswith(".xml") or template[0].find("?xml") != -1
 
 
 def unmatched_templates(line):

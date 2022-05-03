@@ -1,0 +1,16 @@
+prob_FP_FP   0.9
+prob_CH_FP  0.0
+prob_CR_FP  0.05
+prob_CO_FP  0.05
+prob_FP_CH   0.1
+prob_CH_CH  0.85
+prob_CR_CH  0.05
+prob_CO_CH  0.0
+prob_FP_CR   0.1
+prob_CH_CR  0.1
+prob_CR_CR   0.75
+prob_CO_CR   0.05
+prob_FP_CO   0.05
+prob_CH_CO  0.0
+prob_CR_CO 0.05
+prob_CO_CO 0.90

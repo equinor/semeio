@@ -1,0 +1,32 @@
+<?xml version="1.0" ?>
+<APS_prob_trend>
+  <FaciesProbTrend>
+    <GridModelName>   geogrid </GridModelName>
+    <ZoneParamName>  Zone </ZoneParamName>
+    <FaciesParamName>  Facies_true_model </FaciesParamName>
+    <ProbParamNamePrefix>  ProbTrend  </ProbParamNamePrefix>
+    <SelectedZones> 1 2 3 </SelectedZones>
+    <UseConstantProbFromVolumeFraction> 1 </UseConstantProbFromVolumeFraction>
+    <CondProbMatrix>
+      <Line>  Floodplain  Floodplain  <prob_FP_FP> </Line>
+      <Line>  Channel     Floodplain   <prob_CH_FP>  </Line>
+      <Line>  Crevasse    Floodplain  <prob_CR_FP>  </Line>
+      <Line>  Coal        Floodplain      <prob_CO_FP>  </Line>
+
+      <Line>  Floodplain  Channel  <prob_FP_CH>   </Line>
+      <Line>  Channel     Channel   <prob_CH_CH>  </Line>
+      <Line>  Crevasse    Channel  <prob_CR_CH>   </Line>
+      <Line>  Coal        Channel     <prob_CO_CH>   </Line>
+
+      <Line>  Floodplain  Crevasse  <prob_FP_CR>  </Line>
+      <Line>  Channel     Crevasse   <prob_CH_CR> </Line>
+      <Line>  Crevasse    Crevasse  <prob_CR_CR>  </Line>
+      <Line>  Coal        Crevasse      <prob_CO_CR>  </Line>
+
+      <Line>  Floodplain  Coal  <prob_FP_CO>  </Line>
+      <Line>  Channel     Coal   <prob_CH_CO> </Line>
+      <Line>  Crevasse    Coal  <prob_CR_CO> </Line>
+      <Line>  Coal        Coal     <prob_CO_CO>  </Line>
+    </CondProbMatrix>
+  </FaciesProbTrend>
+</APS_prob_trend>
