@@ -190,19 +190,54 @@ def test_is_perl():
     assert not design_kw.is_perl(file_name, template)
 
 
+def test_is_xml():
+    file_name = "filename.yml"
+    template = ["?xml", "  ECLIPSE_INIT_DATE: <DATE>"]
+    assert design_kw.is_xml(file_name, template)
+
+    file_name = "filename.xml"
+    template = ["?xml", "  ECLIPSE_INIT_DATE: <DATE>"]
+    assert design_kw.is_xml(file_name, template)
+
+    file_name = "filename.xml"
+    template = ["  ECLIPSE_INIT_DATE: <DATE>"]
+    assert design_kw.is_xml(file_name, template)
+
+    file_name = "filename.yml"
+    template = ["  ECLIPSE_INIT_DATE: <DATE>"]
+    assert not design_kw.is_xml(file_name, template)
+
+
 @pytest.mark.parametrize(
     "filenames",
     (
-        ["template.yml.reference", "template.yml.tmpl", "template.yml"],
-        ["schfile.inc.reference", "schfile.inc.tmpl", "schfile.inc"],
+        [
+            "template.yml.reference",
+            "template.yml.tmpl",
+            "template.yml",
+            "parameters.txt",
+        ],
+        ["schfile.inc.reference", "schfile.inc.tmpl", "schfile.inc", "parameters.txt"],
+        [
+            "template_xml_format.reference",
+            "template_xml_format.tmpl",
+            "template_xml_format.xml",
+            "parameters_for_xml_case.txt",
+        ],
     ),
 )
 def test_run(input_data, filenames):
     reference_filename = filenames[0]
     template_filename = filenames[1]
     result_filename = filenames[2]
+    parameter_filename = filenames[3]
 
-    design_kw.run(template_filename, result_filename, log_level=logging.DEBUG)
+    design_kw.run(
+        template_filename,
+        result_filename,
+        log_level=logging.DEBUG,
+        parameters_file_name=parameter_filename,
+    )
 
     with open(result_filename, "r", encoding="utf-8") as result_file:
         result = result_file.read()
