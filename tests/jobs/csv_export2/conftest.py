@@ -14,7 +14,7 @@ def find_available_test_data():
     if TEST_DATA_DIR is None:
         if os.path.isdir(TEST_DATA_DIR_STAVANGER):
             return TEST_DATA_DIR_STAVANGER
-        elif os.path.isdir(TEST_DATA_DIR_BERGEN):
+        if os.path.isdir(TEST_DATA_DIR_BERGEN):
             return TEST_DATA_DIR_BERGEN
 
     return TEST_DATA_DIR

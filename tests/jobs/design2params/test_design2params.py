@@ -24,6 +24,7 @@ def input_data(tmpdir):
     os.chdir(cwd)
 
 
+# pylint: disable=protected-access
 @pytest.mark.usefixtures("input_data")
 @pytest.mark.parametrize(
     "test_file, expected_file",

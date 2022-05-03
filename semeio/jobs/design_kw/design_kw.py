@@ -26,18 +26,18 @@ def run(
 
     valid = True
 
-    with open(parameters_file_name) as parameters_file:
+    with open(parameters_file_name, encoding="utf-8") as parameters_file:
         parameters = parameters_file.readlines()
 
     key_vals = extract_key_value(parameters)
 
     key_vals.update(rm_genkw_prefix(key_vals))
 
-    with open(template_file_name, "r") as template_file:
+    with open(template_file_name, "r", encoding="utf-8") as template_file:
         template = template_file.readlines()
 
     if valid:
-        with open(result_file_name, "w") as result_file:
+        with open(result_file_name, "w", encoding="utf-8") as result_file:
             for line in template:
                 if not is_comment(line):
                     for key, value in key_vals.items():
@@ -49,7 +49,7 @@ def run(
                 result_file.write(line)
 
     if valid:
-        with open(_STATUS_FILE_NAME, "w") as status_file:
+        with open(_STATUS_FILE_NAME, "w", encoding="utf-8") as status_file:
             status_file.write("DESIGN_KW OK\n")
 
 
@@ -90,8 +90,7 @@ def unmatched_templates(line):
     bracketpattern = re.compile("<.+?>")
     if bracketpattern.search(line):
         return bracketpattern.findall(line)
-    else:
-        return []
+    return []
 
 
 def is_comment(line):

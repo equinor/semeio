@@ -34,6 +34,7 @@ def run(
     parametersfilename="parameters.txt",
     log_level=None,
 ):
+    # pylint: disable=too-many-arguments
     """
     Reads out all file content from different files and create dataframes
     """
@@ -73,6 +74,7 @@ def run(
 def _complete_parameters_file(
     realization, parameters, parametersfilename, design_matrix_sheet, default_sheet
 ):
+    # pylint: disable=too-many-locals
     """
     Pick key / values from choosen realization in design matrix
     Append those key / values if not present into parameters.txt
@@ -176,7 +178,7 @@ def _complete_parameters_file(
     )
 
     # if all ok - write the ok file
-    with open(_TARGET_FILE_TXT, "w") as target_file:
+    with open(_TARGET_FILE_TXT, "w", encoding="utf-8") as target_file:
         target_file.write("OK\n")
 
 
@@ -188,7 +190,7 @@ def _read_excel(file_name, sheet_name, header=0, usecols=None, engine=None):
     :raises: SystemExit if file not loaded correctly
     """
     try:
-        df = pd.read_excel(
+        dframe = pd.read_excel(
             file_name,
             sheet_name,
             header=header,
@@ -214,13 +216,13 @@ def _read_excel(file_name, sheet_name, header=0, usecols=None, engine=None):
             )
         ) from err
 
-    p = Path(file_name)
-    if p.suffix == ".xls":
+    file_path = Path(file_name)
+    if file_path.suffix == ".xls":
         warnings.warn(
             "Support for XLS files is deprecated. Use XLSX", DeprecationWarning
         )
 
-    return df.dropna(axis=1, how="all")
+    return dframe.dropna(axis=1, how="all")
 
 
 def _validate_design_matrix_header(design_matrix):

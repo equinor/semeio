@@ -44,8 +44,8 @@ class ZoneMap:
 
         zones_at_k_value = {}
 
-        with open(filename, "r") as f:
-            zonemap_lines = f.readlines()
+        with open(filename, "r", encoding="utf-8") as file_handle:
+            zonemap_lines = file_handle.readlines()
 
         zonemap_lines = [
             (strip_comments(l), i + 1) for i, l in enumerate(zonemap_lines)
@@ -88,14 +88,14 @@ class ZoneMap:
     def __contains__(self, item):
         if isinstance(item, int):
             return item in self._zones_at_k_value
-        elif isinstance(item, str):
+        if isinstance(item, str):
             return item in self._k_values_at_zone
         return False
 
     def __getitem__(self, item):
         if isinstance(item, int):
             return self._zones_at_k_value[item]
-        elif isinstance(item, str):
+        if isinstance(item, str):
             return self._k_values_at_zone[item]
         raise KeyError(f"{item} is neither a k value nor a zone")
 

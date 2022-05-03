@@ -5,6 +5,7 @@ from semeio.communication import SemeioScript
 
 
 class TestWorkflowJob(SemeioScript):
+    # pylint: disable=method-hidden
     def run(self, *args):
         self.reporter.publish("test_data", list(range(10)))
 

@@ -1,8 +1,9 @@
+import pytest
 from res.enkf import EnKFMain
+
 from semeio.workflows.correlated_observations_scaling.update_scaling import (
     scale_observations,
 )
-import pytest
 
 
 class Config:  # pylint: disable=too-few-public-methods

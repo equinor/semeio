@@ -1,12 +1,12 @@
 """Forward model for connecting ERT with the Pyscal command line client"""
-import logging
-import sys
-import os
 import argparse
-
-from semeio.jobs.design_kw.design_kw import extract_key_value, rm_genkw_prefix
+import logging
+import os
+import sys
 
 from pyscal import pyscalcli
+
+from semeio.jobs.design_kw.design_kw import extract_key_value, rm_genkw_prefix
 
 _logger = logging.getLogger("FM_PYSCAL")
 
@@ -164,6 +164,7 @@ def run(
     family,  # int: 1 or 2, default 1
     parameters_file_name="parameters.txt",
 ):
+    # pylint: disable=too-many-arguments
     """This function is a wrapper around the Pyscal command
     line tool. The command line tool is designed around argparse
     and this function wraps around that design.
@@ -176,7 +177,7 @@ def run(
         sys.exit(1)
 
     # Determine which interpolation scenario the user has requested:
-    if int_param_wo_name != MAGIC_NONE and int_param_go_name != MAGIC_NONE:
+    if MAGIC_NONE not in (int_param_wo_name, int_param_go_name):
         # Separate interpolation parameter for WaterOil and GasOil
         do_interpolation = True
     elif int_param_wo_name != MAGIC_NONE and int_param_go_name == MAGIC_NONE:
@@ -254,7 +255,7 @@ def _get_interpolation_values(
     # Read all key-value pairs from parameters.txt
     if not os.path.exists(parameters_file_name):
         raise FileNotFoundError(f"{parameters_file_name} does not exist")
-    with open(parameters_file_name) as parameters_file:
+    with open(parameters_file_name, encoding="utf-8") as parameters_file:
         parameters = parameters_file.readlines()
     parameter_dict = extract_key_value(parameters)
     parameter_dict.update(rm_genkw_prefix(parameter_dict))

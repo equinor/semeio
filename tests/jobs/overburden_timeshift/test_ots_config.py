@@ -1,10 +1,11 @@
 import shutil
-import yaml
-import pytest
-from semeio._exceptions.exceptions import ConfigurationError
-from semeio.jobs.overburden_timeshift.ots import ots_load_params
 from pathlib import Path
 
+import pytest
+import yaml
+
+from semeio._exceptions.exceptions import ConfigurationError
+from semeio.jobs.overburden_timeshift.ots import ots_load_params
 
 TEST_NORNE_DIR = Path(__file__).parent / ".." / ".." / "test_data" / "norne"
 

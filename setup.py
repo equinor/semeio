@@ -1,6 +1,8 @@
-from setuptools import setup, find_packages
 from pathlib import Path
 
+from setuptools import find_packages, setup
+
+# pylint: disable=line-too-long
 setup(
     name="semeio",
     long_description=Path("README.md").read_text(),

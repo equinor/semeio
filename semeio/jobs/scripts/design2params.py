@@ -57,6 +57,7 @@ def create_parser():
         "--parametersfilename",
         "-p",
         required=False,
+        # pylint: disable=protected-access
         default=design2params._PARAMETERS_TXT,
         type=str,
     )

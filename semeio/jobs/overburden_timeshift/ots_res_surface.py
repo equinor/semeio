@@ -1,7 +1,8 @@
+# pylint: disable=invalid-name
 import numpy as np
 
 
-class OTSResSurface(object):
+class OTSResSurface:
     def __init__(self, grid, above=0):
         """
         Create a surface from a reservoir grid.
@@ -54,6 +55,7 @@ class OTSResSurface(object):
     def _calculate_surface(self, grid, above):
         # calculate average from top face vecrtices
         # from unstructured grid as an interface between active and inactive cells
+        # pylint: disable=too-many-locals
         nx = grid.getNX()
         ny = grid.getNY()
         nz = grid.getNZ()

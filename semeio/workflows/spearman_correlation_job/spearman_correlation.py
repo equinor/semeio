@@ -15,6 +15,8 @@ from semeio.workflows.spearman_correlation_job.job import spearman_job
 
 class SpearmanCorrelationJob(SemeioScript):
     def run(self, *args):
+        # pylint: disable=method-hidden
+        # (SemeioScript wraps this run method)
         facade = LibresFacade(self.ert())
 
         obs_keys = [
@@ -33,6 +35,7 @@ class SpearmanCorrelationJob(SemeioScript):
 
         if not args.dry_run:
             try:
+                # pylint: disable=not-callable
                 CorrelatedObservationsScalingJob(self.ert()).run(scaling_configs)
             except EmptyDatasetException:
                 pass

@@ -1,12 +1,14 @@
 import json
 import logging
 import os
-import pytest
 from threading import Thread
+from unittest.mock import Mock
+
+import pytest
 
 from semeio.communication import SEMEIOSCRIPT_LOG_FILE, SemeioScript
 
-from unittest.mock import Mock
+# pylint: disable=method-hidden
 
 
 def _ert_mock(ensemble_path="storage", user_case_name="case_name"):

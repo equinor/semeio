@@ -135,6 +135,7 @@ def test_create_observation_vectors(setup_ert):
         "CALCULATE_KEYS": {"keys": [{"key": "WPR_DIFF_1"}]},
         "UPDATE_KEYS": {"keys": [{"key": "WPR_DIFF_1"}]},
     }
+    # pylint: disable=protected-access
     config = configsuite.ConfigSuite(
         valid_config_data,
         job_config._CORRELATED_OBSERVATIONS_SCHEMA,
@@ -158,6 +159,7 @@ def test_add_observation_vectors(test_data_root):
 
     valid_config_data = {"UPDATE_KEYS": {"keys": [{"key": "WOPR_OP1_108"}]}}
 
+    # pylint: disable=protected-access
     schema = job_config._CORRELATED_OBSERVATIONS_SCHEMA
     config = configsuite.ConfigSuite(valid_config_data, schema, deduce_required=True)
 

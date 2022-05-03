@@ -1,9 +1,9 @@
-# -*- coding: utf-8 -*-
 import pytest
 
 from semeio.workflows.spearman_correlation_job import job as spearman
 
 
+# pylint: disable=protected-access
 @pytest.mark.parametrize(
     "test_input,expected_result",
     [

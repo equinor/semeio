@@ -1,11 +1,12 @@
 import json
 import os
-import pytest
 import shutil
 import subprocess
 import sys
-from semeio.communication import SEMEIOSCRIPT_LOG_FILE
 
+import pytest
+
+from semeio.communication import SEMEIOSCRIPT_LOG_FILE
 
 TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), "test-data")
 ERT_INSTALLED = shutil.which("ert") is not None

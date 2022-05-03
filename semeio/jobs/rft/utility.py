@@ -33,6 +33,7 @@ def load_and_parse_well_time_file(filename):
     [Tuple]
         Returns a list of tuples with (well, datetime, report_step)
     """
+    # pylint: disable=too-many-locals
 
     if not os.path.isfile(filename):
         raise argparse.ArgumentTypeError(f"The path {filename} does not exist")

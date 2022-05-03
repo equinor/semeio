@@ -8,7 +8,7 @@ from semeio.workflows.correlated_observations_scaling.exceptions import (
 )
 
 
-class DataMatrix(object):
+class DataMatrix:
     def __init__(self, input_data):
         """
         Takes input data in the form of a Pandas multi index dataframe with
@@ -91,6 +91,8 @@ class DataMatrix(object):
         """
         data_matrix = self.get_data_matrix()
         data_matrix = data_matrix - data_matrix.mean(axis=0)
-        _, s, _ = np.linalg.svd(data_matrix.astype(np.float), full_matrices=False)
-        variance_ratio = np.cumsum(s**2) / np.sum(s**2)
-        return len([1 for i in variance_ratio[:-1] if i < threshold]) + 1, s
+        _, singulars, _ = np.linalg.svd(
+            data_matrix.astype(np.float), full_matrices=False
+        )
+        variance_ratio = np.cumsum(singulars**2) / np.sum(singulars**2)
+        return len([1 for i in variance_ratio[:-1] if i < threshold]) + 1, singulars

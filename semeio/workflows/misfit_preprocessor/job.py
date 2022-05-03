@@ -14,6 +14,7 @@ def run(config, measured_data, reporter):
         elif workflow.clustering.type == "limited_kmeans":
             sconfig["n_clusters"] = nr_components
 
+    # pylint: disable=protected-access
     scaling_configs = spearman_job(
         measured_data,
         reporter,

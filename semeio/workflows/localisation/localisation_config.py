@@ -309,13 +309,11 @@ class CorrelationConfig(BaseModel):
             "from_file": ScalingFromFileConfig,
             "segment": ScalingForSegmentsConfig,
         }
-        if method in _valid_methods:
-            return _valid_methods[method](**value)
-        else:
-            valid_list = list(_valid_methods.keys())
+        if method not in _valid_methods:
             raise ValueError(
-                f"Unknown method: {method}, valid methods are: {valid_list}"
+                f"Unknown method: {method}, valid methods are: {_valid_methods.keys()}"
             )
+        return _valid_methods[method](**value)
 
     @validator("surface_scale", pre=True)
     def validate_surface_scale(cls, value):
@@ -346,13 +344,11 @@ class CorrelationConfig(BaseModel):
             "const_exponential_decay": ConstWithExponentialTaperingConfig,
         }
 
-        if method in _valid_methods:
-            return _valid_methods[method](**value)
-        else:
-            valid_list = list(_valid_methods.keys())
+        if method not in _valid_methods:
             raise ValueError(
-                f"Unknown method: {method}, valid methods are: {valid_list}"
+                f"Unknown method: {method}, valid methods are: {_valid_methods.keys()}"
             )
+        return _valid_methods[method](**value)
 
 
 class LocalisationConfig(BaseModel):

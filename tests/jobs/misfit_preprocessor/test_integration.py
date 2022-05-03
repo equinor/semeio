@@ -1,18 +1,18 @@
 # pylint: disable=not-callable
 import os
 import shutil
-import yaml
-import pytest
+from unittest.mock import MagicMock, Mock
 
+import pytest
+import yaml
 from res.enkf import EnKFMain, ResConfig
 
 import semeio
-from semeio.workflows.misfit_preprocessor import misfit_preprocessor
+from semeio.workflows.correlated_observations_scaling import cos
 from semeio.workflows.correlated_observations_scaling.exceptions import (
     EmptyDatasetException,
 )
-
-from unittest.mock import Mock
+from semeio.workflows.misfit_preprocessor import misfit_preprocessor
 
 
 @pytest.mark.usefixtures("setup_tmpdir")
@@ -224,8 +224,6 @@ def test_misfit_preprocessor_invalid_config(test_data_root):
 
 @pytest.mark.usefixtures("setup_tmpdir")
 def test_misfit_preprocessor_all_obs(test_data_root, monkeypatch):
-    from unittest.mock import MagicMock
-    from semeio.workflows.correlated_observations_scaling import cos
 
     test_data_dir = os.path.join(test_data_root, "snake_oil")
 

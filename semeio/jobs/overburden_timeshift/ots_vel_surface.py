@@ -1,3 +1,4 @@
+# pylint: disable=invalid-name
 import numpy as np
 
 from scipy.interpolate import CloughTocher2DInterpolator
@@ -6,7 +7,7 @@ import segyio
 from segyio import TraceField
 
 
-class OTSVelSurface(object):
+class OTSVelSurface:
     def __init__(self, res_surface, vcube):
         """
         Create a surface where the timeshift can be calculated.
@@ -32,6 +33,7 @@ class OTSVelSurface(object):
 
     @property
     def y(self):
+        # pylint: disable=invalid-name
         return self._y
 
     @property
@@ -143,7 +145,9 @@ class OTSVelSurface(object):
         return nn, ups
 
     def _upscale_velocity(self, res_corners, x_vel, y_vel, traces, nt, dt):
-        # resample to a new grid size based on the grid size
+        """resample to a new grid size based on the grid size"""
+        # pylint: disable=too-many-arguments,too-many-locals
+
         nxx, upsx = self._upscaling_size_stepping(res_corners[:, :, 0], 0, x_vel)
 
         nyy, upsy = self._upscaling_size_stepping(res_corners[:, :, 1], 1, y_vel)
@@ -173,9 +177,7 @@ class OTSVelSurface(object):
         """
         # downsample segy if segy resultion of CDP and
         # sample rate is higher than of the Eclgrid
-        x, y, traces, nt, self._dt = self._read_velocity(
-            vcube, res_surface.cell_corners
-        )
+        x, y, traces, _, self._dt = self._read_velocity(vcube, res_surface.cell_corners)
         # this is some clever integration of traces using
         # averaging between two samples?
         vel_t_int = np.zeros_like(traces)
@@ -185,11 +187,11 @@ class OTSVelSurface(object):
         self._z3d = np.cumsum(vel_t_int * self._dt / 2, 2).reshape(
             -1, vel_t_int.shape[-1]
         )
-        # this creates interploation functions over existing surface / grid
+        # this creates interpolation functions over existing surface / grid
         ip = CloughTocher2DInterpolator((res_surface.x, res_surface.y), res_surface.z)
         # interpolate over our vel field given by pos x and y
         z = ip(x, y)
-        # z gives a new depth for segy CDP pos given the grid inerface surface
+        # z gives a new depth for segy CDP pos given the grid interface surface
 
         # So far we have downsampled the segy file to correspond
         # with the resolution of the grid.

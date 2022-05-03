@@ -1,18 +1,19 @@
-import numpy as np
-from numpy import ma
 import itertools
-import pytest
+
 import cwrap
+import numpy as np
+import pytest
+from ecl.grid.ecl_grid_generator import EclGridGenerator
+from numpy import ma
 
 from semeio.workflows.localisation.local_script_lib import (
-    smooth_parameter,
-    calculate_scaling_factors_in_regions,
-    GaussianDecay,
-    ExponentialDecay,
-    ConstGaussianDecay,
     ConstExponentialDecay,
+    ConstGaussianDecay,
+    ExponentialDecay,
+    GaussianDecay,
+    calculate_scaling_factors_in_regions,
+    smooth_parameter,
 )
-from ecl.grid.ecl_grid_generator import EclGridGenerator
 
 
 def create_box_grid(
@@ -268,7 +269,7 @@ def test_calculate_scaling_factors_in_regions(snapshot):
     (
         scaling_factor_param,
         active_region_values_used_masked,
-        regions_in_param,
+        _,
     ) = calculate_scaling_factors_in_regions(
         grid,
         region_param_masked,
@@ -309,7 +310,7 @@ def test_smooth_parameter(snapshot):
 
 
 def test_decay_function_with_new_options(snapshot):
-    grid, nx, ny, nz = create_box_grid(
+    grid, _, _, _ = create_box_grid(
         nx=25,
         ny=25,
         nz=10,

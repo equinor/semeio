@@ -1,7 +1,5 @@
 import argparse
-
 from pathlib import Path
-
 
 description = """
 Performs inplace string replacement in a files.
@@ -50,4 +48,7 @@ def main_entry_point():
     parser = _get_args_parser()
     options = parser.parse_args()
     file = Path(options.file)
-    file.write_text(file.read_text().replace(options.original, options.new))
+    file.write_text(
+        file.read_text(encoding="utf-8").replace(options.original, options.new),
+        encoding="utf-8",
+    )

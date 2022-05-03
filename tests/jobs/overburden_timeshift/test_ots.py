@@ -1,14 +1,15 @@
-import os
-import pytest
 import datetime
+import os
 from collections import namedtuple
 
-from ecl.grid import EclGridGenerator
+import pytest
 import segyio
+from ecl.grid import EclGridGenerator
+from xtgeo import surface_from_file
 
 from semeio.jobs.overburden_timeshift.ots import OverburdenTimeshift
+
 from .ots_util import create_init, create_restart, create_segy_file
-from xtgeo import surface_from_file
 
 parms = namedtuple(
     "Parms",
@@ -65,7 +66,7 @@ def set_up():
 )
 @pytest.mark.usefixtures("setup_tmpdir")
 def test_create_missing_ecl_file(set_up, missing_file, expected_error):
-    spec, actnum, params = set_up
+    _, _, params = set_up
     grid = EclGridGenerator.createRectangular(dims=(10, 10, 10), dV=(1, 1, 1))
 
     grid.save_EGRID("TEST.EGRID")
@@ -88,7 +89,7 @@ def test_create_missing_ecl_file(set_up, missing_file, expected_error):
 
 
 def test_create_invalid_input_missing_segy(set_up):
-    spec, actnum, parms = set_up
+    _, _, parms = set_up
 
     grid = EclGridGenerator.createRectangular(dims=(10, 10, 10), dV=(1, 1, 1))
     grid.save_EGRID("TEST.EGRID")
@@ -117,7 +118,7 @@ def test_create_invalid_input_missing_segy(set_up):
 )
 @pytest.mark.usefixtures("setup_tmpdir")
 def test_create_valid(set_up, config_item, value):
-    spec, actnum, params = set_up
+    spec, _, params = set_up
     grid = EclGridGenerator.createRectangular(dims=(10, 10, 10), dV=(1, 1, 1))
 
     grid.save_EGRID("TEST.EGRID")
@@ -348,7 +349,7 @@ def test_geertsma_TS(set_up):
 
 @pytest.mark.usefixtures("setup_tmpdir")
 def test_dPV(set_up):
-    spec, actnum, parms = set_up
+    _, actnum, parms = set_up
     grid = EclGridGenerator.createRectangular(
         dims=(2, 2, 2), dV=(100, 100, 100), actnum=actnum
     )
@@ -426,6 +427,7 @@ def test_irap_surface(set_up):
     )
 
     f_name = "irap.txt"
+    # pylint: disable=protected-access
     s = ots._create_surface()
     s.to_file(f_name)
     s = surface_from_file(f_name, fformat="irap_binary")

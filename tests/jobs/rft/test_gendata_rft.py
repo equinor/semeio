@@ -10,6 +10,7 @@ import numpy
 import pandas as pd
 import pytest
 
+import semeio.jobs
 from semeio.jobs.scripts.gendata_rft import _build_parser, main_entry_point
 from tests.jobs.rft import conftest
 
@@ -182,7 +183,7 @@ def test_gendata_rft_entry_point(tmpdir, norne_data, monkeypatch):
         if not filename.endswith("inactive_info"):
             result_file = os.path.join(tmpdir.strpath, filename)
 
-            conftest._assert_almost_equal_line_by_line(expected_file, result_file)
+            _assert_almost_equal_line_by_line(expected_file, result_file)
 
 
 def test_multiple_report_steps(tmpdir, reek_data, monkeypatch):
@@ -454,7 +455,6 @@ def test_defaults():
     To avoid confusion, these should be in sync, enforced by this test"""
 
     # Navigate to the JOB_DESCRIPTION in the source code tree:
-    import semeio.jobs
 
     job_description_file = os.path.join(
         os.path.dirname(semeio.jobs.__file__), "config_jobs", "GENDATA_RFT_CONFIG"
@@ -518,6 +518,7 @@ def test_ert_setup_one_well_one_rft_point(tmpdir):
     Path("parameter_prior").write_text("PARAM_1 UNIFORM 0 1\n")
     Path("parameter_template").write_text('{\n"a": <PARAM_1>\n}')
     # Write an ERT config file
+    # pylint: disable=line-too-long
     Path("config.ert").write_text(
         """
 RUNPATH realization-%d/iter-%d
@@ -624,6 +625,7 @@ def test_ert_setup_one_well_two_points_different_time_and_depth(tmpdir):
     Path("parameter_template").write_text('{\n"a": <PARAM_1>\n}')
 
     # Write an ERT config file
+    # pylint: disable=line-too-long
     Path("config.ert").write_text(
         dedent(
             """
@@ -679,3 +681,20 @@ def test_ert_setup_one_well_two_points_different_time_and_depth(tmpdir):
     assert Path("realization-0/iter-0/gendata_rft/RFT_OP_1_1").is_file()
 
     assert Path("realization-0/iter-0/OK").is_file()
+
+
+def _assert_almost_equal_line_by_line(file1, file2):
+    with open(file1, encoding="utf-8") as fh:
+        file1_content = fh.readlines()
+
+    with open(file2, encoding="utf-8") as fh:
+        file2_content = fh.readlines()
+
+    assert len(file1_content) == len(file2_content)
+
+    for line1, line2 in zip(file1_content, file2_content):
+        try:
+            line1, line2 = float(line1), float(line2)
+        except ValueError:
+            continue
+        numpy.testing.assert_almost_equal(line1, line2, decimal=7)

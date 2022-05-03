@@ -202,8 +202,8 @@ def main_entry_point():
             csvfile=options.csvfile,
             outputdirectory=options.outputdirectory,
         )
-        with open("GENDATA_RFT.OK", "w") as fh:
-            fh.write("GENDATA RFT completed OK")
+        with open("GENDATA_RFT.OK", "w", encoding="utf-8") as file_handle:
+            file_handle.write("GENDATA RFT completed OK")
         logger.info("Completed!")
     except ValueError as exception:
         logger.error(str(exception))

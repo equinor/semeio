@@ -20,14 +20,15 @@ def _get_jobs_from_directory(directory):
         for f in os.listdir(resource_directory)
         if os.path.isfile(os.path.join(resource_directory, f))
     ]
-    # libres will look for an executable in the same folder as the job configuration
-    # file is located. If the name of the config is the same as the name of the executable,
-    # libres will be confused. The usual standard in ERT would be to capitalize the config
-    # file. On OSX systems, which are case-insensitive, this isn't viable. The job config
-    # files are therefore appended with "_CONFIG".
-    # The jobs will be installed as JOB_NAME JOB_NAME_CONFIG, and the JOB_NAME_CONFIG will
-    # point to an executable named job_name - which we install with entry-points. The user
-    # can use the forward model job as normal:
+    # libres will look for an executable in the same folder as the job
+    # configuration file is located. If the name of the config is the same as
+    # the name of the executable, libres will be confused. The usual standard in
+    # ERT would be to capitalize the config file. On OSX systems, which are
+    # case-insensitive, this isn't viable. The job config files are therefore
+    # appended with "_CONFIG".  The jobs will be installed as JOB_NAME
+    # JOB_NAME_CONFIG, and the JOB_NAME_CONFIG will point to an executable named
+    # job_name - which we install with entry-points. The user can use the
+    # forward model job as normal:
     # SIMULATION_JOB JOB_NAME
     return {
         _remove_suffix(os.path.basename(path), "_CONFIG"): path for path in all_files
@@ -62,18 +63,16 @@ def job_documentation(job_name):
         insert = verb == "insert"
         return {
             "description": (
-                "{} NOSIM {} the ECLIPSE data file. "  # pylint: disable=consider-using-f-string
-                "This will {} simulation in ECLIPSE. NB: the job does not currently work on osx systems"
-            ).format(
-                verb.capitalize(),
-                "into" if insert else "from",
-                "disable" if insert else "enable",
+                f"{verb.capitalize()} NOSIM "
+                f"{'into' if insert else 'from'} the ECLIPSE data file. "
+                f"This will {'disable' if insert else 'enable'} simulation in ECLIPSE. "
+                "NB: the job does not currently work on osx systems"
             ),
             "examples": "",
             "category": "utility.eclipse",
         }
 
-    if job_name == "STEA" or job_name == "PYSCAL":
+    if job_name in ["STEA", "PYSCAL"]:
         module_name = f"semeio.jobs.scripts.fm_{job_name.lower()}"
     elif job_name == "OTS":
         module_name = "semeio.jobs.scripts.overburden_timeshift"

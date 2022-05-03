@@ -1,9 +1,12 @@
+import json
 import os
 import shutil
-import json
+from unittest.mock import MagicMock
+
 import numpy as np
 import pytest
 import yaml
+from ert_shared.plugins.plugin_manager import ErtPluginManager
 from res.enkf import EnKFMain, ResConfig
 
 from semeio.workflows.correlated_observations_scaling import cos
@@ -11,8 +14,6 @@ from semeio.workflows.correlated_observations_scaling.cos import (
     CorrelatedObservationsScalingJob,
 )
 from tests.jobs.conftest import TEST_DATA_DIR
-from ert_shared.plugins.plugin_manager import ErtPluginManager
-from unittest.mock import MagicMock
 
 
 def get_std_from_obs_vector(vector):

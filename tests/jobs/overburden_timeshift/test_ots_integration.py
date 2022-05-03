@@ -1,10 +1,13 @@
-from semeio.jobs.overburden_timeshift.ots import ots_run
-import xtgeo
-from ecl.grid import EclGrid
-import pytest
-from .ots_util import mock_segy
-import yaml
 import os
+
+import pytest
+import xtgeo
+import yaml
+from ecl.grid import EclGrid
+
+from semeio.jobs.overburden_timeshift.ots import ots_run
+
+from .ots_util import mock_segy
 
 
 # pylint: disable=too-many-statements

@@ -1,6 +1,7 @@
-from semeio.workflows.localisation.local_config_script import DESCRIPTION, EXAMPLES
-import rstcheck
 import pytest
+import rstcheck
+
+from semeio.workflows.localisation.local_config_script import DESCRIPTION, EXAMPLES
 
 
 @pytest.mark.parametrize("rst_text", [DESCRIPTION, EXAMPLES])
