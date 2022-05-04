@@ -260,8 +260,12 @@ def test_ert_integration_errors(norne_mocked_ensembleset, snapshot):
         file_h.write("\n".join(ert_config))
 
     subprocess.run(["ert", "test_run", ert_config_fname], check=True)
-
-    with open("ert-log.txt") as fin:
+    log_file = "ert-log"
+    for file in os.listdir():
+        if file.startswith(log_file):
+            log_file = file
+            break
+    with open(log_file) as fin:
         ertlog = fin.read()
     assert "fmu.ensemble.realization - WARNING - No STATUS file" in ertlog
     assert "realization-2/iter-0" in ertlog
