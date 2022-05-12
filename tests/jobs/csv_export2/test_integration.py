@@ -267,7 +267,7 @@ def test_ert_integration_errors(norne_mocked_ensembleset, snapshot):
             break
     with open(log_file) as fin:
         ertlog = fin.read()
-    assert "fmu.ensemble.realization - WARNING - No STATUS file" in ertlog
+    assert "No STATUS file" in ertlog
     assert "realization-2/iter-0" in ertlog
 
     assert os.path.exists("data.csv")
