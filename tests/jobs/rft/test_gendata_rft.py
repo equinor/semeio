@@ -474,10 +474,12 @@ def test_defaults():
 
 @pytest.mark.ert_integration
 def test_ert_setup_one_well_one_rft_point(tmpdir):
-    """Test a simple ERT integration of GENDATA_RFT with one RFT point at one time instant.
+    """Test a simple ERT integration of GENDATA_RFT with one RFT point at one
+    time instant.
 
-    This test should confirm that the GENDATA_RFT + GEN_DATA works together, and acts
-    as a reference for documentation
+    This test should confirm that the GENDATA_RFT + GEN_DATA works together, and
+    acts as a reference for documentation. This tests intentionally fails the
+    ERT update step.
     """
     tmpdir.chdir()
     Path("realization-0/iter-0").mkdir(parents=True)
@@ -554,8 +556,10 @@ GEN_DATA OP_1_RFT_SIM1 INPUT_FORMAT:ASCII REPORT_STEPS:1 RESULT_FILE:RFT_OP_1_%d
     assert "Failed load data for GEN_DATA node" not in stdouterr
     assert "gen_obs_assert_data_size: size mismatch" not in stdouterr
 
-    # This is probably an 'ok' from the smoother, as there are no parameters involved:
-    assert "Deactivating: OP_1_OBS1(0) : No ensemble variation" in stdouterr
+    # The purpose of the test is to demonstrate and run through the GEN_DATA
+    # forward model without errors, but it will fail in the update step as this
+    # test is not constructed for that:
+    assert "Simulations failed" in stdouterr
 
     # Asserts on GENDATA_RFT output:
     assert Path("realization-0/iter-0/RFT_OP_1_1").is_file()
@@ -565,11 +569,12 @@ GEN_DATA OP_1_RFT_SIM1 INPUT_FORMAT:ASCII REPORT_STEPS:1 RESULT_FILE:RFT_OP_1_%d
 
 @pytest.mark.ert_integration
 def test_ert_setup_one_well_two_points_different_time_and_depth(tmpdir):
-    """Test a simple ERT integration of GENDATA_RFT with one RFT point at one time
-    instant and another RFT point at another time and another depth.
+    """Test a simple ERT integration of GENDATA_RFT with one RFT point at one
+    time instant and another RFT point at another time and another depth.
 
-    This test should confirm that the GENDATA_RFT + GEN_DATA works together, and acts
-    as a reference for documentation.
+    This test should confirm that the GENDATA_RFT + GEN_DATA works together, and
+    acts as a reference for documentation. This tests intentionally fails the
+    ERT update step.
 
     Also using a dedicated directory for RUNPATH output of rft data.
     """
@@ -656,8 +661,10 @@ GEN_DATA OP_1_RFT_SIM2 INPUT_FORMAT:ASCII REPORT_STEPS:2 RESULT_FILE:gendata_rft
     assert "Failed load data for GEN_DATA node" not in stdouterr
     assert "gen_obs_assert_data_size: size mismatch" not in stdouterr
 
-    # This is probably an 'ok' from the smoother, as there are no parameters involved:
-    assert "Deactivating: OP_1_OBS1(0) : No ensemble variation" in stdouterr
+    # The purpose of the test is to demonstrate and run through the GEN_DATA
+    # forward model without errors, but it will fail in the update step as this
+    # test is not constructed for that:
+    assert "Simulations failed" in stdouterr
 
     # Asserts on GENDATA_RFT output:
     assert Path("realization-0/iter-0/gendata_rft/RFT_OP_1_1").is_file()
