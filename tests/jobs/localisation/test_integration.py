@@ -265,7 +265,7 @@ def test_localisation(setup_ert, obs_group_add, param_group_add, expected):
 
 
 def test_localisation_gen_kw(setup_ert):
-    ert = EnKFMain(setup_ert, verbose=True)
+    ert = EnKFMain(setup_ert)
     config_dict = {
         "log_level": 4,
         "max_gen_obs_size": 1000,
@@ -345,7 +345,7 @@ def test_localisation_gen_param_and_gen_obs_expanded(
     In this case the GEN_OBS node is expanded and the user specify
     obs like POLY_OBS:index
     """
-    ert = EnKFMain(setup_poly_gen_param_ert, verbose=True)
+    ert = EnKFMain(setup_poly_gen_param_ert)
     fs = ert.getEnkfFsManager().getFileSystem("default_smoother_update")
     ert.getEnkfFsManager().switchFileSystem(fs)
     config_dict = {
@@ -374,7 +374,7 @@ def test_localisation_gen_param_and_gen_obs_not_expanded1(
     max_gen_obs_size < number of obs in the GEN_OBS node.
     """
 
-    ert = EnKFMain(setup_poly_gen_param_ert, verbose=True)
+    ert = EnKFMain(setup_poly_gen_param_ert)
     fs = ert.getEnkfFsManager().getFileSystem("default_smoother_update")
     ert.getEnkfFsManager().switchFileSystem(fs)
     config_dict = {
