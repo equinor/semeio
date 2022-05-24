@@ -10,9 +10,6 @@ class LocalisationConfigJob(SemeioScript):
     def run(self, *args):
         ert = self.ert()
         facade = LibresFacade(self.ert())
-        # Clear all correlations
-        local.clear_correlations(ert)
-
         # Read yml file with specifications
         config_dict = local.read_localisation_config(args)
 
@@ -30,13 +27,13 @@ class LocalisationConfigJob(SemeioScript):
             **config_dict,
         )
 
-        local.add_ministeps(
+        update_configuration = local.add_ministeps(
             config,
             ert_parameters.to_dict(),
-            ert.getLocalConfig(),
             ert.ensembleConfig(),
             ert.eclConfig().getGrid(),
         )
+        ert.update_configuration = update_configuration
 
 
 DESCRIPTION = """

@@ -20,7 +20,7 @@ import itertools
         ),
     ],
 )
-def test_localisation(setup_ert, obs_group_add, param_group_add, expected):
+def test_localisation(setup_ert, obs_group_add, param_group_add, expected, snapshot):
     ert = EnKFMain(setup_ert)
     config = {
         "log_level": 4,
@@ -52,42 +52,9 @@ def test_localisation(setup_ert, obs_group_add, param_group_add, expected):
     with open("local_config.yaml", "w", encoding="utf-8") as fout:
         yaml.dump(config, fout)
     LocalisationConfigJob(ert).run("local_config.yaml")
-    assert ert.getLocalConfig().getMinistep("CORR1").name() == "CORR1"
-    assert (
-        ert.getLocalConfig().getObsdata("CORR1_obs_group").name() == "CORR1_obs_group"
+    snapshot.assert_match(
+        str(ert.update_configuration.dict()), "localisation_configuration"
     )
-    result = {}
-    for index, ministep in enumerate(ert.getLocalConfig().getUpdatestep()):
-        result[ministep.name()] = {
-            "obs": [obs_node.key() for obs_node in ministep.getLocalObsData()],
-            "key": ministep.name() + "_param_group",
-        }
-    expected_result = {
-        "CORR1": {
-            "obs": [
-                "WOPR_OP1_108",
-                "WOPR_OP1_144",
-                "WOPR_OP1_36",
-                "WOPR_OP1_72",
-                "WOPR_OP1_9",
-                "WPR_DIFF_1",
-            ],
-            "key": "CORR1_param_group",
-        },
-        "CORR2": {
-            "obs": [
-                "WOPR_OP1_108",
-                "WOPR_OP1_144",
-                "WOPR_OP1_36",
-                "WOPR_OP1_72",
-                "WOPR_OP1_9",
-                "WPR_DIFF_1",
-            ],
-            "key": "CORR2_param_group",
-        },
-        "CORR3": {"obs": ["FOPR", "WOPR_OP1_190"], "key": "CORR3_param_group"},
-    }
-    assert result == expected_result
 
 
 # This test does not work properly since it is run before initial ensemble is

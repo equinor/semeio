@@ -288,24 +288,12 @@ class AhmAnalysisJob(SemeioScript):  # pylint: disable=too-few-public-methods
 def _run_ministep(
     ert, obs_group, data_parameters, prior_name, target_name, output_path
 ):
-    local_config = ert.getLocalConfig()
-    # Reset internal local config structure, in order to make your own
-    local_config.clear()
-
-    # A ministep is used to link betwen data and observations.
-    # Make more ministeps to condition different groups together
-    ministep = local_config.createMinistep("MINISTEP")
-    # Add all dataset to localize
-    for data in data_parameters:
-        ministep.addActiveData(data)
-    # Add all obs to be used in this updating scheme
-    obsdata = local_config.createObsdata("OBS")
-    for obs in obs_group:
-        obsdata.addNode(obs)
-    # Attach the obsset to the ministep
-    ministep.attachObsset(obsdata)
-    # Then attach the ministep to the update step
-    local_config.getUpdatestep().attachMinistep(ministep)
+    update_step = {
+        "name": "MINISTEP",
+        "observations": obs_group,
+        "parameters": data_parameters,
+    }
+    ert.update_configuration = [update_step]
 
     # Perform update analysis
     ert.analysisConfig().set_log_path(output_path)
