@@ -4,6 +4,7 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
+from textwrap import dedent
 
 import numpy
 import pandas as pd
@@ -514,6 +515,8 @@ def test_ert_setup_one_well_one_rft_point(tmpdir):
     # one date for start-date, and one date for every report_step in use.
     Path("time_map.txt").write_text("2000-01-01\n2000-02-01")
 
+    Path("parameter_prior").write_text("PARAM_1 UNIFORM 0 1\n")
+    Path("parameter_template").write_text('{\n"a": <PARAM_1>\n}')
     # Write an ERT config file
     Path("config.ert").write_text(
         """
@@ -525,7 +528,7 @@ NUM_REALIZATIONS 1
 OBS_CONFIG observations.txt
 
 FORWARD_MODEL GENDATA_RFT(<PATH_TO_TRAJECTORY_FILES>=../../rft_input, <WELL_AND_TIME_FILE>=../../rft_input/well_time.txt)
-
+GEN_KW PARAMS parameter_template parameters.json parameter_prior
 GEN_DATA OP_1_RFT_SIM1 INPUT_FORMAT:ASCII REPORT_STEPS:1 RESULT_FILE:RFT_OP_1_%d
 """  # noqa
     )
@@ -617,22 +620,28 @@ def test_ert_setup_one_well_two_points_different_time_and_depth(tmpdir):
     # one date for start-date, and one date for every report_step in use.
     Path("time_map.txt").write_text("2000-01-01\n2000-02-01\n2001-01-01")
 
+    Path("parameter_prior").write_text("PARAM_1 UNIFORM 0 1\n")
+    Path("parameter_template").write_text('{\n"a": <PARAM_1>\n}')
+
     # Write an ERT config file
     Path("config.ert").write_text(
-        """
-RUNPATH realization-%d/iter-%d
-ECLBASE 2_R001_REEK-%d
-TIME_MAP time_map.txt
-QUEUE_SYSTEM LOCAL
-NUM_REALIZATIONS 1
-OBS_CONFIG observations.txt
+        dedent(
+            """
+    RUNPATH realization-%d/iter-%d
+    ECLBASE 2_R001_REEK-%d
+    TIME_MAP time_map.txt
+    QUEUE_SYSTEM LOCAL
+    NUM_REALIZATIONS 1
+    OBS_CONFIG observations.txt
 
-FORWARD_MODEL MAKE_DIRECTORY(<DIRECTORY>=gendata_rft)
-FORWARD_MODEL GENDATA_RFT(<PATH_TO_TRAJECTORY_FILES>=../../rft_input, <WELL_AND_TIME_FILE>=../../rft_input/well_time.txt, <OUTPUTDIRECTORY>=gendata_rft)
+    FORWARD_MODEL MAKE_DIRECTORY(<DIRECTORY>=gendata_rft)
+    FORWARD_MODEL GENDATA_RFT(<PATH_TO_TRAJECTORY_FILES>=../../rft_input, <WELL_AND_TIME_FILE>=../../rft_input/well_time.txt, <OUTPUTDIRECTORY>=gendata_rft)
 
-GEN_DATA OP_1_RFT_SIM1 INPUT_FORMAT:ASCII REPORT_STEPS:1 RESULT_FILE:gendata_rft/RFT_OP_1_%d
-GEN_DATA OP_1_RFT_SIM2 INPUT_FORMAT:ASCII REPORT_STEPS:2 RESULT_FILE:gendata_rft/RFT_OP_1_%d
-"""  # noqa
+    GEN_DATA OP_1_RFT_SIM1 INPUT_FORMAT:ASCII REPORT_STEPS:1 RESULT_FILE:gendata_rft/RFT_OP_1_%d
+    GEN_DATA OP_1_RFT_SIM2 INPUT_FORMAT:ASCII REPORT_STEPS:2 RESULT_FILE:gendata_rft/RFT_OP_1_%d
+    GEN_KW PARAMS parameter_template parameters.json parameter_prior
+    """  # noqa
+        )
     )
 
     # pylint: disable=subprocess-run-check
