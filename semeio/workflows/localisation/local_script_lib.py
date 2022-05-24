@@ -15,6 +15,7 @@ from ecl.util.geometry import Surface
 from ecl.eclfile import Ecl3DKW
 from ecl.ecl_type import EclDataType
 from ecl.grid.ecl_grid import EclGrid
+from res.enkf.row_scaling import RowScaling
 from res.enkf.enums.ert_impl_type_enum import ErtImplType
 from res.enkf.enums.enkf_var_type_enum import EnkfVarType
 
@@ -170,15 +171,15 @@ def active_index_for_parameter(node_name, param_name, ert_param_dict):
 
 
 def activate_gen_kw_param(
-    model_param_group, node_name, param_list, ert_param_dict, log_level=LogLevel.OFF
+    node_name, param_list, ert_param_dict, log_level=LogLevel.OFF
 ):
     """
     Activate the selected parameters for the specified node.
     The param_list contains the list of parameters defined in GEN_KW
     for this node to be activated.
     """
-    active_param_list = model_param_group.getActiveList(node_name)
     debug_print("Set active parameters", LogLevel.LEVEL2, log_level)
+    index_list = []
     for param_name in param_list:
         index = active_index_for_parameter(node_name, param_name, ert_param_dict)
         if index is not None:
@@ -187,19 +188,18 @@ def activate_gen_kw_param(
                 LogLevel.LEVEL3,
                 log_level,
             )
-            active_param_list.addActiveIndex(index)
+            index_list.append(index)
+    return index_list
 
 
-def activate_gen_param(
-    model_param_group, node_name, param_list, data_size, log_level=LogLevel.OFF
-):
+def activate_gen_param(node_name, param_list, data_size, log_level=LogLevel.OFF):
     """
     Activate the selected parameters for the specified node.
     The param_list contains a list of names that are integer numbers
     for the parameter indices to be activated for parameters belonging
     to the specified GEN_PARAM node.
     """
-    active_param_list = model_param_group.getActiveList(node_name)
+    index_list = []
     for param_name in param_list:
         index = int(param_name)
         if index < 0 or index >= data_size:
@@ -208,7 +208,8 @@ def activate_gen_param(
                 f"outside the interval [0,{data_size-1}]"
             )
         debug_print(f"Active parameter index: {index}", LogLevel.LEVEL3, log_level)
-        active_param_list.addActiveIndex(index)
+        index_list.append(index)
+    return index_list
 
 
 def apply_decay(
@@ -562,7 +563,6 @@ def read_region_files_for_all_correlation_groups(user_config, grid):
 def add_ministeps(
     user_config,
     ert_param_dict,
-    ert_local_config,
     ert_ensemble_config,
     grid_for_field,
 ):
@@ -577,18 +577,14 @@ def add_ministeps(
     region_param_dict = read_region_files_for_all_correlation_groups(
         user_config, grid_for_field
     )
-
+    update_steps = []
     for count, corr_spec in enumerate(user_config.correlations):
-        ministep_name = corr_spec.name
-        ministep = ert_local_config.createMinistep(ministep_name)
         debug_print(
-            f"Define ministep: {ministep_name}", LogLevel.LEVEL1, user_config.log_level
+            f"Define ministep: {corr_spec.name}", LogLevel.LEVEL1, user_config.log_level
         )
-
-        param_group_name = ministep_name + "_param_group"
-        obs_group_name = ministep_name + "_obs_group"
-        obs_group = ert_local_config.createObsdata(obs_group_name)
-
+        ministep_name = corr_spec.name
+        update_step = defaultdict(list)
+        update_step["name"] = corr_spec.name
         obs_list = corr_spec.obs_group.result_items
         param_dict = Parameters.from_list(corr_spec.param_group.result_items).to_dict()
 
@@ -602,15 +598,14 @@ def add_ministeps(
                 LogLevel.LEVEL2,
                 user_config.log_level,
             )
-            ministep.addActiveData(node_name)
             if impl_type == ErtImplType.GEN_KW:
-                activate_gen_kw_param(
-                    ministep,
+                index_list = activate_gen_kw_param(
                     node_name,
                     param_list,
                     ert_param_dict,
                     user_config.log_level,
                 )
+                update_step["parameters"].append([node_name, index_list])
             elif impl_type == ErtImplType.FIELD:
                 assert grid_for_field is not None
                 _decay_methods_group1 = ["gaussian_decay", "exponential_decay"]
@@ -627,7 +622,7 @@ def add_ministeps(
                         user_config.log_level,
                     )
                     field_config = node.getFieldModelConfig()
-                    row_scaling = ministep.row_scaling(node_name)
+                    row_scaling = RowScaling()
                     data_size = grid_for_field.get_num_active()
                     data_size2 = field_config.get_data_size()
                     assert data_size == data_size2
@@ -698,6 +693,9 @@ def add_ministeps(
                             param_for_field,
                             user_config.log_level,
                         )
+                    update_step["row_scaling_parameters"].append(
+                        [node_name, row_scaling]
+                    )
                 else:
                     debug_print(
                         f"No correlation scaling for node {node_name} "
@@ -709,13 +707,13 @@ def add_ministeps(
                 gen_data_config = node.getDataModelConfig()
                 data_size = gen_data_config.get_initial_size()
                 if data_size > 0:
-                    activate_gen_param(
-                        ministep,
+                    index_list = activate_gen_param(
                         node_name,
                         param_list,
                         data_size,
                         user_config.log_level,
                     )
+                    update_step["parameters"].append([node_name, index_list])
                 else:
                     debug_print(
                         f"Parameter {node_name} has data size: {data_size} "
@@ -748,7 +746,7 @@ def add_ministeps(
 
                     surface = Surface(surface_file)
                     data_size = surface.getNX() * surface.getNY()
-                    row_scaling = ministep.row_scaling(node_name)
+                    row_scaling = RowScaling()
                     if corr_spec.surface_scale.method in _decay_methods_surf_all:
                         ref_pos = corr_spec.surface_scale.ref_point
                         main_range = corr_spec.surface_scale.main_range
@@ -772,6 +770,9 @@ def add_ministeps(
                             use_cutoff,
                             tapering_range,
                         )
+                    update_step["row_scaling_parameters"].append(
+                        [node_name, row_scaling]
+                    )
                 else:
                     debug_print(
                         f"No correlation scaling for node {node_name} "
@@ -781,37 +782,10 @@ def add_ministeps(
                     )
 
         # Setup observation group
-        for obs_name in obs_list:
-            debug_print(
-                f"Add obs node: {obs_name}", LogLevel.LEVEL2, user_config.log_level
-            )
-            obs_group.addNode(obs_name)
+        update_step["observations"] = obs_list
+        update_steps.append(update_step)
 
-        # Setup ministep
-        debug_print(
-            f"Attach {param_group_name} to ministep {ministep_name}",
-            LogLevel.LEVEL1,
-            user_config.log_level,
-        )
-
-        debug_print(
-            f"Attach {obs_group_name} to ministep {ministep_name}",
-            LogLevel.LEVEL1,
-            user_config.log_level,
-        )
-        ministep.attachObsset(obs_group)
-
-        debug_print(
-            f"Add {ministep_name} to update step\n",
-            LogLevel.LEVEL1,
-            user_config.log_level,
-        )
-        ert_local_config.getUpdatestep().attachMinistep(ministep)
-
-
-def clear_correlations(ert):
-    local_config = ert.getLocalConfig()
-    local_config.clear()
+    return update_steps
 
 
 def check_if_ref_point_in_grid(ref_point, grid):
