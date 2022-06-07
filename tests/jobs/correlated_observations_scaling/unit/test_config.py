@@ -32,7 +32,7 @@ def test_to_int_list(valid_input):
     "test_input,expected_result", [(-1, False), (0, True), (1, True)]
 )
 def test_min_value(test_input, expected_result):
-    assert _min_value(test_input).__bool__() == expected_result
+    assert bool(_min_value(test_input)) == expected_result
 
 
 def test_expand_input_no_modification():
