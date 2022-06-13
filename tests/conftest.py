@@ -45,7 +45,7 @@ def pytest_addoption(parser):
 
 def pytest_collection_modifyitems(config, items):
     if config.getoption("--ert_integration"):
-        # Do not skip tests when --plot is supplied on pytest command line
+        # Do not skip tests when --ert_integration is supplied on pytest command line
         return
     skip_ert_integration = pytest.mark.skip(
         reason="need --ert_integration option to run"

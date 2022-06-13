@@ -13,7 +13,6 @@ warnings.filterwarnings("default", category=DeprecationWarning, module="semeio")
 
 # Filenames created/modified by this script.
 # Don't change unless you understand the consequences.
-_TARGET_FILE_TXT = "DESIGN2PARAMS.OK"
 _DESIGN_MATRIX_TXT = "designmatrix.txt"
 _DESIGN_PARAMETERS_TXT = "designparameters.txt"
 _PARAMETERS_TXT = "parameters.txt"
@@ -176,10 +175,6 @@ def _complete_parameters_file(
         header=False,
         index=False,
     )
-
-    # if all ok - write the ok file
-    with open(_TARGET_FILE_TXT, "w", encoding="utf-8") as target_file:
-        target_file.write("OK\n")
 
 
 def _read_excel(file_name, sheet_name, header=0, usecols=None, engine=None):
