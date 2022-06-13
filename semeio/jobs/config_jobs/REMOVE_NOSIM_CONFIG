@@ -1,8 +1,6 @@
 STDERR    remove_nosim.stderr
 STDOUT    remove_nosim.stdout
 
-TARGET_FILE <ECLBASE>.DATA
-
 EXECUTABLE sed
 
 ARGLIST   -i /^NOSIM/d <ECLBASE>.DATA

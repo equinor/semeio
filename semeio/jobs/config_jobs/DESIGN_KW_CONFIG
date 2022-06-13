@@ -1,8 +1,6 @@
 STDERR DESIGN_KW.stderr
 STDOUT DESIGN_KW.stdout
 
-TARGET_FILE DESIGN_KW.OK
-
 EXECUTABLE design_kw
 ARGLIST      <template_file> <result_file>
 

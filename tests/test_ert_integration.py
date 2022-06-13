@@ -20,6 +20,29 @@ FORWARD_MODEL {}({})
 """
 
 
+@pytest.mark.script_launch_mode("subprocess")
+@pytest.mark.parametrize(
+    "entry_point, options",
+    [
+        ("overburden_timeshift", "-c config.ots"),
+        ("design2params", "not_int"),
+        ("design_kw", "no_template"),
+        ("gendata_rft", "--eclbase not_ecl"),
+        ("fm_pyscal", "not_file"),
+        ("semeio_stea", "--config not_a_file"),
+    ],
+)
+def test_console_scripts_exit_code(script_runner, entry_point, options):
+    """Verify that console scripts return with non-zero exit codes for selected
+    configurations.
+
+    This nonzero returncode should in the subsequent test also force ERT to
+    fail when the same script is called as a FORWARD_MODEL, without relying on
+    ERTs TARGET_FILE mechanism for determining failure.
+    """
+    assert script_runner.run(entry_point, "").returncode != 0
+
+
 @pytest.mark.parametrize(
     "forward_model, configuration, expected_error",
     [
@@ -35,17 +58,28 @@ FORWARD_MODEL {}({})
         ("STEA", "<CONFIG>=not_a_file", "not_a_file is not an existing file!"),
     ],
 )
-def test_console_script_integration(
+def test_forward_model_error_propagation(
     setup_tmpdir, forward_model, configuration, expected_error
 ):
+    """Assert that hard errors in forward models are also
+    hard errors for ERT.
+
+    An expected error message from the forward model is asserted
+    captured in a specific stderr file.
+    """
+
     config = default_config.format(forward_model, configuration)
     with open("config.ert", "w", encoding="utf-8") as fh:
         fh.write(config)
 
-    with ErtPluginContext(
-        plugins=[semeio.hook_implementations.jobs, ert_shared.hook_implementations]
+    with pytest.raises(
+        subprocess.CalledProcessError,
+        match=r"Command.*ert.*returned non-zero exit status",
     ):
-        subprocess.run(["ert", "test_run", "config.ert", "--verbose"], check=False)
+        with ErtPluginContext(
+            plugins=[semeio.hook_implementations.jobs, ert_shared.hook_implementations]
+        ):
+            subprocess.run(["ert", "test_run", "config.ert", "--verbose"], check=True)
     with open(
         f"simulations/realization0/{forward_model}.stderr.0", encoding="utf-8"
     ) as fin:

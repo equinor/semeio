@@ -1,8 +1,6 @@
 STDERR DESIGN2PARAMS.stderr
 STDOUT DESIGN2PARAMS.stdout
 
-TARGET_FILE DESIGN2PARAMS.OK
-
 EXECUTABLE design2params
 ARGLIST      <IENS> <xls_filename> <designsheet> <defaultssheet>
 

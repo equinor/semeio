@@ -46,10 +46,6 @@ def test_run(test_file, expected_file):
 
     assert filecmp.cmp(test_file, expected_file)
 
-    with open(design2params._TARGET_FILE_TXT, "r", encoding="utf-8") as status_file:
-        status = status_file.read()
-        assert status == "OK\n"
-
 
 @pytest.mark.usefixtures("input_data")
 @pytest.mark.parametrize(
@@ -71,10 +67,6 @@ def test_run_with_no_parameters_txt(test_file, expected_file):
     )
 
     assert filecmp.cmp(test_file, expected_file)
-
-    with open(design2params._TARGET_FILE_TXT, "r", encoding="utf-8") as status_file:
-        status = status_file.read()
-        assert status == "OK\n"
 
 
 @pytest.mark.usefixtures("input_data")
@@ -98,10 +90,6 @@ def test_run_with_default(test_file, expected_file):
 
     assert filecmp.cmp(test_file, expected_file)
 
-    with open(design2params._TARGET_FILE_TXT, "r", encoding="utf-8") as status_file:
-        status = status_file.read()
-        assert status == "OK\n"
-
 
 @pytest.mark.usefixtures("input_data")
 @pytest.mark.parametrize(
@@ -124,24 +112,16 @@ def test_run_with_spaces_in_cells(test_file, expected_file):
 
     assert filecmp.cmp(test_file, expected_file)
 
-    with open(design2params._TARGET_FILE_TXT, "r", encoding="utf-8") as status_file:
-        status = status_file.read()
-        assert status == "OK\n"
-
 
 @pytest.mark.usefixtures("input_data")
 @pytest.mark.parametrize("realization_id", [(0), (1), (15), (24)])
-def test_runs_different_reals_all_ok(realization_id):
+def test_runs_different_reals_no_raise(realization_id):
     design2params.run(
         realization_id,
         "design_matrix_tampered_defaults.xlsx",
         parametersfilename=design2params._PARAMETERS_TXT,
         log_level=logging.DEBUG,
     )
-
-    with open(design2params._TARGET_FILE_TXT, "r", encoding="utf-8") as status_file:
-        status = status_file.read()
-        assert status == "OK\n"
 
 
 def test_empty_defaults(tmpdir):
