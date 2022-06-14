@@ -133,10 +133,10 @@ class OTSVelSurface:
         # defined by CDP_X and CDP_Y
         nn = np.ceil(
             np.mean(np.max(vel_axis, axis) - np.min(vel_axis, axis)) / size
-        ).astype(np.int)
+        ).astype(int)
 
         n = vel_axis.shape[axis]
-        ups = np.floor((n - 1) / nn).astype(np.int)
+        ups = np.floor((n - 1) / nn).astype(int)
         # always only upscaling
         if ups < 1:
             ups = 1

@@ -13,7 +13,7 @@ from ert_shared.libres_facade import LibresFacade
 from ert_shared.plugins.plugin_manager import hook_implementation
 from res.enkf import EnkfNode, ErtImplType, ErtRunContext, ESUpdate
 from res.enkf.export import GenKwCollector, MisfitCollector
-from scipy.stats.stats import ks_2samp
+from scipy.stats import ks_2samp
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from xtgeo.grid3d import GridProperty

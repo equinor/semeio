@@ -194,7 +194,7 @@ def load_yaml(job_configuration):
 
 
 def _insert_default_group(value):
-    if isinstance(value, collections.Mapping):
+    if isinstance(value, collections.abc.Mapping):
         return [value]
     return value
 
