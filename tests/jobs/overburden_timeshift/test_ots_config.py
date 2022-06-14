@@ -19,9 +19,8 @@ def ecl_files(tmpdir):
 @pytest.mark.parametrize("vintages_export_file", ["ts.txt", None])
 @pytest.mark.parametrize("horizon", ["horizon.irap", None])
 @pytest.mark.parametrize("velocity_model", ["norne_vol.segy", None])
-def test_valid_config(
-    tmpdir, monkeypatch, velocity_model, horizon, vintages_export_file, ecl_files
-):
+@pytest.mark.usefixtures("ecl_files")
+def test_valid_config(tmpdir, velocity_model, horizon, vintages_export_file):
     conf = {
         "eclbase": "NORNE_ATW2013",
         "above": 100,
@@ -57,7 +56,8 @@ def test_valid_config(
         ["UNRST", "Eclbase must have a UNRST file"],
     ],
 )
-def test_eclbase_config(tmpdir, monkeypatch, ecl_files, extension, error_msg):
+@pytest.mark.usefixtures("ecl_files")
+def test_eclbase_config(tmpdir, extension, error_msg):
     conf = {
         "eclbase": "NORNE_ATW2013",
         "above": 100,
@@ -103,7 +103,8 @@ def test_eclbase_config(tmpdir, monkeypatch, ecl_files, extension, error_msg):
         "ijxyz",
     ],
 )
-def test_valid_file_format(tmpdir, ecl_files, file_format):
+@pytest.mark.usefixtures("ecl_files")
+def test_valid_file_format(tmpdir, file_format):
     conf = {
         "eclbase": "NORNE_ATW2013",
         "above": 100,
@@ -126,7 +127,8 @@ def test_valid_file_format(tmpdir, ecl_files, file_format):
         ots_load_params("ots_config.yml")
 
 
-def test_invalid_file_format(tmpdir, ecl_files):
+@pytest.mark.usefixtures("ecl_files")
+def test_invalid_file_format(tmpdir):
     conf = {
         "eclbase": "NORNE_ATW2013",
         "above": 100,

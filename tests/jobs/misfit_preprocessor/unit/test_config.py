@@ -254,18 +254,16 @@ def test_valid_observations(
 
 
 @pytest.mark.parametrize(
-    "observation_filter, observation_keys, expected_obs, expected_error",
+    "observation_filter, observation_keys, expected_error",
     [
         (
             ("secret_obs",),
             ("my_obs", "other_obs"),
-            (),
             "Found no match for observation secret_obs",
         ),
         (
             ("*1", "*2", "*5"),
             ("a1", "a2", "a3", "aa1", "aa2", "aa3"),
-            ("a1", "a2", "aa1", "aa2"),
             r"Found no match for observation \*5",
         ),
     ],
@@ -273,7 +271,6 @@ def test_valid_observations(
 def test_invalid_observations(
     observation_filter,
     observation_keys,
-    expected_obs,
     expected_error,
 ):
     config_data = {"observations": observation_filter}

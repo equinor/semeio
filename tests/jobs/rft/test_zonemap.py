@@ -55,7 +55,8 @@ zone1 2
     tmpdir.join("invalid_format_missing_zone.txt").write(invalid_data)
 
 
-def test_load_data(initdir):
+@pytest.mark.usefixtures("initdir")
+def test_load_data():
 
     for fname in [
         "valid_zonemap.txt",
@@ -71,7 +72,8 @@ def test_load_data(initdir):
         assert not zone_map.has_relationship("zone1", 2)
 
 
-def test_invalid_load(initdir):
+@pytest.mark.usefixtures("initdir")
+def test_invalid_load():
     errors = [
         "k values cannot be 0, must start at 1",
         "k must be integer, was zone1",

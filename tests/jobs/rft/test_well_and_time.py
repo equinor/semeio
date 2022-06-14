@@ -33,7 +33,8 @@ WELL-NAME1 day month year 1
     tmpdir.join("incorrect_date_format.txt").write(incorrect_date_format)
 
 
-def test_load(initdir):
+@pytest.mark.usefixtures("initdir")
+def test_load():
     expected_results = [
         ("WELL-NAME1", datetime.date(2000, 1, 1), 2),
         ("WELL-NAME2", datetime.date(2001, 3, 2), 3),
@@ -52,7 +53,8 @@ def test_load(initdir):
             assert report == exp_report
 
 
-def test_invalid_load(initdir):
+@pytest.mark.usefixtures("initdir")
+def test_invalid_load():
     errors = [
         "Unexpected number of tokens: expected 5 got 2",
         "Unable to convert incorrect_report_step to int",

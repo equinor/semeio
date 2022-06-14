@@ -29,7 +29,7 @@ NORNE_VECS = ["FGPT", "FLPT", "FOPT", "FVPT", "FWPT"]
     conftest.find_available_test_data() is None, reason="no ert-statoil test-data"
 )
 @pytest.mark.usefixtures("ert_statoil_test_data")
-def test_failed_realization_no_summary_file(ert_statoil_test_data):
+def test_failed_realization_no_summary_file():
     path_file = "pathfile_path_to_failed_realizations.txt"
     export_file = "export.txt"
     csv_export2.csv_exporter(
@@ -49,7 +49,7 @@ def test_failed_realization_no_summary_file(ert_statoil_test_data):
     conftest.find_available_test_data() is None, reason="no ert-statoil test-data"
 )
 @pytest.mark.usefixtures("ert_statoil_test_data")
-def test_one_iteration(ert_statoil_test_data):
+def test_one_iteration():
     path_file = "pathfile.txt"
     export_file = "export.txt"
     csv_export2.csv_exporter(
@@ -67,7 +67,7 @@ def test_one_iteration(ert_statoil_test_data):
     conftest.find_available_test_data() is None, reason="no ert-statoil test-data"
 )
 @pytest.mark.usefixtures("ert_statoil_test_data")
-def test_missing_realization(ert_statoil_test_data):
+def test_missing_realization():
     path_file = "pathfile2.txt"
     export_file = "export.txt"
     csv_export2.csv_exporter(
@@ -83,7 +83,7 @@ def test_missing_realization(ert_statoil_test_data):
     conftest.find_available_test_data() is None, reason="no ert-statoil test-data"
 )
 @pytest.mark.usefixtures("ert_statoil_test_data")
-def test_iterations(ert_statoil_test_data):
+def test_iterations():
     path_file = "pathfile3.txt"
     export_file = "export.txt"
     csv_export2.csv_exporter(
@@ -110,7 +110,7 @@ def test_iterations(ert_statoil_test_data):
     conftest.find_available_test_data() is None, reason="no ert-statoil test-data"
 )
 @pytest.mark.usefixtures("ert_statoil_test_data")
-def test_no_iterations(ert_statoil_test_data):
+def test_no_iterations():
     path_file = "pathfile1.txt"
     export_file = "export.txt"
 
@@ -133,7 +133,7 @@ def test_valid_rst(input_rst):
 
 
 @pytest.mark.usefixtures("norne_mocked_ensembleset")
-def test_norne_ensemble(norne_mocked_ensembleset):
+def test_norne_ensemble():
     csv_export2.csv_exporter(
         runpathfile="runpathfile",
         time_index="yearly",
@@ -153,7 +153,7 @@ def test_norne_ensemble(norne_mocked_ensembleset):
 
 
 @pytest.mark.usefixtures("norne_mocked_ensembleset_noparams")
-def test_norne_ensemble_noparams(norne_mocked_ensembleset_noparams):
+def test_norne_ensemble_noparams():
     csv_export2.csv_exporter(
         runpathfile="runpathfile",
         time_index="yearly",
@@ -193,7 +193,8 @@ def verifyExportedFile(exported_file_name, result_header, result_iter_rel):
 
 
 @pytest.mark.ert_integration
-def test_ert_integration(norne_mocked_ensembleset):
+@pytest.mark.usefixtures("norne_mocked_ensembleset")
+def test_ert_integration():
     """Mock an ERT config and test the workflow"""
     with open("FOO.DATA", "w", encoding="utf-8") as file_h:
         file_h.write("--Empty")
@@ -231,7 +232,8 @@ def test_ert_integration(norne_mocked_ensembleset):
 
 
 @pytest.mark.ert_integration
-def test_ert_integration_errors(norne_mocked_ensembleset, snapshot):
+@pytest.mark.usefixtures("norne_mocked_ensembleset")
+def test_ert_integration_errors(snapshot):
     """Test CSV_EXPORT2 when runpathfile points to non-existing realizations
 
     This test proves that CSV_EXPORT2 happily skips non-existing

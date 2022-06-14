@@ -25,6 +25,7 @@ from .ots_util import mock_segy
 def test_ots_config_run_parameters(
     ots_tmpdir_enter, res_scale, size_scale, pos_shift, results, surf_res
 ):
+    # pylint: disable=too-many-arguments,too-many-locals
     eclcase_dir = ots_tmpdir_enter
     grid_file = os.path.join(eclcase_dir, "NORNE_ATW2013.EGRID")
     grid = EclGrid(grid_file, apply_mapaxes=True)

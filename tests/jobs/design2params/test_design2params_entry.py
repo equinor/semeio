@@ -30,7 +30,8 @@ _log_level = "DEBUG"
 _default_log_level = "WARNING"
 
 
-def test_argparse(input_data):
+@pytest.mark.usefixtures("input_data")
+def test_argparse():
     args = [str(_realization), _xls, _sheet, _default_sheet]
     parser = design2params.create_parser()
     res = parser.parse_args(args)
@@ -41,7 +42,8 @@ def test_argparse(input_data):
     assert res.defaultssheetname == _default_sheet
 
 
-def test_argparse_no_default(input_data):
+@pytest.mark.usefixtures("input_data")
+def test_argparse_no_default():
     args = [str(_realization), _xls, _sheet]
     parser = design2params.create_parser()
     res = parser.parse_args(args)
@@ -52,7 +54,8 @@ def test_argparse_no_default(input_data):
     assert res.defaultssheetname is None
 
 
-def test_argparse_with_optionals(input_data):
+@pytest.mark.usefixtures("input_data")
+def test_argparse_with_optionals():
     args = [
         str(_realization),
         _xls,
@@ -79,7 +82,8 @@ def test_argparse_xls_file_not_exists(monkeypatch):
         design2params.main_entry_point()
 
 
-def test_argparse_parameters_file_not_exists(input_data):
+@pytest.mark.usefixtures("input_data")
+def test_argparse_parameters_file_not_exists():
     not_existing_parameters_txt = "not_a_file.txt"
 
     args = [
@@ -100,7 +104,8 @@ def test_argparse_parameters_file_not_exists(input_data):
     assert res.log_level == logging.getLevelName(_default_log_level)
 
 
-def test_argparse_design_sheet_missing(input_data, monkeypatch):
+@pytest.mark.usefixtures("input_data")
+def test_argparse_design_sheet_missing(monkeypatch):
     monkeypatch.setattr(sys, "argv", ["path", str(_realization), _xls])
     with pytest.raises(SystemExit):
         design2params.main_entry_point()

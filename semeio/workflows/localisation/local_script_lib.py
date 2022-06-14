@@ -227,6 +227,7 @@ def apply_decay(
     tapering_range=None,
     calculate_qc_parameter=False,
 ):
+    # pylint: disable=too-many-arguments,too-many-locals
     """Calculates the scaling factor, assign it to ERT instance by row_scaling
     and returns a full sized grid parameter with scaling factors for active
     grid cells and 0 elsewhere to be used for QC purpose.
@@ -300,6 +301,7 @@ def apply_decay(
 
 
 def apply_from_file(row_scaling, data_size, grid, filename, param_name, log_level):
+    # pylint: disable=too-many-arguments
     debug_print(
         f"Read scaling factors as parameter {param_name}", LogLevel.LEVEL3, log_level
     )
@@ -348,7 +350,7 @@ def define_look_up_index(user_defined_active_region_list, max_region_number):
 def calculate_scaling_factors_in_regions(
     grid, region_parameter, active_segment_list, scaling_value_list, smooth_range_list
 ):
-    # pylint: disable=unused-argument
+    # pylint: disable=unused-argument,too-many-locals
     # ('grid' and 'smooth-range-list' are not currently used)
 
     min_region_number = region_parameter.min()
@@ -399,6 +401,7 @@ def smooth_parameter(
     active region and e.g 0 for all inactive regions and for inactive grid cells,
     then the smoothing will only appear on the border between active regions.
     """
+    # pylint: disable=too-many-locals
     nx = grid.get_nx()
     ny = grid.get_ny()
     nz = grid.get_nz()
@@ -439,6 +442,7 @@ def apply_segment(
     corr_name,
     log_level=LogLevel.OFF,
 ):
+    # pylint: disable=too-many-arguments,too-many-locals
     """
     Purpose: Use region numbers and list of scaling factors per region to
                    create scaling factors per active .
@@ -571,9 +575,9 @@ def add_ministeps(
     ert_ensemble_config,
     grid_for_field,
 ):
-    # pylint: disable-msg=too-many-branches
-    # pylint: disable-msg=too-many-statements
-    # pylint: disable-msg=too-many-nested-blocks
+    # pylint: disable=too-many-branches,too-many-statements
+    # pylint: disable=too-many-nested-blocks,too-many-locals
+
     debug_print("Add all ministeps:", LogLevel.LEVEL1, user_config.log_level)
     ScalingValues.initialize()
     # Read all region files used in correlation groups,
@@ -905,7 +909,7 @@ class ConstExponentialDecay(Decay):
 
 
 class ScalingValues:
-    # pylint: disable=R0903
+    # pylint: disable=too-few-public-methods
     scaling_param_number = 1
     corr_name = None
 
@@ -924,6 +928,7 @@ class ScalingValues:
         param_for_field,
         log_level=LogLevel.OFF,
     ):
+        # pylint: disable=too-many-arguments
         if param_for_field is None or field_scale is None:
             return
 

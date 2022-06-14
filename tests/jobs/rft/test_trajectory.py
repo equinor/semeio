@@ -96,7 +96,8 @@ def initdir(tmpdir):
 @pytest.mark.parametrize(
     "fname", ["valid_trajectories.txt", "valid_trajectories_with_comments.txt"]
 )
-def test_load(initdir, fname):
+@pytest.mark.usefixtures("initdir")
+def test_load(fname):
     expected_utmxs = [0, 4]
     trajectory = Trajectory.load_from_file(fname)
 
@@ -109,7 +110,8 @@ def test_load(initdir, fname):
 @pytest.mark.parametrize(
     "fname", ["valid_trajectories.txt", "valid_trajectories_with_comments.txt"]
 )
-def test_dframe_trajectory(initdir, fname):
+@pytest.mark.usefixtures("initdir")
+def test_dframe_trajectory(fname):
     """Test dataframe representation of a trajectory not having
     any attached Eclipse simulation results"""
     dframe = Trajectory.load_from_file(fname).to_dataframe()

@@ -25,6 +25,7 @@ def test_ahmanalysis_run(test_data_root):
     res_config.convertToCReference(None)
     ert = EnKFMain(res_config)
 
+    # pylint: disable=not-callable
     ahmanalysis.AhmAnalysisJob(ert).run(prior_name="default_0")
 
     # assert that this returns/generates a KS csv file
@@ -82,6 +83,7 @@ def test_ahmanalysis_run_field(test_data_root, grid_prop):
     res_config.convertToCReference(None)
     ert = EnKFMain(res_config)
 
+    # pylint: disable=not-callable
     ahmanalysis.AhmAnalysisJob(ert).run(prior_name="default")
 
     # assert that this returns/generates the delta field parameter
@@ -121,4 +123,5 @@ def test_no_prior(test_data_root):
     expected_msg = "Empty prior ensemble"
     # check that it fails
     with pytest.raises(ValidationError, match=expected_msg):
+        # pylint: disable=not-callable
         ahmanalysis.AhmAnalysisJob(ert).run(prior_name="default")

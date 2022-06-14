@@ -93,6 +93,7 @@ def csv_exporter(runpathfile, time_index, outputfile, column_keys=None):
 
 class CsvExport2Job(ErtScript):  # pylint: disable=too-few-public-methods
     def run(self, *args):
+        # pylint: disable=no-self-use
         main(args)
 
 
