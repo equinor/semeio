@@ -54,19 +54,11 @@ confidence=
 # --disable=W"
 disable=
     duplicate-code,
-    import-outside-toplevel,
     invalid-name,
-    logging-format-interpolation,
     missing-class-docstring,
     missing-function-docstring,
     missing-module-docstring,
-    no-member,
-    no-self-use,
-    not-callable,
     redefined-outer-name,
-    too-many-arguments,
-    too-many-locals,
-    unused-argument,
     unspecified-encoding
 #
 # Enable the message, report, category or checker with the given id(s). You can

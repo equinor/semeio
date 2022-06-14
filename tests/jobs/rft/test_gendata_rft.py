@@ -20,7 +20,8 @@ MOCK_DATA_CONTENT_NORNE = conftest.get_mock_data_content_norne()
 EXPECTED_RESULTS_PATH_NORNE = conftest.get_expected_results_path_norne()
 
 
-def test_gendata_rft_csv(tmpdir, norne_data, monkeypatch):
+@pytest.mark.usefixtures("norne_data")
+def test_gendata_rft_csv(tmpdir, monkeypatch):
     csv_filename = "gendata_rft.csv"
     arguments = [
         "script_name",
@@ -71,7 +72,8 @@ def test_gendata_rft_csv(tmpdir, norne_data, monkeypatch):
     assert (~dframe[~dframe["is_active"]]["inactive_info"].isnull()).all()
 
 
-def test_gendata_rft_csv_reek(tmpdir, reek_data, monkeypatch):
+@pytest.mark.usefixtures("reek_data")
+def test_gendata_rft_csv_reek(tmpdir, monkeypatch):
     csv_filename = "gendata_rft.csv"
     arguments = [
         "script_name",
@@ -99,7 +101,8 @@ def test_gendata_rft_csv_reek(tmpdir, reek_data, monkeypatch):
     assert dframe["k"].values[0] == 8
 
 
-def test_gendata_rft_directory(tmpdir, norne_data, monkeypatch):
+@pytest.mark.usefixtures("norne_data")
+def test_gendata_rft_directory(tmpdir, monkeypatch):
     outputdirectory = "rft_output_dir"
     tmpdir.mkdir(outputdirectory)
     arguments = [
@@ -125,9 +128,8 @@ def test_gendata_rft_directory(tmpdir, norne_data, monkeypatch):
     assert os.path.exists("csvfile.csv")  # Should be independent of --outputdirectory
 
 
-def test_gendata_rft_entry_point_wrong_well_file(
-    tmpdir, norne_data, monkeypatch, capsys
-):
+@pytest.mark.usefixtures("norne_data")
+def test_gendata_rft_entry_point_wrong_well_file(tmpdir, monkeypatch):
 
     arguments = [
         "script_name",
@@ -147,7 +149,8 @@ def test_gendata_rft_entry_point_wrong_well_file(
         main_entry_point()
 
 
-def test_gendata_rft_entry_point(tmpdir, norne_data, monkeypatch):
+@pytest.mark.usefixtures("norne_data")
+def test_gendata_rft_entry_point(tmpdir, monkeypatch):
 
     arguments = [
         "script_name",
@@ -186,7 +189,8 @@ def test_gendata_rft_entry_point(tmpdir, norne_data, monkeypatch):
             _assert_almost_equal_line_by_line(expected_file, result_file)
 
 
-def test_multiple_report_steps(tmpdir, reek_data, monkeypatch):
+@pytest.mark.usefixtures("reek_data")
+def test_multiple_report_steps(tmpdir, monkeypatch):
     with open("well_and_time.txt", "w+", encoding="utf-8") as fh:
         fh.write("OP_1 1 2 2000 0\n")
         fh.write("OP_1 1 1 2001 1\n")
@@ -222,7 +226,8 @@ def test_multiple_report_steps(tmpdir, reek_data, monkeypatch):
     )
 
 
-def test_gendata_inactive_info_point_not_in_grid(tmpdir, norne_data, monkeypatch):
+@pytest.mark.usefixtures("norne_data")
+def test_gendata_inactive_info_point_not_in_grid(tmpdir, monkeypatch):
 
     with open("B-1AH.txt", "a+", encoding="utf-8") as fh:
         fh.write("0 1 2 3\n")
@@ -251,7 +256,8 @@ def test_gendata_inactive_info_point_not_in_grid(tmpdir, norne_data, monkeypatch
         )
 
 
-def test_gendata_inactive_info_zone_mismatch(tmpdir, norne_data, monkeypatch):
+@pytest.mark.usefixtures("norne_data")
+def test_gendata_inactive_info_zone_mismatch(tmpdir, monkeypatch):
 
     with open("well_and_time.txt", "w+", encoding="utf-8") as fh:
         fh.write("B-1AH 1 12 2005 0\n")
@@ -284,7 +290,8 @@ def test_gendata_inactive_info_zone_mismatch(tmpdir, norne_data, monkeypatch):
         assert result.startswith("ZONE_MISMATCH (utm_x=")
 
 
-def test_gendata_inactive_info_not_in_rft(tmpdir, norne_data, monkeypatch):
+@pytest.mark.usefixtures("norne_data")
+def test_gendata_inactive_info_not_in_rft(tmpdir, monkeypatch):
 
     with open("well_and_time.txt", "w+", encoding="utf-8") as fh:
         fh.write("B-1AH 1 12 2005 0\n")
@@ -317,7 +324,8 @@ def test_gendata_inactive_info_not_in_rft(tmpdir, norne_data, monkeypatch):
         assert result.startswith("TRAJECTORY_POINT_NOT_IN_RFT (utm_x=")
 
 
-def test_gendata_inactive_info_zone_missing_value(tmpdir, norne_data, monkeypatch):
+@pytest.mark.usefixtures("norne_data")
+def test_gendata_inactive_info_zone_missing_value(tmpdir, monkeypatch):
 
     with open("well_and_time.txt", "w+", encoding="utf-8") as fh:
         fh.write("B-1AH 1 12 2005 0\n")
@@ -344,7 +352,8 @@ def test_gendata_inactive_info_zone_missing_value(tmpdir, norne_data, monkeypatc
         assert result.startswith("ZONEMAP_MISSING_VALUE (utm_x=")
 
 
-def test_partial_rft_file(tmpdir, norne_data, monkeypatch, caplog):
+@pytest.mark.usefixtures("norne_data")
+def test_partial_rft_file(tmpdir, monkeypatch, caplog):
     """Test how the code behaves when some report steps are missing, e.g.
     a Eclipse simulation that has crashed midway.
 
@@ -384,7 +393,8 @@ def test_partial_rft_file(tmpdir, norne_data, monkeypatch, caplog):
     assert not os.path.exists("GENDATA_RFT.OK")
 
 
-def test_one_wrong_date(tmpdir, norne_data, monkeypatch, caplog):
+@pytest.mark.usefixtures("norne_data")
+def test_one_wrong_date(tmpdir, monkeypatch, caplog):
     with open("well_wrongtime.txt", "w", encoding="utf-8") as file_h:
         file_h.write("B-1AH 1 12 2045 0")
 
@@ -412,7 +422,8 @@ def test_one_wrong_date(tmpdir, norne_data, monkeypatch, caplog):
     assert not os.path.exists("GENDATA_RFT.OK")
 
 
-def test_empty_well_and_time(tmpdir, norne_data, monkeypatch, caplog):
+@pytest.mark.usefixtures("norne_data")
+def test_empty_well_and_time(tmpdir, monkeypatch, caplog):
     def file_count_cwd():
         return len(list(os.walk("."))[0][2])
 

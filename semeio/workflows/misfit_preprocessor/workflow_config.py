@@ -60,6 +60,7 @@ class MisfitConfig(BaseMisfitPreprocessorConfig):
 
     @validator("workflow", pre=True)
     def validate_workflow(cls, value):
+        # pylint: disable=no-self-use
         """
         To improve the user feedback we explicitly check if the type of workflow
         is configured, and if it is, we bypass the Union. If it has not been given

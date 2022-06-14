@@ -42,7 +42,7 @@ class SpearmanCorrelationJob(SemeioScript):
 
 
 def spearman_job_parser():
-    description = """
+    description = """R
     A module that calculates the Spearman correlation in simulated data
     and clusters
     """

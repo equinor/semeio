@@ -41,6 +41,7 @@ class BaseFclusterConfig(BaseMisfitPreprocessorConfig):
 
     @validator("depth", pre=True)
     def constrained_int(cls, depth):
+        # pylint: disable=no-self-use
         if isinstance(depth, float):
             raise ValueError("Depth must be int")
         return depth
@@ -55,6 +56,7 @@ class FclusterConfig(BaseFclusterConfig):
 
     @root_validator(pre=True)
     def validate_threshold(cls, values):
+        # pylint: disable=no-self-use
         criterion = values.get("criterion")
         threshold = values.get("threshold")
         if criterion in ("maxclust", "maxclust_monocrit") and "threshold" not in values:
@@ -68,6 +70,7 @@ class FclusterConfig(BaseFclusterConfig):
 
     @validator("threshold")
     def t_larger_than_zero(cls, threshold):
+        # pylint: disable=no-self-use
         if threshold <= 0:
             raise ValueError(f"threshold must be larger than zero, is {threshold}")
         return threshold

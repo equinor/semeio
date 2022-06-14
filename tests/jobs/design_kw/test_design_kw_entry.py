@@ -27,7 +27,8 @@ _log_level = "DEBUG"
 _default_log_level = "WARNING"
 
 
-def test_argparse(input_data):
+@pytest.mark.usefixtures("input_data")
+def test_argparse():
     args = [_templatefile, _resultfile]
     parser = design_kw.create_parser()
     res = parser.parse_args(args)
@@ -38,7 +39,8 @@ def test_argparse(input_data):
     assert res.log_level == logging.getLevelName(_default_log_level)
 
 
-def test_argparse_with_logging(input_data):
+@pytest.mark.usefixtures("input_data")
+def test_argparse_with_logging():
     args = [_templatefile, _resultfile, "--log-level", _log_level]
     parser = design_kw.create_parser()
     res = parser.parse_args(args)
@@ -56,7 +58,8 @@ def test_argparse_file_not_exists(monkeypatch):
         design_kw.main_entry_point()
 
 
-def test_argparse_result_file_missing(input_data, monkeypatch):
+@pytest.mark.usefixtures("input_data")
+def test_argparse_result_file_missing(monkeypatch):
     monkeypatch.setattr(sys, "argv", ["script_name", _templatefile])
     with pytest.raises(SystemExit):
         design_kw.main_entry_point()

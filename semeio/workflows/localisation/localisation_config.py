@@ -1,4 +1,4 @@
-# pylint: disable=E0213
+# pylint: disable=no-self-argument
 import itertools
 import pathlib
 
@@ -54,7 +54,7 @@ def check_for_duplicated_correlation_specifications(correlations):
 
 
 class BaseModel(PydanticBaseModel):
-    # pylint: disable=R0903
+    # pylint: disable=too-few-public-methods
     class Config:
         extra = Extra.forbid
 
@@ -79,18 +79,21 @@ class ObsConfig(BaseModel):
 
     @validator("add")
     def validate_add(cls, add):
+        # pylint: disable=no-self-use
         if isinstance(add, str):
             add = [add]
         return add
 
     @validator("remove")
     def validate_remove(cls, remove):
+        # pylint: disable=no-self-use
         if isinstance(remove, str):
             remove = [remove]
         return remove
 
     @validator("result_items", always=True)
     def expanded_items(cls, _, values):
+        # pylint: disable=no-self-use
         add, remove = values["add"], values.get("remove", None)
         result = _check_specification(add, remove, values["context"])
         if len(result) == 0:
@@ -220,6 +223,7 @@ class ScalingForSegmentsConfig(BaseModel):
 
     @validator("scalingfactors")
     def check_length_consistency(cls, v, values):
+        # pylint: disable=no-self-use
         # Ensure that active segment list and scaling factor lists are of equal length.
         scalingfactors = v
         active_segment_list = values.get("active_segments", None)
@@ -285,12 +289,14 @@ class CorrelationConfig(BaseModel):
 
     @root_validator(pre=True)
     def inject_context(cls, values: Dict) -> Dict:
+        # pylint: disable=no-self-use
         values["obs_group"]["context"] = values["obs_context"]
         values["param_group"]["context"] = values["params_context"]
         return values
 
     @validator("field_scale", pre=True)
     def validate_field_scale(cls, value):
+        # pylint: disable=no-self-use
         """
         To improve the user feedback we explicitly check
         which method is configured and bypass the Union
@@ -316,6 +322,7 @@ class CorrelationConfig(BaseModel):
 
     @validator("surface_scale", pre=True)
     def validate_surface_scale(cls, value):
+        # pylint: disable=no-self-use
         """
         To improve the user feedback we explicitly check
         which method is configured and bypass the Union
@@ -372,12 +379,14 @@ class LocalisationConfig(BaseModel):
 
     @validator("log_level")
     def validate_log_level(cls, level):
+        # pylint: disable=no-self-use
         if not isinstance(level, int):
             level = LogLevel.OFF
         return level
 
     @root_validator(pre=True)
     def inject_context(cls, values: Dict) -> Dict:
+        # pylint: disable=no-self-use
         for correlation in values["correlations"]:
             correlation["obs_context"] = values["observations"]
             correlation["params_context"] = values["parameters"]
@@ -385,6 +394,7 @@ class LocalisationConfig(BaseModel):
 
     @validator("correlations")
     def validate_correlations(cls, correlations):
+        # pylint: disable=no-self-use
         duplicates = check_for_duplicated_correlation_specifications(correlations)
         if len(duplicates) > 0:
             error_msgs = "\n".join(duplicates)
