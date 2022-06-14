@@ -126,7 +126,7 @@ def _flatten(input_dict, result_dict=None):
     if result_dict is None:
         result_dict = {}
     for key, value in input_dict.items():
-        if isinstance(value, collections.MutableMapping):
+        if isinstance(value, collections.abc.MutableMapping):
             _flatten(value, result_dict=result_dict)
         else:
             if key in result_dict:
