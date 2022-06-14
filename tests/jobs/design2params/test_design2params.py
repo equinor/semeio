@@ -1,20 +1,20 @@
 import filecmp
 import logging
 import os
-from distutils.dir_util import copy_tree
+import shutil
 
 import pandas as pd
 import pytest
 
+from semeio._exceptions.exceptions import ValidationError
 from semeio.jobs.design2params import design2params
 from semeio.jobs.design_kw.design_kw import extract_key_value
-from semeio._exceptions.exceptions import ValidationError
 
 
 @pytest.fixture
 def input_data(tmpdir):
     data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
-    copy_tree(data_dir, tmpdir.strpath)
+    shutil.copytree(data_dir, tmpdir.strpath, dirs_exist_ok=True)
 
     cwd = os.getcwd()
     tmpdir.chdir()

@@ -1,6 +1,6 @@
 import logging
 import os
-from distutils.dir_util import copy_tree
+import shutil
 
 import pytest
 
@@ -10,7 +10,7 @@ from semeio.jobs.design_kw import design_kw
 @pytest.fixture
 def input_data(tmpdir):
     data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
-    copy_tree(data_dir, tmpdir.strpath)
+    shutil.copytree(data_dir, tmpdir.strpath, dirs_exist_ok=True)
 
     cwd = os.getcwd()
     tmpdir.chdir()

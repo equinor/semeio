@@ -1,21 +1,16 @@
-from typing import Union, List, Optional
+from typing import List, Literal, Optional, Union
 
-try:
-    from typing import Literal
-except ImportError:
-    from typing_extensions import Literal
-from pydantic import confloat, validator, BaseModel, Field
+from pydantic import BaseModel, Field, confloat, validator
 
 from semeio.workflows.misfit_preprocessor.hierarchical_config import (
+    BaseMisfitPreprocessorConfig,
     HierarchicalConfig,
     LimitedHierarchicalConfig,
-    BaseMisfitPreprocessorConfig,
 )
 from semeio.workflows.misfit_preprocessor.kmeans_config import (
     KmeansClustering,
     LimitedKmeansClustering,
 )
-
 
 #  pylint: disable=too-few-public-methods,no-self-argument
 
