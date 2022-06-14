@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # pylint: disable=too-many-statements,consider-using-f-string
+# pylint: disable=too-many-arguments,unused-argument
 from datetime import datetime
 
 from ecl.summary import EclSum

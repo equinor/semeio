@@ -40,7 +40,7 @@ def test_console_scripts_exit_code(script_runner, entry_point, options):
     fail when the same script is called as a FORWARD_MODEL, without relying on
     ERTs TARGET_FILE mechanism for determining failure.
     """
-    assert script_runner.run(entry_point, "").returncode != 0
+    assert script_runner.run(entry_point, options).returncode != 0
 
 
 @pytest.mark.parametrize(
@@ -58,16 +58,14 @@ def test_console_scripts_exit_code(script_runner, entry_point, options):
         ("STEA", "<CONFIG>=not_a_file", "not_a_file is not an existing file!"),
     ],
 )
-def test_forward_model_error_propagation(
-    setup_tmpdir, forward_model, configuration, expected_error
-):
+@pytest.mark.usefixtures("setup_tmpdir")
+def test_forward_model_error_propagation(forward_model, configuration, expected_error):
     """Assert that hard errors in forward models are also
     hard errors for ERT.
 
     An expected error message from the forward model is asserted
     captured in a specific stderr file.
     """
-
     config = default_config.format(forward_model, configuration)
     with open("config.ert", "w", encoding="utf-8") as fh:
         fh.write(config)

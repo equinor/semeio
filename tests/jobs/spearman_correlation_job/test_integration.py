@@ -124,6 +124,7 @@ def measured_data():
 
 @pytest.mark.usefixtures("setup_tmpdir")
 def test_main_entry_point_syn_data(monkeypatch, facade, measured_data):
+    # pylint: disable=too-many-locals
     run_mock = Mock()
     scal_job = Mock(return_value=Mock(run=run_mock))
     monkeypatch.setattr(sc, "CorrelatedObservationsScalingJob", scal_job)

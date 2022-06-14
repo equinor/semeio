@@ -226,7 +226,8 @@ def test_is_xml():
         ],
     ),
 )
-def test_run(input_data, filenames):
+@pytest.mark.usefixtures("input_data")
+def test_run(filenames):
     reference_filename = filenames[0]
     template_filename = filenames[1]
     result_filename = filenames[2]
@@ -253,7 +254,8 @@ def test_run(input_data, filenames):
     assert status == "DESIGN_KW OK\n"
 
 
-def test_run_unmatched(input_data):
+@pytest.mark.usefixtures("input_data")
+def test_run_unmatched():
     template_filename = "template_unmatched.yml.tmpl"
     result_filename = "template.yml"
     design_kw.run(
@@ -267,7 +269,8 @@ def test_run_unmatched(input_data):
     assert not os.path.isfile(design_kw._STATUS_FILE_NAME)
 
 
-def test_run_duplicate_keys(input_data):
+@pytest.mark.usefixtures("input_data")
+def test_run_duplicate_keys():
     template_filename = "template.yml.tmpl"
     result_filename = "template.yml"
     with pytest.raises(ValueError, match="multiple"):

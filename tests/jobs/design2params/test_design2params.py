@@ -2,6 +2,7 @@ import filecmp
 import logging
 import os
 import shutil
+from pathlib import Path
 
 import pandas as pd
 import pytest
@@ -178,7 +179,9 @@ def test_support_multiple_formats(tmp_path, ext, engine):
     pd.testing.assert_frame_equal(df, loaded_df, check_dtype=False)
 
 
-def test_run_realization_not_exist(input_data):
+@pytest.mark.usefixtures("input_data")
+def test_run_realization_not_exist():
+    assert Path("design_matrix.xlsx").exists()
     with pytest.raises(SystemExit):
         design2params.run(
             1000,
@@ -190,17 +193,23 @@ def test_run_realization_not_exist(input_data):
         )
 
 
-def test_open_excel_file_not_existing(input_data):
+@pytest.mark.usefixtures("input_data")
+def test_open_excel_file_not_existing():
+    assert Path("design_matrix.xlsx").exists()
+    assert not Path("not_existing.xlsx").exists()
     with pytest.raises(SystemExit):
         design2params._read_excel("not_existing.xlsx", "DesignSheet01")
 
 
-def test_open_excel_file_not_xls(input_data):
+@pytest.mark.usefixtures("input_data")
+def test_open_excel_file_not_xls():
+    assert Path("parameters.txt").exists()
     with pytest.raises(SystemExit):
         design2params._read_excel("parameters.txt", "DesignSheet01")
 
 
-def test_open_excel_file_header_missing(input_data):
+@pytest.mark.usefixtures("input_data")
+def test_open_excel_file_header_missing():
     with pytest.raises(
         ValidationError,
         match="Design matrix not valid, error: Column headers not present in column",
@@ -215,7 +224,8 @@ def test_open_excel_file_header_missing(input_data):
         )
 
 
-def test_open_excel_file_value_missing(input_data, caplog):
+@pytest.mark.usefixtures("input_data")
+def test_open_excel_file_value_missing(caplog):
     """Check that we get SystemExit only for those realizations
     affected by missing cell values
 
@@ -287,7 +297,8 @@ def test_existing_parameterstxt(
         assert "already exists" not in caplog.text
 
 
-def test_open_excel_file_wrong_defaults(input_data):
+@pytest.mark.usefixtures("input_data")
+def test_open_excel_file_wrong_defaults():
     with pytest.raises(SystemExit):
         design2params.run(
             1,

@@ -397,6 +397,12 @@ PRIME_INDEX_3 = [
 ]
 
 
+def cosineInterpolation(a, b, x):
+    ft = x * 3.1415927
+    f = (1.0 - math.cos(ft)) * 0.5
+    return a * (1 - f) + b * f
+
+
 class PerlinNoise:
     def __init__(
         self,
@@ -406,16 +412,12 @@ class PerlinNoise:
         prime_2=789221,
         prime_3=1376312589,
     ):
+        # pylint: disable=too-many-arguments
         self.persistence = persistence
         self.number_of_octaves = number_of_octaves
         self.prime_1 = prime_1
         self.prime_2 = prime_2
         self.prime_3 = prime_3
-
-    def cosineInterpolation(self, a, b, x):
-        ft = x * 3.1415927
-        f = (1.0 - math.cos(ft)) * 0.5
-        return a * (1 - f) + b * f
 
     def noise(self, x):
         x = (x << 13) ^ x
@@ -435,7 +437,7 @@ class PerlinNoise:
         v1 = self.smoothedNoise(int_x)
         v2 = self.smoothedNoise(int_x + 1)
 
-        return self.cosineInterpolation(v1, v2, frac_x)
+        return cosineInterpolation(v1, v2, frac_x)
 
     def perlinNoise1D(self, x):
         total = 0.0

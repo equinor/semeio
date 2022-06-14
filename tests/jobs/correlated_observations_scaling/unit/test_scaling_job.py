@@ -31,6 +31,7 @@ def test_valid_configuration(
     obs_with_data,
     scaling_job_content,
 ):
+    assert obs_with_data
     user_config_dict = {
         "CALCULATE_KEYS": {"keys": [{"key": calc_key}]},
         "UPDATE_KEYS": {"keys": [{"key": app_key}]},
@@ -116,6 +117,7 @@ def test_invalid_job(
     errors,
     alpha,
 ):
+    # pylint: disable=too-many-arguments
     user_config_dict = {
         "CALCULATE_KEYS": {"keys": [{"key": calc_key}], "std_cutoff": 0.001},
         "UPDATE_KEYS": {"keys": [{"key": app_key}]},

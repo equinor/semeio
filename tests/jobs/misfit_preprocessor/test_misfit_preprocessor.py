@@ -14,6 +14,7 @@ class MockedMeasuredData:
         self._data = self._build_data(observations, responses)
 
     def _build_data(self, observations, responses):
+        # pylint: disable=no-self-use
         def assert_equal_keys(a, b):
             assert sorted(a.keys()) == sorted(b.keys())
 
@@ -78,11 +79,18 @@ def generate_simulated_responses(
     ensemble_size,
 ):
     simulated = {}
-    for poly_idx, states in enumerate(poly_states):
-        new_parameters = np.random.uniform(0, 10, 3 * ensemble_size)
-        new_parameters.resize(ensemble_size, 3)
+    for poly_idx, (poly_fm, states) in enumerate(zip(forward_polynomials, poly_states)):
+        new_parameters = pd.DataFrame(parameter_distribution(ensemble_size)).to_numpy()
         simulated[f"poly_{poly_idx}"] = {
-            (state, state): sum((new_parameters * np.array((state**2, state, 1))).T)
+            (state, state): [
+                poly_fm(
+                    a=new_parameters[real_idx][0],
+                    b=new_parameters[real_idx][1],
+                    c=new_parameters[real_idx][2],
+                    x=state,
+                )
+                for real_idx in range(ensemble_size)
+            ]
             for state in states
         }
 
@@ -94,7 +102,8 @@ def generate_observations(
     parameter_distribution,
     poly_states,
 ):
-    true_parameters = parameter_distribution()
+    # pylint: disable=too-many-locals
+    true_parameters = parameter_distribution(len(forward_polynomials))
 
     return {
         f"poly_{poly_idx}": {
@@ -123,14 +132,14 @@ def generate_measurements(num_polynomials, poly_states=None, ensemble_size=10000
         lambda a, b, c, x: a * x**2 + b * x + c for _ in range(num_polynomials)
     ]
 
-    def parameter_distribution():
+    def parameter_distribution(size):
         return [
             {
                 "a": random.uniform(0, 10),
                 "b": random.uniform(0, 10),
                 "c": random.uniform(0, 10),
             }
-            for _ in enumerate(forward_polynomials)
+            for _ in range(size)
         ]
 
     observations = generate_observations(

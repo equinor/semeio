@@ -281,6 +281,7 @@ class AhmAnalysisJob(SemeioScript):  # pylint: disable=too-few-public-methods
 def _run_ministep(
     ert, obs_group, data_parameters, prior_name, target_name, output_path
 ):
+    # pylint: disable=too-many-arguments
     update_step = {
         "name": "MINISTEP",
         "observations": obs_group,

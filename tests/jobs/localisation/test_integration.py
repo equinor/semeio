@@ -1,4 +1,4 @@
-# pylint: disable=too-many-statements
+# pylint: disable=too-many-statements,not-callable
 import itertools
 
 import numpy as np
@@ -12,16 +12,15 @@ from semeio.workflows.localisation.local_config_script import LocalisationConfig
 
 
 @pytest.mark.parametrize(
-    "obs_group_add, param_group_add, expected",
+    "obs_group_add, param_group_add",
     [
         (
             ["FOPR", "WOPR_OP1_190"],
             ["SNAKE_OIL_PARAM:OP1_DIVERGENCE_SCALE", "SNAKE_OIL_PARAM:OP1_OFFSET"],
-            ["SNAKE_OIL_PARAM"],
         ),
     ],
 )
-def test_localisation(setup_ert, obs_group_add, param_group_add, expected, snapshot):
+def test_localisation(setup_ert, obs_group_add, param_group_add, snapshot):
     ert = EnKFMain(setup_ert)
     config = {
         "log_level": 4,
@@ -61,9 +60,8 @@ def test_localisation(setup_ert, obs_group_add, param_group_add, expected, snaps
 # This test does not work properly since it is run before initial ensemble is
 # created and in that case the number of parameters attached to a GEN_PARAM node
 # is 0.
-def test_localisation_gen_param(
-    setup_poly_ert,
-):
+@pytest.mark.usefixtures("setup_poly_ert")
+def test_localisation_gen_param():
     with open("poly.ert", "a", encoding="utf-8") as fout:
         fout.write(
             "GEN_PARAM PARAMS_A parameter_file_A INPUT_FORMAT:ASCII "
@@ -99,9 +97,9 @@ def test_localisation_gen_param(
     LocalisationConfigJob(ert).run("local_config.yaml")
 
 
-def test_localisation_surf(
-    setup_poly_ert,
-):
+@pytest.mark.usefixtures("setup_poly_ert")
+def test_localisation_surf():
+    # pylint: disable=too-many-locals
     with open("poly.ert", "a", encoding="utf-8") as fout:
         fout.write(
             "SURFACE   PARAM_SURF_A     OUTPUT_FILE:surf.txt    "
@@ -170,9 +168,10 @@ def test_localisation_surf(
 # ministeps where write_scaling_factor is activated and one
 # file is written per ministep.
 # Test case 2 tests three different methods for defining scaling factors for fields
-def test_localisation_field1(
-    setup_poly_ert,
-):
+@pytest.mark.usefixtures("setup_poly_ert")
+def test_localisation_field1():
+    # pylint: disable=too-many-locals
+
     # Make a 3D grid with no inactive cells
     grid_filename = "grid3D.EGRID"
     grid = create_box_grid_with_inactive_and_active_cells(
@@ -270,6 +269,7 @@ def test_localisation_field1(
 def create_box_grid_with_inactive_and_active_cells(
     output_grid_file, has_inactive_values=True
 ):
+    # pylint: disable=too-many-locals
     nx = 30
     ny = 25
     nz = 3
@@ -360,6 +360,7 @@ def create_region_parameter(filename, grid):
 def create_field_and_scaling_param_and_update_poly_ert(
     poly_config_file, grid_filename, grid
 ):
+    # pylint: disable=too-many-locals,unused-argument
     (nx, ny, nz) = grid.dimensions
     property_names = ["FIELD1", "FIELD2", "FIELD3", "FIELD4", "FIELD5"]
     scaling_names = ["SCALING1", "SCALING2", "SCALING3", "SCALING4", "SCALING5"]
@@ -394,7 +395,8 @@ def create_field_and_scaling_param_and_update_poly_ert(
             )
 
 
-def test_localisation_field2(setup_poly_ert):
+@pytest.mark.usefixtures("setup_poly_ert")
+def test_localisation_field2():
     # Make a 3D grid with some inactive cells
     grid_filename = "grid3D.EGRID"
     grid = create_box_grid_with_inactive_and_active_cells(grid_filename)

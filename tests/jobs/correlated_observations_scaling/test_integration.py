@@ -1,3 +1,4 @@
+# pylint: disable=not-callable
 import json
 import os
 import shutil
@@ -24,7 +25,7 @@ def get_std_from_obs_vector(vector):
     return result
 
 
-def test_installed_python_version_of_enkf_scaling_job(setup_ert, monkeypatch):
+def test_installed_python_version_of_enkf_scaling_job(setup_ert):
 
     pm = ErtPluginManager(
         plugins=[
@@ -143,7 +144,7 @@ def test_main_entry_point_gen_data(setup_ert):
         assert reported_scalefactor == pytest.approx(1.224744871391589, 0.1)
 
 
-def test_main_entry_point_summary_data_calc(setup_ert, monkeypatch):
+def test_main_entry_point_summary_data_calc(setup_ert):
     cos_config = {
         "CALCULATE_KEYS": {"keys": [{"key": "WOPR_OP1_108"}, {"key": "WOPR_OP1_144"}]}
     }
@@ -180,9 +181,7 @@ def test_main_entry_point_summary_data_calc(setup_ert, monkeypatch):
         ),
     ],
 )
-def test_main_entry_point_history_data_calc(
-    setup_ert, monkeypatch, config, expected_result
-):
+def test_main_entry_point_history_data_calc(setup_ert, config, expected_result):
 
     res_config = setup_ert
 
@@ -196,7 +195,7 @@ def test_main_entry_point_history_data_calc(
     assert result == [expected_result] * 200
 
 
-def test_main_entry_point_history_data_calc_subset(setup_ert, monkeypatch):
+def test_main_entry_point_history_data_calc_subset(setup_ert):
     config = {"CALCULATE_KEYS": {"keys": [{"key": "FOPR", "index": [10, 20]}]}}
     res_config = setup_ert
 

@@ -61,7 +61,8 @@ import semeio.hook_implementations.jobs
         ),
     ],
 )
-def test_nosim(setup_tmpdir, nosim_command, data_input, data_expected):
+@pytest.mark.usefixtures("setup_tmpdir")
+def test_nosim(nosim_command, data_input, data_expected):
     shutil.copy(os.path.join(os.path.dirname(__file__), "data", "nosim.ert"), ".")
 
     with open("nosim.ert", "a", encoding="utf-8") as fh:

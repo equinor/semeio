@@ -8,7 +8,7 @@ import pytest
 
 from semeio.communication import SEMEIOSCRIPT_LOG_FILE, SemeioScript
 
-# pylint: disable=method-hidden
+# pylint: disable=method-hidden,no-self-use
 
 
 def _ert_mock(ensemble_path="storage", user_case_name="case_name"):
@@ -33,6 +33,7 @@ def test_semeio_script_publish(tmpdir):
 
     class MySuperScript(SemeioScript):
         def run(self, *args):
+            # pylint: disable=unused-argument
             self.reporter.publish(namespace, data)
 
     my_super_script = MySuperScript(ert)
@@ -61,6 +62,7 @@ def test_semeio_script_logging(tmpdir):
 
     class MySuperScript(SemeioScript):
         def run(self, *args):
+            # pylint: disable=unused-argument
             logging.error(msg)
 
     my_super_script = MySuperScript(ert)
@@ -105,6 +107,7 @@ def test_semeio_script_multiple_logging(messages, tmpdir):
 
     class MySuperScript(SemeioScript):
         def run(self, *args):
+            # pylint: disable=unused-argument
             posted_messages = []
             for msg in messages:
                 logging.error(msg)
@@ -133,6 +136,7 @@ def test_semeio_script_post_logging(tmpdir):
 
     class MySuperScript(SemeioScript):
         def run(self, *args):
+            # pylint: disable=unused-argument
             logging.error("A message from MySuperScript")
 
     my_super_script = MySuperScript(ert)
@@ -161,6 +165,7 @@ def test_semeio_script_pre_logging(tmpdir):
 
     class MySuperScript(SemeioScript):
         def run(self, *args):
+            # pylint: disable=unused-argument
             logging.error("A message from MySuperScript")
 
     my_super_script = MySuperScript(ert)
@@ -190,6 +195,7 @@ def test_semeio_script_concurrent_logging(tmpdir):
 
     class MySuperScript(SemeioScript):
         def run(self, *args):
+            # pylint: disable=unused-argument
             logging.error("A message from MySuperScript")
             thread = Thread(target=lambda: logging.error("External event."))
             thread.start()
@@ -218,6 +224,7 @@ def test_semeio_script_post_logging_exception(tmpdir):
 
     class MySuperScript(SemeioScript):
         def run(self, *args):
+            # pylint: disable=unused-argument
             logging.error("A message from MySuperScript")
             raise AssertionError("Bazinga")
 

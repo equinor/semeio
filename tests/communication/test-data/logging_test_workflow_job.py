@@ -7,6 +7,7 @@ from semeio.communication import SemeioScript
 class TestWorkflowJob(SemeioScript):
     # pylint: disable=method-hidden
     def run(self, *args):
+        # pylint: disable=unused-argument
         self.reporter.publish("test_data", list(range(10)))
 
         # The mission of this code is to simulate that something outside the

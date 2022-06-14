@@ -26,7 +26,7 @@ def create_box_grid(
     write_grid_file=False,
     use_actnum=False,
 ):
-
+    # pylint: disable=too-many-arguments
     dimensions = (nx, ny, nz)
     increments = (dx, dy, dz)
     actnum = None
@@ -53,7 +53,7 @@ def actnum_parameter(nx, ny, nz):
 def create_region_parameter(
     grid, nx, ny, nz, scaling_per_region=None, used_regions=None
 ):
-    # pylint: disable-msg=R0912
+    # pylint: disable=too-many-branches,too-many-arguments
     region_param = ma.zeros(nx * ny * nz, dtype=np.int32)
     scaling_param = ma.zeros(nx * ny * nz, dtype=np.float32)
     for k, j, i in itertools.product(range(nz), range(ny), range(nx)):
@@ -90,6 +90,7 @@ def create_region_parameter(
 
 
 def create_parameter_from_decay_functions(method_name, grid):
+    # pylint: disable=too-many-locals
     ref_pos = (250.0, 250.0)
     main_range = 150.0
     perp_range = 100.0
@@ -164,6 +165,7 @@ def create_parameter_from_decay_functions(method_name, grid):
 
 
 def write_param(filename, grid, param_values, param_name, nx, ny, nz):
+    # pylint: disable=too-many-arguments
     print(f"\nWrite file: {filename}")
     values = np.reshape(param_values, (nx, ny, nz), "F")
     kw = grid.create_kw(values, param_name, False)
@@ -222,6 +224,7 @@ def write_param(filename, grid, param_values, param_name, nx, ny, nz):
     ],
 )
 def test_exponentialtype_decay_functions(method, index_list, expected):
+    # pylint: disable=too-many-locals
     ref_pos = [225.0, 225.0]
     grid, nx, ny, nz = create_box_grid()
 
@@ -261,6 +264,7 @@ def test_calculate_scaling_factors_in_regions(snapshot):
           param_name = "param"
           write_param(param_filename, grid, param_values, param_name, nx, ny, nz)
     """
+    # pylint: disable=too-many-locals
     grid, nx, ny, nz = create_box_grid(use_actnum=True)
     region_param_masked, _ = create_region_parameter(grid, nx, ny, nz)
     active_segment_list = [1, 2, 3]

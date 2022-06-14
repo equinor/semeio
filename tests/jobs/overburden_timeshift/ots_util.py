@@ -74,6 +74,7 @@ def create_restart(grid, case, rporv=None):
 
 
 def create_segy_file(name, spec, trace=None, il=None, xl=None, cdp_x=None, cdp_y=None):
+    # pylint: disable=too-many-arguments
 
     if trace is None:
         trace = np.empty(len(spec.samples), dtype=np.single)
@@ -114,6 +115,7 @@ def mock_segy(
     relative_position_shift=(0, 0),
     segy_filename="vel_vol.segy",
 ):
+    # pylint: disable=too-many-locals
 
     # get the surface top_corners
     nx = ecl_grid.getNX()

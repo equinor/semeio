@@ -39,7 +39,8 @@ def test_res_surface(ots_tmpdir_enter):
     assert 3389.567 == pytest.approx(np.max(rec.z))
 
 
-def test_surface(tmpdir):
+@pytest.mark.usefixtures("tmpdir")
+def test_surface():
     grid = EclGridGenerator.createRectangular(
         dims=(2, 2, 2), dV=(100, 100, 100), actnum=[0, 0, 0, 0, 1, 1, 1, 1]
     )
@@ -50,7 +51,8 @@ def test_surface(tmpdir):
     assert np.all(z == surface.z)
 
 
-def test_surface_above(tmpdir):
+@pytest.mark.usefixtures("tmpdir")
+def test_surface_above():
     grid = EclGridGenerator.createRectangular(
         dims=(2, 2, 2), dV=(100, 100, 100), actnum=[0, 0, 0, 0, 1, 1, 1, 1]
     )

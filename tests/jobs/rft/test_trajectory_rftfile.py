@@ -7,6 +7,7 @@ import numpy as np
 from ecl.grid import EclGrid
 from ecl.rft import EclRFTFile
 
+import pytest
 from semeio.jobs.rft.trajectory import TrajectoryPoint, Trajectory
 from tests.jobs.rft import conftest
 
@@ -14,7 +15,8 @@ ECL_BASE_REEK = conftest.get_ecl_base_reek()
 ECL_BASE_NORNE = conftest.get_ecl_base_norne()
 
 
-def test_update_simdata_from_rft_reek(reek_data):
+@pytest.mark.usefixtures("reek_data")
+def test_update_simdata_from_rft_reek():
     """Test data extraction from the binary Eclipse files
     for a single well point using TrajectoryPoint.update_simdata_from_rft()"""
 
@@ -44,7 +46,8 @@ def test_update_simdata_from_rft_reek(reek_data):
     assert {"i", "j", "k", "pressure", "soil", "sgas", "swat"}.issubset(set(dframe))
 
 
-def test_update_simdata_from_rft_norne(norne_data):
+@pytest.mark.usefixtures("norne_data")
+def test_update_simdata_from_rft_norne():
     """Similar test as the reek version, but the Norne RFT file
     does not contain saturations, and in libecl terms contains EclPLTCell
     as opposed to EclRFTCell as in Reek"""
@@ -80,7 +83,7 @@ def test_update_simdata_from_rft_norne(norne_data):
     assert "swat" not in dframe
 
 
-def test_update_simdata_outside_grid(tmpdir):
+def test_update_simdata_outside_grid():
     grid = EclGrid(ECL_BASE_REEK + ".EGRID")
     rft = EclRFTFile(ECL_BASE_REEK + ".RFT")
     rft_well_date = rft.get("OP_1", datetime.date(2000, 2, 1))
@@ -100,7 +103,7 @@ def test_update_simdata_outside_grid(tmpdir):
     assert not set(dframe).intersection({"i", "j", "k", "pressure", "swat"})
 
 
-def test_update_simdata_outside_well(tmpdir):
+def test_update_simdata_outside_well():
     grid = EclGrid(ECL_BASE_REEK + ".EGRID")
     rft = EclRFTFile(ECL_BASE_REEK + ".RFT")
     rft_well_date = rft.get("OP_1", datetime.date(2000, 2, 1))
