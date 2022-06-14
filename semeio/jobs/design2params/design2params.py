@@ -5,7 +5,6 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from xlrd.biffh import XLRDError
 
 from semeio._exceptions.exceptions import ValidationError
 
@@ -192,14 +191,6 @@ def _read_excel(file_name, sheet_name, header=0, usecols=None, engine=None):
             dtype=str,
             usecols=usecols,
             engine=engine,
-        )
-    except XLRDError:
-        # pandas above 1.3.0 handles evaluating the proper reader, but lower has xlrd
-        # as default.
-        # pandas 1.1.5 is highest for python 3.6 - hence we handle the exception
-        # for as long as we support python 3.6
-        return _read_excel(
-            file_name, sheet_name, header=header, usecols=usecols, engine="openpyxl"
         )
     except IOError as err:
         raise SystemExit(f"File {file_name} not found") from err
