@@ -1,12 +1,6 @@
-try:
-    from typing import Literal
-except ImportError:
-    from typing_extensions import Literal
-
 import collections
 
-# pylint: disable=ungrouped-imports
-from typing import Union
+from typing import Literal, Union
 
 from pydantic import (
     BaseModel,

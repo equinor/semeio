@@ -1,6 +1,6 @@
-import os
 import copy
-from distutils.dir_util import copy_tree
+import os
+import shutil
 
 import pytest
 
@@ -51,7 +51,7 @@ def norne_data(tmpdir):
     data_dir = os.path.join(
         os.path.dirname(os.path.abspath(__file__)), "data/norne/gendata_rft_input_files"
     )
-    copy_tree(data_dir, tmpdir.strpath)
+    shutil.copytree(data_dir, tmpdir.strpath, dirs_exist_ok=True)
 
     cwd = os.getcwd()
     tmpdir.chdir()
@@ -59,7 +59,9 @@ def norne_data(tmpdir):
     expected_results_dir = os.path.join(tmpdir.strpath, "expected_results")
     os.mkdir(expected_results_dir)
 
-    copy_tree(EXPECTED_RESULTS_PATH_NORNE, expected_results_dir)
+    shutil.copytree(
+        EXPECTED_RESULTS_PATH_NORNE, expected_results_dir, dirs_exist_ok=True
+    )
     _generate_mock_data_norne(expected_results_dir)
 
     try:
@@ -74,7 +76,7 @@ def reek_data(tmpdir):
     data_dir = os.path.join(
         os.path.dirname(os.path.abspath(__file__)), "data/reek/gendata_rft_input_files"
     )
-    copy_tree(data_dir, tmpdir.strpath)
+    shutil.copytree(data_dir, tmpdir.strpath, dirs_exist_ok=True)
     cwd = os.getcwd()
     tmpdir.chdir()
 

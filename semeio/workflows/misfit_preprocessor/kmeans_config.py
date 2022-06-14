@@ -1,15 +1,11 @@
-try:
-    from typing import Literal
-except ImportError:
-    from typing_extensions import Literal
-from pydantic import conint, Field, PyObject, PrivateAttr
+from typing import Literal
+
+from pydantic import Field, PrivateAttr, PyObject, conint
 
 from semeio.workflows.misfit_preprocessor.hierarchical_config import (
     AbstractClusteringConfig,
 )
-from semeio.workflows.spearman_correlation_job.cluster_analysis import (
-    kmeans_analysis,
-)
+from semeio.workflows.spearman_correlation_job.cluster_analysis import kmeans_analysis
 
 
 class LimitedKmeansClustering(AbstractClusteringConfig):
