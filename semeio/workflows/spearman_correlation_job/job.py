@@ -2,6 +2,8 @@
 import itertools
 import logging
 
+import pandas as pd
+
 from semeio.workflows.spearman_correlation_job.cluster_analysis import (
     fcluster_analysis,
 )
@@ -88,7 +90,7 @@ def _config_creation(clusters):
     return config
 
 
-def _calculate_correlation_matrix(data):
+def _calculate_correlation_matrix(data: pd.DataFrame) -> pd.DataFrame:
     # Spearman correlation is quite slow, but will be improved in a future version
     # of pandas (https://github.com/pandas-dev/pandas/pull/28151), for now this is
     # equivalent:

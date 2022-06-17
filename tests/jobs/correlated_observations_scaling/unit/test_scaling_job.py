@@ -1,24 +1,7 @@
-import numpy as np
-import pandas as pd
 import pytest
-from ert_data import measured
+
 from semeio.workflows.correlated_observations_scaling.job_config import ObsCorrConfig
 from semeio.workflows.correlated_observations_scaling.exceptions import ValidationError
-
-
-def test_filter_on_column_index():
-    matrix = np.random.rand(10, 10)
-
-    index_lists = [[0, 1], [1, 2, 3], [1, 2, 3, 4, 5]]
-    # pylint: disable=protected-access
-    for index_list in index_lists:
-        result = measured.MeasuredData._filter_on_column_index(
-            pd.DataFrame(matrix), index_list
-        )
-        assert result.shape == (10, len(index_list))
-
-    with pytest.raises(IndexError):
-        measured.MeasuredData._filter_on_column_index(pd.DataFrame(matrix), [11])
 
 
 @pytest.mark.parametrize(
