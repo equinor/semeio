@@ -118,7 +118,7 @@ def csv_export_parser():
         type=str,
         help=(
             "Path to ERT RUNPATH-file, "
-            "usually the ERT magic variable <RUNPATH> can be used"
+            "usually the ERT magic variable <RUNPATH_FILE> can be used"
         ),
     )
     parser.add_argument(
