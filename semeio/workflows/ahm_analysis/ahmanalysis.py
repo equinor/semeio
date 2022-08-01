@@ -11,7 +11,7 @@ import pandas as pd
 import xtgeo
 from ert_shared.libres_facade import LibresFacade
 from ert_shared.plugins.plugin_manager import hook_implementation
-from res.enkf import EnkfNode, ErtImplType, ErtRunContext, ESUpdate
+from res.enkf import EnkfNode, ErtImplType, ErtRunContext
 from res.enkf.export import GenKwCollector, MisfitCollector
 from scipy.stats import ks_2samp
 from sklearn.decomposition import PCA
@@ -175,6 +175,7 @@ class AhmAnalysisJob(SemeioScript):  # pylint: disable=too-few-public-methods
             #  Use localization to evaluate change of parameters for each observation
             with tempfile.TemporaryDirectory() as update_log_path:
                 _run_ministep(
+                    facade,
                     ert,
                     obs_group,
                     field_parameters + scalar_parameters,
@@ -279,7 +280,7 @@ class AhmAnalysisJob(SemeioScript):  # pylint: disable=too-few-public-methods
 
 
 def _run_ministep(
-    ert, obs_group, data_parameters, prior_name, target_name, output_path
+    facade, ert, obs_group, data_parameters, prior_name, target_name, output_path
 ):
     # pylint: disable=too-many-arguments
     update_step = {
@@ -295,7 +296,7 @@ def _run_ministep(
         ert.getEnkfFsManager().getFileSystem(prior_name),
         ert.getEnkfFsManager().getFileSystem(target_name),
     )
-    ESUpdate(ert).smootherUpdate(run_context)
+    facade.smoother_update(run_context)
 
 
 def _get_field_params(ert, ensemble_size, field_parameters, target_name):
