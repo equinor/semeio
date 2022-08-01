@@ -1,7 +1,5 @@
-from ert_shared.libres_facade import LibresFacade
-from ert_shared.plugins.plugin_manager import hook_implementation
-
 import semeio.workflows.localisation.local_script_lib as local
+from ert import LibresFacade, hook_implementation
 from semeio.communication import SemeioScript
 from semeio.workflows.localisation.localisation_config import LocalisationConfig
 

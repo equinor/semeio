@@ -9,17 +9,22 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import xtgeo
-from ert_shared.libres_facade import LibresFacade
-from ert_shared.plugins.plugin_manager import hook_implementation
-from res.enkf import EnkfNode, ErtImplType, ErtRunContext, ESUpdate
-from res.enkf.export import GenKwCollector, MisfitCollector
+from ert import (
+    EnkfNode,
+    ErtImplType,
+    ErtRunContext,
+    ESUpdate,
+    GenKwCollector,
+    LibresFacade,
+    MisfitCollector,
+    hook_implementation,
+)
 from scipy.stats import ks_2samp
+from semeio._exceptions.exceptions import ValidationError
+from semeio.communication import SemeioScript
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from xtgeo.grid3d import GridProperty
-
-from semeio._exceptions.exceptions import ValidationError
-from semeio.communication import SemeioScript
 
 DESCRIPTION = """
 AHM_ANALYSIS will calculate the degree of update (using Kolmogorov Smirnov test)

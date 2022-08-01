@@ -2,7 +2,7 @@ import argparse
 import sys
 
 import pandas as pd
-from ert_shared.plugins.plugin_manager import hook_implementation
+from ert import hook_implementation
 from fmu import ensemble
 from res.job_queue import ErtScript
 

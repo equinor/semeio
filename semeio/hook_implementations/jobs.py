@@ -1,9 +1,8 @@
 import importlib
 import os
-from pkg_resources import resource_filename
 
-from ert_shared.plugins.plugin_manager import hook_implementation
-from ert_shared.plugins.plugin_response import plugin_response
+from ert import hook_implementation, plugin_response
+from pkg_resources import resource_filename
 
 
 def _remove_suffix(string, suffix):

@@ -3,11 +3,9 @@ import shutil
 import subprocess
 import sys
 
-import ert_shared.hook_implementations
 import pytest
-from ert_shared.plugins.plugin_manager import ErtPluginContext
-
 import semeio.hook_implementations.jobs
+from ert import ErtPluginContext, hook_implementations
 
 
 @pytest.mark.skipif(

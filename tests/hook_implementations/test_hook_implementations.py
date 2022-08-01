@@ -2,9 +2,8 @@
 
 import os
 
-from ert_shared.plugins.plugin_manager import ErtPluginManager
-
 import semeio.hook_implementations.jobs
+from ert import ErtPluginManager
 from semeio.workflows.ahm_analysis import ahmanalysis
 from semeio.workflows.correlated_observations_scaling import cos
 from semeio.workflows.csv_export2 import csv_export2

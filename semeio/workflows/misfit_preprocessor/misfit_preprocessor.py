@@ -1,13 +1,7 @@
 import yaml
-
-from ert import MeasuredData
-from ert_shared.libres_facade import LibresFacade
-from ert_shared.plugins.plugin_manager import hook_implementation
-
+from ert import LibresFacade, MeasuredData, hook_implementation
 from semeio._docs_utils._json_schema_2_rst import _create_docs
 from semeio.communication import SemeioScript
-
-from semeio.workflows.misfit_preprocessor.config import assemble_config
 from semeio.workflows import misfit_preprocessor
 from semeio.workflows.correlated_observations_scaling.cos import (
     CorrelatedObservationsScalingJob,
@@ -15,6 +9,7 @@ from semeio.workflows.correlated_observations_scaling.cos import (
 from semeio.workflows.correlated_observations_scaling.exceptions import (
     EmptyDatasetException,
 )
+from semeio.workflows.misfit_preprocessor.config import assemble_config
 from semeio.workflows.misfit_preprocessor.workflow_config import MisfitConfig
 
 

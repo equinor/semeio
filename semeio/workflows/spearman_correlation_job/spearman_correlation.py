@@ -1,14 +1,12 @@
 import argparse
 
-from ert import MeasuredData
-from ert_shared.libres_facade import LibresFacade
-from ert_shared.plugins.plugin_manager import hook_implementation
+from ert import LibresFacade, MeasuredData, hook_implementation
 from semeio.communication import SemeioScript
-from semeio.workflows.correlated_observations_scaling.exceptions import (
-    EmptyDatasetException,
-)
 from semeio.workflows.correlated_observations_scaling.cos import (
     CorrelatedObservationsScalingJob,
+)
+from semeio.workflows.correlated_observations_scaling.exceptions import (
+    EmptyDatasetException,
 )
 from semeio.workflows.spearman_correlation_job.job import spearman_job
 
