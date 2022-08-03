@@ -11,7 +11,7 @@ import pandas as pd
 import xtgeo
 from ert_shared.libres_facade import LibresFacade
 from ert_shared.plugins.plugin_manager import hook_implementation
-from res.enkf import EnkfNode, ErtImplType, ErtRunContext
+from res.enkf import EnkfNode, ErtImplType, RunContext
 from res.enkf.export import GenKwCollector, MisfitCollector
 from scipy.stats import ks_2samp
 from sklearn.decomposition import PCA
@@ -292,7 +292,7 @@ def _run_ministep(
 
     # Perform update analysis
     ert.analysisConfig().set_log_path(output_path)
-    run_context = ErtRunContext.ensemble_smoother_update(
+    run_context = RunContext(
         ert.getEnkfFsManager().getFileSystem(prior_name),
         ert.getEnkfFsManager().getFileSystem(target_name),
     )
