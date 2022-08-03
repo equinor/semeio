@@ -1,5 +1,6 @@
 hypothesis
 odfpy
+oil_reservoir_synthesizer
 openpyxl
 pytest
 pytest-console-scripts
