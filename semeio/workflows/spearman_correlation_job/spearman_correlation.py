@@ -1,13 +1,13 @@
 import argparse
 
-from ert import LibresFacade, MeasuredData
 from ert_shared.plugins.plugin_manager import hook_implementation
+
 from semeio.communication import SemeioScript
-from semeio.workflows.correlated_observations_scaling.exceptions import (
-    EmptyDatasetException,
-)
 from semeio.workflows.correlated_observations_scaling.cos import (
     CorrelatedObservationsScalingJob,
+)
+from semeio.workflows.correlated_observations_scaling.exceptions import (
+    EmptyDatasetException,
 )
 from semeio.workflows.spearman_correlation_job.job import spearman_job
 
@@ -16,14 +16,13 @@ class SpearmanCorrelationJob(SemeioScript):
     def run(self, *args):
         # pylint: disable=method-hidden
         # (SemeioScript wraps this run method)
-        facade = LibresFacade(self.ert())
 
         obs_keys = [
-            facade.get_observation_key(nr)
-            for nr, _ in enumerate(facade.get_observations())
+            self.facade.get_observation_key(nr)
+            for nr, _ in enumerate(self.facade.get_observations())
         ]
 
-        measured_data = MeasuredData(facade, obs_keys)
+        measured_data = self.facade.get_measured_data(obs_keys)
 
         parser = spearman_job_parser()
         args = parser.parse_args(args)

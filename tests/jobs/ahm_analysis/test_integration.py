@@ -6,8 +6,7 @@ from pathlib import Path
 import pandas as pd
 import pytest
 from ecl.grid import EclGridGenerator
-from res.enkf import EnKFMain, ResConfig
-from res.enkf.export import GenDataObservationCollector, SummaryObservationCollector
+from ert import LibresFacade
 
 from semeio._exceptions.exceptions import ValidationError
 from semeio.workflows.ahm_analysis import ahmanalysis
@@ -21,12 +20,10 @@ def test_ahmanalysis_run(test_data_root):
     shutil.copytree(test_data_dir, "test_data")
     os.chdir(os.path.join("test_data"))
 
-    res_config = ResConfig("snake_oil.ert")
-    res_config.convertToCReference(None)
-    ert = EnKFMain(res_config)
+    ert = LibresFacade.from_config_file("snake_oil.ert")
 
     # pylint: disable=not-callable
-    ahmanalysis.AhmAnalysisJob(ert).run(prior_name="default_0")
+    ert.run_ertscript(ahmanalysis.AhmAnalysisJob, prior_name="default_0")
 
     # assert that this returns/generates a KS csv file
     output_dir = Path("storage/snake_oil/reports/snake_oil/default_0/AhmAnalysisJob")
@@ -79,16 +76,14 @@ def test_ahmanalysis_run_field(test_data_root, grid_prop):
         grid_prop("PERMX", 10, grid.getGlobalSize(), f"fields/permx{iens}.grdecl")
         grid_prop("PORO", 0.2, grid.getGlobalSize(), f"fields/poro{iens}.grdecl")
 
-    res_config = ResConfig("snake_oil_field.ert")
-    res_config.convertToCReference(None)
-    ert = EnKFMain(res_config)
+    ert = LibresFacade.from_config_file("snake_oil_field.ert")
 
     # pylint: disable=not-callable
-    ahmanalysis.AhmAnalysisJob(ert).run(prior_name="default")
+    ert.run_ertscript(ahmanalysis.AhmAnalysisJob, prior_name="default")
 
     # assert that this returns/generates the delta field parameter
-    gen_obs_list = GenDataObservationCollector.getAllObservationKeys(ert)
-    summary_obs_list = SummaryObservationCollector.getAllObservationKeys(ert)
+    gen_obs_list = ert.get_all_gen_data_observation_keys()
+    summary_obs_list = ert.get_all_summary_observation_keys()
     obs_keys = gen_obs_list + summary_obs_list
     output_deltafield = os.path.join(
         "storage",
@@ -117,11 +112,9 @@ def test_no_prior(test_data_root):
     test_data_dir = os.path.join(test_data_root, "snake_oil")
     shutil.copytree(test_data_dir, "test_data")
     os.chdir(os.path.join("test_data"))
-    res_config = ResConfig("snake_oil.ert")
-    res_config.convertToCReference(None)
-    ert = EnKFMain(res_config)
+    ert = LibresFacade.from_config_file("snake_oil.ert")
     expected_msg = "Empty prior ensemble"
     # check that it fails
     with pytest.raises(ValidationError, match=expected_msg):
         # pylint: disable=not-callable
-        ahmanalysis.AhmAnalysisJob(ert).run(prior_name="default")
+        ert.run_ertscript(ahmanalysis.AhmAnalysisJob, prior_name="default")

@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 import xtgeo
 import yaml
-from res.enkf import EnKFMain, ResConfig
+from ert import LibresFacade
 from xtgeo.surface.regular_surface import RegularSurface
 
 from semeio.workflows.localisation.local_config_script import LocalisationConfigJob
@@ -21,7 +21,6 @@ from semeio.workflows.localisation.local_config_script import LocalisationConfig
     ],
 )
 def test_localisation(setup_ert, obs_group_add, param_group_add, snapshot):
-    ert = EnKFMain(setup_ert)
     config = {
         "log_level": 4,
         "correlations": [
@@ -51,9 +50,9 @@ def test_localisation(setup_ert, obs_group_add, param_group_add, snapshot):
     }
     with open("local_config.yaml", "w", encoding="utf-8") as fout:
         yaml.dump(config, fout)
-    LocalisationConfigJob(ert).run("local_config.yaml")
+    setup_ert.run_ertscript(LocalisationConfigJob, "local_config.yaml")
     snapshot.assert_match(
-        str(ert.update_configuration.dict()), "localisation_configuration"
+        str(setup_ert.update_configuration.dict()), "localisation_configuration"
     )
 
 
@@ -75,8 +74,7 @@ def test_localisation_gen_param():
             for i in range(nparam):
                 fout.write(f"{i}\n")
 
-    res_config = ResConfig("poly.ert")
-    ert = EnKFMain(res_config)
+    ert = LibresFacade.from_config_file("poly.ert")
     config = {
         "log_level": 2,
         "correlations": [
@@ -94,7 +92,7 @@ def test_localisation_gen_param():
 
     with open("local_config.yaml", "w", encoding="utf-8") as fout:
         yaml.dump(config, fout)
-    LocalisationConfigJob(ert).run("local_config.yaml")
+    ert.run_ertscript(LocalisationConfigJob, "local_config.yaml")
 
 
 @pytest.mark.usefixtures("setup_poly_ert")
@@ -133,8 +131,7 @@ def test_localisation_surf():
         )
         surface.to_file(filename, fformat="irap_ascii")
 
-    res_config = ResConfig("poly.ert")
-    ert = EnKFMain(res_config)
+    ert = LibresFacade.from_config_file("poly.ert")
     config = {
         "log_level": 3,
         "correlations": [
@@ -160,7 +157,7 @@ def test_localisation_surf():
 
     with open("local_config.yaml", "w", encoding="utf-8") as fout:
         yaml.dump(config, fout)
-    LocalisationConfigJob(ert).run("local_config.yaml")
+    ert.run_ertscript(LocalisationConfigJob, "local_config.yaml")
 
 
 # This test and the test test_localisation_field2 are similar,
@@ -202,8 +199,7 @@ def test_localisation_field1():
                 "FORWARD_INIT:False\n"
             )
 
-    res_config = ResConfig("poly.ert")
-    ert = EnKFMain(res_config)
+    ert = LibresFacade.from_config_file("poly.ert")
     config = {
         "log_level": 3,
         "write_scaling_factors": True,
@@ -263,7 +259,7 @@ def test_localisation_field1():
 
     with open("local_config.yaml", "w", encoding="utf-8") as fout:
         yaml.dump(config, fout)
-    LocalisationConfigJob(ert).run("local_config.yaml")
+    ert.run_ertscript(LocalisationConfigJob, "local_config.yaml")
 
 
 def create_box_grid_with_inactive_and_active_cells(
@@ -413,8 +409,7 @@ def test_localisation_field2():
     segment_filename2 = "Region2.GRDECL"
     create_region_parameter(segment_filename2, grid)
 
-    res_config = ResConfig("poly.ert")
-    ert = EnKFMain(res_config)
+    ert = LibresFacade.from_config_file("poly.ert")
     config = {
         "log_level": 3,
         "write_scaling_factors": True,
@@ -504,4 +499,4 @@ def test_localisation_field2():
 
     with open("local_config.yaml", "w") as fout:
         yaml.dump(config, fout)
-    LocalisationConfigJob(ert).run("local_config.yaml")
+    ert.run_ertscript(LocalisationConfigJob, "local_config.yaml")

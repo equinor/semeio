@@ -4,7 +4,6 @@ import logging
 
 import configsuite
 import yaml
-from ert import LibresFacade, MeasuredData
 from ert_shared.plugins.plugin_manager import hook_implementation
 
 from semeio.communication import SemeioScript
@@ -139,27 +138,26 @@ class CorrelatedObservationsScalingJob(SemeioScript):
     def run(self, job_configuration):
         # pylint: disable=method-hidden
         # (SemeioScript wraps this run method)
-        facade = LibresFacade(self.ert())
         user_config = load_yaml(job_configuration)
         user_config = _insert_default_group(user_config)
 
-        obs = facade.get_observations()
-        obs_keys = [facade.get_observation_key(nr) for nr, _ in enumerate(obs)]
+        obs = self.facade.get_observations()
+        obs_keys = [self.facade.get_observation_key(nr) for nr, _ in enumerate(obs)]
         obs_with_data = keys_with_data(
             obs,
             obs_keys,
-            facade.get_ensemble_size(),
-            facade.get_current_fs(),
+            self.facade.get_ensemble_size(),
+            self.facade.get_current_fs(),
         )
         default_values = _get_default_values(
-            facade.get_alpha(), facade.get_std_cutoff()
+            self.facade.get_alpha(), self.facade.get_std_cutoff()
         )
         for config_dict in user_config:
             config = ObsCorrConfig(config_dict, obs_keys, default_values)
             config.validate(obs_with_data)
 
             measured_data = _get_measured_data(
-                facade,
+                self.facade,
                 config.get_calculation_keys(),
                 config.get_index_lists(),
                 config.get_alpha(),
@@ -176,7 +174,7 @@ class CorrelatedObservationsScalingJob(SemeioScript):
 def _get_measured_data(
     facade, observation_keys, observation_index_list, alpha, std_cutoff
 ):
-    measured_data = MeasuredData(facade, observation_keys, observation_index_list)
+    measured_data = facade.get_measured_data(observation_keys, observation_index_list)
     measured_data.remove_failed_realizations()
     measured_data.remove_inactive_observations()
     measured_data.filter_ensemble_mean_obs(alpha)
