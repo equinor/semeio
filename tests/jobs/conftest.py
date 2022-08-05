@@ -3,7 +3,6 @@ import shutil
 
 import pytest
 from ert import LibresFacade
-from res.enkf import EnKFMain, ResConfig
 
 TEST_DATA_DIR = os.environ.get("LIBRES_TEST_DATA_DIR")
 
@@ -25,15 +24,9 @@ def setup_ert(tmpdir, test_data_root):
     shutil.copytree(test_data_dir, "test_data")
     os.chdir(os.path.join("test_data"))
 
-    res_config = ResConfig("snake_oil.ert")
-    yield res_config
+    yield LibresFacade.from_config_file("snake_oil.ert")
 
     os.chdir(cwd)
-
-
-@pytest.fixture()
-def snake_oil_facade(setup_ert):
-    return LibresFacade(EnKFMain(setup_ert))
 
 
 @pytest.fixture()

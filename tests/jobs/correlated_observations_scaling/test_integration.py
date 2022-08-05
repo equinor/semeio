@@ -6,9 +6,7 @@ from unittest.mock import MagicMock
 
 import numpy as np
 import pytest
-import yaml
-from ert_shared.plugins.plugin_manager import ErtPluginManager
-from res.enkf import EnKFMain, ResConfig
+from ert import LibresFacade
 
 from semeio.workflows.correlated_observations_scaling import cos
 from semeio.workflows.correlated_observations_scaling.cos import (
@@ -25,68 +23,15 @@ def get_std_from_obs_vector(vector):
     return result
 
 
-def test_installed_python_version_of_enkf_scaling_job(setup_ert):
-
-    pm = ErtPluginManager(
-        plugins=[
-            cos,
-        ]
-    )
-    installable_workflow_jobs = pm.get_installable_workflow_jobs()
-
-    res_config = setup_ert
-    ert = EnKFMain(res_config)
-
-    obs = ert.getObservations()
-    obs_vector = obs["WPR_DIFF_1"]
-
-    result = get_std_from_obs_vector(obs_vector)
-
-    assert result == [1.0, 1.0, 1.0, 1.0]
-
-    job_config = {"CALCULATE_KEYS": {"keys": [{"key": "WPR_DIFF_1"}]}}
-
-    with open("job_config.yml", "w") as fout:
-        yaml.dump(job_config, fout)
-
-    ert.getWorkflowList().addJob(
-        "CORRELATE_OBSERVATIONS_SCALING",
-        installable_workflow_jobs["CORRELATED_OBSERVATIONS_SCALING"],
-    )
-
-    job = ert.getWorkflowList().getJob("CORRELATE_OBSERVATIONS_SCALING")
-    job.run(ert, ["job_config.yml"])
-
-    result = get_std_from_obs_vector(obs_vector)
-    assert result == [np.sqrt(4.0 / 2.0)] * 4
-
-    job_config["CALCULATE_KEYS"]["keys"][0].update({"index": [400, 800, 1200]})
-    with open("job_config.yml", "w") as fout:
-        yaml.dump(job_config, fout)
-    job.run(ert, ["job_config.yml"])
-
-    result = get_std_from_obs_vector(
-        obs_vector,
-    )
-    assert result == [
-        np.sqrt(3.0 / 2.0),
-        np.sqrt(3.0 / 2.0),
-        np.sqrt(3.0 / 2.0),
-        np.sqrt(4.0 / 2.0),
-    ]
-
-
 def test_main_entry_point_gen_data(setup_ert):
     cos_config = {
         "CALCULATE_KEYS": {"keys": [{"key": "WPR_DIFF_1"}]},
         "UPDATE_KEYS": {"keys": [{"key": "WPR_DIFF_1", "index": [400, 800]}]},
     }
-    res_config = setup_ert
-    ert = EnKFMain(res_config)
 
-    CorrelatedObservationsScalingJob(ert).run(cos_config)
+    setup_ert.run_ertscript(CorrelatedObservationsScalingJob, cos_config)
 
-    obs = ert.getObservations()
+    obs = setup_ert.get_observations()
     obs_vector = obs["WPR_DIFF_1"]
 
     result = get_std_from_obs_vector(obs_vector)
@@ -94,7 +39,7 @@ def test_main_entry_point_gen_data(setup_ert):
 
     cos_config["CALCULATE_KEYS"]["keys"][0].update({"index": [400, 800, 1200]})
 
-    CorrelatedObservationsScalingJob(ert).run(cos_config)
+    setup_ert.run_ertscript(CorrelatedObservationsScalingJob, cos_config)
     result = get_std_from_obs_vector(obs_vector)
     assert result == [
         np.sqrt(3.0 / 2.0),
@@ -149,10 +94,7 @@ def test_main_entry_point_summary_data_calc(setup_ert):
         "CALCULATE_KEYS": {"keys": [{"key": "WOPR_OP1_108"}, {"key": "WOPR_OP1_144"}]}
     }
 
-    res_config = setup_ert
-
-    ert = EnKFMain(res_config)
-    obs = ert.getObservations()
+    obs = setup_ert.get_observations()
 
     obs_vector = obs["WOPR_OP1_108"]
     result = []
@@ -160,7 +102,7 @@ def test_main_entry_point_summary_data_calc(setup_ert):
         result.append(node.getStdScaling(index))
     assert result == [1]
 
-    CorrelatedObservationsScalingJob(ert).run(cos_config)
+    setup_ert.run_ertscript(CorrelatedObservationsScalingJob, cos_config)
 
     for index, node in enumerate(obs_vector):
         assert node.getStdScaling(index) == 1.0
@@ -182,12 +124,8 @@ def test_main_entry_point_summary_data_calc(setup_ert):
     ],
 )
 def test_main_entry_point_history_data_calc(setup_ert, config, expected_result):
-
-    res_config = setup_ert
-
-    ert = EnKFMain(res_config)
-    obs = ert.getObservations()
-    CorrelatedObservationsScalingJob(ert).run(config)
+    obs = setup_ert.get_observations()
+    setup_ert.run_ertscript(CorrelatedObservationsScalingJob, config)
     obs_vector = obs["FOPR"]
     result = []
     for index, node in enumerate(obs_vector):
@@ -197,16 +135,13 @@ def test_main_entry_point_history_data_calc(setup_ert, config, expected_result):
 
 def test_main_entry_point_history_data_calc_subset(setup_ert):
     config = {"CALCULATE_KEYS": {"keys": [{"key": "FOPR", "index": [10, 20]}]}}
-    res_config = setup_ert
-
-    ert = EnKFMain(res_config)
-    obs = ert.getObservations()
+    obs = setup_ert.get_observations()
     obs_vector = obs["FOPR"]
 
     expected_result = [1.0] * 200
     expected_result[10] = np.sqrt(2)
     expected_result[20] = np.sqrt(2)
-    CorrelatedObservationsScalingJob(ert).run(config)
+    setup_ert.run_ertscript(CorrelatedObservationsScalingJob, config)
 
     result = []
     for index, node in enumerate(obs_vector):
@@ -230,12 +165,11 @@ def test_main_entry_point_summary_data_update():
     shutil.copytree(test_data_dir, "test_data")
     os.chdir(os.path.join("test_data"))
 
-    res_config = ResConfig("config")
-    ert = EnKFMain(res_config)
-    obs = ert.getObservations()
+    ert = LibresFacade.from_config_file("config")
+    obs = ert.get_observations()
     obs_vector = obs["WWCT:OP_2"]
 
-    CorrelatedObservationsScalingJob(ert).run(cos_config)
+    ert.run_ertscript(CorrelatedObservationsScalingJob, cos_config)
 
     for index, node in enumerate(obs_vector):
         if index in cos_config["UPDATE_KEYS"]["keys"][0]["index"]:
@@ -245,7 +179,7 @@ def test_main_entry_point_summary_data_update():
 
     obs_vector = obs["WWCT:OP_1"]
 
-    CorrelatedObservationsScalingJob(ert).run(cos_config)
+    ert.run_ertscript(CorrelatedObservationsScalingJob, cos_config)
 
     for index, node in enumerate(obs_vector):
         assert node.getStdScaling(index) == 1.0
@@ -262,16 +196,15 @@ def test_main_entry_point_block_data_calc():
     shutil.copytree(test_data_dir, "test_data")
     os.chdir(os.path.join("test_data"))
 
-    res_config = ResConfig("config")
-    ert = EnKFMain(res_config)
-    obs = ert.getObservations()
+    ert = LibresFacade.from_config_file("config")
+    obs = ert.get_observations()
 
     obs_vector = obs["RFT3"]
 
     for index, node in enumerate(obs_vector):
         assert node.getStdScaling(index) == 1.0
 
-    CorrelatedObservationsScalingJob(ert).run(cos_config)
+    ert.run_ertscript(CorrelatedObservationsScalingJob, cos_config)
 
     for index, node in enumerate(obs_vector):
         assert node.getStdScaling(index) == 2.0
@@ -288,16 +221,15 @@ def test_main_entry_point_block_and_summary_data_calc():
     shutil.copytree(test_data_dir, "test_data")
     os.chdir(os.path.join("test_data"))
 
-    res_config = ResConfig("config")
-    ert = EnKFMain(res_config)
-    obs = ert.getObservations()
+    ert = LibresFacade.from_config_file("config")
+    obs = ert.get_observations()
 
     obs_vector = obs["RFT3"]
 
     for index, node in enumerate(obs_vector):
         assert node.getStdScaling(index) == 1.0
 
-    CorrelatedObservationsScalingJob(ert).run(cos_config)
+    ert.run_ertscript(CorrelatedObservationsScalingJob, cos_config)
 
     for index, node in enumerate(obs_vector):
         assert node.getStdScaling(index) == np.sqrt(64)
@@ -306,9 +238,7 @@ def test_main_entry_point_block_and_summary_data_calc():
 def test_main_entry_point_sum_data_update(setup_ert, monkeypatch):
     cos_config = {"CALCULATE_KEYS": {"keys": [{"key": "WOPR_OP1_108"}]}}
 
-    res_config = setup_ert
-    ert = EnKFMain(res_config)
-    obs = ert.getObservations()
+    obs = setup_ert.get_observations()
 
     obs_vector = obs["WOPR_OP1_108"]
 
@@ -317,7 +247,7 @@ def test_main_entry_point_sum_data_update(setup_ert, monkeypatch):
     monkeypatch.setattr(
         cos.ObservationScaleFactor, "get_scaling_factor", MagicMock(return_value=1.23)
     )
-    CorrelatedObservationsScalingJob(ert).run(cos_config)
+    setup_ert.run_ertscript(CorrelatedObservationsScalingJob, cos_config)
 
     for index, node in enumerate(obs_vector):
         assert node.getStdScaling(index) == 1.23
@@ -328,9 +258,7 @@ def test_main_entry_point_shielded_data(setup_ert, monkeypatch):
         "CALCULATE_KEYS": {"keys": [{"key": "FOPR", "index": [1, 2, 3, 4, 5]}]}
     }
 
-    res_config = setup_ert
-    ert = EnKFMain(res_config)
-    obs = ert.getObservations()
+    obs = setup_ert.get_observations()
 
     obs_vector = obs["FOPR"]
 
@@ -340,7 +268,7 @@ def test_main_entry_point_shielded_data(setup_ert, monkeypatch):
     monkeypatch.setattr(
         cos.ObservationScaleFactor, "get_scaling_factor", MagicMock(return_value=1.23)
     )
-    CorrelatedObservationsScalingJob(ert).run(cos_config)
+    setup_ert.run_ertscript(CorrelatedObservationsScalingJob, cos_config)
 
     for index, node in enumerate(obs_vector):
         if index in [1, 2, 3, 4, 5]:

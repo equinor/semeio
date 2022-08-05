@@ -9,10 +9,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import xtgeo
-from ert import LibresFacade
 from ert_shared.plugins.plugin_manager import hook_implementation
-from res.enkf import EnkfNode, ErtImplType, RunContext
-from res.enkf.export import GenKwCollector, MisfitCollector
 from scipy.stats import ks_2samp
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
@@ -123,24 +120,22 @@ class AhmAnalysisJob(SemeioScript):  # pylint: disable=too-few-public-methods
         prior to posterior of ahm"""
         if output_dir is not None:
             self._reports_dir = output_dir
-        ert = self.ert()
-        facade = LibresFacade(self.ert())
 
         obs_keys = [
-            facade.get_observation_key(nr)
-            for nr, _ in enumerate(facade.get_observations())
+            self.facade.get_observation_key(nr)
+            for nr, _ in enumerate(self.facade.get_observations())
         ]
-        key_map = _group_observations(facade, obs_keys, group_by)
+        key_map = _group_observations(self.facade, obs_keys, group_by)
 
         prior_name, target_name = check_names(
-            facade.get_current_case_name(),
+            self.facade.get_current_case_name(),
             prior_name,
             target_name,
         )
         # Get the prior scalar parameter distributions
-        prior_data = GenKwCollector.loadAllGenKwData(ert, prior_name)
+        prior_data = self.facade.load_all_gen_kw_data(prior_name)
         raise_if_empty(
-            dataframes=[prior_data, MisfitCollector.loadAllMisfitData(ert, prior_name)],
+            dataframes=[prior_data, self.facade.load_all_misfit_data(prior_name)],
             messages=[
                 "Empty prior ensemble",
                 "Empty parameters set for History Matching",
@@ -150,12 +145,8 @@ class AhmAnalysisJob(SemeioScript):  # pylint: disable=too-few-public-methods
         # create dataframe with observations vectors (1 by 1 obs and also all_obs)
         combinations = make_obs_groups(key_map)
 
-        field_parameters = sorted(
-            ert.ensembleConfig().getKeylistFromImplType(ErtImplType.FIELD)
-        )
-        scalar_parameters = sorted(
-            ert.ensembleConfig().getKeylistFromImplType(ErtImplType.GEN_KW)
-        )
+        field_parameters = sorted(self.facade.get_field_parameters())
+        scalar_parameters = sorted(self.facade.get_gen_kw())
         # identify the set of actual parameters that was updated for now just go
         # through scalar parameters but in future if easier access to field parameter
         # updates should also include field parameters
@@ -175,8 +166,7 @@ class AhmAnalysisJob(SemeioScript):  # pylint: disable=too-few-public-methods
             #  Use localization to evaluate change of parameters for each observation
             with tempfile.TemporaryDirectory() as update_log_path:
                 _run_ministep(
-                    facade,
-                    ert,
+                    self.facade,
                     obs_group,
                     field_parameters + scalar_parameters,
                     prior_name,
@@ -188,7 +178,7 @@ class AhmAnalysisJob(SemeioScript):  # pylint: disable=too-few-public-methods
 
             # Get the updated scalar parameter distributions
             self.reporter.publish_csv(
-                group_name, GenKwCollector.loadAllGenKwData(ert, target_name)
+                group_name, self.facade.load_all_gen_kw_data(target_name)
             )
 
             active_obs.at["ratio", group_name] = (
@@ -201,7 +191,7 @@ class AhmAnalysisJob(SemeioScript):  # pylint: disable=too-few-public-methods
                 calc_observationsgroup_misfit(
                     group_name,
                     df_update_log,
-                    MisfitCollector.loadAllMisfitData(ert, prior_name),
+                    self.facade.load_all_misfit_data(prior_name),
                 )
             ]
             # Calculate Ks matrix for scalar parameters
@@ -211,20 +201,20 @@ class AhmAnalysisJob(SemeioScript):  # pylint: disable=too-few-public-methods
                 calc_kolmogorov_smirnov(
                     dkeysf,
                     prior_data,
-                    GenKwCollector.loadAllGenKwData(ert, target_name),
+                    self.facade.load_all_gen_kw_data(target_name),
                 )
             )
             field_output[group_name] = _get_field_params(
-                ert, facade.get_ensemble_size(), field_parameters, target_name
+                self.facade, field_parameters, target_name
             )
         kolmogorov_smirnov_data.set_index("Parameters", inplace=True)
 
         # Calculate Ks matrix for Fields parameters
         if field_parameters:
             # Get grid characteristics to be able to plot field avg maps
-            grid_xyzcenter = load_grid_to_dataframe(ert.eclConfig().get_gridfile())
+            grid_xyzcenter = load_grid_to_dataframe(self.facade.grid_file)
             all_input_prior = _get_field_params(
-                ert, facade.get_ensemble_size(), field_parameters, prior_name
+                self.facade, field_parameters, prior_name
             )
 
             for fieldparam in field_parameters:
@@ -280,7 +270,7 @@ class AhmAnalysisJob(SemeioScript):  # pylint: disable=too-few-public-methods
 
 
 def _run_ministep(
-    facade, ert, obs_group, data_parameters, prior_name, target_name, output_path
+    facade, obs_group, data_parameters, prior_name, target_name, output_path
 ):
     # pylint: disable=too-many-arguments
     update_step = {
@@ -288,34 +278,28 @@ def _run_ministep(
         "observations": obs_group,
         "parameters": data_parameters,
     }
-    ert.update_configuration = [update_step]
+    facade.update_configuration = [update_step]
 
     # Perform update analysis
-    ert.analysisConfig().set_log_path(output_path)
-    run_context = RunContext(
-        ert.getEnkfFsManager().getFileSystem(prior_name),
-        ert.getEnkfFsManager().getFileSystem(target_name),
-    )
+    facade.set_log_path(output_path)
+    run_context = facade.get_run_context(prior_name, target_name)
     facade.smoother_update(run_context)
 
 
-def _get_field_params(ert, ensemble_size, field_parameters, target_name):
+def _get_field_params(facade, field_parameters, target_name):
     """
     Because the FIELD parameters are not exposed in the Python API we have to
     export them to file and read them back again. When they are exposed in the API
     this function should be updated.
     """
     field_data = {}
-    file_system = ert.getEnkfFsManager().getFileSystem(target_name)
     with tempfile.TemporaryDirectory() as fout:
         for field_param in field_parameters:
-            config_node = ert.ensembleConfig()[field_param]
-            ext = config_node.get_enkf_outfile().rsplit(".")[-1]
-            file_path = os.path.join(fout, "%d_" + field_param + "." + ext)
-            _export_field_param(config_node, file_system, ensemble_size, file_path)
+            file_path = os.path.join(fout, "%d_" + field_param)
+            facade.export_field_parameter(field_param, target_name, file_path)
             fnames = glob.glob(os.path.join(fout, "*" + field_param + "*"))
             field_data[field_param] = _import_field_param(
-                ert.eclConfig().get_gridfile(), field_param, fnames
+                facade.grid_file, field_param, fnames
             )
     return field_data
 
@@ -330,16 +314,6 @@ def _import_field_param(input_grid, param_name, files):
         array_nb = proproff.get_npvalues1d(activeonly=False, fill_value=0, order="C")
         all_input.append(array_nb)
     return all_input
-
-
-def _export_field_param(config_node, file_system, ensemble_size, output_path):
-    # Get/export the updated Field parameters
-    EnkfNode.exportMany(
-        config_node,
-        output_path,
-        file_system,
-        np.arange(0, ensemble_size),
-    )
 
 
 def make_update_log_df(update_log_dir):

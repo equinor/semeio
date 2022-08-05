@@ -1,6 +1,4 @@
 import pytest
-from res.enkf import EnKFMain
-
 from semeio.workflows.correlated_observations_scaling.update_scaling import (
     scale_observations,
 )
@@ -14,9 +12,7 @@ class Config:  # pylint: disable=too-few-public-methods
 
 @pytest.fixture()
 def snake_oil_obs(setup_ert):
-    res_config = setup_ert
-    ert = EnKFMain(res_config)
-    yield ert.getObservations()
+    return setup_ert.get_observations()
 
 
 @pytest.mark.parametrize("index_list", [None, [0, 1, 2, 3]])

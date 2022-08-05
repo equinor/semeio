@@ -1,4 +1,3 @@
-from ert import LibresFacade
 from ert_shared.plugins.plugin_manager import hook_implementation
 
 import semeio.workflows.localisation.local_script_lib as local
@@ -11,14 +10,13 @@ class LocalisationConfigJob(SemeioScript):
         # pylint: disable=method-hidden
         # (SemeioScript wraps this run method)
         ert = self.ert()
-        facade = LibresFacade(self.ert())
         # Read yml file with specifications
         config_dict = local.read_localisation_config(args)
 
         # Get all observations from ert instance
         obs_keys = [
-            facade.get_observation_key(nr)
-            for nr, _ in enumerate(facade.get_observations())
+            self.facade.get_observation_key(nr)
+            for nr, _ in enumerate(self.facade.get_observations())
         ]
 
         ert_parameters = local.get_param_from_ert(ert.ensembleConfig())
