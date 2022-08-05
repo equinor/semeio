@@ -2,10 +2,11 @@ import datetime
 import logging
 import os
 import threading
-from pathlib import Path
 from logging.handlers import BufferingHandler
+from pathlib import Path
 from types import MethodType
 
+from ert import LibresFacade
 from res.job_queue import ErtScript
 
 from semeio.communication.reporter import FileReporter
@@ -57,6 +58,7 @@ class SemeioScript(ErtScript):  # pylint: disable=too-few-public-methods
 
     def __init__(self, ert):
         super().__init__(ert)
+        self.facade = LibresFacade(ert)
         self._output_dir = self._get_output_dir()
         self._reporter = FileReporter(self._output_dir)
         self._wrap_run()
@@ -75,15 +77,12 @@ class SemeioScript(ErtScript):  # pylint: disable=too-few-public-methods
         self.run = MethodType(run_with_handler, self)
 
     def _get_output_dir(self):
-        res_config = self.ert().resConfig()
-        base_dir = Path(res_config.model_config.getEnspath()).parent.absolute()
-        sub_dir = str(
-            self.ert().getEnkfFsManager().getCurrentFileSystem().getCaseName()
-        )
+        base_dir = Path(self.facade.enspath).parent.absolute()
+        sub_dir = str(self.facade.get_current_case_name())
         return os.path.join(
             base_dir,
             "reports",
-            Path(res_config.user_config_file).stem,
+            Path(self.facade.user_config_file).stem,
             sub_dir,
             type(self).__name__,
         )
@@ -102,8 +101,7 @@ class SemeioScript(ErtScript):  # pylint: disable=too-few-public-methods
         # pylint: disable=protected-access
         output_dir = Path(output_dir)
         if not output_dir.is_absolute():
-            res_config = self.ert().resConfig()
-            base_dir = Path(res_config.model_config.getEnspath()).parent.absolute()
+            base_dir = Path(self.facade.enspath).parent.absolute()
             self.reporter._output_dir = base_dir / output_dir
         else:
             self.reporter._output_dir = output_dir

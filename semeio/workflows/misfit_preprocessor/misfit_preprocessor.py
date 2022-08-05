@@ -1,11 +1,8 @@
 import yaml
-from ert import LibresFacade, MeasuredData
 from ert_shared.plugins.plugin_manager import hook_implementation
 
 from semeio._docs_utils._json_schema_2_rst import _create_docs
 from semeio.communication import SemeioScript
-
-from semeio.workflows.misfit_preprocessor.config import assemble_config
 from semeio.workflows import misfit_preprocessor
 from semeio.workflows.correlated_observations_scaling.cos import (
     CorrelatedObservationsScalingJob,
@@ -13,19 +10,19 @@ from semeio.workflows.correlated_observations_scaling.cos import (
 from semeio.workflows.correlated_observations_scaling.exceptions import (
     EmptyDatasetException,
 )
+from semeio.workflows.misfit_preprocessor.config import assemble_config
 from semeio.workflows.misfit_preprocessor.workflow_config import MisfitConfig
 
 
 class MisfitPreprocessorJob(SemeioScript):
     # pylint: disable=method-hidden
     def run(self, *args):
-        facade = LibresFacade(self.ert())
         config_record = _fetch_config_record(args)
-        observations = _get_observations(facade)
+        observations = _get_observations(self.facade)
         config = assemble_config(config_record, observations)
         if config.reports_directory:
             self._reports_dir = config.reports_directory
-        measured_record = _load_measured_record(facade, config.observations)
+        measured_record = _load_measured_record(self.facade, config.observations)
         scaling_configs = misfit_preprocessor.run(
             **{
                 "config": config,
@@ -60,7 +57,7 @@ def _fetch_config_record(args):
 
 
 def _load_measured_record(facade, obs_keys):
-    measured_data = MeasuredData(facade, obs_keys)
+    measured_data = facade.get_measured_data(obs_keys)
     measured_data.remove_failed_realizations()
     measured_data.remove_inactive_observations()
     measured_data.filter_ensemble_mean_obs(facade.get_alpha())

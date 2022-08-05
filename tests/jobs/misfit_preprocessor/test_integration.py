@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, Mock
 
 import pytest
 import yaml
-from res.enkf import EnKFMain, ResConfig
+from ert import LibresFacade
 
 import semeio
 from semeio.workflows.correlated_observations_scaling import cos
@@ -35,8 +35,7 @@ def test_misfit_preprocessor_main_entry_point_gen_data(
     shutil.copytree(test_data_dir, "test_data")
     os.chdir(os.path.join("test_data"))
 
-    res_config = ResConfig("snake_oil.ert")
-    ert = EnKFMain(res_config)
+    ert = LibresFacade.from_config_file("snake_oil.ert")
 
     config = {
         "observations": [observation],
@@ -49,7 +48,7 @@ def test_misfit_preprocessor_main_entry_point_gen_data(
     with open(config_file, "w", encoding="utf-8") as f:
         yaml.dump(config, f)
 
-    misfit_preprocessor.MisfitPreprocessorJob(ert).run(config_file)
+    ert.run_ertscript(misfit_preprocessor.MisfitPreprocessorJob, config_file)
 
     # call_args represents the clusters, we expect the snake_oil
     # observations to generate this amount of them
@@ -76,8 +75,7 @@ def test_misfit_preprocessor_passing_scaling_parameters(monkeypatch, test_data_r
     shutil.copytree(test_data_dir, "test_data")
     os.chdir(os.path.join("test_data"))
 
-    res_config = ResConfig("snake_oil.ert")
-    ert = EnKFMain(res_config)
+    ert = LibresFacade.from_config_file("snake_oil.ert")
 
     config = {
         "workflow": {
@@ -90,7 +88,7 @@ def test_misfit_preprocessor_passing_scaling_parameters(monkeypatch, test_data_r
     with open(config_file, "w", encoding="utf-8") as f:
         yaml.dump(config, f)
 
-    misfit_preprocessor.MisfitPreprocessorJob(ert).run(config_file)
+    ert.run_ertscript(misfit_preprocessor.MisfitPreprocessorJob, config_file)
 
     for scaling_config in list(run_mock.call_args)[0][0]:
         assert 0.5 == scaling_config["CALCULATE_KEYS"]["threshold"]
@@ -111,10 +109,9 @@ def test_misfit_preprocessor_main_entry_point_no_config(monkeypatch, test_data_r
     shutil.copytree(test_data_dir, "test_data")
     os.chdir(os.path.join("test_data"))
 
-    res_config = ResConfig("snake_oil.ert")
-    ert = EnKFMain(res_config)
+    ert = LibresFacade.from_config_file("snake_oil.ert")
 
-    misfit_preprocessor.MisfitPreprocessorJob(ert).run()
+    ert.run_ertscript(misfit_preprocessor.MisfitPreprocessorJob)
 
     assert len(run_mock.call_args[0][0]) > 1  # pylint: disable=unsubscriptable-object
 
@@ -126,8 +123,7 @@ def test_misfit_preprocessor_with_scaling(test_data_root):
     shutil.copytree(test_data_dir, "test_data")
     os.chdir(os.path.join("test_data"))
 
-    res_config = ResConfig("snake_oil.ert")
-    ert = EnKFMain(res_config)
+    ert = LibresFacade.from_config_file("snake_oil.ert")
 
     config = {
         "workflow": {
@@ -141,10 +137,10 @@ def test_misfit_preprocessor_with_scaling(test_data_root):
     with open(config_file, "w", encoding="utf-8") as f:
         yaml.dump(config, f)
 
-    misfit_preprocessor.MisfitPreprocessorJob(ert).run(config_file)
+    ert.run_ertscript(misfit_preprocessor.MisfitPreprocessorJob, config_file)
 
     # assert that this arbitrarily chosen cluster gets scaled as expected
-    obs = ert.getObservations()["FOPR"]
+    obs = ert.get_observations()["FOPR"]
     for index in [13, 14, 15, 16, 17, 18, 19, 20]:
         assert obs.getNode(index).getStdScaling() == 2.8284271247461903
 
@@ -170,8 +166,7 @@ def test_misfit_preprocessor_skip_clusters_yielding_empty_data_matrixes(
     shutil.copytree(test_data_dir, "test_data")
     os.chdir(os.path.join("test_data"))
 
-    res_config = ResConfig("snake_oil.ert")
-    ert = EnKFMain(res_config)
+    ert = LibresFacade.from_config_file("snake_oil.ert")
 
     config = {
         "workflow": {
@@ -183,10 +178,8 @@ def test_misfit_preprocessor_skip_clusters_yielding_empty_data_matrixes(
     with open(config_file, "w", encoding="utf-8") as f:
         yaml.dump(config, f)
 
-    job = misfit_preprocessor.MisfitPreprocessorJob(ert)
-
     try:
-        job.run(config_file)
+        ert.run_ertscript(misfit_preprocessor.MisfitPreprocessorJob, config_file)
     except EmptyDatasetException:
         pytest.fail("EmptyDatasetException was not handled by misfit preprocessor")
 
@@ -198,8 +191,7 @@ def test_misfit_preprocessor_invalid_config(test_data_root):
     shutil.copytree(test_data_dir, "test_data")
     os.chdir(os.path.join("test_data"))
 
-    res_config = ResConfig("snake_oil.ert")
-    ert = EnKFMain(res_config)
+    ert = LibresFacade.from_config_file("snake_oil.ert")
 
     config = {
         "unknown_key": [],
@@ -216,9 +208,8 @@ def test_misfit_preprocessor_invalid_config(test_data_root):
         "  - extra fields not permitted (workflow.clustering.threshold)\n"
         "  - extra fields not permitted (unknown_key)\n"
     )
-    job = misfit_preprocessor.MisfitPreprocessorJob(ert)
     with pytest.raises(semeio.workflows.misfit_preprocessor.ValidationError) as err:
-        job.run(config_file)
+        ert.run_ertscript(misfit_preprocessor.MisfitPreprocessorJob, config_file)
     assert str(err.value) == expected_err_msg
 
 
@@ -230,18 +221,17 @@ def test_misfit_preprocessor_all_obs(test_data_root, monkeypatch):
     shutil.copytree(test_data_dir, "test_data")
     os.chdir(os.path.join("test_data"))
 
-    res_config = ResConfig("snake_oil.ert")
-    ert = EnKFMain(res_config)
+    ert = LibresFacade.from_config_file("snake_oil.ert")
 
     monkeypatch.setattr(
         cos.ObservationScaleFactor, "get_scaling_factor", MagicMock(return_value=1.234)
     )
 
-    misfit_preprocessor.MisfitPreprocessorJob(ert).run()
+    ert.run_ertscript(misfit_preprocessor.MisfitPreprocessorJob)
 
     scaling_factors = []
 
-    obs = ert.getObservations()
+    obs = ert.get_observations()
     for key in [
         "FOPR",
         "WOPR_OP1_9",

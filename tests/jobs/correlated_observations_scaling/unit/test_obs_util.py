@@ -4,7 +4,8 @@ import shutil
 
 import configsuite
 import pytest
-from res.enkf import EnKFMain, ResConfig
+from ert import LibresFacade
+
 from semeio.workflows.correlated_observations_scaling import job_config
 from semeio.workflows.correlated_observations_scaling.exceptions import ValidationError
 from semeio.workflows.correlated_observations_scaling.obs_utils import (
@@ -129,7 +130,7 @@ def test_failed_wildcard_expansion(config_dict, obs_list, expected_fails, err_ms
 
 
 @pytest.mark.usefixtures("setup_ert")
-def test_create_observation_vectors(snake_oil_facade):
+def test_create_observation_vectors(setup_ert):
 
     valid_config_data = {
         "CALCULATE_KEYS": {"keys": [{"key": "WPR_DIFF_1"}]},
@@ -142,7 +143,7 @@ def test_create_observation_vectors(snake_oil_facade):
         deduce_required=True,
     )
 
-    obs = snake_oil_facade.get_observations()
+    obs = setup_ert.get_observations()
 
     new_events = create_active_lists(obs, config.snapshot.UPDATE_KEYS.keys)
 
@@ -166,11 +167,9 @@ def test_add_observation_vectors(test_data_root):
     shutil.copytree(test_data_dir, "test_data")
     os.chdir(os.path.join("test_data"))
 
-    res_config = ResConfig("snake_oil.ert")
+    ert = LibresFacade.from_config_file("snake_oil.ert")
 
-    ert = EnKFMain(res_config)
-
-    obs = ert.getObservations()
+    obs = ert.get_observations()
 
     new_events = create_active_lists(obs, config.snapshot.UPDATE_KEYS.keys)
 
@@ -189,15 +188,14 @@ def test_validate_failed_realizations(test_data_root):
     shutil.copytree(test_data_dir, "test_data")
     os.chdir(os.path.join("test_data"))
 
-    res_config = ResConfig("mini_fail_config")
-    ert = EnKFMain(res_config)
-    observations = ert.getObservations()
+    ert = LibresFacade.from_config_file("mini_fail_config")
+    observations = ert.get_observations()
 
     result = keys_with_data(
         observations,
         ["GEN_PERLIN_1"],
-        ert.getEnsembleSize(),
-        ert.getEnkfFsManager().getCurrentFileSystem(),
+        ert.get_ensemble_size(),
+        ert.get_current_fs(),
     )
     assert result == ["GEN_PERLIN_1"]
 
@@ -211,14 +209,13 @@ def test_validate_no_realizations(test_data_root):
     shutil.copytree(test_data_dir, "test_data")
     os.chdir(os.path.join("test_data"))
 
-    res_config = ResConfig("poly.ert")
-    ert = EnKFMain(res_config)
-    observations = ert.getObservations()
+    ert = LibresFacade.from_config_file("poly.ert")
+    observations = ert.get_observations()
 
     result = keys_with_data(
         observations,
         ["POLY_OBS"],
-        ert.getEnsembleSize(),
-        ert.getEnkfFsManager().getCurrentFileSystem(),
+        ert.get_ensemble_size(),
+        ert.get_current_fs(),
     )
     assert result == []

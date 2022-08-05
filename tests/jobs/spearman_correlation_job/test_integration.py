@@ -10,6 +10,7 @@ from res.enkf import EnKFMain, ResConfig
 from scipy import stats
 
 import semeio.workflows.spearman_correlation_job.spearman_correlation as sc
+from semeio.communication import semeio_script
 from semeio.workflows.correlated_observations_scaling.exceptions import (
     EmptyDatasetException,
 )
@@ -127,27 +128,20 @@ def test_main_entry_point_syn_data(monkeypatch, facade, measured_data):
     # pylint: disable=too-many-locals
     run_mock = Mock()
     scal_job = Mock(return_value=Mock(run=run_mock))
-    monkeypatch.setattr(sc, "CorrelatedObservationsScalingJob", scal_job)
-
     facade_mock = Mock()
     facade_mock.return_value = facade
-    md_mock = Mock()
-    md_mock.return_value = measured_data
+    monkeypatch.setattr(sc, "CorrelatedObservationsScalingJob", scal_job)
+    monkeypatch.setattr(semeio_script, "LibresFacade", facade_mock)
 
-    monkeypatch.setattr(sc, "LibresFacade", facade_mock)
-    monkeypatch.setattr(sc, "MeasuredData", md_mock)
+    facade.get_measured_data.return_value = measured_data
 
-    resconfig_mock = Mock()
-    resconfig_mock.model_config.getEnspath.return_value = os.path.join(
-        "config_path", "storage_path"
-    )
+    facade.enspath = os.path.join("config_path", "storage_path")
+    facade.user_config_file = "config_name"
 
     ert_mock = Mock()
     fs_mock = Mock()
     fs_mock.return_value.getCaseName.return_value = "user_case_name"
     ert_mock.getEnkfFsManager.return_value.getCurrentFileSystem = fs_mock
-    ert_mock.resConfig.return_value = resconfig_mock
-    resconfig_mock.user_config_file = "config_name"
 
     job = sc.SpearmanCorrelationJob(ert_mock)
     job.run(*["-t", "1.0"])
