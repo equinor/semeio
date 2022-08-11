@@ -1,7 +1,6 @@
 import argparse
 
-from ert import MeasuredData
-from ert_shared.libres_facade import LibresFacade
+from ert import LibresFacade, MeasuredData
 from ert_shared.plugins.plugin_manager import hook_implementation
 from semeio.communication import SemeioScript
 from semeio.workflows.correlated_observations_scaling.exceptions import (

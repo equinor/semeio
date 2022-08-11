@@ -1,4 +1,4 @@
-from ert_shared.libres_facade import LibresFacade
+from ert import LibresFacade
 from ert_shared.plugins.plugin_manager import hook_implementation
 
 import semeio.workflows.localisation.local_script_lib as local

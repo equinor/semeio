@@ -129,7 +129,7 @@ def test_failed_wildcard_expansion(config_dict, obs_list, expected_fails, err_ms
 
 
 @pytest.mark.usefixtures("setup_ert")
-def test_create_observation_vectors(setup_ert):
+def test_create_observation_vectors(snake_oil_facade):
 
     valid_config_data = {
         "CALCULATE_KEYS": {"keys": [{"key": "WPR_DIFF_1"}]},
@@ -142,9 +142,7 @@ def test_create_observation_vectors(setup_ert):
         deduce_required=True,
     )
 
-    res_config = setup_ert
-    ert = EnKFMain(res_config)
-    obs = ert.getObservations()
+    obs = snake_oil_facade.get_observations()
 
     new_events = create_active_lists(obs, config.snapshot.UPDATE_KEYS.keys)
 

@@ -1,7 +1,5 @@
 import yaml
-
-from ert import MeasuredData
-from ert_shared.libres_facade import LibresFacade
+from ert import LibresFacade, MeasuredData
 from ert_shared.plugins.plugin_manager import hook_implementation
 
 from semeio._docs_utils._json_schema_2_rst import _create_docs
