@@ -9,7 +9,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import xtgeo
-from ert_shared.libres_facade import LibresFacade
+from ert import LibresFacade
 from ert_shared.plugins.plugin_manager import hook_implementation
 from res.enkf import EnkfNode, ErtImplType, RunContext
 from res.enkf.export import GenKwCollector, MisfitCollector

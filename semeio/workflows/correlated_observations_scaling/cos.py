@@ -1,23 +1,22 @@
 # pylint: disable=consider-using-f-string,logging-fstring-interpolation
 import collections
 import logging
-import yaml
-import configsuite
 
-from ert import MeasuredData
-from ert_shared.libres_facade import LibresFacade
+import configsuite
+import yaml
+from ert import LibresFacade, MeasuredData
 from ert_shared.plugins.plugin_manager import hook_implementation
+
 from semeio.communication import SemeioScript
 from semeio.workflows.correlated_observations_scaling import (
     ObservationScaleFactor,
+    job_config,
 )
+from semeio.workflows.correlated_observations_scaling.job_config import ObsCorrConfig
+from semeio.workflows.correlated_observations_scaling.obs_utils import keys_with_data
 from semeio.workflows.correlated_observations_scaling.update_scaling import (
     scale_observations,
 )
-from semeio.workflows.correlated_observations_scaling import job_config
-from semeio.workflows.correlated_observations_scaling.obs_utils import keys_with_data
-from semeio.workflows.correlated_observations_scaling.job_config import ObsCorrConfig
-
 
 _DESCRIPTION = """
     Correlated_observation_scaling is an ERT workflow job that does Principal
