@@ -1,4 +1,5 @@
 import argparse
+
 import pytest
 
 from semeio.jobs.rft.zonemap import ZoneMap

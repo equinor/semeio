@@ -3,12 +3,11 @@
 import datetime
 
 import numpy as np
-
+import pytest
 from ecl.grid import EclGrid
 from ecl.rft import EclRFTFile
 
-import pytest
-from semeio.jobs.rft.trajectory import TrajectoryPoint, Trajectory
+from semeio.jobs.rft.trajectory import Trajectory, TrajectoryPoint
 from tests.jobs.rft import conftest
 
 ECL_BASE_REEK = conftest.get_ecl_base_reek()

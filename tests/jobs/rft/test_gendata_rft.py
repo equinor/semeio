@@ -143,7 +143,7 @@ def test_gendata_rft_entry_point_wrong_well_file(tmpdir, monkeypatch):
         "zonemap.txt",
     ]
     with open("well_and_time.txt", "w+", encoding="utf-8") as fh:
-        fh.write("NO_FILE_HERE 1 12 2005 0\n")
+        fh.write("NO_FILE_HERE 2005-12-01 0\n")
     monkeypatch.setattr(sys, "argv", arguments)
     with pytest.raises(SystemExit, match="NO_FILE_HERE.txt not found"):
         main_entry_point()
@@ -192,8 +192,8 @@ def test_gendata_rft_entry_point(tmpdir, monkeypatch):
 @pytest.mark.usefixtures("reek_data")
 def test_multiple_report_steps(tmpdir, monkeypatch):
     with open("well_and_time.txt", "w+", encoding="utf-8") as fh:
-        fh.write("OP_1 1 2 2000 0\n")
-        fh.write("OP_1 1 1 2001 1\n")
+        fh.write("OP_1 2000-02-01 0\n")
+        fh.write("OP_1 2001-01-01 1\n")
 
     arguments = [
         "script_name",
@@ -233,7 +233,7 @@ def test_gendata_inactive_info_point_not_in_grid(tmpdir, monkeypatch):
         fh.write("0 1 2 3\n")
 
     with open("well_and_time.txt", "w+", encoding="utf-8") as fh:
-        fh.write("B-1AH 1 12 2005 0\n")
+        fh.write("B-1AH 2005-12-01 0\n")
 
     arguments = [
         "script_name",
@@ -260,7 +260,7 @@ def test_gendata_inactive_info_point_not_in_grid(tmpdir, monkeypatch):
 def test_gendata_inactive_info_zone_mismatch(tmpdir, monkeypatch):
 
     with open("well_and_time.txt", "w+", encoding="utf-8") as fh:
-        fh.write("B-1AH 1 12 2005 0\n")
+        fh.write("B-1AH 2005-12-01 0\n")
 
     with open(os.path.join(tmpdir.strpath, "B-1AH.txt"), "r+", encoding="utf-8") as fh:
         lines = fh.readlines()
@@ -294,7 +294,7 @@ def test_gendata_inactive_info_zone_mismatch(tmpdir, monkeypatch):
 def test_gendata_inactive_info_not_in_rft(tmpdir, monkeypatch):
 
     with open("well_and_time.txt", "w+", encoding="utf-8") as fh:
-        fh.write("B-1AH 1 12 2005 0\n")
+        fh.write("B-1AH 2005-12-01 0\n")
 
     with open(os.path.join(tmpdir.strpath, "B-1AH.txt"), "r+", encoding="utf-8") as fh:
         lines = fh.readlines()
@@ -328,7 +328,7 @@ def test_gendata_inactive_info_not_in_rft(tmpdir, monkeypatch):
 def test_gendata_inactive_info_zone_missing_value(tmpdir, monkeypatch):
 
     with open("well_and_time.txt", "w+", encoding="utf-8") as fh:
-        fh.write("B-1AH 1 12 2005 0\n")
+        fh.write("B-1AH 2005-12-01 0\n")
 
     with open("zonemap.txt", "w+", encoding="utf-8") as fh:
         fh.write("1 zone1\n")
@@ -366,7 +366,7 @@ def test_partial_rft_file(tmpdir, monkeypatch, caplog):
 
     # Append an extra non-existing date to the well_and_time.txt test-file
     with open("well_and_time.txt", "a", encoding="utf-8") as file_h:
-        file_h.write("B-1AH 1 12 2045 0")
+        file_h.write("B-1AH 2045-12-01 0")
 
     csv_filename = "gendata_rft.csv"
     arguments = [
@@ -396,7 +396,7 @@ def test_partial_rft_file(tmpdir, monkeypatch, caplog):
 @pytest.mark.usefixtures("norne_data")
 def test_one_wrong_date(tmpdir, monkeypatch, caplog):
     with open("well_wrongtime.txt", "w", encoding="utf-8") as file_h:
-        file_h.write("B-1AH 1 12 2045 0")
+        file_h.write("B-1AH 2045-12-01 0")
 
     csv_filename = "gendata_rft.csv"
     arguments = [
@@ -508,7 +508,7 @@ def test_ert_setup_one_well_one_rft_point(tmpdir):
     )
 
     # List the well and dates for which we have observations:
-    (Path("rft_input") / "well_time.txt").write_text("OP_1 01 02 2000 1")
+    (Path("rft_input") / "well_time.txt").write_text("OP_1 2000-02-01 1")
 
     Path("observations").mkdir()
 
@@ -610,7 +610,7 @@ def test_ert_setup_one_well_two_points_different_time_and_depth(tmpdir):
 
     # List the well and dates for which we have observations:
     (Path("rft_input") / "well_time.txt").write_text(
-        "OP_1 01 02 2000 1\nOP_1 01 01 2001 2"
+        "OP_1 2000-02-01 1\nOP_1 2001-01-01 2"
     )
 
     Path("observations").mkdir()

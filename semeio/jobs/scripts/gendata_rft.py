@@ -50,8 +50,8 @@ examples = """
 Setup a file with well-names and associated date of RFT data in a file called
 e.g. ``well_date_rft.txt``::
 
-    -- well DD MM YYYY report_step
-    A-1     01 02 2000 0
+    -- well YYYY-MM-DD report_step
+    A-1     2000-02-01 0
 
 A directory with trajectory files must be prepared, which must contain one
 file for each well mentioned in the file above. A file in this directory
@@ -105,7 +105,7 @@ so it is only necessary to specify the basename
         required=True,
         help="""
 Filepath to a file containing the well and time that will be loaded from the RFT
-file. The accepted file format is: <well_name> <DD> <MM> <YY> <report>.
+file. The accepted file format is: <well_name> <YYYY-MM-DD> <report>.
 For each well name given in the file there must also exist a <well_name.txt> file
 that contains a list of trajectory points. Each line must be specified according
 to: <utmx> <utmy> <TVD> <MD>
