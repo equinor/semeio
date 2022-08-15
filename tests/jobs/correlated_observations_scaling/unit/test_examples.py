@@ -1,6 +1,6 @@
 import configsuite
 import pytest
-import rstcheck
+import rstcheck_core.checker
 
 from semeio.workflows.correlated_observations_scaling import cos, job_config
 
@@ -38,4 +38,4 @@ def test_valid_rst(input_rst):
     Check that the documentation passed through the plugin system is
     valid rst
     """
-    assert not list(rstcheck.check(input_rst))
+    assert not list(rstcheck_core.checker.check_source(input_rst))
