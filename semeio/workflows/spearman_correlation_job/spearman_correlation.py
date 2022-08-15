@@ -1,6 +1,6 @@
 import argparse
 
-from ert_shared.plugins.plugin_manager import hook_implementation
+from ert.shared.plugins.plugin_manager import hook_implementation
 
 from semeio.communication import SemeioScript
 from semeio.workflows.correlated_observations_scaling.cos import (

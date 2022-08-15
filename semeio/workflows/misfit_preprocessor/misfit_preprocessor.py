@@ -1,5 +1,5 @@
 import yaml
-from ert_shared.plugins.plugin_manager import hook_implementation
+from ert.shared.plugins.plugin_manager import hook_implementation
 
 from semeio._docs_utils._json_schema_2_rst import _create_docs
 from semeio.communication import SemeioScript

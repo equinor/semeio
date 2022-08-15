@@ -3,9 +3,9 @@ import shutil
 import subprocess
 import sys
 
-import ert_shared.hook_implementations
+import ert.shared.hook_implementations
 import pytest
-from ert_shared.plugins.plugin_manager import ErtPluginContext
+from ert.shared.plugins.plugin_manager import ErtPluginContext
 
 import semeio.hook_implementations.jobs
 
@@ -72,7 +72,7 @@ def test_nosim(nosim_command, data_input, data_expected):
         fh.write(data_input)
 
     with ErtPluginContext(
-        plugins=[semeio.hook_implementations.jobs, ert_shared.hook_implementations]
+        plugins=[semeio.hook_implementations.jobs, ert.shared.hook_implementations]
     ):
         subprocess.check_call(
             ["ert", "test_run", "nosim.ert", "--verbose"],
