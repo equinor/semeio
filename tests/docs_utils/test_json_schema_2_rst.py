@@ -1,10 +1,10 @@
-import rstcheck
 import pytest
+import rstcheck_core.checker
 
 from semeio._docs_utils._json_schema_2_rst import (
     _create_docs,
-    _replace_key,
     _remove_key,
+    _replace_key,
 )
 
 json_schema = {
@@ -149,7 +149,7 @@ json_schema = {
 
 def test_json_2_rst():
     result = _create_docs(json_schema)
-    assert not list(rstcheck.check(result))
+    assert not list(rstcheck_core.checker.check_source(result))
 
 
 @pytest.mark.parametrize(

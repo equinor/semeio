@@ -2,12 +2,11 @@
 import os
 import subprocess
 
-import pytest
-import rstcheck
 import pandas as pd
+import pytest
+import rstcheck_core.checker
 
 from semeio.workflows.csv_export2 import csv_export2
-
 from tests.jobs.csv_export2 import conftest
 
 test_header = [
@@ -129,7 +128,7 @@ def test_valid_rst(input_rst):
     Check that the documentation passed through the plugin system is
     valid rst
     """
-    assert not list(rstcheck.check(input_rst))
+    assert not list(rstcheck_core.checker.check_source(input_rst))
 
 
 @pytest.mark.usefixtures("norne_mocked_ensembleset")
