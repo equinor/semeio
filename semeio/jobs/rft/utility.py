@@ -1,6 +1,9 @@
 import os
 import datetime
 import argparse
+from typing import List, Tuple
+from pathlib import Path
+import warnings
 
 from ecl.rft import EclRFTFile
 from ecl.grid import EclGrid
@@ -18,24 +21,23 @@ def existing_directory(path):
     return path
 
 
-def load_and_parse_well_time_file(filename):
+def load_and_parse_well_time_file(
+    filename: str,
+) -> List[Tuple[str, datetime.date, int]]:
     """
-    The file must be on the format of <STRING INT INT INT INT> which
-    represents <well_name day month year report_step>
+    Reads and parses a file from disk, supporting 2 formats:
 
-    Parameters
-    ----------
-    filename : string
-        Filename to open
+      <wellname : str> <date : isostring> <report_step : int>
 
-    Returns
-    -------
-    [Tuple]
-        Returns a list of tuples with (well, datetime, report_step)
+    or the deprecated:
+      <wellname : str> <day : int> <month : int> <year : int> <report_step : int>
+
+    Returns:
+        well, datetime and reportstep in a list of tuples
     """
     # pylint: disable=too-many-locals
 
-    if not os.path.isfile(filename):
+    if not Path(filename).exists():
         raise argparse.ArgumentTypeError(f"The path {filename} does not exist")
 
     well_times = []
@@ -43,21 +45,22 @@ def load_and_parse_well_time_file(filename):
         "Line {line_number} in well_and_time_file {filename} not on proper format: "
     )
 
-    with open(filename, encoding="utf-8") as well_time_file:
-        lines = well_time_file.readlines()
+    lines = Path(filename).read_text(encoding="utf-8").splitlines()
 
     well_time_lines = [(strip_comments(l), i + 1) for i, l in enumerate(lines)]
 
     for line, line_number in well_time_lines:
+        # line_number starts at 1
         tokens = line.split()
 
         if not tokens:
             continue
 
-        if len(tokens) != 5:
+        if len(tokens) not in (3, 5):
             err_msg = (
                 base_error_msg
-                + "Unexpected number of tokens: expected 5 got {num_tokens}"
+                + "Unexpected number of tokens: "
+                + "expected 3 or 5 (deprecated), got {num_tokens}"
             )
             raise argparse.ArgumentTypeError(
                 err_msg.format(
@@ -67,38 +70,42 @@ def load_and_parse_well_time_file(filename):
 
         well = tokens[0]
 
+        report_step_token = len(tokens) - 1
         try:
-            report_step = int(tokens[4])
+            report_step = int(tokens[report_step_token])
         except ValueError as err:
             err_msg = base_error_msg + "Unable to convert {report_step} to int"
             raise argparse.ArgumentTypeError(
                 err_msg.format(
-                    line_number=line_number, filename=filename, report_step=tokens[4]
+                    line_number=line_number,
+                    filename=filename,
+                    report_step=tokens[report_step_token],
                 )
             ) from err
 
         try:
-            year = int(tokens[3])
-            month = int(tokens[2])
-            day = int(tokens[1])
-            time = datetime.date(year, month, day)
+            if len(tokens) == 3:
+                welldate = datetime.datetime.fromisoformat(tokens[1]).date()
+            else:
+                year = int(tokens[3])
+                month = int(tokens[2])
+                day = int(tokens[1])
+                welldate = datetime.date(year, month, day)
+                warnings.warn(
+                    "Use YYYY-MM-DD as date format for gendata_rft input", FutureWarning
+                )
 
         except ValueError as err:
-            err_msg = base_error_msg + (
-                "Unable to parse date, expected day month year got: "
-                "{day} {month} {year}"
-            )
+            err_msg = base_error_msg + (f"Unable to parse date from the line: {line}")
             raise argparse.ArgumentTypeError(
                 err_msg.format(
                     line_number=line_number,
                     filename=filename,
-                    day=tokens[1],
-                    month=tokens[2],
-                    year=tokens[3],
+                    line=line,
                 )
             ) from err
 
-        well_times.append((well, time, report_step))
+        well_times.append((well, welldate, report_step))
 
     return well_times
 

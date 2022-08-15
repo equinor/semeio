@@ -2,10 +2,9 @@ import itertools
 from pathlib import Path
 
 import pandas as pd
-
 import pytest
 
-from semeio.jobs.rft.trajectory import TrajectoryPoint, Trajectory
+from semeio.jobs.rft.trajectory import Trajectory, TrajectoryPoint
 from semeio.jobs.rft.zonemap import ZoneMap
 
 
