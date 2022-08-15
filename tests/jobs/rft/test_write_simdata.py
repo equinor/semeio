@@ -1,9 +1,9 @@
 import os
 
-import pytest
 import pandas as pd
+import pytest
 
-from semeio.jobs.rft.gendata_rft import _write_simdata, _write_gen_data_files
+from semeio.jobs.rft.gendata_rft import _write_gen_data_files, _write_simdata
 
 
 @pytest.mark.parametrize(

@@ -1,5 +1,6 @@
-import datetime
 import argparse
+import datetime
+
 import pytest
 
 from semeio.jobs.scripts.gendata_rft import load_and_parse_well_time_file
@@ -9,10 +10,15 @@ from semeio.jobs.scripts.gendata_rft import load_and_parse_well_time_file
 def initdir(tmpdir):
     tmpdir.chdir()
     valid_data = """
+WELL-NAME1 2000-01-01 2
+WELL-NAME2 2001-03-02 3
+"""
+    deprecated_data = """
 WELL-NAME1 1 1 2000 2
 WELL-NAME2 2 3 2001 3
 """
     tmpdir.join("valid_well_and_time.txt").write(valid_data)
+    tmpdir.join("deprecated_well_and_time.txt").write(deprecated_data)
     comment = "-- this is a comment"
     valid_data = comment + "\n" + valid_data + comment
     tmpdir.join("valid_well_and_time_with_comments.txt").write(valid_data)
@@ -27,12 +33,17 @@ WELL-NAME1 1 1 2000 incorrect_report_step
 """
     tmpdir.join("incorrect_report_format.txt").write(incorrect_report_format)
 
-    incorrect_date_format = """
+    incorrect_date_format_1 = """
+WELL-NAME1 2013-13-99 1
+"""
+    tmpdir.join("incorrect_date_format_1.txt").write(incorrect_date_format_1)
+    incorrect_date_format_2 = """
 WELL-NAME1 day month year 1
 """
-    tmpdir.join("incorrect_date_format.txt").write(incorrect_date_format)
+    tmpdir.join("incorrect_date_format_2.txt").write(incorrect_date_format_2)
 
 
+@pytest.mark.filterwarnings("ignore::FutureWarning")
 @pytest.mark.usefixtures("initdir")
 def test_load():
     expected_results = [
@@ -41,6 +52,7 @@ def test_load():
     ]
     for fname in [
         "valid_well_and_time.txt",
+        "deprecated_well_and_time.txt",
         "valid_well_and_time_with_comments.txt",
     ]:
         well_times = load_and_parse_well_time_file(fname)
@@ -54,18 +66,26 @@ def test_load():
 
 
 @pytest.mark.usefixtures("initdir")
+def test_load_deprecated_date():
+    with pytest.warns(FutureWarning, match="YYYY-MM-DD"):
+        load_and_parse_well_time_file("deprecated_well_and_time.txt")
+
+
+@pytest.mark.usefixtures("initdir")
 def test_invalid_load():
     errors = [
-        "Unexpected number of tokens: expected 5 got 2",
+        "Unexpected number of tokens: expected 3 or 5 (deprecated), got 2",
         "Unable to convert incorrect_report_step to int",
-        "Unable to parse date, expected day month year got: day month year",
+        "Unable to parse date from the line:",
+        "Unable to parse date from the line:",
         "The path non_existing does not exist",
     ]
 
     fnames = [
         "incorrect_number.txt",
         "incorrect_report_format.txt",
-        "incorrect_date_format.txt",
+        "incorrect_date_format_1.txt",
+        "incorrect_date_format_2.txt",
         "non_existing",
     ]
 
