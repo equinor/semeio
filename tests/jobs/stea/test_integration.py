@@ -4,7 +4,7 @@
 from pathlib import Path
 import sys
 import pytest
-from ert_shared.main import main
+from ert.shared.main import main
 
 from stea import SteaKeys
 

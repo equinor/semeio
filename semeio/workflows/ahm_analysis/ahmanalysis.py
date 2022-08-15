@@ -9,7 +9,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import xtgeo
-from ert_shared.plugins.plugin_manager import hook_implementation
+from ert.shared.plugins.plugin_manager import hook_implementation
 from scipy.stats import ks_2samp
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler

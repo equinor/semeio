@@ -2,7 +2,7 @@
 
 import os
 
-from ert_shared.plugins.plugin_manager import ErtPluginManager
+from ert.shared.plugins.plugin_manager import ErtPluginManager
 
 import semeio.hook_implementations.jobs
 from semeio.workflows.ahm_analysis import ahmanalysis
