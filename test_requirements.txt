@@ -6,5 +6,5 @@ pytest
 pytest-console-scripts
 pytest-httpserver
 pytest-snapshot
-rstcheck<6.0.0
+rstcheck-core
 xlwt
