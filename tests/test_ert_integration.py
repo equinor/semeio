@@ -1,8 +1,8 @@
 import subprocess
 
-import ert_shared.hook_implementations
+import ert.shared.hook_implementations
 import pytest
-from ert_shared.plugins.plugin_manager import ErtPluginContext
+from ert.shared.plugins.plugin_manager import ErtPluginContext
 
 import semeio.hook_implementations.jobs
 
@@ -75,7 +75,7 @@ def test_forward_model_error_propagation(forward_model, configuration, expected_
         match=r"Command.*ert.*returned non-zero exit status",
     ):
         with ErtPluginContext(
-            plugins=[semeio.hook_implementations.jobs, ert_shared.hook_implementations]
+            plugins=[semeio.hook_implementations.jobs, ert.shared.hook_implementations]
         ):
             subprocess.run(["ert", "test_run", "config.ert", "--verbose"], check=True)
     with open(
