@@ -6,7 +6,7 @@ from unittest.mock import Mock
 
 import pandas as pd
 import pytest
-from res.enkf import EnKFMain, ResConfig
+from ert._c_wrappers.enkf import EnKFMain, ResConfig
 from scipy import stats
 
 import semeio.workflows.spearman_correlation_job.spearman_correlation as sc
