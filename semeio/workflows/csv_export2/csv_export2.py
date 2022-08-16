@@ -2,9 +2,9 @@ import argparse
 import sys
 
 import pandas as pd
-from ert.shared.plugins.plugin_manager import hook_implementation
 from fmu import ensemble
-from res.job_queue import ErtScript
+from ert import ErtScript
+from ert.shared.plugins.plugin_manager import hook_implementation
 
 DESCRIPTION = """
 CSV_EXPORT2 will export selected Eclipse summary vectors to a CSV file.

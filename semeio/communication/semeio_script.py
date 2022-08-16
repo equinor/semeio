@@ -6,8 +6,7 @@ from logging.handlers import BufferingHandler
 from pathlib import Path
 from types import MethodType
 
-from ert import LibresFacade
-from res.job_queue import ErtScript
+from ert import LibresFacade, ErtScript
 
 from semeio.communication.reporter import FileReporter
 
