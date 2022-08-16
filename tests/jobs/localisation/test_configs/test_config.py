@@ -2,7 +2,7 @@ from unittest.mock import MagicMock
 
 import pydantic
 import pytest
-from res.enkf.enums.ert_impl_type_enum import ErtImplType
+from ert._c_wrappers.enkf.enums.ert_impl_type_enum import ErtImplType
 
 from semeio.workflows.localisation.localisation_config import (
     LocalisationConfig,

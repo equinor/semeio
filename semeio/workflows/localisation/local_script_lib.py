@@ -14,9 +14,9 @@ from ecl.eclfile import Ecl3DKW
 from ecl.grid.ecl_grid import EclGrid
 from ecl.util.geometry import Surface
 from numpy import ma
-from res.enkf.enums.enkf_var_type_enum import EnkfVarType
-from res.enkf.enums.ert_impl_type_enum import ErtImplType
-from res.enkf.row_scaling import RowScaling
+from ert._c_wrappers.enkf.enums.enkf_var_type_enum import EnkfVarType
+from ert._c_wrappers.enkf.enums.ert_impl_type_enum import ErtImplType
+from ert._c_wrappers.enkf.row_scaling import RowScaling
 
 from semeio.workflows.localisation.localisation_debug_settings import (
     LogLevel,
