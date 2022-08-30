@@ -1,6 +1,7 @@
 # pylint: disable=unsubscriptable-object  # pylint issue
 import os
 import subprocess
+from pathlib import Path
 
 import pandas as pd
 import pytest
@@ -261,13 +262,10 @@ def test_ert_integration_errors(snapshot):
         file_h.write("\n".join(ert_config))
 
     subprocess.run(["ert", "test_run", ert_config_fname], check=True)
-    log_file = "ert-log"
-    for file in os.listdir():
-        if file.startswith(log_file):
-            log_file = file
-            break
-    with open(log_file) as fin:
-        ertlog = fin.read()
+
+    log_file = next(Path("logs").glob("ert-log*txt"))
+    ertlog = log_file.read_text(encoding="utf-8")
+
     assert "No STATUS file" in ertlog
     assert "realization-2/iter-0" in ertlog
 
