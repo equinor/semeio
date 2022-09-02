@@ -22,6 +22,7 @@ def input_data(tmpdir):
 
 
 _templatefile = "template.yml.tmpl"
+_templatefile_unmatched = "template_unmatched.yml.tmpl"
 _resultfile = "result.txt"
 _log_level = "DEBUG"
 _default_log_level = "WARNING"
@@ -61,5 +62,14 @@ def test_argparse_file_not_exists(monkeypatch):
 @pytest.mark.usefixtures("input_data")
 def test_argparse_result_file_missing(monkeypatch):
     monkeypatch.setattr(sys, "argv", ["script_name", _templatefile])
+    with pytest.raises(SystemExit):
+        design_kw.main_entry_point()
+
+
+@pytest.mark.usefixtures("input_data")
+def test_unmatched_template(monkeypatch):
+    monkeypatch.setattr(
+        sys, "argv", ["script_name", _templatefile_unmatched, _resultfile]
+    )
     with pytest.raises(SystemExit):
         design_kw.main_entry_point()
