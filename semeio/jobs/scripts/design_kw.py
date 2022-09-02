@@ -1,6 +1,6 @@
-# pylint: disable=logging-fstring-interpolation
 import argparse
 import logging
+import sys
 
 from semeio import valid_file
 from semeio.jobs.design_kw import design_kw
@@ -50,12 +50,15 @@ def create_parser():
     return parser
 
 
-def main_entry_point():
+def main_entry_point() -> bool:
     parser = create_parser()
     parsed_args = parser.parse_args()
 
-    design_kw.run(
+    valid = design_kw.run(
         template_file_name=parsed_args.templatefile,
         result_file_name=parsed_args.resultfile,
         log_level=parsed_args.log_level,
     )
+
+    if not valid:
+        sys.exit(1)
