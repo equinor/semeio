@@ -1,10 +1,8 @@
 # pylint: disable=logging-fstring-interpolation
 import logging
-import shlex
 import re
-
+import shlex
 from typing import List
-
 
 _STATUS_FILE_NAME = "DESIGN_KW.OK"
 
@@ -12,11 +10,11 @@ _logger = logging.getLogger(__name__)
 
 
 def run(
-    template_file_name,
-    result_file_name,
-    log_level,
-    parameters_file_name="parameters.txt",
-):
+    template_file_name: str,
+    result_file_name: str,
+    log_level: int,
+    parameters_file_name: str = "parameters.txt",
+) -> bool:
     # Get all key, value pairs
     # If FWL key is having multiple entries in the parameters file
     # KeyError is raised. This will be logged, and no OK
@@ -36,21 +34,22 @@ def run(
     with open(template_file_name, "r", encoding="utf-8") as template_file:
         template = template_file.readlines()
 
-    if valid:
-        with open(result_file_name, "w", encoding="utf-8") as result_file:
-            for line in template:
-                if not is_comment(line):
-                    for key, value in key_vals.items():
-                        line = line.replace(f"<{key}>", str(value))
+    with open(result_file_name, "w", encoding="utf-8") as result_file:
+        for line in template:
+            if not is_comment(line):
+                for key, value in key_vals.items():
+                    line = line.replace(f"<{key}>", str(value))
 
-                    if not all_matched(line, template_file_name, template):
-                        valid = False
+                if not all_matched(line, template_file_name, template):
+                    valid = False
 
-                result_file.write(line)
+            result_file.write(line)
 
     if valid:
         with open(_STATUS_FILE_NAME, "w", encoding="utf-8") as status_file:
             status_file.write("DESIGN_KW OK\n")
+
+    return valid
 
 
 def all_matched(line, template_file_name, template):
