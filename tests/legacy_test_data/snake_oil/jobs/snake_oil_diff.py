@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# pylint: disable=consider-using-f-string
+# pylint: disable=consider-using-f-string, redefined-outer-name
 from ecl.summary import EclSum
 
 

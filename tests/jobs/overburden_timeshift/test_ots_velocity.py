@@ -8,9 +8,9 @@ from semeio.jobs.overburden_timeshift.ots_vel_surface import OTSVelSurface
 from .ots_util import create_segy_file
 
 
-@pytest.fixture()
+@pytest.fixture(name="setup_spec")
 @pytest.mark.usefixtures("tmpdir")
-def setup_spec():
+def fixture_setup_spec():
     spec = segyio.spec()
     spec.format = 5
     spec.sorting = 2

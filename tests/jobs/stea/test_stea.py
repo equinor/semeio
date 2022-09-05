@@ -13,8 +13,8 @@ from semeio.jobs.scripts import fm_stea
 TEST_STEA_PATH, _ = os.path.split(os.path.abspath(__file__))
 
 
-@pytest.fixture()
-def setup_stea(tmpdir):
+@pytest.fixture(name="setup_stea")
+def fixture_setup_stea(tmpdir):
     cwd = os.getcwd()
     tmpdir.chdir()
     shutil.copytree(TEST_STEA_PATH, "stea")
@@ -50,8 +50,8 @@ def mock_project(monkeypatch):
     yield mocked_project
 
 
-@pytest.fixture(autouse=True)
-def mock_calculate(monkeypatch):
+@pytest.fixture(autouse=True, name="mock_calculate")
+def fixture_mock_calculate(monkeypatch):
     mock_stea = mock.MagicMock()
     mock_stea.side_effect = calculate_patch
     monkeypatch.setattr(stea, "calculate", mock_stea)

@@ -175,10 +175,10 @@ if __name__ == "__main__":
         os.path.join(os.path.dirname(__file__), "../../../test-data/norne")
     )
     grid_file = os.path.join(grid_path, "NORNE_ATW2013.EGRID")
-    grid = EclGrid(grid_file, apply_mapaxes=True)
+    norne_grid = EclGrid(grid_file, apply_mapaxes=True)
 
     mock_segy(
-        grid,
+        norne_grid,
         relative_resolution_scale=(1, 1, 1),
         relative_size_scale=(1, 1),
         relative_position_shift=(0, 0),

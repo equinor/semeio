@@ -101,15 +101,15 @@ def test_skip_clusters_yielding_empty_data_matrixes(monkeypatch, test_data_root)
         pytest.fail("EmptyDatasetException was not handled by SC job")
 
 
-@pytest.fixture()
-def facade():
+@pytest.fixture(name="facade")
+def fixture_facade():
     facade = Mock()
     facade.get_observations.return_value = []
     return facade
 
 
-@pytest.fixture()
-def measured_data():
+@pytest.fixture(name="measured_data")
+def fixture_measured_data():
     r1 = [1, 5, 3]
     r2 = [2, 90, 2]
     r3 = [3, 2, 1]
