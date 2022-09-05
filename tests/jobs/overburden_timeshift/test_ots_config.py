@@ -9,6 +9,8 @@ from semeio.jobs.overburden_timeshift.ots import ots_load_params
 
 TEST_NORNE_DIR = Path(__file__).parent / ".." / ".." / "test_data" / "norne"
 
+# pylint: disable=duplicate-code
+
 
 @pytest.fixture()
 def ecl_files(tmpdir):
