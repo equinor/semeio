@@ -4,6 +4,8 @@ from semeio.workflows.correlated_observations_scaling.update_scaling import (
     scale_observations,
 )
 
+# pylint: disable=redefined-outer-name
+
 
 class Config:  # pylint: disable=too-few-public-methods
     def __init__(self, key, index):
@@ -11,8 +13,8 @@ class Config:  # pylint: disable=too-few-public-methods
         self.index = index
 
 
-@pytest.fixture()
-def snake_oil_obs(setup_ert):
+@pytest.fixture(name="snake_oil_obs")
+def fixture_snake_oil_obs(setup_ert):
     return setup_ert.get_observations()
 
 

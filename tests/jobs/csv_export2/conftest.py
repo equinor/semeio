@@ -101,8 +101,8 @@ def norne_mocked_ensembleset_noparams(setup_tmpdir):
     mock_norne_data(reals=[0, 1], iters=[0, 1], parameters=False)
 
 
-@pytest.fixture()
-def setup_tmpdir(tmpdir):
+@pytest.fixture(name="setup_tmpdir")
+def fixture_setup_tmpdir(tmpdir):
     cwd = os.getcwd()
     tmpdir.chdir()
     yield
