@@ -9,8 +9,9 @@ from semeio.jobs.overburden_timeshift.ots import ots_run
 
 from .ots_util import mock_segy
 
+# pylint: disable=too-many-statements, duplicate-code
 
-# pylint: disable=too-many-statements
+
 @pytest.mark.parametrize(
     "res_scale, size_scale, pos_shift, results, surf_res",
     [

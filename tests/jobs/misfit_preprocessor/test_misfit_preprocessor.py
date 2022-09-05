@@ -8,6 +8,8 @@ import pytest
 from semeio.workflows import misfit_preprocessor
 from semeio.workflows.misfit_preprocessor import assemble_config
 
+# pylint: disable=duplicate-code
+
 
 class MockedMeasuredData:
     def __init__(self, observations, responses):
