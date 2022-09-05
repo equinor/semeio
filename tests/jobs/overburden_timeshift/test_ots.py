@@ -11,7 +11,7 @@ from semeio.jobs.overburden_timeshift.ots import OverburdenTimeshift
 
 from .ots_util import create_init, create_restart, create_segy_file
 
-parms = namedtuple(
+PARMS = namedtuple(
     "Parms",
     [
         "seabed",
@@ -30,8 +30,8 @@ parms = namedtuple(
 )
 
 
-@pytest.fixture()
-def set_up():
+@pytest.fixture(name="set_up")
+def fixture_set_up():
     spec = segyio.spec()
     spec.format = 5
     spec.sorting = 2
@@ -41,19 +41,19 @@ def set_up():
 
     actnum = [0, 0, 0, 0, 1, 1, 1, 1]
 
-    parms.output_dir = None
-    parms.horizon = None
-    parms.vintages_export_file = None
-    parms.velocity_model = None
-    parms.seabed = 10
-    parms.above = 10
-    parms.youngs = 0.5
-    parms.poisson = 0.3
-    parms.rfactor = 20
-    parms.convention = 1
-    parms.eclbase = "TEST"
+    PARMS.output_dir = None
+    PARMS.horizon = None
+    PARMS.vintages_export_file = None
+    PARMS.velocity_model = None
+    PARMS.seabed = 10
+    PARMS.above = 10
+    PARMS.youngs = 0.5
+    PARMS.poisson = 0.3
+    PARMS.rfactor = 20
+    PARMS.convention = 1
+    PARMS.eclbase = "TEST"
 
-    yield spec, actnum, parms
+    yield spec, actnum, PARMS
 
 
 @pytest.mark.parametrize(
