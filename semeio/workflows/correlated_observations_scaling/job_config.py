@@ -9,8 +9,8 @@ from semeio.workflows.correlated_observations_scaling.obs_utils import (
     find_and_expand_wildcards,
 )
 from semeio.workflows.correlated_observations_scaling.validator import (
-    is_subset,
     has_keys,
+    is_subset,
 )
 
 

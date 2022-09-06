@@ -1,7 +1,7 @@
-import sys
 import logging
 import os
 import shutil
+import sys
 
 import pytest
 

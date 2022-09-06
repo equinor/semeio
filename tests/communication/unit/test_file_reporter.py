@@ -1,8 +1,10 @@
 import itertools
 import json
 import os
-import pytest
+
 import pandas as pd
+import pytest
+
 from semeio.communication import FileReporter
 
 

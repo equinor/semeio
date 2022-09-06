@@ -1,11 +1,11 @@
 """Test STEA forward model towards the HTTP STEA library
 
 """
-from pathlib import Path
 import sys
+from pathlib import Path
+
 import pytest
 from ert.shared.main import main
-
 from stea import SteaKeys
 
 base_stea_config = """

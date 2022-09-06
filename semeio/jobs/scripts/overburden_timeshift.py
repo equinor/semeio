@@ -1,11 +1,11 @@
-import sys
-import logging
 import argparse
+import logging
+import sys
 
+from semeio import valid_file
 from semeio._exceptions.exceptions import ConfigurationError
 from semeio.jobs.overburden_timeshift.ots import ots_run
 from semeio.jobs.overburden_timeshift.ots_config import generate_rst_doc
-from semeio import valid_file
 
 logger = logging.getLogger(__name__)
 

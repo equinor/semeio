@@ -1,9 +1,7 @@
 # pylint: disable=invalid-name
 import numpy as np
-
-from scipy.interpolate import CloughTocher2DInterpolator
-
 import segyio
+from scipy.interpolate import CloughTocher2DInterpolator
 from segyio import TraceField
 
 

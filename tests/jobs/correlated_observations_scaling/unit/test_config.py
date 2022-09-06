@@ -1,13 +1,13 @@
 from copy import deepcopy
 
-import pytest
 import configsuite
+import pytest
 
 from semeio.workflows.correlated_observations_scaling.job_config import (
+    _CORRELATED_OBSERVATIONS_SCHEMA,
     _expand_input,
     _min_value,
     _to_int_list,
-    _CORRELATED_OBSERVATIONS_SCHEMA,
 )
 
 
