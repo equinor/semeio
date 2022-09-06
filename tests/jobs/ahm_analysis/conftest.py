@@ -1,6 +1,5 @@
-import pytest
 import cwrap
-
+import pytest
 from ecl import EclDataType
 from ecl.eclfile import EclKW
 

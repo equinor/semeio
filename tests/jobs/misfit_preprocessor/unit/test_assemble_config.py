@@ -1,7 +1,7 @@
 import pytest
 
-from semeio.workflows.misfit_preprocessor.exceptions import ValidationError
 from semeio.workflows.misfit_preprocessor import assemble_config
+from semeio.workflows.misfit_preprocessor.exceptions import ValidationError
 
 
 @pytest.mark.parametrize(

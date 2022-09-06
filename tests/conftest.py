@@ -1,6 +1,8 @@
-import os
 import gc
+import os
+
 import pytest
+
 from tests import legacy_test_data
 
 

@@ -1,4 +1,5 @@
 import pytest
+
 from semeio.workflows.correlated_observations_scaling.update_scaling import (
     scale_observations,
 )

@@ -1,14 +1,13 @@
 """Test module for ERT-Pyscal integration"""
 import os
-import sys
 import random
+import sys
 from pathlib import Path
-import pytest
 
 import pandas as pd
+import pytest
 
-from semeio.jobs.scripts.fm_pyscal import run, main_entry_point
-
+from semeio.jobs.scripts.fm_pyscal import main_entry_point, run
 
 EXAMPLE_STATIC_DFRAME = pd.DataFrame(
     columns=["SATNUM", "Nw", "Now", "Nog", "Ng"],

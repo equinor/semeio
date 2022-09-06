@@ -1,12 +1,12 @@
-import os
-import datetime
 import argparse
-from typing import List, Tuple
-from pathlib import Path
+import datetime
+import os
 import warnings
+from pathlib import Path
+from typing import List, Tuple
 
-from ecl.rft import EclRFTFile
 from ecl.grid import EclGrid
+from ecl.rft import EclRFTFile
 
 
 def strip_comments(line):

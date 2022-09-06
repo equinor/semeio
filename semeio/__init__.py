@@ -3,8 +3,7 @@ import logging
 import os
 import sys
 
-
-from pkg_resources import get_distribution, DistributionNotFound
+from pkg_resources import DistributionNotFound, get_distribution
 
 try:
     __version__ = get_distribution(__name__).version
