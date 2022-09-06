@@ -4,6 +4,7 @@ from copy import deepcopy
 
 from ecl.util.util import BoolVector
 from ert._c_wrappers.enkf import ActiveList, RealizationStateEnum
+
 from semeio.workflows.correlated_observations_scaling.exceptions import ValidationError
 
 

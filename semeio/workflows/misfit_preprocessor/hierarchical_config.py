@@ -1,5 +1,4 @@
 import collections
-
 from typing import Literal, Union
 
 from pydantic import (

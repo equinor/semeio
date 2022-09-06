@@ -1,11 +1,12 @@
-import pytest
 import pydantic
+import pytest
+
 from semeio.workflows.misfit_preprocessor.hierarchical_config import (
-    HierarchicalConfig,
-    LinkageConfig,
-    FclusterConfig,
     BaseFclusterConfig,
+    FclusterConfig,
+    HierarchicalConfig,
     LimitedHierarchicalConfig,
+    LinkageConfig,
 )
 
 

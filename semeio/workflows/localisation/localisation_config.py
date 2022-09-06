@@ -1,14 +1,12 @@
 # pylint: disable=no-self-argument
 import itertools
 import pathlib
+from typing import Dict, List, Literal, Optional, Union
 
-from typing import List, Literal, Optional, Union, Dict
 from pydantic import BaseModel as PydanticBaseModel
-from pydantic import validator, confloat, conint, conlist, root_validator, Extra
+from pydantic import Extra, confloat, conint, conlist, root_validator, validator
 
-from semeio.workflows.localisation.localisation_debug_settings import (
-    LogLevel,
-)
+from semeio.workflows.localisation.localisation_debug_settings import LogLevel
 
 
 def expand_wildcards(patterns, list_of_words):

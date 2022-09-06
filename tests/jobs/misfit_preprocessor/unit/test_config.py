@@ -1,9 +1,9 @@
 import pydantic
 import pytest
 
-from semeio.workflows.misfit_preprocessor import workflow_config, hierarchical_config
-from semeio.workflows.misfit_preprocessor.exceptions import ValidationError
 from semeio.workflows import misfit_preprocessor
+from semeio.workflows.misfit_preprocessor import hierarchical_config, workflow_config
+from semeio.workflows.misfit_preprocessor.exceptions import ValidationError
 from semeio.workflows.misfit_preprocessor.hierarchical_config import HierarchicalConfig
 from semeio.workflows.misfit_preprocessor.kmeans_config import KmeansClustering
 

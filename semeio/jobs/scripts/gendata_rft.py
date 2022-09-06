@@ -1,15 +1,15 @@
-import os
-import sys
 import argparse
 import logging
+import os
+import sys
 
-from semeio.jobs.rft.utility import (
-    load_and_parse_well_time_file,
-    valid_eclbase,
-    existing_directory,
-)
 from semeio.jobs.rft import gendata_rft
 from semeio.jobs.rft.trajectory import Trajectory
+from semeio.jobs.rft.utility import (
+    existing_directory,
+    load_and_parse_well_time_file,
+    valid_eclbase,
+)
 from semeio.jobs.rft.zonemap import ZoneMap
 
 logger = logging.getLogger(__name__)

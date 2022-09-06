@@ -1,7 +1,7 @@
 import pytest
 
-from semeio.workflows.correlated_observations_scaling.job_config import ObsCorrConfig
 from semeio.workflows.correlated_observations_scaling.exceptions import ValidationError
+from semeio.workflows.correlated_observations_scaling.job_config import ObsCorrConfig
 
 
 @pytest.mark.parametrize(

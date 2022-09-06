@@ -4,9 +4,7 @@ import logging
 
 import pandas as pd
 
-from semeio.workflows.spearman_correlation_job.cluster_analysis import (
-    fcluster_analysis,
-)
+from semeio.workflows.spearman_correlation_job.cluster_analysis import fcluster_analysis
 
 
 def spearman_job(

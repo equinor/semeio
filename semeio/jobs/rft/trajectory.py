@@ -1,7 +1,6 @@
 import os
 
 import pandas as pd
-
 from ecl.rft import EclRFTCell
 
 from semeio.jobs.rft.utility import strip_comments
