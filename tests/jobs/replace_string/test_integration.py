@@ -1,4 +1,5 @@
 import subprocess
+from pathlib import Path
 
 import pytest
 
@@ -28,15 +29,14 @@ def test_replace_string(tmpdir, input_text, replace_from, replace_to, expected):
     with tmpdir.as_cwd():
 
         ert_config_fname = "test.ert"
-        with open(ert_config_fname, "w", encoding="utf-8") as file_h:
-            file_h.write(ert_config.format(FROM=replace_from, TO=replace_to))
+        Path(ert_config_fname).write_text(
+            ert_config.format(FROM=replace_from, TO=replace_to), encoding="utf-8"
+        )
 
-        with open("file.txt", "w", encoding="utf-8") as file_h:
-            file_h.write(input_text)
+        Path("file.txt").write_text(input_text, encoding="utf-8")
 
         subprocess.run(["ert", "test_run", ert_config_fname], check=True)
 
-        with open("realization-0/iter-0/file.txt") as output_file:
-            output = output_file.read()
+        output = Path("realization-0/iter-0/file.txt").read_text(encoding="utf-8")
 
         assert output == expected

@@ -59,12 +59,13 @@ def test_fm_pyscal(dframe, runargs, tmpdir):
         genkw_prefix = ""
 
     if "CASE" in dframe:
-        with open("parameters.txt", "w") as p_file:
-            p_file.write("INTERPOLATE_WO 0.1\n" + genkw_prefix + "INTERPOLATE_GO 0.5")
+        Path("parameters.txt").write_text(
+            f"INTERPOLATE_WO 0.1\n{genkw_prefix}INTERPOLATE_GO 0.5", encoding="utf-8"
+        )
 
     run(*(["relperm-input.csv", "relperm.inc"] + runargs))
     assert os.path.exists("relperm.inc")
-    assert len(Path("relperm.inc").read_text()) > 20
+    assert len(Path("relperm.inc").read_text(encoding="utf-8")) > 20
 
 
 def test_fm_pysal_static_xlsx(tmpdir):
@@ -81,7 +82,7 @@ def test_fm_pysal_static_xlsx(tmpdir):
         "relperm-sheets.xlsx", "static.inc", "static", "__NONE__", "__NONE__", "sgof", 1
     )
     assert os.path.exists("static.inc")
-    assert "SGOF" in "".join(Path("static.inc").read_text())
+    assert "SGOF" in "".join(Path("static.inc").read_text(encoding="utf-8"))
     run(
         "relperm-sheets.xlsx",
         "wateroil.inc",
@@ -92,7 +93,7 @@ def test_fm_pysal_static_xlsx(tmpdir):
         1,
     )
     assert os.path.exists("wateroil.inc")
-    assert "SGOF" not in "".join(Path("wateroil.inc").read_text())
+    assert "SGOF" not in "".join(Path("wateroil.inc").read_text(encoding="utf-8"))
 
 
 def test_fm_pyscal_argparse(tmpdir, monkeypatch):
@@ -270,8 +271,9 @@ def test_fm_pyscal_errors(dframe, runargs, err_str, tmpdir, caplog):
         else:
             dframe.to_excel(runargs[0])
     if dframe is not None and "CASE" in dframe:
-        with open("parameters.txt", "w") as p_file:
-            p_file.write("INTERPOLATE_WO 0.1\nINTERPOLATE_GO 0.5")
+        Path("parameters.txt").write_text(
+            "INTERPOLATE_WO 0.1\nINTERPOLATE_GO 0.5", encoding="utf-8"
+        )
 
     with pytest.raises(SystemExit):
         run(*runargs)

@@ -282,7 +282,7 @@ def create_box_grid_with_inactive_and_active_cells(
         flip=1,
     )
     # Create a polygon file to use to set some grid cells inactive
-    with open("polygon.txt", "w") as fout:
+    with open("polygon.txt", "w", encoding="utf-8") as fout:
         x = []
         y = []
         x.append(xori + 5 * xinc)
@@ -362,7 +362,7 @@ def create_field_and_scaling_param_and_update_poly_ert(
     scaling_names = ["SCALING1", "SCALING2", "SCALING3", "SCALING4", "SCALING5"]
     nreal = 20
     nfields = len(property_names)
-    with open("poly.ert", "a") as fout:
+    with open("poly.ert", "a", encoding="utf-8") as fout:
         fout.write(f"GRID  {grid_filename}\n")
         for m in range(nfields):
             property_name = property_names[m]
@@ -497,6 +497,6 @@ def test_localisation_field2():
         ],
     }
 
-    with open("local_config.yaml", "w") as fout:
+    with open("local_config.yaml", "w", encoding="utf-8") as fout:
         yaml.dump(config, fout)
     ert.run_ertscript(LocalisationConfigJob, "local_config.yaml")

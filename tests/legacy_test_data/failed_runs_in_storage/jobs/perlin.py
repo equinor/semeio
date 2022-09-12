@@ -473,7 +473,7 @@ class PerlinNoise:
 
 
 def createObservationFile(report_step, observation, count, std=0.2):
-    with open("perlin_obs_%d.txt" % report_step, "w") as f:
+    with open(f"perlin_obs_{report_step}.txt", "w", encoding="utf-8") as f:
 
         for index in range(count):
             x = index / 8.0
@@ -482,7 +482,7 @@ def createObservationFile(report_step, observation, count, std=0.2):
 
 def readParameters(filename):
     params = {}
-    with open(filename, "r") as f:
+    with open(filename, "r", encoding="utf-8") as f:
         for line in f:
             key, value = line.split(":", 1)
             params[key] = float(value)
@@ -518,7 +518,7 @@ if __name__ == "__main__":
         p2_index = int(round(params["PRIME_2"]))
         p3_index = int(round(params["PRIME_3"]))
 
-        with open("perlin_%d.txt" % report_step, "w") as f:
+        with open(f"perlin_{report_step}.txt", "w", encoding="utf-8") as f:
             P1 = PRIME_INDEX_1[p1_index]
             P2 = PRIME_INDEX_2[p2_index]
             P3 = PRIME_INDEX_3[p3_index]
