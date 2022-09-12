@@ -472,7 +472,7 @@ def test_defaults():
     )
 
     # Crude parsing of the file
-    for line in Path(job_description_file).read_text().split("\n"):
+    for line in Path(job_description_file).read_text(encoding="utf-8").split("\n"):
         if line.startswith("DEFAULT"):
             if line.split()[0:2] == ["DEFAULT", "<CSVFILE>"]:
                 csv_job_default = line.split()[2]
@@ -504,30 +504,33 @@ def test_ert_setup_one_well_one_rft_point(tmpdir):
 
     # Write the well trajectory:
     (Path("rft_input") / "OP_1.txt").write_text(
-        "462608.57 5934210.96 1644.38 1624.38 zone2"
+        "462608.57 5934210.96 1644.38 1624.38 zone2", encoding="utf-8"
     )
 
     # List the well and dates for which we have observations:
-    (Path("rft_input") / "well_time.txt").write_text("OP_1 2000-02-01 1")
+    (Path("rft_input") / "well_time.txt").write_text(
+        "OP_1 2000-02-01 1", encoding="utf-8"
+    )
 
     Path("observations").mkdir()
 
     # Write observation file:
     Path("observations.txt").write_text(
         "GENERAL_OBSERVATION OP_1_OBS1 "
-        "{DATA=OP_1_RFT_SIM1; RESTART=1; OBS_FILE=observations/OP_1_1.obs; };\n"
+        "{DATA=OP_1_RFT_SIM1; RESTART=1; OBS_FILE=observations/OP_1_1.obs; };\n",
+        encoding="utf-8",
     )
 
     # Chosen filename syntax for obs file: <wellname>_<report_step>.obs
-    Path("observations/OP_1_1.obs").write_text("304 1")
+    Path("observations/OP_1_1.obs").write_text("304 1", encoding="utf-8")
     # measured pressure, abs error
 
     # Time-map needed for loading observations with no summary file. It seems we need
     # one date for start-date, and one date for every report_step in use.
-    Path("time_map.txt").write_text("2000-01-01\n2000-02-01")
+    Path("time_map.txt").write_text("2000-01-01\n2000-02-01", encoding="utf-8")
 
-    Path("parameter_prior").write_text("PARAM_1 UNIFORM 0 1\n")
-    Path("parameter_template").write_text('{\n"a": <PARAM_1>\n}')
+    Path("parameter_prior").write_text("PARAM_1 UNIFORM 0 1\n", encoding="utf-8")
+    Path("parameter_template").write_text('{\n"a": <PARAM_1>\n}', encoding="utf-8")
     # Write an ERT config file
     # pylint: disable=line-too-long
     Path("config.ert").write_text(
@@ -542,7 +545,8 @@ OBS_CONFIG observations.txt
 FORWARD_MODEL GENDATA_RFT(<PATH_TO_TRAJECTORY_FILES>=../../rft_input, <WELL_AND_TIME_FILE>=../../rft_input/well_time.txt)
 GEN_KW PARAMS parameter_template parameters.json parameter_prior
 GEN_DATA OP_1_RFT_SIM1 INPUT_FORMAT:ASCII REPORT_STEPS:1 RESULT_FILE:RFT_OP_1_%d
-"""  # noqa
+""",  # noqa
+        encoding="utf-8",
     )
 
     # pylint: disable=subprocess-run-check
@@ -624,16 +628,18 @@ def test_ert_setup_one_well_two_points_different_time_and_depth(tmpdir):
     )
 
     # Chosen filename syntax for obs file: <wellname>_<report_step>.obs
-    Path("observations/OP_1_1.obs").write_text("304 1\n-1 0\n")
-    Path("observations/OP_1_2.obs").write_text("-1 0.1\n249 1\n")
+    Path("observations/OP_1_1.obs").write_text("304 1\n-1 0\n", encoding="utf-8")
+    Path("observations/OP_1_2.obs").write_text("-1 0.1\n249 1\n", encoding="utf-8")
     # measured pressure, abs error
 
     # Time-map needed for loading observations with no summary file. It seems we need
     # one date for start-date, and one date for every report_step in use.
-    Path("time_map.txt").write_text("2000-01-01\n2000-02-01\n2001-01-01")
+    Path("time_map.txt").write_text(
+        "2000-01-01\n2000-02-01\n2001-01-01", encoding="utf-8"
+    )
 
-    Path("parameter_prior").write_text("PARAM_1 UNIFORM 0 1\n")
-    Path("parameter_template").write_text('{\n"a": <PARAM_1>\n}')
+    Path("parameter_prior").write_text("PARAM_1 UNIFORM 0 1\n", encoding="utf-8")
+    Path("parameter_template").write_text('{\n"a": <PARAM_1>\n}', encoding="utf-8")
 
     # Write an ERT config file
     # pylint: disable=line-too-long
@@ -654,7 +660,8 @@ def test_ert_setup_one_well_two_points_different_time_and_depth(tmpdir):
     GEN_DATA OP_1_RFT_SIM2 INPUT_FORMAT:ASCII REPORT_STEPS:2 RESULT_FILE:gendata_rft/RFT_OP_1_%d
     GEN_KW PARAMS parameter_template parameters.json parameter_prior
     """  # noqa
-        )
+        ),
+        encoding="utf-8",
     )
 
     # pylint: disable=subprocess-run-check

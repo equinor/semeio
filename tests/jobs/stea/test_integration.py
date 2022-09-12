@@ -64,16 +64,17 @@ def test_stea_fm_single_real(monkeypatch, httpserver, ecl_case, ecl_base, fm_opt
     server = httpserver.url_for("/foobar")
     # Mock a forward model configuration file
     Path("stea_conf.yml").write_text(
-        base_stea_config.format(ecl_case) + f"\nstea_server: {server}"
+        base_stea_config.format(ecl_case) + f"\nstea_server: {server}", encoding="utf-8"
     )
 
     # Write an ERT config file
     Path("config.ert").write_text(
-        base_ert_config.format(ecl_base=ecl_base, fm_options=fm_options)
+        base_ert_config.format(ecl_base=ecl_base, fm_options=fm_options),
+        encoding="utf-8",
     )
 
     monkeypatch.setattr(sys, "argv", ["ert", "test_run", "config.ert", "--verbose"])
     main()
 
-    assert Path("realization-0/iter-0/NPV_0").read_text()[0:3] == "30\n"
+    assert Path("realization-0/iter-0/NPV_0").read_text(encoding="utf-8")[0:3] == "30\n"
     assert Path("realization-0/iter-0/stea_response.json").exists()

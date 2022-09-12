@@ -58,7 +58,7 @@ def test_main_entry_point_gen_data(setup_ert):
         "svd.json",
     )
     # Assert that data was published correctly
-    with open(svd_file) as f:
+    with open(svd_file, encoding="utf-8") as f:
         svd_reports = json.load(f)
         assert len(svd_reports) == 2
 
@@ -81,7 +81,7 @@ def test_main_entry_point_gen_data(setup_ert):
         "CorrelatedObservationsScalingJob",
         "scale_factor.json",
     )
-    with open(scale_file) as f:
+    with open(scale_file, encoding="utf-8") as f:
         scalefactor_reports = json.load(f)
         assert len(scalefactor_reports) == 2
 
