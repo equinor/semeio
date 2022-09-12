@@ -5,7 +5,7 @@ from setuptools import find_packages, setup
 # pylint: disable=line-too-long
 setup(
     name="semeio",
-    long_description=Path("README.md").read_text(),
+    long_description=Path("README.md").read_text(encoding="utf-8"),
     long_description_content_type="text/markdown",
     use_scm_version={"write_to": "semeio/version.py"},
     author="Equinor ASA",

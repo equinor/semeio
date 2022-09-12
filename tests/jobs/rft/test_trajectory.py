@@ -123,7 +123,7 @@ def test_dframe_trajectory(fname):
     assert len(dframe) == len(
         [
             line
-            for line in Path(fname).read_text().split("\n")
+            for line in Path(fname).read_text(encoding="utf-8").split("\n")
             if line.strip() and not line.strip().startswith("--")
         ],
     )

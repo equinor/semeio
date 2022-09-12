@@ -1,6 +1,7 @@
 import itertools
 import json
 import os
+from pathlib import Path
 
 import pandas as pd
 import pytest
@@ -115,8 +116,7 @@ def test_file_reporter_publish_msg_invalid_output_dir(tmpdir):
     tmpdir.chdir()
 
     output_dir = os.path.join(os.getcwd(), "output")
-    with open(output_dir, "w") as f:
-        f.write("You shall not be a directory")
+    Path(output_dir).write_text("You shall not be a directory", encoding="utf-8")
 
     reporter = FileReporter(output_dir)
     with pytest.raises(ValueError) as err_info:
@@ -141,8 +141,7 @@ def test_file_reporter_publish_valid_json(data, tmpdir):
     reporter = FileReporter(os.getcwd())
     reporter.publish(namespace, data)
 
-    with open(namespace + ".json") as f:
-        loaded_data = json.load(f)
+    loaded_data = json.loads(Path(namespace + ".json").read_text(encoding="utf-8"))
 
     assert loaded_data == [data]
 
@@ -167,8 +166,7 @@ def test_file_reporter_publish_multiple_json(tmpdir):
     for idx, data_elem in enumerate(data):
         reporter.publish(namespace, data_elem)
 
-        with open(namespace + ".json") as f:
-            loaded_data = json.load(f)
+        loaded_data = json.loads(Path(namespace + ".json").read_text(encoding="utf-8"))
 
         assert loaded_data == data[: idx + 1]
 
@@ -186,12 +184,10 @@ def test_file_reporter_publish_multiple_namespaces(tmpdir):
     reporter.publish(namespace1, data1)
     reporter.publish(namespace2, data2)
 
-    with open(namespace1 + ".json") as f:
-        loaded_data1 = json.load(f)
+    loaded_data1 = json.loads(Path(namespace1 + ".json").read_text(encoding="utf-8"))
     assert loaded_data1 == [data1]
 
-    with open(namespace2 + ".json") as f:
-        loaded_data2 = json.load(f)
+    loaded_data2 = json.loads(Path(namespace2 + ".json").read_text(encoding="utf-8"))
     assert loaded_data2 == [data2]
 
 
@@ -213,8 +209,7 @@ def test_file_reporter_publish_output_location(folder, namespace, tmpdir):
 
     expected_output_file = os.path.join(os.getcwd(), folder, namespace) + ".json"
 
-    with open(expected_output_file) as f:
-        loaded_data = json.load(f)
+    loaded_data = json.loads(Path(expected_output_file).read_text(encoding="utf-8"))
     assert [data] == loaded_data
 
 
@@ -240,8 +235,7 @@ def test_file_reporter_publish_invalid_output_dir(tmpdir):
     tmpdir.chdir()
 
     output_dir = os.path.join(os.getcwd(), "output")
-    with open(output_dir, "w") as f:
-        f.write("You shall not be a directory")
+    Path(output_dir).write_text("You shall not be a directory", encoding="utf-8")
 
     reporter = FileReporter(output_dir)
     with pytest.raises(ValueError) as err_info:

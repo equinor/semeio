@@ -1,11 +1,10 @@
 #!/usr/bin/env python
-
 import json
+from pathlib import Path
 
 
 def _load_coeffs(filename):
-    with open(filename) as f:
-        return json.load(f)
+    return json.load(Path(filename).read_text(encoding="utf-8"))
 
 
 def _evaluate(coeffs, x):
@@ -13,7 +12,6 @@ def _evaluate(coeffs, x):
 
 
 if __name__ == "__main__":
-    coeffs = _load_coeffs("coeffs.json")
-    output = [_evaluate(coeffs, x) for x in range(10)]
-    with open("poly_0.out", "w") as f:
-        f.write("\n".join(map(str, output)))
+    coefficients = _load_coeffs("coeffs.json")
+    output = [_evaluate(coefficients, x) for x in range(10)]
+    Path("poly_0.out").write_text("\n".join(map(str, output)), encoding="utf-8")
