@@ -2,7 +2,6 @@ from unittest.mock import MagicMock
 
 import pydantic
 import pytest
-from ert._c_wrappers.enkf.enums.ert_impl_type_enum import ErtImplType
 
 from semeio.workflows.localisation.localisation_config import (
     LocalisationConfig,
@@ -38,22 +37,6 @@ ERT_PARAM = [
     "PARAM_SURFACE1",
     "PARAM_SURFACE2",
 ]
-
-
-ERT_NODE_TYPE = {
-    "PARAM_NODE1": ErtImplType.GEN_KW,
-    "PARAM_NODE2": ErtImplType.GEN_KW,
-    "PARAM_NODE3": ErtImplType.GEN_KW,
-    "PARAM_NODE22": ErtImplType.GEN_KW,
-    "PARAM_NODE1X": ErtImplType.GEN_KW,
-    "PARAM_NODE2Y": ErtImplType.GEN_KW,
-    "PARAM_FIELD1": ErtImplType.FIELD,
-    "PARAM_FIELD2": ErtImplType.FIELD,
-    "PARAM_FIELD3": ErtImplType.FIELD,
-    "PARAM_GEN": ErtImplType.GEN_DATA,
-    "PARAM_SURFACE1": ErtImplType.SURFACE,
-    "PARAM_SURFACE2": ErtImplType.SURFACE,
-}
 
 
 @pytest.mark.parametrize(
