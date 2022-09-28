@@ -71,7 +71,7 @@ class SemeioScript(ErtScript):  # pylint: disable=too-few-public-methods
             thread_id = threading.get_ident()
             report_handler = _ReportHandler(self._output_dir, thread_id)
             with _LogHandlerContext(log, report_handler):
-                self._real_run(*args, **kwargs)
+                return self._real_run(*args, **kwargs)
 
         self.run = MethodType(run_with_handler, self)
 

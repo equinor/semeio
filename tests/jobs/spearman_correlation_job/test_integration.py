@@ -6,7 +6,7 @@ from unittest.mock import Mock
 
 import pandas as pd
 import pytest
-from ert._c_wrappers.enkf import EnKFMain, ResConfig
+from ert import LibresFacade
 from scipy import stats
 
 import semeio.workflows.spearman_correlation_job.spearman_correlation as sc
@@ -27,10 +27,8 @@ def test_main_entry_point_gen_data(monkeypatch, test_data_root):
     shutil.copytree(test_data_dir, "test_data")
     os.chdir(os.path.join("test_data"))
 
-    res_config = ResConfig("snake_oil.ert")
-    ert = EnKFMain(res_config)
-    job = sc.SpearmanCorrelationJob(ert)
-    job.run(*["-t", "1.0"])
+    facade = LibresFacade.from_config_file("snake_oil.ert")
+    output_dir = facade.run_ertscript(sc.SpearmanCorrelationJob, *["-t", "1.0"])
 
     # call_args represents the clusters, we expect the snake_oil
     # observations to generate this amount of them
@@ -41,14 +39,14 @@ def test_main_entry_point_gen_data(monkeypatch, test_data_root):
 
     # pylint: disable=protected-access
     cor_matrix_file = os.path.join(
-        job._output_dir,
+        output_dir,
         "correlation_matrix.csv",
     )
 
     pd.read_csv(cor_matrix_file, index_col=[0, 1], header=[0, 1])
 
     clusters_file = os.path.join(
-        job._output_dir,
+        output_dir,
         "clusters.json",
     )
     with open(clusters_file, encoding="utf-8") as f:
@@ -66,13 +64,12 @@ def test_scaling(test_data_root):
     shutil.copytree(test_data_dir, "test_data")
     os.chdir(os.path.join("test_data"))
 
-    res_config = ResConfig("snake_oil.ert")
-    ert = EnKFMain(res_config)
+    facade = LibresFacade.from_config_file("snake_oil.ert")
 
-    sc.SpearmanCorrelationJob(ert).run(*["-t", "1.0"])
+    facade.run_ertscript(sc.SpearmanCorrelationJob, *["-t", "1.0"])
 
     # assert that this arbitrarily chosen cluster gets scaled as expected
-    obs = ert.getObservations()["FOPR"]
+    obs = facade.get_observations()["FOPR"]
     for index in [13, 14, 15, 16, 17, 18, 19, 20]:
         assert obs.getNode(index).getStdScaling() == 2.8284271247461903
 
@@ -91,12 +88,10 @@ def test_skip_clusters_yielding_empty_data_matrixes(monkeypatch, test_data_root)
     shutil.copytree(test_data_dir, "test_data")
     os.chdir(os.path.join("test_data"))
 
-    res_config = ResConfig("snake_oil.ert")
-    ert = EnKFMain(res_config)
-    job = sc.SpearmanCorrelationJob(ert)
+    facade = LibresFacade.from_config_file("snake_oil.ert")
 
     try:
-        job.run(*["-t", "1.0"])
+        facade.run_ertscript(sc.SpearmanCorrelationJob, *["-t", "1.0"])
     except EmptyDatasetException:
         pytest.fail("EmptyDatasetException was not handled by SC job")
 
