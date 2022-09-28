@@ -37,6 +37,7 @@ class SpearmanCorrelationJob(SemeioScript):
                 CorrelatedObservationsScalingJob(self.ert()).run(scaling_configs)
             except EmptyDatasetException:
                 pass
+        return self._output_dir
 
 
 def spearman_job_parser():
