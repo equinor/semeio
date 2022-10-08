@@ -74,9 +74,19 @@ def assert_homogen_clusters(config):
         assert 1 == len(sub_config["CALCULATE_KEYS"]["keys"])
 
 
+def parameter_distribution(size):
+    return [
+        {
+            "a": random.uniform(0, 10),
+            "b": random.uniform(0, 10),
+            "c": random.uniform(0, 10),
+        }
+        for _ in range(size)
+    ]
+
+
 def generate_simulated_responses(
     forward_polynomials,
-    parameter_distribution,
     poly_states,
     ensemble_size,
 ):
@@ -101,7 +111,6 @@ def generate_simulated_responses(
 
 def generate_observations(
     forward_polynomials,
-    parameter_distribution,
     poly_states,
 ):
     # pylint: disable=too-many-locals
@@ -116,7 +125,7 @@ def generate_observations(
                     c=true_parameters[poly_idx]["c"],
                     x=state,
                 ),
-                1,
+                1,  # Observation error, or standard deviation
             )
             for state in states
         }
@@ -134,24 +143,12 @@ def generate_measurements(num_polynomials, poly_states=None, ensemble_size=10000
         lambda a, b, c, x: a * x**2 + b * x + c for _ in range(num_polynomials)
     ]
 
-    def parameter_distribution(size):
-        return [
-            {
-                "a": random.uniform(0, 10),
-                "b": random.uniform(0, 10),
-                "c": random.uniform(0, 10),
-            }
-            for _ in range(size)
-        ]
-
     observations = generate_observations(
         forward_polynomials,
-        parameter_distribution,
         poly_states,
     )
     simulated = generate_simulated_responses(
         forward_polynomials,
-        parameter_distribution,
         poly_states,
         ensemble_size,
     )
