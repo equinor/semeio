@@ -7,8 +7,6 @@ class ObservationScaleFactor:
         reporter,
         measured_data,
     ):
-        """Creates a ScalingJob instance with the given obs_keys, obs,
-        obs_with_data and user_config_dict."""
         self._reporter = reporter
         self._measured_data = measured_data
 
