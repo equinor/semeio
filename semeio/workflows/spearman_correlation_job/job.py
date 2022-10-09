@@ -1,6 +1,6 @@
 # pylint: disable=logging-fstring-interpolation
-import itertools
 import logging
+from typing import Tuple, List, Dict
 
 import pandas as pd
 
@@ -51,14 +51,19 @@ def spearman_job(
     return job_configs
 
 
-def _cluster_data(data):
+def _cluster_data(data: List[Tuple]) -> Dict[int, Dict[str, List[int]]]:
     groups = {}
-    for (nr, key), cluster_group in itertools.groupby(
-        sorted(data), key=lambda x: (x[0], x[1])
-    ):
-        if nr not in groups:
-            groups[nr] = {}
-        groups[nr].update({key: [index for _, _, index in cluster_group]})
+    for group in sorted(data):
+        cluster = group[0]
+        obs_key = group[1]
+        data_index = group[2]
+        if cluster in groups:
+            if obs_key in groups[cluster]:
+                groups[cluster][obs_key].append(data_index)
+            else:
+                groups[cluster][obs_key] = [data_index]
+        else:
+            groups[cluster] = {obs_key: [data_index]}
     return groups
 
 
