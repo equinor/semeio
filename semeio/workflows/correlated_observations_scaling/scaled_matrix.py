@@ -19,11 +19,8 @@ class DataMatrix:
         if input_data.shape[1] == 0:
             raise EmptyDatasetException("Empty dataset")
 
-    def get_data_matrix(self):
-        """
-        Extracts data from a dataframe and returns a matrix
-        """
-        return self.data[~self.data.index.isin(["OBS", "STD"])].values
+    def responses(self):
+        return self.data[~self.data.index.isin(["OBS", "STD"])]
 
     def normalize_by_std(self):
         """
@@ -39,11 +36,9 @@ class DataMatrix:
         from observations and returns a copy.
         """
         output_data = deepcopy(self.data)
-        data_matrix = self._get_data()
+        df = self.responses()
         std_vector = self.data.loc["STD"]
-        output_data[~output_data.index.isin(["OBS", "STD"])] = data_matrix * (
-            1.0 / std_vector
-        )
+        output_data[~output_data.index.isin(["OBS", "STD"])] = df * (1.0 / std_vector)
 
         return output_data
 
@@ -64,9 +59,6 @@ class DataMatrix:
             )
         )
         return np.sqrt(nr_observations / float(nr_components))
-
-    def _get_data(self):
-        return self.data[~self.data.index.isin(["OBS", "STD"])]
 
     def get_nr_primary_components(self, threshold):
         """
@@ -89,7 +81,7 @@ class DataMatrix:
 
         Also returns an array of singular values.
         """
-        data_matrix = self.get_data_matrix()
+        data_matrix = self.responses().values
         data_matrix = data_matrix - data_matrix.mean(axis=0)
         _, singulars, _ = np.linalg.svd(data_matrix.astype(float), full_matrices=False)
         variance_ratio = np.cumsum(singulars**2) / np.sum(singulars**2)

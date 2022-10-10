@@ -114,12 +114,12 @@ def test_main_entry_point_summary_data_calc(setup_ert):
         pytest.param(
             {"CALCULATE_KEYS": {"keys": [{"key": "FOPR"}]}},
             np.sqrt(200 / 5),
-            id="All indecies should update",
+            id="All indices should update",
         ),
         pytest.param(
             {"CALCULATE_KEYS": {"keys": [{"key": "WOPR_OP1_108"}]}},
             1.0,
-            id="No indecies on FOPR should update",
+            id="No indices on FOPR should update",
         ),
     ],
 )

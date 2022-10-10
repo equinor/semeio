@@ -1,6 +1,6 @@
 # pylint: disable=logging-fstring-interpolation
 import logging
-from typing import Tuple, List, Dict
+from typing import Dict, List, Tuple
 
 import pandas as pd
 
