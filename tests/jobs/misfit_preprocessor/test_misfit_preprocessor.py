@@ -65,9 +65,6 @@ class MockedMeasuredData:
     def remove_inactive_observations(self):
         pass
 
-    def filter_ensemble_std(self, _):
-        pass
-
 
 def assert_homogen_clusters(config):
     for sub_config in config:
