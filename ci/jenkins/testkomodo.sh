@@ -9,5 +9,5 @@ copy_test_files () {
 }
 
 start_tests () {
-    pytest --ert_integration
+    env ERT_SHOW_BACKTRACE=yasss pytest --ert_integration
 }
