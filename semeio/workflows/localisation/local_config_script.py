@@ -19,7 +19,8 @@ class LocalisationConfigJob(SemeioScript):
             for nr, _ in enumerate(self.facade.get_observations())
         ]
 
-        ert_parameters = local.get_param_from_ert(ert.ensembleConfig())
+        ensemble_config = ert.ensembleConfig()
+        ert_parameters = local.get_param_from_ert(ensemble_config)
 
         config = LocalisationConfig(
             observations=obs_keys,
@@ -30,8 +31,8 @@ class LocalisationConfigJob(SemeioScript):
         update_configuration = local.add_ministeps(
             config,
             ert_parameters.to_dict(),
-            ert.ensembleConfig(),
-            ert.eclConfig().getGrid(),
+            ensemble_config,
+            self.facade.grid,
         )
         ert.update_configuration = update_configuration
 
