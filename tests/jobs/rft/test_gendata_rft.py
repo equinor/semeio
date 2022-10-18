@@ -566,18 +566,18 @@ GEN_DATA OP_1_RFT_SIM1 INPUT_FORMAT:ASCII REPORT_STEPS:1 RESULT_FILE:RFT_OP_1_%d
                 print(stderrfile)
                 print(stderrfile.read_text())
 
-    # Fails if time_map vs observations.txt does not match:
+    # Verify that the configuration of time_map vs observations.txt match:
     assert "failed to load observation data from" not in stdouterr
 
-    # These can be triggered by GEN_DATA errors:
-    assert "Error" not in stdouterr
-    assert "ERROR" not in stdouterr
+    # These can be triggered by various GEN_DATA errors:
     assert "Failed load data for GEN_DATA node" not in stdouterr
     assert "gen_obs_assert_data_size: size mismatch" not in stdouterr
+    assert "conf_instance_get_restart_nr" not in stdouterr
 
     # The purpose of the test is to demonstrate and run through the GEN_DATA
     # forward model without errors, but it will fail in the update step as this
     # test is not constructed for that:
+    assert "No active observations" in stdouterr
     assert "Simulations failed" in stdouterr
 
     # Asserts on GENDATA_RFT output:
