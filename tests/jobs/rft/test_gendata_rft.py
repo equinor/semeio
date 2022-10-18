@@ -685,14 +685,13 @@ def test_ert_setup_one_well_two_points_different_time_and_depth(tmpdir):
     assert "failed to load observation data from" not in stdouterr
 
     # These can be triggered by GEN_DATA errors:
-    assert "Error" not in stdouterr
-    assert "ERROR" not in stdouterr
     assert "Failed load data for GEN_DATA node" not in stdouterr
     assert "gen_obs_assert_data_size: size mismatch" not in stdouterr
 
     # The purpose of the test is to demonstrate and run through the GEN_DATA
     # forward model without errors, but it will fail in the update step as this
     # test is not constructed for that:
+    assert "No active observations" in stdouterr
     assert "Simulations failed" in stdouterr
 
     # Asserts on GENDATA_RFT output:
