@@ -244,7 +244,7 @@ def test_misfit_preprocessor_state_size(state_size, method, linkage):
             "workflow": {
                 "type": method,
                 "clustering": {"linkage": {"method": linkage}},
-                "pca": {"threshold": 0.99},
+                "pca": {"threshold": 0.9999},
             },
         },
         obs_keys,

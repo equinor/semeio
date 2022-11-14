@@ -31,15 +31,15 @@ def test_main_entry_point_gen_data(setup_ert):
     obs_vector = obs["WPR_DIFF_1"]
 
     result = get_std_from_obs_vector(obs_vector)
-    assert result == [np.sqrt(4 / 2), np.sqrt(4 / 2), 1.0, 1.0], "Only update subset"
+    assert result == [np.sqrt(4 / 1), np.sqrt(4 / 1), 1.0, 1.0], "Only update subset"
 
     cos_config["CALCULATE_KEYS"]["keys"][0].update({"index": [400, 800, 1200]})
 
     setup_ert.run_ertscript(CorrelatedObservationsScalingJob, cos_config)
     result = get_std_from_obs_vector(obs_vector)
     assert result == [
-        np.sqrt(3.0 / 2.0),
-        np.sqrt(3.0 / 2.0),
+        np.sqrt(3 / 1),
+        np.sqrt(3 / 1),
         1.0,
         1.0,
     ], "Change basis for update"
@@ -82,7 +82,7 @@ def test_main_entry_point_gen_data(setup_ert):
         assert len(scalefactor_reports) == 2
 
         reported_scalefactor = scalefactor_reports[1]
-        assert reported_scalefactor == pytest.approx(1.224744871391589, 0.1)
+        assert reported_scalefactor == pytest.approx(np.sqrt(3 / 1), 0.1)
 
 
 def test_main_entry_point_summary_data_calc(setup_ert):
@@ -101,7 +101,7 @@ def test_main_entry_point_summary_data_calc(setup_ert):
     setup_ert.run_ertscript(CorrelatedObservationsScalingJob, cos_config)
 
     for index, node in enumerate(obs_vector):
-        assert node.getStdScaling(index) == 1.0
+        assert node.getStdScaling(index) == np.sqrt(2 / 1)
 
 
 @pytest.mark.parametrize(
@@ -109,8 +109,8 @@ def test_main_entry_point_summary_data_calc(setup_ert):
     [
         pytest.param(
             {"CALCULATE_KEYS": {"keys": [{"key": "FOPR"}]}},
-            np.sqrt(200 / 5),
-            id="All indices should update",
+            np.sqrt(200 / 4),
+            id="All indecies should update",
         ),
         pytest.param(
             {"CALCULATE_KEYS": {"keys": [{"key": "WOPR_OP1_108"}]}},
