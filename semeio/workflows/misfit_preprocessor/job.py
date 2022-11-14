@@ -8,6 +8,7 @@ def run(config, measured_data, reporter):
     if workflow.type == "auto_scale":
         job = ObservationScaleFactor(reporter, measured_data)
         nr_components, _ = job.perform_pca(workflow.pca.threshold)
+        # nr_components += 1
         if workflow.clustering.type == "limited_hierarchical":
             sconfig["criterion"] = "maxclust"
             sconfig["threshold"] = nr_components

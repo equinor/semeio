@@ -1,7 +1,10 @@
 import logging
 from copy import deepcopy
+from typing import Tuple
+import warnings
 
 import numpy as np
+import numpy.typing as npt
 
 from semeio.workflows.correlated_observations_scaling.exceptions import (
     EmptyDatasetException,
@@ -48,7 +51,7 @@ class DataMatrix:
         return output_data
 
     @staticmethod
-    def get_scaling_factor(nr_observations, nr_components):
+    def get_scaling_factor(nr_observations: int, nr_components: int) -> float:
         """
         Calculates a observation scaling factor which is:
             sqrt(nr_obs / pc)
@@ -63,34 +66,28 @@ class DataMatrix:
                 f"{nr_components}, number of observations: {nr_observations}"
             )
         )
+        if nr_components == 0:
+            nr_components = 1
+            warnings.warn(
+                "Number of PCA components is 0. Setting to 1 to avoid division by zero when calculating scaling factor"
+            )
+
         return np.sqrt(nr_observations / float(nr_components))
 
     def _get_data(self):
         return self.data[~self.data.index.isin(["OBS", "STD"])]
 
-    def get_nr_primary_components(self, threshold):
+    def get_nr_primary_components(
+        self, threshold: float
+    ) -> Tuple[int, npt.NDArray[np.float_]]:
         """
         Takes a matrix, does PCA and calculates the cumulative variance ratio
         and returns an int which is the number of primary components where
-        the cumulative variance is smaller than user set threshold. Notice the
-        way of calculating number of primary components. This is done to
-        replicate existing behavior:
-
-        int num_significant  = 0;
-        {
-        double running_sigma2  = 0;
-        for (int i=0; i < num_singular_values; i++) {
-          if (running_sigma2 / total_sigma2 < truncation) {
-             num_significant++;
-             running_sigma2 += sig0[i] * sig0[i];
-          } else
-             break;
-        }
-
+        the cumulative variance is smaller than user set threshold.
         Also returns an array of singular values.
         """
         data_matrix = self.get_data_matrix()
         data_matrix = data_matrix - data_matrix.mean(axis=0)
         _, singulars, _ = np.linalg.svd(data_matrix.astype(float), full_matrices=False)
         variance_ratio = np.cumsum(singulars**2) / np.sum(singulars**2)
-        return len([1 for i in variance_ratio[:-1] if i < threshold]) + 1, singulars
+        return len([1 for i in variance_ratio[:-1] if i < threshold]), singulars
