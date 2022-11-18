@@ -8,12 +8,12 @@ repos:
     -   id: trailing-whitespace
 
 -   repo: https://github.com/ambv/black
-    rev: 22.3.0
+    rev: 22.10.0
     hooks:
     - id: black
 
--   repo: https://gitlab.com/pycqa/flake8.git
-    rev: 3.9.2
+-   repo: https://github.com/pycqa/flake8.git
+    rev: 5.0.4
     hooks:
     - id: flake8
 
