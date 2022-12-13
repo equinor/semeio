@@ -4,17 +4,6 @@ import shutil
 import pytest
 from ert import LibresFacade
 
-TEST_DATA_DIR = os.environ.get("LIBRES_TEST_DATA_DIR")
-
-
-def has_equinor_test_data():
-    return os.path.isdir(os.path.join(TEST_DATA_DIR, "Equinor"))
-
-
-def pytest_runtest_setup(item):
-    if item.get_closest_marker("equinor_test") and not has_equinor_test_data():
-        pytest.skip("Test requires Equinor data")
-
 
 @pytest.fixture()
 def setup_ert(tmpdir, test_data_root):

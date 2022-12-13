@@ -1,5 +1,6 @@
 # pylint: disable=unsubscriptable-object  # pylint issue
 import os
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -8,118 +9,88 @@ import pytest
 import rstcheck_core.checker
 
 from semeio.workflows.csv_export2 import csv_export2
-from tests.jobs.csv_export2 import conftest
-
-test_header = [
-    "ENSEMBLE",
-    "REAL",
-    "DATE",
-    "FOPR",
-    "X",
-    "FLUID_PARAMS:SWL",
-    "FLUID_PARAMS:SGCR",
-    "A",
-    "H",
-]
 
 NORNE_VECS = ["FGPT", "FLPT", "FOPT", "FVPT", "FWPT"]
 
 
-@pytest.mark.skipif(
-    conftest.find_available_test_data() is None, reason="no ert-statoil test-data"
-)
-@pytest.mark.usefixtures("ert_statoil_test_data")
-def test_failed_realization_no_summary_file():
-    path_file = "pathfile_path_to_failed_realizations.txt"
-    export_file = "export.txt"
+@pytest.mark.usefixtures("norne_mocked_ensembleset")
+def test_that_a_not_found_realization_is_skipped():
+    shutil.rmtree("realization-1/iter-1")
     csv_export2.csv_exporter(
-        runpathfile=path_file,
-        time_index="monthly",
-        outputfile=export_file,
-        column_keys="FOPR",
+        runpathfile="runpathfile",
+        time_index="yearly",
+        outputfile="unsmry--yearly.csv",
+        column_keys=["F?PT"],
     )
     verifyExportedFile(
-        export_file,
-        test_header,
-        {("iter-1", 1), ("iter-2", 2), ("iter-1", 0), ("iter-1", 2)},
-    )
-
-
-@pytest.mark.skipif(
-    conftest.find_available_test_data() is None, reason="no ert-statoil test-data"
-)
-@pytest.mark.usefixtures("ert_statoil_test_data")
-def test_one_iteration():
-    path_file = "pathfile.txt"
-    export_file = "export.txt"
-    csv_export2.csv_exporter(
-        runpathfile=path_file,
-        time_index="monthly",
-        outputfile=export_file,
-        column_keys="FOPR",
-    )
-    verifyExportedFile(
-        export_file, test_header, {("iter-1", 0), ("iter-1", 1), ("iter-1", 2)}
-    )
-
-
-@pytest.mark.skipif(
-    conftest.find_available_test_data() is None, reason="no ert-statoil test-data"
-)
-@pytest.mark.usefixtures("ert_statoil_test_data")
-def test_missing_realization():
-    path_file = "pathfile2.txt"
-    export_file = "export.txt"
-    csv_export2.csv_exporter(
-        runpathfile=path_file,
-        time_index="monthly",
-        outputfile=export_file,
-        column_keys="FOPR",
-    )
-    verifyExportedFile(export_file, test_header, {("iter-1", 2), ("iter-1", 0)})
-
-
-@pytest.mark.skipif(
-    conftest.find_available_test_data() is None, reason="no ert-statoil test-data"
-)
-@pytest.mark.usefixtures("ert_statoil_test_data")
-def test_iterations():
-    path_file = "pathfile3.txt"
-    export_file = "export.txt"
-    csv_export2.csv_exporter(
-        runpathfile=path_file,
-        time_index="monthly",
-        outputfile=export_file,
-        column_keys="FOPR",
-    )
-    verifyExportedFile(
-        export_file,
-        test_header,
+        "unsmry--yearly.csv",
+        ["ENSEMBLE", "REAL", "DATE"] + NORNE_VECS + ["FOO"],
         {
+            ("iter-0", 0),
+            ("iter-0", 1),
             ("iter-1", 0),
-            ("iter-1", 1),
-            ("iter-1", 2),
-            ("iter-2", 0),
-            ("iter-2", 1),
-            ("iter-2", 2),
         },
     )
 
 
-@pytest.mark.skipif(
-    conftest.find_available_test_data() is None, reason="no ert-statoil test-data"
-)
-@pytest.mark.usefixtures("ert_statoil_test_data")
-def test_no_iterations():
-    path_file = "pathfile1.txt"
-    export_file = "export.txt"
+@pytest.mark.usefixtures("norne_mocked_ensembleset")
+def test_that_a_failed_realization_is_skipped():
+    os.remove("realization-0/iter-1/NORNE_0.SMSPEC")
+    csv_export2.csv_exporter(
+        runpathfile="runpathfile",
+        time_index="yearly",
+        outputfile="unsmry--yearly.csv",
+        column_keys=["F?PT"],
+    )
+    verifyExportedFile(
+        "unsmry--yearly.csv",
+        ["ENSEMBLE", "REAL", "DATE"] + NORNE_VECS + ["FOO"],
+        {
+            ("iter-0", 0),
+            ("iter-0", 1),
+            ("iter-1", 1),
+        },
+    )
+
+
+@pytest.mark.usefixtures("norne_mocked_ensembleset")
+def test_that_a_missing_realization_index_is_ok():
+    rp_lines = Path("runpathfile").read_text(encoding="utf-8").splitlines()
+    Path("sliced_runpathfile").write_text(
+        rp_lines[1] + "\n" + rp_lines[3], encoding="utf-8"
+    )
+    csv_export2.csv_exporter(
+        runpathfile="sliced_runpathfile",
+        time_index="yearly",
+        outputfile="unsmry--yearly.csv",
+        column_keys=["F?PT"],
+    )
+    verifyExportedFile(
+        "unsmry--yearly.csv",
+        ["ENSEMBLE", "REAL", "DATE"] + NORNE_VECS + ["FOO"],
+        {
+            ("iter-0", 1),
+            ("iter-1", 1),
+        },
+    )
+
+
+@pytest.mark.usefixtures("norne_mocked_ensembleset")
+def test_that_iterations_in_runpathfile_cannot_be_defaulted():
+    shutil.move("realization-0/iter-0", "real0")
+    shutil.move("realization-1/iter-0", "real1")
+    shutil.rmtree("realization-0")
+    shutil.rmtree("realization-1")
+    Path("runpathfile").write_text(
+        "000 real0 NORNE_0\n001 real1 NORNE_1\n", encoding="utf-8"
+    )
 
     with pytest.raises(KeyError):
         csv_export2.csv_exporter(
-            runpathfile=path_file,
-            time_index="monthly",
-            outputfile=export_file,
-            column_keys="FOPR",
+            runpathfile="runpathfile",
+            time_index="yearly",
+            outputfile="unsmry--yearly.csv",
+            column_keys=["F?PT"],
         )
 
 
@@ -272,6 +243,6 @@ def test_ert_integration_errors(snapshot):
     assert os.path.exists("data.csv")
     data = pd.read_csv("data.csv")
     snapshot.assert_match(
-        data.to_csv(line_terminator="\n"),
+        data.to_csv(lineterminator="\n"),
         "csv_data.csv",
     )

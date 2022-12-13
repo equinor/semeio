@@ -1,18 +1,14 @@
-# pylint: disable=not-callable
 import json
 import os
-import shutil
 from unittest.mock import MagicMock
 
 import numpy as np
 import pytest
-from ert import LibresFacade
 
 from semeio.workflows.correlated_observations_scaling import cos
 from semeio.workflows.correlated_observations_scaling.cos import (
     CorrelatedObservationsScalingJob,
 )
-from tests.jobs.conftest import TEST_DATA_DIR
 
 
 def get_std_from_obs_vector(vector):
@@ -114,12 +110,12 @@ def test_main_entry_point_summary_data_calc(setup_ert):
         pytest.param(
             {"CALCULATE_KEYS": {"keys": [{"key": "FOPR"}]}},
             np.sqrt(200 / 5),
-            id="All indecies should update",
+            id="All indices should update",
         ),
         pytest.param(
             {"CALCULATE_KEYS": {"keys": [{"key": "WOPR_OP1_108"}]}},
             1.0,
-            id="No indecies on FOPR should update",
+            id="No indices on FOPR should update",
         ),
     ],
 )
@@ -149,90 +145,6 @@ def test_main_entry_point_history_data_calc_subset(setup_ert):
     assert (
         result == expected_result
     ), "Check that only the selected subset of obs have updated scaling"
-
-
-@pytest.mark.skipif(TEST_DATA_DIR is None, reason="no equinor libres test-data")
-@pytest.mark.equinor_test
-@pytest.mark.usefixtures("setup_tmpdir")
-def test_main_entry_point_summary_data_update():
-    cos_config = {
-        "CALCULATE_KEYS": {"keys": [{"key": "WWCT:OP_1"}, {"key": "WWCT:OP_2"}]},
-        "UPDATE_KEYS": {"keys": [{"key": "WWCT:OP_2", "index": [1, 2, 3, 4, 5]}]},
-    }
-
-    test_data_dir = os.path.join(TEST_DATA_DIR, "Equinor", "config", "obs_testing")
-
-    shutil.copytree(test_data_dir, "test_data")
-    os.chdir(os.path.join("test_data"))
-
-    ert = LibresFacade.from_config_file("config")
-    obs = ert.get_observations()
-    obs_vector = obs["WWCT:OP_2"]
-
-    ert.run_ertscript(CorrelatedObservationsScalingJob, cos_config)
-
-    for index, node in enumerate(obs_vector):
-        if index in cos_config["UPDATE_KEYS"]["keys"][0]["index"]:
-            assert node.getStdScaling(index) == np.sqrt(61.0 * 2.0)
-        else:
-            assert node.getStdScaling(index) == 1.0
-
-    obs_vector = obs["WWCT:OP_1"]
-
-    ert.run_ertscript(CorrelatedObservationsScalingJob, cos_config)
-
-    for index, node in enumerate(obs_vector):
-        assert node.getStdScaling(index) == 1.0
-
-
-@pytest.mark.skipif(TEST_DATA_DIR is None, reason="no equinor libres test-data")
-@pytest.mark.equinor_test
-@pytest.mark.usefixtures("setup_tmpdir")
-def test_main_entry_point_block_data_calc():
-    cos_config = {"CALCULATE_KEYS": {"keys": [{"key": "RFT3"}]}}
-
-    test_data_dir = os.path.join(TEST_DATA_DIR, "Equinor", "config", "with_RFT")
-
-    shutil.copytree(test_data_dir, "test_data")
-    os.chdir(os.path.join("test_data"))
-
-    ert = LibresFacade.from_config_file("config")
-    obs = ert.get_observations()
-
-    obs_vector = obs["RFT3"]
-
-    for index, node in enumerate(obs_vector):
-        assert node.getStdScaling(index) == 1.0
-
-    ert.run_ertscript(CorrelatedObservationsScalingJob, cos_config)
-
-    for index, node in enumerate(obs_vector):
-        assert node.getStdScaling(index) == 2.0
-
-
-@pytest.mark.skipif(TEST_DATA_DIR is None, reason="no equinor libres test-data")
-@pytest.mark.equinor_test
-@pytest.mark.usefixtures("setup_tmpdir")
-def test_main_entry_point_block_and_summary_data_calc():
-    cos_config = {"CALCULATE_KEYS": {"keys": [{"key": "FOPT"}, {"key": "RFT3"}]}}
-
-    test_data_dir = os.path.join(TEST_DATA_DIR, "Equinor", "config", "with_RFT")
-
-    shutil.copytree(test_data_dir, "test_data")
-    os.chdir(os.path.join("test_data"))
-
-    ert = LibresFacade.from_config_file("config")
-    obs = ert.get_observations()
-
-    obs_vector = obs["RFT3"]
-
-    for index, node in enumerate(obs_vector):
-        assert node.getStdScaling(index) == 1.0
-
-    ert.run_ertscript(CorrelatedObservationsScalingJob, cos_config)
-
-    for index, node in enumerate(obs_vector):
-        assert node.getStdScaling(index) == np.sqrt(64)
 
 
 def test_main_entry_point_sum_data_update(setup_ert, monkeypatch):
