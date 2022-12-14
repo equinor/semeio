@@ -1,7 +1,7 @@
 import logging
+import warnings
 from copy import deepcopy
 from typing import Tuple
-import warnings
 
 import numpy as np
 import numpy.typing as npt
@@ -69,7 +69,11 @@ class DataMatrix:
         if nr_components == 0:
             nr_components = 1
             warnings.warn(
-                "Number of PCA components is 0. Setting to 1 to avoid division by zero when calculating scaling factor"
+                (
+                    "Number of PCA components is 0. "
+                    "Setting to 1 to avoid division by zero "
+                    "when calculating scaling factor"
+                )
             )
 
         return np.sqrt(nr_observations / float(nr_components))
