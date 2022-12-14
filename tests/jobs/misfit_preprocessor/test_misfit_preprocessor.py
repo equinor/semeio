@@ -160,18 +160,12 @@ def generate_measurements(num_polynomials, poly_states=None, ensemble_size=10000
 
 @pytest.mark.parametrize("clustering_function", ["hierarchical", "kmeans"])
 @pytest.mark.parametrize("method", ["custom_scale", "auto_scale"])
-@pytest.mark.parametrize(
-    "num_polynomials",
-    tuple(range(1, 5)) + (20, 100),
-)
-def test_misfit_preprocessor_n_polynomials(
-    num_polynomials, method, clustering_function
-):
+@pytest.mark.parametrize("num_polynomials", (1, 2, 3, 4, 20, 100))
+def test_with_uncorrelated_clusters(num_polynomials, method, clustering_function):
+    """Create `num_polynomials` uncorrelated clusters and test that
+    misfit preprocessor keeps them separated, i.e., creates as many
+    clusters as there are polynomials.
     """
-    The goal of this test is to create a data set of uncorrelated polynomials,
-    meaning that there should be as many clusters as there are input polynomials.
-    """
-
     # If we are using kmeans where we have to specify the number of clusters,
     # the default set up is not that viable, so we give the number
     # of clusters.
@@ -191,7 +185,7 @@ def test_misfit_preprocessor_n_polynomials(
     observations, simulated = generate_measurements(
         num_polynomials,
         poly_states=poly_states,
-        ensemble_size=10000,
+        ensemble_size=100 * num_polynomials,
     )
     measured_data = MockedMeasuredData(observations, simulated)
     # We set the PCA threshold to 0.99 so a high degree of correlation is required
@@ -222,7 +216,9 @@ def test_misfit_preprocessor_n_polynomials(
     "state_size",
     [5 * [30], [5, 5, 5, 5, 100]],
 )
-def test_misfit_preprocessor_state_size(state_size, method, linkage):
+def test_uncorrelated_clusters_with_large_and_uneven_state_size(
+    state_size, method, linkage
+):
     if state_size == [5, 5, 5, 5, 100]:
         if linkage == "average":
             pytest.skip("Produces wrong number of clusters")
@@ -244,6 +240,8 @@ def test_misfit_preprocessor_state_size(state_size, method, linkage):
             "workflow": {
                 "type": method,
                 "clustering": {"linkage": {"method": linkage}},
+                # Setting threshold close to 1.0 because we can by chance
+                # get correlated clusters.
                 "pca": {"threshold": 0.9999},
             },
         },
@@ -266,7 +264,7 @@ def test_misfit_preprocessor_state_uneven_size(state_size):
     observations, simulated = generate_measurements(
         num_polynomials,
         poly_states=poly_states,
-        ensemble_size=30000,
+        ensemble_size=30 * max(state_size),
     )
     measured_data = MockedMeasuredData(observations, simulated)
     obs_keys = list(measured_data.data.columns.get_level_values(0))
@@ -312,10 +310,7 @@ def test_misfit_preprocessor_configuration_errors():
     assert str(ve.value) == expected_err_msg
 
 
-@pytest.mark.parametrize(
-    "num_polynomials",
-    tuple(range(2, 5)) + (20, 100),
-)
+@pytest.mark.parametrize("num_polynomials", (2, 3, 4, 20, 100))
 def test_misfit_preprocessor_n_polynomials_w_correlation(num_polynomials):
     state_size = 3
     poly_states = [range(1, state_size + 1) for _ in range(num_polynomials)]
@@ -323,7 +318,7 @@ def test_misfit_preprocessor_n_polynomials_w_correlation(num_polynomials):
     observations, simulated = generate_measurements(
         num_polynomials,
         poly_states=poly_states,
-        ensemble_size=10000,
+        ensemble_size=100 * num_polynomials,
     )
     measured_data = MockedMeasuredData(observations, simulated)
 

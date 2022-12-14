@@ -1,11 +1,11 @@
 import numpy as np
-
-rng = np.random.default_rng()
 import pandas as pd
 import pytest
 from sklearn.preprocessing import StandardScaler
 
 from semeio.workflows.correlated_observations_scaling.scaled_matrix import DataMatrix
+
+rng = np.random.default_rng()
 
 
 def test_get_scaling_factor():
@@ -27,6 +27,7 @@ def test_get_nr_primary_components(threshold, expected_result):
     assert components == expected_result
 
 
+# pylint: disable-msg=too-many-locals
 def test_that_get_nr_primary_components_is_according_to_theory():
     """Based on theory in Multivariate Statistical Methods 4th Edition
     by Donald F. Morrison.
