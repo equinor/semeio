@@ -143,10 +143,13 @@ def _populate_trajectory_points(
         )
         return []
 
+    ijk_guess = None
     for point in trajectory_points:
-        point.set_ijk(
-            ecl_grid.find_cell(point.utm_x, point.utm_y, point.true_vertical_depth)
+        ijk = ecl_grid.find_cell(
+            point.utm_x, point.utm_y, point.true_vertical_depth, start_ijk=ijk_guess
         )
+        point.set_ijk(ijk)
+        ijk_guess = ijk
         point.update_simdata_from_rft(rft)
         point.validate_zone(zonemap)
 
