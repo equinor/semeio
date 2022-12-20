@@ -32,23 +32,20 @@ documentation for the workflows and forward model jobs.
 to run the full test suite:
 
 ```sh
-# Test
 pip install tox
 tox
 ```
 
-or to run it for a particular Python version (in this case Python 3.7):
+or to run it for a particular Python version (in this case Python 3.10):
 
 ```sh
-# Test
 pip install tox
-tox -e py37
+tox -e py310
 ```
 
 or to run it for a the current Python version:
 
 ```sh
-# Test
 pip install tox
 tox -e py
 ```
@@ -57,11 +54,10 @@ tox -e py
 iteration it is possible to run:
 
 ```sh
-# Test
 pytest
 ```
 
-this requires that the test dependencies from `test_requirements.txt` are installed.
+this requires that the test dependencies from `test_requirements.txt` are installed:
 
 ```sh
 # Install test requirements
