@@ -114,6 +114,7 @@ def test_no_prior(test_data_root):
     os.chdir(os.path.join("test_data"))
     ert = LibresFacade.from_config_file("snake_oil.ert")
     expected_msg = "Empty prior ensemble"
+    ert.select_or_create_new_case("default")
     # check that it fails
     with pytest.raises(ValidationError, match=expected_msg):
         # pylint: disable=not-callable
