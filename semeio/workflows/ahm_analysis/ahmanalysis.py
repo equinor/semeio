@@ -282,8 +282,10 @@ def _run_ministep(
 
     # Perform update analysis
     facade.set_log_path(output_path)
-    run_context = facade.get_run_context(prior_name, target_name)
-    facade.smoother_update(run_context)
+    prior_storage = facade.select_or_create_new_case(prior_name)
+    target_storage = facade.select_or_create_new_case(target_name)
+
+    facade.smoother_update(prior_storage, target_storage, target_name)
 
 
 def _get_field_params(facade, field_parameters, target_name):
