@@ -188,13 +188,13 @@ def test_with_uncorrelated_clusters(num_polynomials, method, clustering_function
         ensemble_size=100 * num_polynomials,
     )
     measured_data = MockedMeasuredData(observations, simulated)
-    # We set the PCA threshold to 0.99 so a high degree of correlation is required
+    # We set the PCA threshold to 0.999 so a high degree of correlation is required
     # to have an impact. Setting it this way only has an impact for "auto_scale"
     obs_keys = measured_data.data.columns.get_level_values(0)
     job_config = {
         "workflow": {
             "type": method,
-            "pca": {"threshold": 0.99},
+            "pca": {"threshold": 0.999},
             "clustering": {"type": clustering_function},
         }
     }
