@@ -1,5 +1,3 @@
-# pylint: disable=missing-docstring
-
 import os
 
 from ert.shared.plugins.plugin_manager import ErtPluginManager

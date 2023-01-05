@@ -27,7 +27,7 @@ def test_get_nr_primary_components(threshold, expected_result):
     assert components == expected_result
 
 
-# pylint: disable-msg=too-many-locals
+# pylint: disable=too-many-locals
 def test_that_get_nr_primary_components_is_according_to_theory():
     """Based on theory in Multivariate Statistical Methods 4th Edition
     by Donald F. Morrison.

@@ -1,4 +1,3 @@
-# pylint: disable=unsubscriptable-object  # pylint issue
 import os
 import shutil
 from pathlib import Path
@@ -22,7 +21,6 @@ def test_ahmanalysis_run(test_data_root):
 
     ert = LibresFacade.from_config_file("snake_oil.ert")
 
-    # pylint: disable=not-callable
     ert.run_ertscript(ahmanalysis.AhmAnalysisJob, prior_name="default_0")
 
     # assert that this returns/generates a KS csv file
@@ -78,7 +76,6 @@ def test_ahmanalysis_run_field(test_data_root, grid_prop):
 
     ert = LibresFacade.from_config_file("snake_oil_field.ert")
 
-    # pylint: disable=not-callable
     ert.run_ertscript(ahmanalysis.AhmAnalysisJob, prior_name="default")
 
     # assert that this returns/generates the delta field parameter
@@ -107,15 +104,12 @@ def test_ahmanalysis_run_field(test_data_root, grid_prop):
 
 
 @pytest.mark.usefixtures("setup_tmpdir")
-def test_no_prior(test_data_root):
-    """check dataset without prior data"""
+def test_that_dataset_with_no_prior_will_fail(test_data_root):
     test_data_dir = os.path.join(test_data_root, "snake_oil")
     shutil.copytree(test_data_dir, "test_data")
     os.chdir(os.path.join("test_data"))
     ert = LibresFacade.from_config_file("snake_oil.ert")
     expected_msg = "Empty prior ensemble"
     ert.select_or_create_new_case("default")
-    # check that it fails
     with pytest.raises(ValidationError, match=expected_msg):
-        # pylint: disable=not-callable
         ert.run_ertscript(ahmanalysis.AhmAnalysisJob, prior_name="default")

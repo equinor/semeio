@@ -37,7 +37,6 @@ def test_main_entry_point_gen_data(monkeypatch, test_data_root):
     # again is a tuple containing the configuration which is a list of configs.
     assert len(list(run_mock.call_args)[0][0]) == 47, "wrong number of clusters"
 
-    # pylint: disable=protected-access
     cor_matrix_file = os.path.join(
         output_dir,
         "correlation_matrix.csv",

@@ -72,7 +72,6 @@ def run(
 def _complete_parameters_file(
     realization, parameters, parametersfilename, design_matrix_sheet, default_sheet
 ):
-    # pylint: disable=too-many-locals
     """
     Pick key / values from choosen realization in design matrix
     Append those key / values if not present into parameters.txt
