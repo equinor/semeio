@@ -104,7 +104,6 @@ def generate_observations(
     parameter_distribution,
     poly_states,
 ):
-    # pylint: disable=too-many-locals
     true_parameters = parameter_distribution(len(forward_polynomials))
 
     return {

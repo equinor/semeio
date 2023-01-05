@@ -47,7 +47,7 @@ def _format_record(log_record):
     )
 
 
-class SemeioScript(ErtScript):  # pylint: disable=too-few-public-methods
+class SemeioScript(ErtScript):
     """
     SemeioScript is a workflow utility extending the functionality of ErtScript.
     In particular it provides a `self.reporter` instance available for passing

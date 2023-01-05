@@ -1,4 +1,3 @@
-# pylint: disable=unsubscriptable-object  # pylint issue
 import os
 import shutil
 import subprocess

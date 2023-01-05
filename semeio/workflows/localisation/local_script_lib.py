@@ -44,21 +44,15 @@ class Parameters:
     parameters: List[Parameter] = field(default_factory=list)
 
     def append(self, new):
-        # pylint: disable=no-member
-        # (false positive)
         self.parameters.append(new)
 
     def to_list(self):
-        # pylint: disable=not-an-iterable
-        # (false positive)
         result = []
         for parameter in self.parameters:
             result.extend(parameter.to_list())
         return result
 
     def to_dict(self):
-        # pylint: disable=not-an-iterable
-        # (false positive)
         result = {}
         for parameter in self.parameters:
             if parameter.name in result:
@@ -909,7 +903,6 @@ class ConstExponentialDecay(Decay):
 
 
 class ScalingValues:
-    # pylint: disable=too-few-public-methods
     scaling_param_number = 1
     corr_name = None
 

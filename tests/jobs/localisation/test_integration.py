@@ -1,4 +1,3 @@
-# pylint: disable=too-many-statements,not-callable
 import itertools
 
 import numpy as np

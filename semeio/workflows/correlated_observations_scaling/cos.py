@@ -134,7 +134,6 @@ of passing two different configs.
 
 
 class CorrelatedObservationsScalingJob(SemeioScript):
-    # pylint: disable=too-few-public-methods
     def run(self, job_configuration):
         # pylint: disable=method-hidden
         # (SemeioScript wraps this run method)

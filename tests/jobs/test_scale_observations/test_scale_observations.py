@@ -4,8 +4,6 @@ from semeio.workflows.correlated_observations_scaling.update_scaling import (
     scale_observations,
 )
 
-# pylint: disable=redefined-outer-name
-
 
 class Config:  # pylint: disable=too-few-public-methods
     def __init__(self, key, index):
