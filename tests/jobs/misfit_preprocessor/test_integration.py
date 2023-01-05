@@ -1,4 +1,3 @@
-# pylint: disable=not-callable
 import os
 import shutil
 from unittest.mock import MagicMock, Mock
@@ -113,7 +112,7 @@ def test_misfit_preprocessor_main_entry_point_no_config(monkeypatch, test_data_r
 
     ert.run_ertscript(misfit_preprocessor.MisfitPreprocessorJob)
 
-    assert len(run_mock.call_args[0][0]) > 1  # pylint: disable=unsubscriptable-object
+    assert len(run_mock.call_args[0][0]) > 1
 
 
 @pytest.mark.usefixtures("setup_tmpdir")

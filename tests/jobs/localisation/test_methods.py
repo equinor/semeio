@@ -266,7 +266,6 @@ def test_calculate_scaling_factors_in_regions(snapshot):
           param_name = "param"
           write_param(param_filename, grid, param_values, param_name, nx, ny, nz)
     """
-    # pylint: disable=too-many-locals
     grid, nx, ny, nz = create_box_grid(use_actnum=True)
     region_param_masked, _ = create_region_parameter(grid, nx, ny, nz)
     active_segment_list = [1, 2, 3]

@@ -126,7 +126,6 @@ def test_runs_different_reals_no_raise(realization_id):
 
 
 def test_empty_defaults(tmpdir):
-    # pylint: disable=abstract-class-instantiated
     tmpdir.chdir()
     write_design_xlsx("design_matrix.xlsx")
 
@@ -147,7 +146,6 @@ def test_one_column_defaults(tmpdir):
 
 def test_three_column_defaults(tmpdir):
     """Anything other than the two first columns is ignored"""
-    # pylint: disable=abstract-class-instantiated
     tmpdir.chdir()
     write_design_xlsx(
         "design_matrix.xlsx", defaultsdf=pd.DataFrame(data=[["foo", "bar", "com"]])

@@ -99,7 +99,7 @@ execution through Run Workflow button on ERT GUI
 """
 
 
-class AhmAnalysisJob(SemeioScript):  # pylint: disable=too-few-public-methods
+class AhmAnalysisJob(SemeioScript):
     """Define ERT workflow to evaluate change of parameters for eac
     observation during history matching
     """

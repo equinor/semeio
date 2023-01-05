@@ -35,9 +35,8 @@ def _get_jobs_from_directory(directory):
     }
 
 
-# pylint: disable=no-value-for-parameter
 @hook_implementation
-@plugin_response(plugin_name="semeio")  # pylint: disable=no-value-for-parameter
+@plugin_response(plugin_name="semeio")
 def installable_jobs():
     return _get_jobs_from_directory("jobs/config_jobs")
 
@@ -52,7 +51,7 @@ def _get_module_variable_if_exists(module_name, variable_name, default=""):
 
 
 @hook_implementation
-@plugin_response(plugin_name="semeio")  # pylint: disable=no-value-for-parameter
+@plugin_response(plugin_name="semeio")
 def job_documentation(job_name):
     semeio_jobs = set(installable_jobs().data.keys())
     if job_name not in semeio_jobs:

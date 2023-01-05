@@ -12,7 +12,7 @@ from semeio.workflows.misfit_preprocessor.kmeans_config import (
     LimitedKmeansClustering,
 )
 
-#  pylint: disable=too-few-public-methods,no-self-argument
+# pylint: disable=no-self-argument
 
 
 class PCAConfig(BaseMisfitPreprocessorConfig):
