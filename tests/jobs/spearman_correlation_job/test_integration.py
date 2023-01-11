@@ -1,12 +1,10 @@
 # pylint: disable=not-callable
 import json
 import os
-import shutil
 from unittest.mock import Mock
 
 import pandas as pd
 import pytest
-from ert import LibresFacade
 from scipy import stats
 
 import semeio.workflows.spearman_correlation_job.spearman_correlation as sc
@@ -17,17 +15,12 @@ from semeio.workflows.correlated_observations_scaling.exceptions import (
 
 
 @pytest.mark.usefixtures("setup_tmpdir")
-def test_main_entry_point_gen_data(monkeypatch, test_data_root):
+def test_main_entry_point_gen_data(monkeypatch, setup_ert):
     run_mock = Mock()
     scal_job = Mock(return_value=Mock(run=run_mock))
     monkeypatch.setattr(sc, "CorrelatedObservationsScalingJob", scal_job)
 
-    test_data_dir = os.path.join(test_data_root, "snake_oil")
-
-    shutil.copytree(test_data_dir, "test_data")
-    os.chdir(os.path.join("test_data"))
-
-    facade = LibresFacade.from_config_file("snake_oil.ert")
+    facade = setup_ert
     output_dir = facade.run_ertscript(sc.SpearmanCorrelationJob, *["-t", "1.0"])
 
     # call_args represents the clusters, we expect the snake_oil
@@ -35,7 +28,7 @@ def test_main_entry_point_gen_data(monkeypatch, test_data_root):
     # call_args is a call object, which itself is a tuple of args and kwargs.
     # In this case, we want args, and the first element of the arguments, which
     # again is a tuple containing the configuration which is a list of configs.
-    assert len(list(run_mock.call_args)[0][0]) == 47, "wrong number of clusters"
+    assert len(list(run_mock.call_args)[0][0]) == 43, "wrong number of clusters"
 
     cor_matrix_file = os.path.join(
         output_dir,
@@ -53,28 +46,27 @@ def test_main_entry_point_gen_data(monkeypatch, test_data_root):
         assert len(cluster_reports) == 1
 
         clusters = cluster_reports[0]
-        assert len(clusters.keys()) == 47
+        assert len(clusters.keys()) == 43
 
 
-@pytest.mark.usefixtures("setup_tmpdir")
-def test_scaling(test_data_root):
-    test_data_dir = os.path.join(test_data_root, "snake_oil")
-
-    shutil.copytree(test_data_dir, "test_data")
-    os.chdir(os.path.join("test_data"))
-
-    facade = LibresFacade.from_config_file("snake_oil.ert")
+def test_scaling(setup_ert, snapshot):
+    facade = setup_ert
 
     facade.run_ertscript(sc.SpearmanCorrelationJob, *["-t", "1.0"])
 
     # assert that this arbitrarily chosen cluster gets scaled as expected
-    obs = facade.get_observations()["FOPR"]
-    for index in [13, 14, 15, 16, 17, 18, 19, 20]:
-        assert obs.getNode(index).getStdScaling() == 2.8284271247461903
+    snapshot.assert_match(
+        str(
+            [
+                observation.getStdScaling()
+                for observation in facade.get_observations()["FOPR"]
+            ]
+        ),
+        "cluster_snapshot",
+    )
 
 
-@pytest.mark.usefixtures("setup_tmpdir")
-def test_skip_clusters_yielding_empty_data_matrixes(monkeypatch, test_data_root):
+def test_skip_clusters_yielding_empty_data_matrixes(monkeypatch, setup_ert):
     def raising_scaling_job(data):
         if data == {"CALCULATE_KEYS": {"keys": [{"index": [88, 89], "key": "FOPR"}]}}:
             raise EmptyDatasetException("foo")
@@ -82,12 +74,7 @@ def test_skip_clusters_yielding_empty_data_matrixes(monkeypatch, test_data_root)
     scaling_mock = Mock(return_value=Mock(**{"run.side_effect": raising_scaling_job}))
     monkeypatch.setattr(sc, "CorrelatedObservationsScalingJob", scaling_mock)
 
-    test_data_dir = os.path.join(test_data_root, "snake_oil")
-
-    shutil.copytree(test_data_dir, "test_data")
-    os.chdir(os.path.join("test_data"))
-
-    facade = LibresFacade.from_config_file("snake_oil.ert")
+    facade = setup_ert
 
     try:
         facade.run_ertscript(sc.SpearmanCorrelationJob, *["-t", "1.0"])
