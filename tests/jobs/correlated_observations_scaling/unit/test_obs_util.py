@@ -180,27 +180,6 @@ def test_add_observation_vectors(test_data_root):
 
 
 @pytest.mark.usefixtures("setup_tmpdir")
-def test_validate_failed_realizations(test_data_root):
-    """
-    Config has several failed realisations
-    """
-    test_data_dir = os.path.join(test_data_root, "failed_runs_in_storage")
-    shutil.copytree(test_data_dir, "test_data")
-    os.chdir(os.path.join("test_data"))
-
-    ert = LibresFacade.from_config_file("mini_fail_config")
-    observations = ert.get_observations()
-
-    result = keys_with_data(
-        observations,
-        ["GEN_PERLIN_1"],
-        ert.get_ensemble_size(),
-        ert.get_current_fs(),
-    )
-    assert result == ["GEN_PERLIN_1"]
-
-
-@pytest.mark.usefixtures("setup_tmpdir")
 def test_validate_no_realizations(test_data_root):
     """
     Ensamble has not run

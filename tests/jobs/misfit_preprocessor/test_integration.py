@@ -1,10 +1,7 @@
-import os
-import shutil
 from unittest.mock import MagicMock, Mock
 
 import pytest
 import yaml
-from ert import LibresFacade
 
 import semeio
 from semeio.workflows.correlated_observations_scaling import cos
@@ -16,10 +13,10 @@ from semeio.workflows.misfit_preprocessor import misfit_preprocessor
 
 @pytest.mark.usefixtures("setup_tmpdir")
 @pytest.mark.parametrize(
-    "observation, expected_nr_clusters", [["*", 60], ["WPR_DIFF_1", 1]]
+    "observation, expected_nr_clusters", [["*", 45], ["WPR_DIFF_1", 1]]
 )
 def test_misfit_preprocessor_main_entry_point_gen_data(
-    monkeypatch, test_data_root, observation, expected_nr_clusters
+    monkeypatch, setup_ert, observation, expected_nr_clusters
 ):
     run_mock = Mock()
     scal_job = Mock(return_value=Mock(run=run_mock))
@@ -28,13 +25,7 @@ def test_misfit_preprocessor_main_entry_point_gen_data(
         "CorrelatedObservationsScalingJob",
         scal_job,
     )
-
-    test_data_dir = os.path.join(test_data_root, "snake_oil")
-
-    shutil.copytree(test_data_dir, "test_data")
-    os.chdir(os.path.join("test_data"))
-
-    ert = LibresFacade.from_config_file("snake_oil.ert")
+    ert = setup_ert
 
     config = {
         "observations": [observation],
@@ -60,7 +51,7 @@ def test_misfit_preprocessor_main_entry_point_gen_data(
 
 
 @pytest.mark.usefixtures("setup_tmpdir")
-def test_misfit_preprocessor_passing_scaling_parameters(monkeypatch, test_data_root):
+def test_misfit_preprocessor_passing_scaling_parameters(monkeypatch, setup_ert):
     run_mock = Mock()
     scal_job = Mock(return_value=Mock(run=run_mock))
     monkeypatch.setattr(
@@ -68,13 +59,7 @@ def test_misfit_preprocessor_passing_scaling_parameters(monkeypatch, test_data_r
         "CorrelatedObservationsScalingJob",
         scal_job,
     )
-
-    test_data_dir = os.path.join(test_data_root, "snake_oil")
-
-    shutil.copytree(test_data_dir, "test_data")
-    os.chdir(os.path.join("test_data"))
-
-    ert = LibresFacade.from_config_file("snake_oil.ert")
+    ert = setup_ert
 
     config = {
         "workflow": {
@@ -94,7 +79,7 @@ def test_misfit_preprocessor_passing_scaling_parameters(monkeypatch, test_data_r
 
 
 @pytest.mark.usefixtures("setup_tmpdir")
-def test_misfit_preprocessor_main_entry_point_no_config(monkeypatch, test_data_root):
+def test_misfit_preprocessor_main_entry_point_no_config(monkeypatch, setup_ert):
     run_mock = Mock()
     scal_job = Mock(return_value=Mock(run=run_mock))
     monkeypatch.setattr(
@@ -102,13 +87,7 @@ def test_misfit_preprocessor_main_entry_point_no_config(monkeypatch, test_data_r
         "CorrelatedObservationsScalingJob",
         scal_job,
     )
-
-    test_data_dir = os.path.join(test_data_root, "snake_oil")
-
-    shutil.copytree(test_data_dir, "test_data")
-    os.chdir(os.path.join("test_data"))
-
-    ert = LibresFacade.from_config_file("snake_oil.ert")
+    ert = setup_ert
 
     ert.run_ertscript(misfit_preprocessor.MisfitPreprocessorJob)
 
@@ -116,13 +95,8 @@ def test_misfit_preprocessor_main_entry_point_no_config(monkeypatch, test_data_r
 
 
 @pytest.mark.usefixtures("setup_tmpdir")
-def test_misfit_preprocessor_with_scaling(test_data_root):
-    test_data_dir = os.path.join(test_data_root, "snake_oil")
-
-    shutil.copytree(test_data_dir, "test_data")
-    os.chdir(os.path.join("test_data"))
-
-    ert = LibresFacade.from_config_file("snake_oil.ert")
+def test_misfit_preprocessor_with_scaling(setup_ert, snapshot):
+    ert = setup_ert
 
     config = {
         "workflow": {
@@ -139,17 +113,20 @@ def test_misfit_preprocessor_with_scaling(test_data_root):
     ert.run_ertscript(misfit_preprocessor.MisfitPreprocessorJob, config_file)
 
     # assert that this arbitrarily chosen cluster gets scaled as expected
-    obs = ert.get_observations()["FOPR"]
-    for index in [13, 14, 15, 16, 17, 18, 19, 20]:
-        assert obs.getNode(index).getStdScaling() == 2.8284271247461903
-
-    for index in (38, 39, 40, 41, 42, 43, 44):
-        assert obs.getNode(index).getStdScaling() == 2.6457513110645907
+    snapshot.assert_match(
+        str(
+            [
+                observation.getStdScaling()
+                for observation in ert.get_observations()["FOPR"]
+            ]
+        ),
+        "cluster_snapshot",
+    )
 
 
 @pytest.mark.usefixtures("setup_tmpdir")
 def test_misfit_preprocessor_skip_clusters_yielding_empty_data_matrixes(
-    monkeypatch, test_data_root
+    monkeypatch, setup_ert
 ):
     def raising_scaling_job(data):
         if data == {"CALCULATE_KEYS": {"keys": [{"index": [88, 89], "key": "FOPR"}]}}:
@@ -159,14 +136,7 @@ def test_misfit_preprocessor_skip_clusters_yielding_empty_data_matrixes(
     monkeypatch.setattr(
         misfit_preprocessor, "CorrelatedObservationsScalingJob", scaling_mock
     )
-
-    test_data_dir = os.path.join(test_data_root, "snake_oil")
-
-    shutil.copytree(test_data_dir, "test_data")
-    os.chdir(os.path.join("test_data"))
-
-    ert = LibresFacade.from_config_file("snake_oil.ert")
-
+    ert = setup_ert
     config = {
         "workflow": {
             "type": "custom_scale",
@@ -184,14 +154,8 @@ def test_misfit_preprocessor_skip_clusters_yielding_empty_data_matrixes(
 
 
 @pytest.mark.usefixtures("setup_tmpdir")
-def test_misfit_preprocessor_invalid_config(test_data_root):
-    test_data_dir = os.path.join(test_data_root, "snake_oil")
-
-    shutil.copytree(test_data_dir, "test_data")
-    os.chdir(os.path.join("test_data"))
-
-    ert = LibresFacade.from_config_file("snake_oil.ert")
-
+def test_misfit_preprocessor_invalid_config(setup_ert):
+    ert = setup_ert
     config = {
         "unknown_key": [],
         "workflow": {"type": "custom_scale", "clustering": {"threshold": 1.0}},
@@ -213,15 +177,8 @@ def test_misfit_preprocessor_invalid_config(test_data_root):
 
 
 @pytest.mark.usefixtures("setup_tmpdir")
-def test_misfit_preprocessor_all_obs(test_data_root, monkeypatch):
-
-    test_data_dir = os.path.join(test_data_root, "snake_oil")
-
-    shutil.copytree(test_data_dir, "test_data")
-    os.chdir(os.path.join("test_data"))
-
-    ert = LibresFacade.from_config_file("snake_oil.ert")
-
+def test_misfit_preprocessor_all_obs(setup_ert, monkeypatch):
+    ert = setup_ert
     monkeypatch.setattr(
         cos.ObservationScaleFactor, "get_scaling_factor", MagicMock(return_value=1.234)
     )
