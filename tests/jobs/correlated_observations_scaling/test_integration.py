@@ -4,6 +4,7 @@ from unittest.mock import MagicMock
 
 import numpy as np
 import pytest
+from ert import LibresFacade
 
 from semeio.workflows.correlated_observations_scaling import cos
 from semeio.workflows.correlated_observations_scaling.cos import (
@@ -49,7 +50,7 @@ def test_main_entry_point_gen_data(setup_ert):
         "snake_oil",
         "reports",
         "snake_oil",
-        "default_0",
+        "default",
         "CorrelatedObservationsScalingJob",
         "svd.json",
     )
@@ -60,11 +61,7 @@ def test_main_entry_point_gen_data(setup_ert):
 
         reported_svd = svd_reports[1]
         assert reported_svd == pytest.approx(
-            (
-                6.531760256452532,
-                2.0045135017540487,
-                1.1768827000026516,
-            ),
+            (4.414283609038025, 1.9625780125365313, 0.74244484701782),
             0.1,
         )
 
@@ -73,7 +70,7 @@ def test_main_entry_point_gen_data(setup_ert):
         "snake_oil",
         "reports",
         "snake_oil",
-        "default_0",
+        "default",
         "CorrelatedObservationsScalingJob",
         "scale_factor.json",
     )
@@ -109,7 +106,7 @@ def test_main_entry_point_summary_data_calc(setup_ert):
     [
         pytest.param(
             {"CALCULATE_KEYS": {"keys": [{"key": "FOPR"}]}},
-            np.sqrt(200 / 4),
+            np.sqrt(200 / 3),
             id="All indecies should update",
         ),
         pytest.param(
@@ -165,12 +162,14 @@ def test_main_entry_point_sum_data_update(setup_ert, monkeypatch):
         assert node.getStdScaling(index) == 1.23
 
 
-def test_main_entry_point_shielded_data(setup_ert, monkeypatch):
+@pytest.mark.usefixtures("copy_snake_oil_case_storage")
+def test_main_entry_point_shielded_data(monkeypatch):
+    ert = LibresFacade.from_config_file("snake_oil.ert")
     cos_config = {
         "CALCULATE_KEYS": {"keys": [{"key": "FOPR", "index": [1, 2, 3, 4, 5]}]}
     }
 
-    obs = setup_ert.get_observations()
+    obs = ert.get_observations()
 
     obs_vector = obs["FOPR"]
 
@@ -180,7 +179,7 @@ def test_main_entry_point_shielded_data(setup_ert, monkeypatch):
     monkeypatch.setattr(
         cos.ObservationScaleFactor, "get_scaling_factor", MagicMock(return_value=1.23)
     )
-    setup_ert.run_ertscript(CorrelatedObservationsScalingJob, cos_config)
+    ert.run_ertscript(CorrelatedObservationsScalingJob, cos_config)
 
     for index, node in enumerate(obs_vector):
         if index in [1, 2, 3, 4, 5]:

@@ -4,27 +4,20 @@ from pathlib import Path
 
 import pandas as pd
 import pytest
-from ecl.grid import EclGridGenerator
 from ert import LibresFacade
 
 from semeio._exceptions.exceptions import ValidationError
 from semeio.workflows.ahm_analysis import ahmanalysis
 
 
-@pytest.mark.usefixtures("setup_tmpdir")
-def test_ahmanalysis_run(test_data_root):
+def test_ahmanalysis_run(setup_ert):
     """test data_set with only scalar parameters"""
-    test_data_dir = os.path.join(test_data_root, "snake_oil")
+    ert = setup_ert
 
-    shutil.copytree(test_data_dir, "test_data")
-    os.chdir(os.path.join("test_data"))
-
-    ert = LibresFacade.from_config_file("snake_oil.ert")
-
-    ert.run_ertscript(ahmanalysis.AhmAnalysisJob, prior_name="default_0")
+    ert.run_ertscript(ahmanalysis.AhmAnalysisJob, prior_name="default")
 
     # assert that this returns/generates a KS csv file
-    output_dir = Path("storage/snake_oil/reports/snake_oil/default_0/AhmAnalysisJob")
+    output_dir = Path("storage/snake_oil/reports/snake_oil/default/AhmAnalysisJob")
     group_obs = [
         "FOPR",
         "WOPR_OP1",
@@ -45,6 +38,8 @@ def test_ahmanalysis_run(test_data_root):
         "SNAKE_OIL_PARAM:OP2_OFFSET",
         "SNAKE_OIL_PARAM:BPR_555_PERSISTENCE",
         "SNAKE_OIL_PARAM:BPR_138_PERSISTENCE",
+        "FIELD_PERMX",
+        "FIELD_PORO",
     ]
     assert (output_dir / "ks.csv").is_file()
     ks_df = pd.read_csv(output_dir / "ks.csv")
@@ -61,20 +56,9 @@ def test_ahmanalysis_run(test_data_root):
         assert (output_dir / filename).is_file()
 
 
-@pytest.mark.usefixtures("setup_tmpdir")
-def test_ahmanalysis_run_field(test_data_root, grid_prop):
+def test_ahmanalysis_run_field(setup_ert):
     """test data_set with scalar and Field parameters"""
-    test_data_dir = os.path.join(test_data_root, "snake_oil")
-
-    shutil.copytree(test_data_dir, "test_data")
-    os.chdir(os.path.join("test_data"))
-    os.makedirs("fields")
-    grid = EclGridGenerator.createRectangular((10, 12, 5), (1, 1, 1))
-    for iens in range(10):
-        grid_prop("PERMX", 10, grid.getGlobalSize(), f"fields/permx{iens}.grdecl")
-        grid_prop("PORO", 0.2, grid.getGlobalSize(), f"fields/poro{iens}.grdecl")
-
-    ert = LibresFacade.from_config_file("snake_oil_field.ert")
+    ert = setup_ert
 
     ert.run_ertscript(ahmanalysis.AhmAnalysisJob, prior_name="default")
 
@@ -84,9 +68,9 @@ def test_ahmanalysis_run_field(test_data_root, grid_prop):
     obs_keys = gen_obs_list + summary_obs_list
     output_deltafield = os.path.join(
         "storage",
-        "snake_oil_field",
+        "snake_oil",
         "reports",
-        "snake_oil_field",
+        "snake_oil",
         "default",
         "AhmAnalysisJob",
         "delta_fieldPERMX.csv",
