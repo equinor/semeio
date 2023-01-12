@@ -20,15 +20,15 @@ def get_std_from_obs_vector(vector):
     return result
 
 
-def test_main_entry_point_gen_data(setup_ert):
+def test_main_entry_point_gen_data(snake_oil_facade):
     cos_config = {
         "CALCULATE_KEYS": {"keys": [{"key": "WPR_DIFF_1"}]},
         "UPDATE_KEYS": {"keys": [{"key": "WPR_DIFF_1", "index": [400, 800]}]},
     }
 
-    setup_ert.run_ertscript(CorrelatedObservationsScalingJob, cos_config)
+    snake_oil_facade.run_ertscript(CorrelatedObservationsScalingJob, cos_config)
 
-    obs = setup_ert.get_observations()
+    obs = snake_oil_facade.get_observations()
     obs_vector = obs["WPR_DIFF_1"]
 
     result = get_std_from_obs_vector(obs_vector)
@@ -36,7 +36,7 @@ def test_main_entry_point_gen_data(setup_ert):
 
     cos_config["CALCULATE_KEYS"]["keys"][0].update({"index": [400, 800, 1200]})
 
-    setup_ert.run_ertscript(CorrelatedObservationsScalingJob, cos_config)
+    snake_oil_facade.run_ertscript(CorrelatedObservationsScalingJob, cos_config)
     result = get_std_from_obs_vector(obs_vector)
     assert result == [
         np.sqrt(3 / 1),
@@ -82,12 +82,12 @@ def test_main_entry_point_gen_data(setup_ert):
         assert reported_scalefactor == pytest.approx(np.sqrt(3 / 1), 0.1)
 
 
-def test_main_entry_point_summary_data_calc(setup_ert):
+def test_main_entry_point_summary_data_calc(snake_oil_facade):
     cos_config = {
         "CALCULATE_KEYS": {"keys": [{"key": "WOPR_OP1_108"}, {"key": "WOPR_OP1_144"}]}
     }
 
-    obs = setup_ert.get_observations()
+    obs = snake_oil_facade.get_observations()
 
     obs_vector = obs["WOPR_OP1_108"]
     result = []
@@ -95,7 +95,7 @@ def test_main_entry_point_summary_data_calc(setup_ert):
         result.append(node.getStdScaling(index))
     assert result == [1]
 
-    setup_ert.run_ertscript(CorrelatedObservationsScalingJob, cos_config)
+    snake_oil_facade.run_ertscript(CorrelatedObservationsScalingJob, cos_config)
 
     for index, node in enumerate(obs_vector):
         assert node.getStdScaling(index) == np.sqrt(2 / 1)
@@ -116,9 +116,9 @@ def test_main_entry_point_summary_data_calc(setup_ert):
         ),
     ],
 )
-def test_main_entry_point_history_data_calc(setup_ert, config, expected_result):
-    obs = setup_ert.get_observations()
-    setup_ert.run_ertscript(CorrelatedObservationsScalingJob, config)
+def test_main_entry_point_history_data_calc(snake_oil_facade, config, expected_result):
+    obs = snake_oil_facade.get_observations()
+    snake_oil_facade.run_ertscript(CorrelatedObservationsScalingJob, config)
     obs_vector = obs["FOPR"]
     result = []
     for index, node in enumerate(obs_vector):
@@ -126,15 +126,15 @@ def test_main_entry_point_history_data_calc(setup_ert, config, expected_result):
     assert result == [expected_result] * 200
 
 
-def test_main_entry_point_history_data_calc_subset(setup_ert):
+def test_main_entry_point_history_data_calc_subset(snake_oil_facade):
     config = {"CALCULATE_KEYS": {"keys": [{"key": "FOPR", "index": [10, 20]}]}}
-    obs = setup_ert.get_observations()
+    obs = snake_oil_facade.get_observations()
     obs_vector = obs["FOPR"]
 
     expected_result = [1.0] * 200
     expected_result[10] = np.sqrt(2)
     expected_result[20] = np.sqrt(2)
-    setup_ert.run_ertscript(CorrelatedObservationsScalingJob, config)
+    snake_oil_facade.run_ertscript(CorrelatedObservationsScalingJob, config)
 
     result = []
     for index, node in enumerate(obs_vector):
@@ -144,10 +144,10 @@ def test_main_entry_point_history_data_calc_subset(setup_ert):
     ), "Check that only the selected subset of obs have updated scaling"
 
 
-def test_main_entry_point_sum_data_update(setup_ert, monkeypatch):
+def test_main_entry_point_sum_data_update(snake_oil_facade, monkeypatch):
     cos_config = {"CALCULATE_KEYS": {"keys": [{"key": "WOPR_OP1_108"}]}}
 
-    obs = setup_ert.get_observations()
+    obs = snake_oil_facade.get_observations()
 
     obs_vector = obs["WOPR_OP1_108"]
 
@@ -156,7 +156,7 @@ def test_main_entry_point_sum_data_update(setup_ert, monkeypatch):
     monkeypatch.setattr(
         cos.ObservationScaleFactor, "get_scaling_factor", MagicMock(return_value=1.23)
     )
-    setup_ert.run_ertscript(CorrelatedObservationsScalingJob, cos_config)
+    snake_oil_facade.run_ertscript(CorrelatedObservationsScalingJob, cos_config)
 
     for index, node in enumerate(obs_vector):
         assert node.getStdScaling(index) == 1.23

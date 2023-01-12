@@ -19,7 +19,7 @@ from semeio.workflows.localisation.local_config_script import LocalisationConfig
         ),
     ],
 )
-def test_localisation(setup_ert, obs_group_add, param_group_add, snapshot):
+def test_localisation(snake_oil_facade, obs_group_add, param_group_add, snapshot):
     config = {
         "log_level": 4,
         "correlations": [
@@ -49,9 +49,10 @@ def test_localisation(setup_ert, obs_group_add, param_group_add, snapshot):
     }
     with open("local_config.yaml", "w", encoding="utf-8") as fout:
         yaml.dump(config, fout)
-    setup_ert.run_ertscript(LocalisationConfigJob, "local_config.yaml")
+    snake_oil_facade.run_ertscript(LocalisationConfigJob, "local_config.yaml")
     snapshot.assert_match(
-        str(setup_ert.update_configuration.dict()), "localisation_configuration"
+        str(snake_oil_facade.update_configuration.dict()),
+        "localisation_configuration",
     )
 
 
