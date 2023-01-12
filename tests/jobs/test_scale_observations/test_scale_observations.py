@@ -12,8 +12,8 @@ class Config:  # pylint: disable=too-few-public-methods
 
 
 @pytest.fixture(name="snake_oil_obs")
-def fixture_snake_oil_obs(setup_ert):
-    return setup_ert.get_observations()
+def fixture_snake_oil_obs(snake_oil_facade):
+    return snake_oil_facade.get_observations()
 
 
 @pytest.mark.parametrize("index_list", [None, [0, 1, 2, 3]])

@@ -16,7 +16,7 @@ from semeio.workflows.misfit_preprocessor import misfit_preprocessor
     "observation, expected_nr_clusters", [["*", 45], ["WPR_DIFF_1", 1]]
 )
 def test_misfit_preprocessor_main_entry_point_gen_data(
-    monkeypatch, setup_ert, observation, expected_nr_clusters
+    monkeypatch, snake_oil_facade, observation, expected_nr_clusters
 ):
     run_mock = Mock()
     scal_job = Mock(return_value=Mock(run=run_mock))
@@ -25,8 +25,6 @@ def test_misfit_preprocessor_main_entry_point_gen_data(
         "CorrelatedObservationsScalingJob",
         scal_job,
     )
-    ert = setup_ert
-
     config = {
         "observations": [observation],
         "workflow": {
@@ -38,7 +36,9 @@ def test_misfit_preprocessor_main_entry_point_gen_data(
     with open(config_file, "w", encoding="utf-8") as f:
         yaml.dump(config, f)
 
-    ert.run_ertscript(misfit_preprocessor.MisfitPreprocessorJob, config_file)
+    snake_oil_facade.run_ertscript(
+        misfit_preprocessor.MisfitPreprocessorJob, config_file
+    )
 
     # call_args represents the clusters, we expect the snake_oil
     # observations to generate this amount of them
@@ -51,7 +51,7 @@ def test_misfit_preprocessor_main_entry_point_gen_data(
 
 
 @pytest.mark.usefixtures("setup_tmpdir")
-def test_misfit_preprocessor_passing_scaling_parameters(monkeypatch, setup_ert):
+def test_misfit_preprocessor_passing_scaling_parameters(monkeypatch, snake_oil_facade):
     run_mock = Mock()
     scal_job = Mock(return_value=Mock(run=run_mock))
     monkeypatch.setattr(
@@ -59,8 +59,6 @@ def test_misfit_preprocessor_passing_scaling_parameters(monkeypatch, setup_ert):
         "CorrelatedObservationsScalingJob",
         scal_job,
     )
-    ert = setup_ert
-
     config = {
         "workflow": {
             "type": "custom_scale",
@@ -72,14 +70,16 @@ def test_misfit_preprocessor_passing_scaling_parameters(monkeypatch, setup_ert):
     with open(config_file, "w", encoding="utf-8") as f:
         yaml.dump(config, f)
 
-    ert.run_ertscript(misfit_preprocessor.MisfitPreprocessorJob, config_file)
+    snake_oil_facade.run_ertscript(
+        misfit_preprocessor.MisfitPreprocessorJob, config_file
+    )
 
     for scaling_config in list(run_mock.call_args)[0][0]:
         assert 0.5 == scaling_config["CALCULATE_KEYS"]["threshold"]
 
 
 @pytest.mark.usefixtures("setup_tmpdir")
-def test_misfit_preprocessor_main_entry_point_no_config(monkeypatch, setup_ert):
+def test_misfit_preprocessor_main_entry_point_no_config(monkeypatch, snake_oil_facade):
     run_mock = Mock()
     scal_job = Mock(return_value=Mock(run=run_mock))
     monkeypatch.setattr(
@@ -87,17 +87,13 @@ def test_misfit_preprocessor_main_entry_point_no_config(monkeypatch, setup_ert):
         "CorrelatedObservationsScalingJob",
         scal_job,
     )
-    ert = setup_ert
-
-    ert.run_ertscript(misfit_preprocessor.MisfitPreprocessorJob)
+    snake_oil_facade.run_ertscript(misfit_preprocessor.MisfitPreprocessorJob)
 
     assert len(run_mock.call_args[0][0]) > 1
 
 
 @pytest.mark.usefixtures("setup_tmpdir")
-def test_misfit_preprocessor_with_scaling(setup_ert, snapshot):
-    ert = setup_ert
-
+def test_misfit_preprocessor_with_scaling(snake_oil_facade, snapshot):
     config = {
         "workflow": {
             "type": "custom_scale",
@@ -110,14 +106,16 @@ def test_misfit_preprocessor_with_scaling(setup_ert, snapshot):
     with open(config_file, "w", encoding="utf-8") as f:
         yaml.dump(config, f)
 
-    ert.run_ertscript(misfit_preprocessor.MisfitPreprocessorJob, config_file)
+    snake_oil_facade.run_ertscript(
+        misfit_preprocessor.MisfitPreprocessorJob, config_file
+    )
 
     # assert that this arbitrarily chosen cluster gets scaled as expected
     snapshot.assert_match(
         str(
             [
                 observation.getStdScaling()
-                for observation in ert.get_observations()["FOPR"]
+                for observation in snake_oil_facade.get_observations()["FOPR"]
             ]
         ),
         "cluster_snapshot",
@@ -126,7 +124,7 @@ def test_misfit_preprocessor_with_scaling(setup_ert, snapshot):
 
 @pytest.mark.usefixtures("setup_tmpdir")
 def test_misfit_preprocessor_skip_clusters_yielding_empty_data_matrixes(
-    monkeypatch, setup_ert
+    monkeypatch, snake_oil_facade
 ):
     def raising_scaling_job(data):
         if data == {"CALCULATE_KEYS": {"keys": [{"index": [88, 89], "key": "FOPR"}]}}:
@@ -136,7 +134,6 @@ def test_misfit_preprocessor_skip_clusters_yielding_empty_data_matrixes(
     monkeypatch.setattr(
         misfit_preprocessor, "CorrelatedObservationsScalingJob", scaling_mock
     )
-    ert = setup_ert
     config = {
         "workflow": {
             "type": "custom_scale",
@@ -148,14 +145,15 @@ def test_misfit_preprocessor_skip_clusters_yielding_empty_data_matrixes(
         yaml.dump(config, f)
 
     try:
-        ert.run_ertscript(misfit_preprocessor.MisfitPreprocessorJob, config_file)
+        snake_oil_facade.run_ertscript(
+            misfit_preprocessor.MisfitPreprocessorJob, config_file
+        )
     except EmptyDatasetException:
         pytest.fail("EmptyDatasetException was not handled by misfit preprocessor")
 
 
 @pytest.mark.usefixtures("setup_tmpdir")
-def test_misfit_preprocessor_invalid_config(setup_ert):
-    ert = setup_ert
+def test_misfit_preprocessor_invalid_config(snake_oil_facade):
     config = {
         "unknown_key": [],
         "workflow": {"type": "custom_scale", "clustering": {"threshold": 1.0}},
@@ -172,22 +170,23 @@ def test_misfit_preprocessor_invalid_config(setup_ert):
         "  - extra fields not permitted (unknown_key)\n"
     )
     with pytest.raises(semeio.workflows.misfit_preprocessor.ValidationError) as err:
-        ert.run_ertscript(misfit_preprocessor.MisfitPreprocessorJob, config_file)
+        snake_oil_facade.run_ertscript(
+            misfit_preprocessor.MisfitPreprocessorJob, config_file
+        )
     assert str(err.value) == expected_err_msg
 
 
 @pytest.mark.usefixtures("setup_tmpdir")
-def test_misfit_preprocessor_all_obs(setup_ert, monkeypatch):
-    ert = setup_ert
+def test_misfit_preprocessor_all_obs(snake_oil_facade, monkeypatch):
     monkeypatch.setattr(
         cos.ObservationScaleFactor, "get_scaling_factor", MagicMock(return_value=1.234)
     )
 
-    ert.run_ertscript(misfit_preprocessor.MisfitPreprocessorJob)
+    snake_oil_facade.run_ertscript(misfit_preprocessor.MisfitPreprocessorJob)
 
     scaling_factors = []
 
-    obs = ert.get_observations()
+    obs = snake_oil_facade.get_observations()
     for key in [
         "FOPR",
         "WOPR_OP1_9",

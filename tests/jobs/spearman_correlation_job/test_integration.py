@@ -15,12 +15,12 @@ from semeio.workflows.correlated_observations_scaling.exceptions import (
 
 
 @pytest.mark.usefixtures("setup_tmpdir")
-def test_main_entry_point_gen_data(monkeypatch, setup_ert):
+def test_main_entry_point_gen_data(monkeypatch, snake_oil_facade):
     run_mock = Mock()
     scal_job = Mock(return_value=Mock(run=run_mock))
     monkeypatch.setattr(sc, "CorrelatedObservationsScalingJob", scal_job)
 
-    facade = setup_ert
+    facade = snake_oil_facade
     output_dir = facade.run_ertscript(sc.SpearmanCorrelationJob, *["-t", "1.0"])
 
     # call_args represents the clusters, we expect the snake_oil
@@ -49,8 +49,8 @@ def test_main_entry_point_gen_data(monkeypatch, setup_ert):
         assert len(clusters.keys()) == 43
 
 
-def test_scaling(setup_ert, snapshot):
-    facade = setup_ert
+def test_scaling(snake_oil_facade, snapshot):
+    facade = snake_oil_facade
 
     facade.run_ertscript(sc.SpearmanCorrelationJob, *["-t", "1.0"])
 
@@ -66,7 +66,7 @@ def test_scaling(setup_ert, snapshot):
     )
 
 
-def test_skip_clusters_yielding_empty_data_matrixes(monkeypatch, setup_ert):
+def test_skip_clusters_yielding_empty_data_matrixes(monkeypatch, snake_oil_facade):
     def raising_scaling_job(data):
         if data == {"CALCULATE_KEYS": {"keys": [{"index": [88, 89], "key": "FOPR"}]}}:
             raise EmptyDatasetException("foo")
@@ -74,7 +74,7 @@ def test_skip_clusters_yielding_empty_data_matrixes(monkeypatch, setup_ert):
     scaling_mock = Mock(return_value=Mock(**{"run.side_effect": raising_scaling_job}))
     monkeypatch.setattr(sc, "CorrelatedObservationsScalingJob", scaling_mock)
 
-    facade = setup_ert
+    facade = snake_oil_facade
 
     try:
         facade.run_ertscript(sc.SpearmanCorrelationJob, *["-t", "1.0"])

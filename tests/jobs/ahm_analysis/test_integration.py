@@ -10,11 +10,9 @@ from semeio._exceptions.exceptions import ValidationError
 from semeio.workflows.ahm_analysis import ahmanalysis
 
 
-def test_ahmanalysis_run(setup_ert):
+def test_ahmanalysis_run(snake_oil_facade):
     """test data_set with only scalar parameters"""
-    ert = setup_ert
-
-    ert.run_ertscript(ahmanalysis.AhmAnalysisJob, prior_name="default")
+    snake_oil_facade.run_ertscript(ahmanalysis.AhmAnalysisJob, prior_name="default")
 
     # assert that this returns/generates a KS csv file
     output_dir = Path("storage/snake_oil/reports/snake_oil/default/AhmAnalysisJob")
@@ -56,15 +54,13 @@ def test_ahmanalysis_run(setup_ert):
         assert (output_dir / filename).is_file()
 
 
-def test_ahmanalysis_run_field(setup_ert):
+def test_ahmanalysis_run_field(snake_oil_facade):
     """test data_set with scalar and Field parameters"""
-    ert = setup_ert
-
-    ert.run_ertscript(ahmanalysis.AhmAnalysisJob, prior_name="default")
+    snake_oil_facade.run_ertscript(ahmanalysis.AhmAnalysisJob, prior_name="default")
 
     # assert that this returns/generates the delta field parameter
-    gen_obs_list = ert.get_all_gen_data_observation_keys()
-    summary_obs_list = ert.get_all_summary_observation_keys()
+    gen_obs_list = snake_oil_facade.get_all_gen_data_observation_keys()
+    summary_obs_list = snake_oil_facade.get_all_summary_observation_keys()
     obs_keys = gen_obs_list + summary_obs_list
     output_deltafield = os.path.join(
         "storage",
