@@ -6,7 +6,9 @@ from ert import LibresFacade
 
 
 @pytest.fixture()
-def setup_ert(copy_snake_oil_case_storage):  # pylint: disable=unused-argument
+def snake_oil_facade(
+    copy_snake_oil_case_storage,
+):  # pylint: disable=unused-argument
     yield LibresFacade.from_config_file("snake_oil.ert")
 
 

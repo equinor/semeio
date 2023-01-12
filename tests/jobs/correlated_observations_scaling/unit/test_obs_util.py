@@ -129,8 +129,7 @@ def test_failed_wildcard_expansion(config_dict, obs_list, expected_fails, err_ms
             pytest.fail(f"unexpectedly raised with config: {config_dict}")
 
 
-@pytest.mark.usefixtures("setup_ert")
-def test_create_observation_vectors(setup_ert):
+def test_create_observation_vectors(snake_oil_facade):
 
     valid_config_data = {
         "CALCULATE_KEYS": {"keys": [{"key": "WPR_DIFF_1"}]},
@@ -143,7 +142,7 @@ def test_create_observation_vectors(setup_ert):
         deduce_required=True,
     )
 
-    obs = setup_ert.get_observations()
+    obs = snake_oil_facade.get_observations()
 
     new_events = create_active_lists(obs, config.snapshot.UPDATE_KEYS.keys)
 
