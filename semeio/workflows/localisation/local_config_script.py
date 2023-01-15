@@ -296,11 +296,11 @@ Keywords
 
       For **field_scale** the available methods are **gaussian_decay**,
       **exponential_decay**, **const_gaussian_decay**, **const_exponential_decay**,
-      **from_file** and **segment**.
+      **from_file**, **segment** and **constant**.
 
       For **surface_scale** the available methods are **gaussian_decay**,
       **exponential_decay**,  **const_gaussian_decay**,
-      **const_exponential_decay**
+      **const_exponential_decay** and **constant**.
 
 :exponential_decay:
       Name of a method or scaling function having default expression defined by
@@ -347,6 +347,11 @@ Keywords
       This method requires specification of keywords **main_range**, **perp_range**,
       **azimuth**, **ref_point** and **normalised_tapering_range**.
       Optional specification of keywords **cutoff**.
+
+:constant:
+      Name of a method  or scaling function where the scaling function is constant.
+      The method requires specification of the keyword **value** followed by
+      the scaling factor.
 
 :main_range:
       Sub keyword under **field_scale** or **surface_scale**. Is only used for

@@ -56,7 +56,10 @@ def test_localisation(snake_oil_facade, obs_group_add, param_group_add, snapshot
             snake_oil_facade.run_ertscript(
                 LocalisationConfigJob,
                 storage,
-                storage.get_ensemble_by_name("default"),
+                storage.create_experiment().create_ensemble(
+                    name="default", ensemble_size=snake_oil_facade.get_ensemble_size()
+                ),
+                # storage.get_ensemble_by_name("default"),
                 "local_config.yaml",
             )
     snapshot.assert_match(
@@ -138,11 +141,81 @@ def test_localisation_surf():
         )
 
 
+@pytest.mark.usefixtures("setup_poly_ert")
+def test_localisation_surf_const():
+    # pylint: disable=too-many-locals
+    with open("poly.ert", "a", encoding="utf-8") as fout:
+        fout.write(
+            "SURFACE   PARAM_SURF_A     OUTPUT_FILE:surf.txt    "
+            "INIT_FILES:surf%d.txt   BASE_SURFACE:surf0.txt"
+        )
+    nreal = 20
+    ncol = 10
+    nrow = 10
+    rotation = 0.0
+    xinc = 50.0
+    yinc = 50.0
+    xori = 0.0
+    yori = 0.0
+    values = np.zeros(nrow * ncol)
+    for n in range(nreal):
+        filename = "surf" + str(n) + ".txt"
+        delta = 0.1
+        for j in range(nrow):
+            for i in range(ncol):
+                index = i + j * ncol
+                values[index] = float(j) + n * delta
+        surface = RegularSurface(
+            ncol=ncol,
+            nrow=nrow,
+            xinc=xinc,
+            yinc=yinc,
+            xori=xori,
+            yori=yori,
+            rotation=rotation,
+            values=values,
+        )
+        surface.to_file(filename, fformat="irap_ascii")
+
+    ert = LibresFacade.from_config_file("poly.ert")
+    config = {
+        "log_level": 3,
+        "correlations": [
+            {
+                "name": "CORR1",
+                "obs_group": {
+                    "add": "*",
+                },
+                "param_group": {
+                    "add": "*",
+                },
+                "surface_scale": {
+                    "method": "constant",
+                    "value": 1.0,
+                    "surface_file": "surf0.txt",
+                },
+            },
+        ],
+    }
+
+    with open("local_config.yaml", "w", encoding="utf-8") as fout:
+        yaml.dump(config, fout)
+    with open_storage(ert.enspath, "w") as storage:
+        ert.run_ertscript(
+            LocalisationConfigJob,
+            storage,
+            storage.create_experiment().create_ensemble(
+                name="default", ensemble_size=ert.get_ensemble_size()
+            ),
+            "local_config.yaml",
+        )
+
+
 # This test and the test test_localisation_field2 are similar,
 # but the first test a case with multiple fields and multiple
 # ministeps where write_scaling_factor is activated and one
 # file is written per ministep.
-# Test case 2 tests three different methods for defining scaling factors for fields
+# Test case 2 tests four different methods for defining scaling factors for fields
 @pytest.mark.usefixtures("setup_poly_ert")
 def test_localisation_field1():
     # pylint: disable=too-many-locals
@@ -158,7 +231,7 @@ def test_localisation_field1():
     with open("poly.ert", "a", encoding="utf-8") as fout:
         fout.write(f"GRID   {grid_filename}\n")
 
-        property_names = ["G1", "G2", "G3", "G4"]
+        property_names = ["G1", "G2", "G3", "G4", "G5", "G6"]
         for pname in property_names:
             filename_output = pname + ".roff"
             filename_input = pname + "_%d.roff"
@@ -230,6 +303,19 @@ def test_localisation_field1():
                     "ref_point": [700, 370],
                     "normalised_tapering_range": 1.2,
                     "cutoff": True,
+                },
+            },
+            {
+                "name": "CORR4",
+                "obs_group": {
+                    "add": "*",
+                },
+                "param_group": {
+                    "add": ["G5"],
+                },
+                "field_scale": {
+                    "method": "constant",
+                    "value": 1.0,
                 },
             },
         ],
