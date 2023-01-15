@@ -7,6 +7,7 @@ from ecl.grid.ecl_grid_generator import EclGridGenerator
 from numpy import ma
 
 from semeio.workflows.localisation.local_script_lib import (
+    ConstantScalingFactor,
     ConstExponentialDecay,
     ConstGaussianDecay,
     ExponentialDecay,
@@ -100,6 +101,7 @@ def create_parameter_from_decay_functions(method_name, grid):
     tapering_range = 2
     use_cutoff = True
     decay_obj = None
+    constant_value = 1.0
 
     nx = grid.getNX()
     ny = grid.getNY()
@@ -143,6 +145,8 @@ def create_parameter_from_decay_functions(method_name, grid):
             grid,
             use_cutoff,
         )
+    elif method_name == "constant":
+        decay_obj = ConstantScalingFactor(constant_value)
     else:
         raise ValueError(f"Not implemented:  {method_name}")
 
@@ -340,3 +344,7 @@ def test_decay_function_with_new_options(snapshot):
     method_name = "exponential_decay"
     scaling_values = create_parameter_from_decay_functions(method_name, grid)
     snapshot.assert_match(str(scaling_values), "testdata_scaling_decay_method4.txt")
+
+    method_name = "constant"
+    scaling_values = create_parameter_from_decay_functions(method_name, grid)
+    snapshot.assert_match(str(scaling_values), "testdata_scaling_decay_method5.txt")
