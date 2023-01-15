@@ -1,4 +1,6 @@
 # pylint: disable=attribute-defined-outside-init,invalid-name
+# pxylint: disable=attribute-defined-outside-init
+# pylint: disable=too-many-lines
 import itertools
 import logging
 import math
@@ -154,7 +156,8 @@ def apply_decay(
     calculate_qc_parameter=False,
 ):
     # pylint: disable=too-many-arguments,too-many-locals
-    """Calculates the scaling factor, assign it to ERT instance by row_scaling
+    """
+    Calculates the scaling factor, assign it to ERT instance by row_scaling
     and returns a full sized grid parameter with scaling factors for active
     grid cells and 0 elsewhere to be used for QC purpose.
     """
@@ -227,6 +230,43 @@ def apply_decay(
     return scaling_values
 
 
+def apply_constant(
+    row_scaling,
+    data_size,
+    grid,
+    value,
+    log_level,
+    calculate_qc_parameter=False,
+):
+    # pylint: disable=too-many-arguments,too-many-locals
+    """
+    Assign constant value to the scaling factor,
+    assign it to ERT instance by row_scaling
+    and returns a full sized grid parameter with scaling factors for active
+    grid cells and 0 elsewhere to be used for QC purpose.
+    """
+    debug_print(f"Scaling factor is constant: {value}", LogLevel.LEVEL3, log_level)
+    decay_obj = ConstantScalingFactor(value)
+
+    scaling_vector = np.zeros(data_size, dtype=np.float32)
+    for index in range(data_size):
+        scaling_vector[index] = decay_obj(index)
+    row_scaling.assign_vector(scaling_vector)
+
+    scaling_values = None
+    if calculate_qc_parameter:
+        if isinstance(grid, EclGrid):
+            nx = grid.getNX()
+            ny = grid.getNY()
+            nz = grid.getNZ()
+            scaling_values = np.zeros(nx * ny * nz, dtype=np.float32)
+            for index in range(data_size):
+                global_index = grid.global_index(active_index=index)
+                scaling_values[global_index] = scaling_vector[index]
+
+    return scaling_values
+
+
 def apply_from_file(row_scaling, data_size, grid, filename, param_name, log_level):
     # pylint: disable=too-many-arguments
     debug_print(
@@ -239,8 +279,7 @@ def apply_from_file(row_scaling, data_size, grid, filename, param_name, log_leve
             file,
             param_name,
             strict=True,
-            # ecl_type=EclDataType.ECL_FLOAT,
-            ecl_type=EclDataType.ECL_DOUBLE,
+            ecl_type=EclDataType.ECL_FLOAT,
         )
         for index in range(data_size):
             global_index = grid.global_index(active_index=index)
@@ -584,6 +623,15 @@ def add_ministeps(
                             tapering_range,
                             user_config.write_scaling_factors,
                         )
+                    elif corr_spec.field_scale.method == "constant":
+                        param_for_field = apply_constant(
+                            row_scaling,
+                            data_size,
+                            grid_for_field,
+                            corr_spec.field_scale.value,
+                            user_config.log_level,
+                            user_config.write_scaling_factors,
+                        )
                     elif corr_spec.field_scale.method == "from_file":
                         apply_from_file(
                             row_scaling,
@@ -629,9 +677,11 @@ def add_ministeps(
                         [node_name, row_scaling]
                     )
                 else:
+                    scaling_factor_default = 1.0
                     debug_print(
-                        f"No correlation scaling for node {node_name} "
-                        f"in {ministep_name}",
+                        f"No correlation scaling specified for node {node_name} "
+                        f"in {ministep_name}. "
+                        f"Use default scaling factor: {scaling_factor_default}",
                         LogLevel.LEVEL3,
                         user_config.log_level,
                     )
@@ -691,17 +741,39 @@ def add_ministeps(
                             use_cutoff,
                             tapering_range,
                         )
+                    elif corr_spec.surface_scale.method == "constant":
+                        param_for_field = apply_constant(
+                            row_scaling,
+                            data_size,
+                            None,
+                            corr_spec.surface_scale.value,
+                            user_config.log_level,
+                        )
+                    else:
+                        logging.error(
+                            "Scaling method: %s is not implemented.",
+                            corr_spec.surface_scale.method,
+                        )
+                        raise ValueError(
+                            f"Scaling method: {corr_spec.surface_scale.method} "
+                            "is not implemented"
+                        )
+
                     update_step["row_scaling_parameters"].append(
                         [node_name, row_scaling]
                     )
                 else:
                     debug_print(
-                        f"No correlation scaling for node {node_name} "
-                        f"in {ministep_name}",
+                        "Surface parameter is specified, but no surface_scale "
+                        "keyword is specified. Require that surface_scale "
+                        "keyword is specified.",
                         LogLevel.LEVEL3,
                         user_config.log_level,
                     )
-
+                    raise KeyError(
+                        f" When using surface parameter {node_name} the keyword"
+                        f" 'surface_scale' must be specified."
+                    )
         # Setup observation group
         update_step["observations"] = obs_list
         debug_print(
@@ -824,6 +896,14 @@ class ConstExponentialDecay(Decay):
         distance_from_inner_ellipse = (d - 1) / (self.normalised_tapering_range - 1)
         exp_arg = -3 * distance_from_inner_ellipse
         return math.exp(exp_arg)
+
+
+@dataclass
+class ConstantScalingFactor:
+    value: float
+
+    def __call__(self, data_index):
+        return self.value
 
 
 class ScalingValues:

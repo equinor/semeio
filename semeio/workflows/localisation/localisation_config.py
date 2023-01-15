@@ -229,6 +229,16 @@ class ScalingForSegmentsConfig(BaseModel):
         return scalingfactors
 
 
+class ConstantScalingConfig(BaseModel):
+    """
+    Method for calculating constant correlation scaling factor.
+    """
+
+    method: Literal["constant"]
+    value: Optional[confloat(gt=0, le=1)] = 1.0
+    surface_file: Optional[str]
+
+
 class CorrelationConfig(BaseModel):
     """
     The keyword 'correlations' specify a set of observations and model parameters
@@ -265,16 +275,20 @@ class CorrelationConfig(BaseModel):
             ConstWithExponentialTaperingConfig,
             ScalingFromFileConfig,
             ScalingForSegmentsConfig,
+            ConstantScalingConfig,
         ]
     ]
+
     surface_scale: Optional[
         Union[
             GaussianConfig,
             ExponentialConfig,
             ConstWithGaussianTaperingConfig,
             ConstWithExponentialTaperingConfig,
+            ConstantScalingConfig,
         ]
     ]
+
     obs_context: list
     params_context: list
 
@@ -304,6 +318,7 @@ class CorrelationConfig(BaseModel):
             "const_exponential_decay": ConstWithExponentialTaperingConfig,
             "from_file": ScalingFromFileConfig,
             "segment": ScalingForSegmentsConfig,
+            "constant": ConstantScalingConfig,
         }
         if method not in _valid_methods:
             raise ValueError(
@@ -339,6 +354,7 @@ class CorrelationConfig(BaseModel):
             "exponential_decay": ExponentialConfig,
             "const_gaussian_decay": ConstWithGaussianTaperingConfig,
             "const_exponential_decay": ConstWithExponentialTaperingConfig,
+            "constant": ConstantScalingConfig,
         }
 
         if method not in _valid_methods:
