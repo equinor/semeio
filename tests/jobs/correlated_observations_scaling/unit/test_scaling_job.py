@@ -71,30 +71,20 @@ def test_config_value_overwrites_default(input_key):
 
 @pytest.mark.parametrize("alpha", [True, False])
 @pytest.mark.parametrize(
-    "calc_key,app_key,obs_keys,obs_with_data,errors",
+    "calc_key,app_key,obs_keys,errors",
     [
-        (
-            "KEY_1",
-            "KEY_1",
-            ["KEY_1", "KEY_2"],
-            ["KEY_2"],
-            ["Key: KEY_1 has no data"],
-        ),
         (
             "not_in_list",
             "KEY_1",
             ["KEY_1"],
-            ["KEY_1"],
             [
                 "Update key: KEY_1 missing from calculate keys: ['not_in_list']",
                 "Key: not_in_list has no observations",
-                "Key: not_in_list has no data",
             ],
         ),
         (
             "KEY_1",
             "not_in_list",
-            ["KEY_1"],
             ["KEY_1"],
             ["Update key: not_in_list missing from calculate keys: ['KEY_1']"],
         ),
@@ -102,10 +92,8 @@ def test_config_value_overwrites_default(input_key):
             "KEY_1",
             "KEY_1",
             [],
-            ["KEY_1"],
             ["Key: KEY_1 has no observations"],
         ),
-        ("KEY_1", "KEY_1", ["KEY_1"], [], ["Key: KEY_1 has no data"]),
     ],
 )
 @pytest.mark.usefixtures("setup_tmpdir")
@@ -113,7 +101,6 @@ def test_invalid_job(
     calc_key,
     app_key,
     obs_keys,
-    obs_with_data,
     errors,
     alpha,
 ):
@@ -133,5 +120,5 @@ def test_invalid_job(
         )
 
     with pytest.raises(ValidationError) as exc_info:
-        ObsCorrConfig(user_config_dict, obs_keys, {}).validate(obs_with_data)
+        ObsCorrConfig(user_config_dict, obs_keys, {}).validate()
     assert [str(elem) for elem in exc_info.value.errors] == errors

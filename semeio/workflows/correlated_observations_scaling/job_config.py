@@ -232,12 +232,12 @@ class ObsCorrConfig:
         self.config = self._setup_configuration()
         self.errors = []
 
-    def validate(self, obs_with_data):
+    def validate(self):
         """
         Validates the full configuration. If invalid, raises an ValidationError.
         """
         self._schema_validation()
-        self._context_validation(obs_with_data)
+        self._context_validation()
 
         if len(self.errors) > 0:
             raise ValidationError("Invalid job", self.errors)
@@ -245,7 +245,7 @@ class ObsCorrConfig:
     def _schema_validation(self):
         self.errors.extend(list(self.config.errors))
 
-    def _context_validation(self, obs_with_data):
+    def _context_validation(self):
         config = self.config.snapshot
         calc_keys = [event.key for event in config.CALCULATE_KEYS.keys]
         application_keys = [entry.key for entry in config.UPDATE_KEYS.keys]
@@ -253,7 +253,6 @@ class ObsCorrConfig:
         self.errors.extend(
             has_keys(self._obs_keys, calc_keys, "Key: {} has no observations")
         )
-        self.errors.extend(has_keys(obs_with_data, calc_keys, "Key: {} has no data"))
 
     def _setup_configuration(self):
         """

@@ -2,8 +2,7 @@ import fnmatch
 from collections import namedtuple
 from copy import deepcopy
 
-from ecl.util.util import BoolVector
-from ert._c_wrappers.enkf import ActiveList, RealizationStateEnum
+from ert._c_wrappers.enkf import ActiveList
 
 from semeio.workflows.correlated_observations_scaling.exceptions import ValidationError
 
@@ -104,19 +103,6 @@ def _active_list_from_index_list(index_list):
     for index in index_list:
         active_list.addActiveIndex(index)
     return active_list
-
-
-def keys_with_data(observations, keys, ensemble_size, storage):
-    """
-    Checks that all keys have data and returns a list of error messages
-    """
-    active_realizations = storage.realizationList(RealizationStateEnum.STATE_HAS_DATA)
-
-    if len(active_realizations) == 0:
-        return []
-
-    active_mask = BoolVector.createFromList(ensemble_size, active_realizations)
-    return [key for key in keys if observations[key].hasData(active_mask, storage)]
 
 
 def _data_index_to_obs_index(obs, obs_key, data_index_list):
