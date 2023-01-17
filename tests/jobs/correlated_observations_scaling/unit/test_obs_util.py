@@ -12,7 +12,6 @@ from semeio.workflows.correlated_observations_scaling.obs_utils import (
     _wildcard_to_dict_list,
     create_active_lists,
     find_and_expand_wildcards,
-    keys_with_data,
 )
 
 
@@ -176,24 +175,3 @@ def test_add_observation_vectors(test_data_root):
 
     assert "WOPR_OP1_108" in keys
     assert "WOPR_OP1_144" not in keys
-
-
-@pytest.mark.usefixtures("setup_tmpdir")
-def test_validate_no_realizations(test_data_root):
-    """
-    Ensamble has not run
-    """
-    test_data_dir = os.path.join(test_data_root, "poly_normal")
-    shutil.copytree(test_data_dir, "test_data")
-    os.chdir(os.path.join("test_data"))
-
-    ert = LibresFacade.from_config_file("poly.ert")
-    observations = ert.get_observations()
-
-    result = keys_with_data(
-        observations,
-        ["POLY_OBS"],
-        ert.get_ensemble_size(),
-        ert.get_current_fs(),
-    )
-    assert result == []
