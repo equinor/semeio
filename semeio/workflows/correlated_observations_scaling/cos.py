@@ -12,7 +12,6 @@ from semeio.workflows.correlated_observations_scaling import (
     job_config,
 )
 from semeio.workflows.correlated_observations_scaling.job_config import ObsCorrConfig
-from semeio.workflows.correlated_observations_scaling.obs_utils import keys_with_data
 from semeio.workflows.correlated_observations_scaling.update_scaling import (
     scale_observations,
 )
@@ -142,18 +141,12 @@ class CorrelatedObservationsScalingJob(SemeioScript):
 
         obs = self.facade.get_observations()
         obs_keys = [self.facade.get_observation_key(nr) for nr, _ in enumerate(obs)]
-        obs_with_data = keys_with_data(
-            obs,
-            obs_keys,
-            self.facade.get_ensemble_size(),
-            self.facade.get_current_fs(),
-        )
         default_values = _get_default_values(
             self.facade.get_alpha(), self.facade.get_std_cutoff()
         )
         for config_dict in user_config:
             config = ObsCorrConfig(config_dict, obs_keys, default_values)
-            config.validate(obs_with_data)
+            config.validate()
 
             measured_data = _get_measured_data(
                 self.facade,
