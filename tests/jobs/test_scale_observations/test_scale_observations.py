@@ -18,7 +18,6 @@ def fixture_snake_oil_obs(snake_oil_facade):
 
 @pytest.mark.parametrize("index_list", [None, [0, 1, 2, 3]])
 def test_scale_history_summary_obs(snake_oil_obs, index_list):
-
     scale_observations(snake_oil_obs, 1.2345, [Config("FOPR", index_list)])
 
     obs_vector = snake_oil_obs["FOPR"]
@@ -31,7 +30,6 @@ def test_scale_history_summary_obs(snake_oil_obs, index_list):
 
 @pytest.mark.parametrize("index_list", [None, [35]])
 def test_scale_summary_obs(snake_oil_obs, index_list):
-
     scale_observations(snake_oil_obs, 1.2345, [Config("WOPR_OP1_36", index_list)])
 
     obs_vector = snake_oil_obs["WOPR_OP1_36"]
@@ -41,7 +39,6 @@ def test_scale_summary_obs(snake_oil_obs, index_list):
 
 @pytest.mark.parametrize("index_list", [None, [400, 800]])
 def test_scale_gen_obs(snake_oil_obs, index_list):
-
     scale_observations(snake_oil_obs, 1.2345, [Config("WPR_DIFF_1", index_list)])
 
     obs_vector = snake_oil_obs["WPR_DIFF_1"]

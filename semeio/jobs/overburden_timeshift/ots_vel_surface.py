@@ -58,7 +58,6 @@ class OTSVelSurface:
         return len(self.x)
 
     def __str__(self):
-
         s = "x: " + str(self.x)
         s += "\ny: " + str(self.y)
         s += "\nz: " + str(self.z)

@@ -129,7 +129,6 @@ def test_gendata_rft_directory(tmpdir, monkeypatch):
 
 @pytest.mark.usefixtures("norne_data")
 def test_gendata_rft_entry_point_wrong_well_file(tmpdir, monkeypatch):
-
     arguments = [
         "script_name",
         "-e",
@@ -150,7 +149,6 @@ def test_gendata_rft_entry_point_wrong_well_file(tmpdir, monkeypatch):
 
 @pytest.mark.usefixtures("norne_data")
 def test_gendata_rft_entry_point(tmpdir, monkeypatch):
-
     arguments = [
         "script_name",
         "-e",
@@ -227,7 +225,6 @@ def test_multiple_report_steps(tmpdir, monkeypatch):
 
 @pytest.mark.usefixtures("norne_data")
 def test_gendata_inactive_info_point_not_in_grid(tmpdir, monkeypatch):
-
     with open("B-1AH.txt", "a+", encoding="utf-8") as fh:
         fh.write("0 1 2 3\n")
 
@@ -257,7 +254,6 @@ def test_gendata_inactive_info_point_not_in_grid(tmpdir, monkeypatch):
 
 @pytest.mark.usefixtures("norne_data")
 def test_gendata_inactive_info_zone_mismatch(tmpdir, monkeypatch):
-
     with open("well_and_time.txt", "w+", encoding="utf-8") as fh:
         fh.write("B-1AH 2005-12-01 0\n")
 
@@ -291,7 +287,6 @@ def test_gendata_inactive_info_zone_mismatch(tmpdir, monkeypatch):
 
 @pytest.mark.usefixtures("norne_data")
 def test_gendata_inactive_info_not_in_rft(tmpdir, monkeypatch):
-
     with open("well_and_time.txt", "w+", encoding="utf-8") as fh:
         fh.write("B-1AH 2005-12-01 0\n")
 
@@ -325,7 +320,6 @@ def test_gendata_inactive_info_not_in_rft(tmpdir, monkeypatch):
 
 @pytest.mark.usefixtures("norne_data")
 def test_gendata_inactive_info_zone_missing_value(tmpdir, monkeypatch):
-
     with open("well_and_time.txt", "w+", encoding="utf-8") as fh:
         fh.write("B-1AH 2005-12-01 0\n")
 
