@@ -78,7 +78,6 @@ def test_expand_input_modification():
     ],
 )
 def test_valid_config_setup(valid_config):
-
     schema = _CORRELATED_OBSERVATIONS_SCHEMA
     config = configsuite.ConfigSuite(
         valid_config,

@@ -19,7 +19,6 @@ category = "modelling.financial"
 
 
 def _get_args_parser():
-
     parser = argparse.ArgumentParser(description=description)
 
     parser.add_argument(

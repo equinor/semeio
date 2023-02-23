@@ -27,7 +27,6 @@ FORWARD_MODEL REPLACE_STRING(<FROM>={FROM}, <TO>="{TO}", <FILE>=file.txt)
 )
 def test_replace_string(tmpdir, input_text, replace_from, replace_to, expected):
     with tmpdir.as_cwd():
-
         ert_config_fname = "test.ert"
         Path(ert_config_fname).write_text(
             ert_config.format(FROM=replace_from, TO=replace_to), encoding="utf-8"

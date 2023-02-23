@@ -92,7 +92,6 @@ def create_segy_file(name, spec, trace=None, il=None, xl=None, cdp_x=None, cdp_y
         cdp_y = int_val
 
     with segyio.create(name, spec) as f:
-
         scalar = 1
         trno = 0
         for i, i_cdp_x in enumerate(cdp_x):
