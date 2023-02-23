@@ -58,7 +58,6 @@ zone1 2
 
 @pytest.mark.usefixtures("initdir")
 def test_load_data():
-
     for fname in [
         "valid_zonemap.txt",
         "valid_zonemap_with_comments.txt",

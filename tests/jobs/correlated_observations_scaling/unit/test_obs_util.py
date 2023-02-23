@@ -129,7 +129,6 @@ def test_failed_wildcard_expansion(config_dict, obs_list, expected_fails, err_ms
 
 
 def test_create_observation_vectors(snake_oil_facade):
-
     valid_config_data = {
         "CALCULATE_KEYS": {"keys": [{"key": "WPR_DIFF_1"}]},
         "UPDATE_KEYS": {"keys": [{"key": "WPR_DIFF_1"}]},
@@ -153,7 +152,6 @@ def test_create_observation_vectors(snake_oil_facade):
 
 @pytest.mark.usefixtures("setup_tmpdir")
 def test_add_observation_vectors(test_data_root):
-
     valid_config_data = {"UPDATE_KEYS": {"keys": [{"key": "WOPR_OP1_108"}]}}
 
     # pylint: disable=protected-access

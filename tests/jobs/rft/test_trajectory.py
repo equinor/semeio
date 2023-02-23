@@ -68,7 +68,6 @@ validations = [False, True]
     "ijk, pressure, validation", itertools.product(ijks, pressures, validations)
 )
 def test_is_active(ijk, pressure, validation):
-
     point = TrajectoryPoint(0, 1, 2, 3, "Zone1")
     point.set_ijk(ijk)
     point.pressure = pressure
@@ -245,6 +244,5 @@ def test_tuple_column_splitter_explicit():
 
 
 def test_non_existing_file():
-
     with pytest.raises(IOError, match="Trajectory file non_existing not found!"):
         Trajectory.load_from_file("non_existing")

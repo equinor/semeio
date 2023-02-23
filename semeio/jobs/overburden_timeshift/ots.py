@@ -126,7 +126,6 @@ def ots_run(parameter_file):
         )
         line = "{}, {}, {}" + ", {}" * num_pairs + "\n"
         with open(parms.vintages_export_file, "w", encoding="utf-8") as f:
-
             for point, (x_index, y_index) in enumerate(
                 product(
                     range(1, surface_horizon.get_nx() + 1),
