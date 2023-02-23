@@ -9,6 +9,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import xtgeo
+from ert.analysis import ErtAnalysisError
 from ert.shared.plugins.plugin_manager import hook_implementation
 from scipy.stats import ks_2samp
 from sklearn.decomposition import PCA
@@ -168,17 +169,28 @@ class AhmAnalysisJob(SemeioScript):
 
             #  Use localization to evaluate change of parameters for each observation
             with tempfile.TemporaryDirectory() as update_log_path:
-                _run_ministep(
-                    self.facade,
-                    obs_group,
-                    field_parameters + scalar_parameters,
-                    prior_name,
-                    target_name,
-                    update_log_path,
-                )
-                # Get the active vs total observation info
-                df_update_log = make_update_log_df(update_log_path)
-
+                try:
+                    _run_ministep(
+                        self.facade,
+                        obs_group,
+                        field_parameters + scalar_parameters,
+                        prior_name,
+                        target_name,
+                        update_log_path,
+                    )
+                    # Get the active vs total observation info
+                    df_update_log = make_update_log_df(update_log_path)
+                except ErtAnalysisError:
+                    df_update_log = pd.DataFrame(
+                        columns=[
+                            "obs_key",
+                            "obs_mean",
+                            "obs_std",
+                            "status",
+                            "sim_mean",
+                            "sim_std",
+                        ]
+                    )
             # Get the updated scalar parameter distributions
             self.reporter.publish_csv(
                 group_name, self.facade.load_all_gen_kw_data(target_name)
