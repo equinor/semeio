@@ -34,7 +34,9 @@ def test_semeio_script_publish(monkeypatch, tmpdir):
             # pylint: disable=unused-argument
             self.reporter.publish(namespace, data)
 
-    my_super_script = MySuperScript(None)
+    ensemble_mock = Mock()
+    ensemble_mock.name = user_case_name
+    my_super_script = MySuperScript(None, None, ensemble_mock)
     my_super_script.run()  # pylint: disable=not-callable
 
     expected_outputfile = os.path.join(
@@ -63,7 +65,9 @@ def test_semeio_script_logging(monkeypatch, tmpdir):
             # pylint: disable=unused-argument
             logging.error(msg)
 
-    my_super_script = MySuperScript(None)
+    ensemble_mock = Mock()
+    ensemble_mock.name = user_case_name
+    my_super_script = MySuperScript(None, None, ensemble_mock)
     my_super_script.run()  # pylint: disable=not-callable
 
     expected_logfile = os.path.join(
@@ -121,7 +125,9 @@ def test_semeio_script_multiple_logging(monkeypatch, messages, tmpdir):
         SEMEIOSCRIPT_LOG_FILE,
     )
 
-    my_super_script = MySuperScript(None)
+    ensemble_mock = Mock()
+    ensemble_mock.name = user_case_name
+    my_super_script = MySuperScript(None, None, ensemble_mock)
     my_super_script.run()  # pylint: disable=not-callable
 
     assert_log(messages, expected_logfile)
@@ -137,7 +143,9 @@ def test_semeio_script_post_logging(monkeypatch, tmpdir):
             # pylint: disable=unused-argument
             logging.error("A message from MySuperScript")
 
-    my_super_script = MySuperScript(None)
+    ensemble_mock = Mock()
+    ensemble_mock.name = user_case_name
+    my_super_script = MySuperScript(None, None, ensemble_mock)
     my_super_script.run()  # pylint: disable=not-callable
 
     logging.error("A second message - not from MySuperScript")
@@ -166,7 +174,9 @@ def test_semeio_script_pre_logging(monkeypatch, tmpdir):
             # pylint: disable=unused-argument
             logging.error("A message from MySuperScript")
 
-    my_super_script = MySuperScript(None)
+    ensemble_mock = Mock()
+    ensemble_mock.name = user_case_name
+    my_super_script = MySuperScript(None, None, ensemble_mock)
 
     logging.error("A message - not from MySuperScript")
 
@@ -199,7 +209,9 @@ def test_semeio_script_concurrent_logging(monkeypatch, tmpdir):
             thread.start()
             thread.join()
 
-    MySuperScript(None).run()  # pylint: disable=not-callable
+    ensemble_mock = Mock()
+    ensemble_mock.name = user_case_name
+    MySuperScript(None, None, ensemble_mock).run()  # pylint: disable=not-callable
 
     expected_logfile = os.path.join(
         "reports",
@@ -226,7 +238,9 @@ def test_semeio_script_post_logging_exception(monkeypatch, tmpdir):
             logging.error("A message from MySuperScript")
             raise AssertionError("Bazinga")
 
-    my_super_script = MySuperScript(None)
+    ensemble_mock = Mock()
+    ensemble_mock.name = user_case_name
+    my_super_script = MySuperScript(None, None, ensemble_mock)
     try:
         my_super_script.run()  # pylint: disable=not-callable
     except AssertionError:
@@ -259,7 +273,9 @@ def test_semeio_script_keyword_args(monkeypatch, tmpdir):
             self.reporter.publish_msg(SEMEIOSCRIPT_LOG_FILE, param_A)
             self.reporter.publish_msg(SEMEIOSCRIPT_LOG_FILE, param_B)
 
-    my_super_script = MySuperScript(None)
+    ensemble_mock = Mock()
+    ensemble_mock.name = user_case_name
+    my_super_script = MySuperScript(None, None, ensemble_mock)
     my_super_script.run(param_B="param_B", param_A="param_A")
 
     expected_outputfile = os.path.join(
@@ -286,7 +302,9 @@ def test_semeio_script_relative_report_dir(monkeypatch, tmpdir):
             self._reports_dir = "a_new_subdir"
             self.reporter.publish_msg(SEMEIOSCRIPT_LOG_FILE, param_A)
 
-    my_super_script = MySuperScript(None)
+    ensemble_mock = Mock()
+    ensemble_mock.name = user_case_name
+    my_super_script = MySuperScript(None, None, ensemble_mock)
     my_super_script.run(param_A="param_A")  # pylint: disable=not-callable
 
     expected_outputfile = os.path.join(
@@ -307,7 +325,9 @@ def test_semeio_script_absolute_report_dir(monkeypatch, tmpdir):
             self._reports_dir = tmpdir
             self.reporter.publish_msg(SEMEIOSCRIPT_LOG_FILE, param_A)
 
-    my_super_script = MySuperScript(None)
+    ensemble_mock = Mock()
+    ensemble_mock.name = user_case_name
+    my_super_script = MySuperScript(None, None, ensemble_mock)
     my_super_script.run(param_A="param_A")  # pylint: disable=not-callable
 
     expected_outputfile = os.path.join(
@@ -328,7 +348,9 @@ def test_semeio_script_subdirs(monkeypatch, tmpdir):
             self._reports_dir = os.path.join(tmpdir, "sub_dir_1", "sub_dir_2")
             self.reporter.publish_msg(SEMEIOSCRIPT_LOG_FILE, param_A)
 
-    my_super_script = MySuperScript(None)
+    ensemble_mock = Mock()
+    ensemble_mock.name = user_case_name
+    my_super_script = MySuperScript(None, None, ensemble_mock)
     my_super_script.run(param_A="param_A")  # pylint: disable=not-callable
 
     expected_outputfile = os.path.join(

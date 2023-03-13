@@ -5,6 +5,7 @@ from unittest.mock import MagicMock
 import numpy as np
 import pytest
 from ert import LibresFacade
+from ert.storage import open_storage
 
 from semeio.workflows.correlated_observations_scaling import cos
 from semeio.workflows.correlated_observations_scaling.cos import (
@@ -25,8 +26,13 @@ def test_main_entry_point_gen_data(snake_oil_facade):
         "CALCULATE_KEYS": {"keys": [{"key": "WPR_DIFF_1"}]},
         "UPDATE_KEYS": {"keys": [{"key": "WPR_DIFF_1", "index": [400, 800]}]},
     }
-
-    snake_oil_facade.run_ertscript(CorrelatedObservationsScalingJob, cos_config)
+    with open_storage(snake_oil_facade.enspath, "w") as storage:
+        snake_oil_facade.run_ertscript(
+            CorrelatedObservationsScalingJob,
+            storage,
+            storage.get_ensemble_by_name("default"),
+            cos_config,
+        )
 
     obs = snake_oil_facade.get_observations()
     obs_vector = obs["WPR_DIFF_1"]
@@ -36,7 +42,13 @@ def test_main_entry_point_gen_data(snake_oil_facade):
 
     cos_config["CALCULATE_KEYS"]["keys"][0].update({"index": [400, 800, 1200]})
 
-    snake_oil_facade.run_ertscript(CorrelatedObservationsScalingJob, cos_config)
+    with open_storage(snake_oil_facade.enspath, "w") as storage:
+        snake_oil_facade.run_ertscript(
+            CorrelatedObservationsScalingJob,
+            storage,
+            storage.get_ensemble_by_name("default"),
+            cos_config,
+        )
     result = get_std_from_obs_vector(obs_vector)
     assert result == [
         np.sqrt(3 / 1),
@@ -95,7 +107,13 @@ def test_main_entry_point_summary_data_calc(snake_oil_facade):
         result.append(node.getStdScaling(index))
     assert result == [1]
 
-    snake_oil_facade.run_ertscript(CorrelatedObservationsScalingJob, cos_config)
+    with open_storage(snake_oil_facade.enspath, "w") as storage:
+        snake_oil_facade.run_ertscript(
+            CorrelatedObservationsScalingJob,
+            storage,
+            storage.get_ensemble_by_name("default"),
+            cos_config,
+        )
 
     for index, node in enumerate(obs_vector):
         assert node.getStdScaling(index) == np.sqrt(2 / 1)
@@ -118,7 +136,13 @@ def test_main_entry_point_summary_data_calc(snake_oil_facade):
 )
 def test_main_entry_point_history_data_calc(snake_oil_facade, config, expected_result):
     obs = snake_oil_facade.get_observations()
-    snake_oil_facade.run_ertscript(CorrelatedObservationsScalingJob, config)
+    with open_storage(snake_oil_facade.enspath, "w") as storage:
+        snake_oil_facade.run_ertscript(
+            CorrelatedObservationsScalingJob,
+            storage,
+            storage.get_ensemble_by_name("default"),
+            config,
+        )
     obs_vector = obs["FOPR"]
     result = []
     for index, node in enumerate(obs_vector):
@@ -134,7 +158,13 @@ def test_main_entry_point_history_data_calc_subset(snake_oil_facade):
     expected_result = [1.0] * 200
     expected_result[10] = np.sqrt(2)
     expected_result[20] = np.sqrt(2)
-    snake_oil_facade.run_ertscript(CorrelatedObservationsScalingJob, config)
+    with open_storage(snake_oil_facade.enspath, "w") as storage:
+        snake_oil_facade.run_ertscript(
+            CorrelatedObservationsScalingJob,
+            storage,
+            storage.get_ensemble_by_name("default"),
+            config,
+        )
 
     result = []
     for index, node in enumerate(obs_vector):
@@ -156,7 +186,13 @@ def test_main_entry_point_sum_data_update(snake_oil_facade, monkeypatch):
     monkeypatch.setattr(
         cos.ObservationScaleFactor, "get_scaling_factor", MagicMock(return_value=1.23)
     )
-    snake_oil_facade.run_ertscript(CorrelatedObservationsScalingJob, cos_config)
+    with open_storage(snake_oil_facade.enspath, "w") as storage:
+        snake_oil_facade.run_ertscript(
+            CorrelatedObservationsScalingJob,
+            storage,
+            storage.get_ensemble_by_name("default"),
+            cos_config,
+        )
 
     for index, node in enumerate(obs_vector):
         assert node.getStdScaling(index) == 1.23
@@ -179,7 +215,13 @@ def test_main_entry_point_shielded_data(monkeypatch):
     monkeypatch.setattr(
         cos.ObservationScaleFactor, "get_scaling_factor", MagicMock(return_value=1.23)
     )
-    ert.run_ertscript(CorrelatedObservationsScalingJob, cos_config)
+    with open_storage(ert.enspath, "w") as storage:
+        ert.run_ertscript(
+            CorrelatedObservationsScalingJob,
+            storage,
+            storage.get_ensemble_by_name("default"),
+            cos_config,
+        )
 
     for index, node in enumerate(obs_vector):
         if index in [1, 2, 3, 4, 5]:
