@@ -5,6 +5,7 @@ import pytest
 import xtgeo
 import yaml
 from ert import LibresFacade
+from ert.storage import open_storage
 from xtgeo.surface.regular_surface import RegularSurface
 
 from semeio.workflows.localisation.local_config_script import LocalisationConfigJob
@@ -49,7 +50,13 @@ def test_localisation(snake_oil_facade, obs_group_add, param_group_add, snapshot
     }
     with open("local_config.yaml", "w", encoding="utf-8") as fout:
         yaml.dump(config, fout)
-    snake_oil_facade.run_ertscript(LocalisationConfigJob, "local_config.yaml")
+        with open_storage(snake_oil_facade.enspath, "w") as storage:
+            snake_oil_facade.run_ertscript(
+                LocalisationConfigJob,
+                storage,
+                storage.get_ensemble_by_name("default"),
+                "local_config.yaml",
+            )
     snapshot.assert_match(
         str(snake_oil_facade.update_configuration.dict()),
         "localisation_configuration",
@@ -92,7 +99,15 @@ def test_localisation_gen_param():
 
     with open("local_config.yaml", "w", encoding="utf-8") as fout:
         yaml.dump(config, fout)
-    ert.run_ertscript(LocalisationConfigJob, "local_config.yaml")
+    with open_storage(ert.enspath, "w") as storage:
+        ert.run_ertscript(
+            LocalisationConfigJob,
+            storage,
+            storage.create_experiment().create_ensemble(
+                name="default", ensemble_size=ert.get_ensemble_size()
+            ),
+            "local_config.yaml",
+        )
 
 
 @pytest.mark.usefixtures("setup_poly_ert")
@@ -157,7 +172,15 @@ def test_localisation_surf():
 
     with open("local_config.yaml", "w", encoding="utf-8") as fout:
         yaml.dump(config, fout)
-    ert.run_ertscript(LocalisationConfigJob, "local_config.yaml")
+    with open_storage(ert.enspath, "w") as storage:
+        ert.run_ertscript(
+            LocalisationConfigJob,
+            storage,
+            storage.create_experiment().create_ensemble(
+                name="default", ensemble_size=ert.get_ensemble_size()
+            ),
+            "local_config.yaml",
+        )
 
 
 # This test and the test test_localisation_field2 are similar,
@@ -259,7 +282,15 @@ def test_localisation_field1():
 
     with open("local_config.yaml", "w", encoding="utf-8") as fout:
         yaml.dump(config, fout)
-    ert.run_ertscript(LocalisationConfigJob, "local_config.yaml")
+    with open_storage(ert.enspath, "w") as storage:
+        ert.run_ertscript(
+            LocalisationConfigJob,
+            storage,
+            storage.create_experiment().create_ensemble(
+                name="default", ensemble_size=ert.get_ensemble_size()
+            ),
+            "local_config.yaml",
+        )
 
 
 def create_box_grid_with_inactive_and_active_cells(
@@ -499,4 +530,12 @@ def test_localisation_field2():
 
     with open("local_config.yaml", "w", encoding="utf-8") as fout:
         yaml.dump(config, fout)
-    ert.run_ertscript(LocalisationConfigJob, "local_config.yaml")
+    with open_storage(ert.enspath, "w") as storage:
+        ert.run_ertscript(
+            LocalisationConfigJob,
+            storage,
+            storage.create_experiment().create_ensemble(
+                name="default", ensemble_size=ert.get_ensemble_size()
+            ),
+            "local_config.yaml",
+        )

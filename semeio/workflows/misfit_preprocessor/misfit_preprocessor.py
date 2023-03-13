@@ -22,7 +22,9 @@ class MisfitPreprocessorJob(SemeioScript):
         config = assemble_config(config_record, observations)
         if config.reports_directory:
             self._reports_dir = config.reports_directory
-        measured_record = _load_measured_record(self.facade, config.observations)
+        measured_record = _load_measured_record(
+            self.facade, self.ensemble, config.observations
+        )
         scaling_configs = misfit_preprocessor.run(
             **{
                 "config": config,
@@ -37,7 +39,9 @@ class MisfitPreprocessorJob(SemeioScript):
 
         try:
             # pylint: disable=not-callable
-            CorrelatedObservationsScalingJob(self.ert()).run(scaling_configs)
+            CorrelatedObservationsScalingJob(
+                self.ert(), self.storage, ensemble=self.ensemble
+            ).run(scaling_configs)
         except EmptyDatasetException:
             pass
 
@@ -56,8 +60,8 @@ def _fetch_config_record(args):
     )
 
 
-def _load_measured_record(facade, obs_keys):
-    measured_data = facade.get_measured_data(obs_keys)
+def _load_measured_record(facade, ensemble, obs_keys):
+    measured_data = facade.get_measured_data(obs_keys, ensemble=ensemble)
     measured_data.remove_failed_realizations()
     measured_data.remove_inactive_observations()
     measured_data.filter_ensemble_mean_obs(facade.get_alpha())

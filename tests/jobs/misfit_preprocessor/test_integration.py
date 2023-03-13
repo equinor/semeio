@@ -2,6 +2,7 @@ from unittest.mock import MagicMock, Mock
 
 import pytest
 import yaml
+from ert.storage import open_storage
 
 import semeio
 from semeio.workflows.correlated_observations_scaling import cos
@@ -35,10 +36,13 @@ def test_misfit_preprocessor_main_entry_point_gen_data(
     config_file = "my_config_file.yaml"
     with open(config_file, "w", encoding="utf-8") as f:
         yaml.dump(config, f)
-
-    snake_oil_facade.run_ertscript(
-        misfit_preprocessor.MisfitPreprocessorJob, config_file
-    )
+    with open_storage(snake_oil_facade.enspath, "r") as storage:
+        snake_oil_facade.run_ertscript(
+            misfit_preprocessor.MisfitPreprocessorJob,
+            storage,
+            storage.get_ensemble_by_name("default"),
+            config_file,
+        )
 
     # call_args represents the clusters, we expect the snake_oil
     # observations to generate this amount of them
@@ -69,10 +73,13 @@ def test_misfit_preprocessor_passing_scaling_parameters(monkeypatch, snake_oil_f
     config_file = "my_config_file.yaml"
     with open(config_file, "w", encoding="utf-8") as f:
         yaml.dump(config, f)
-
-    snake_oil_facade.run_ertscript(
-        misfit_preprocessor.MisfitPreprocessorJob, config_file
-    )
+    with open_storage(snake_oil_facade.enspath, "r") as storage:
+        snake_oil_facade.run_ertscript(
+            misfit_preprocessor.MisfitPreprocessorJob,
+            storage,
+            storage.get_ensemble_by_name("default"),
+            config_file,
+        )
 
     for scaling_config in list(run_mock.call_args)[0][0]:
         assert 0.5 == scaling_config["CALCULATE_KEYS"]["threshold"]
@@ -87,7 +94,12 @@ def test_misfit_preprocessor_main_entry_point_no_config(monkeypatch, snake_oil_f
         "CorrelatedObservationsScalingJob",
         scal_job,
     )
-    snake_oil_facade.run_ertscript(misfit_preprocessor.MisfitPreprocessorJob)
+    with open_storage(snake_oil_facade.enspath, "r") as storage:
+        snake_oil_facade.run_ertscript(
+            misfit_preprocessor.MisfitPreprocessorJob,
+            storage,
+            storage.get_ensemble_by_name("default"),
+        )
 
     assert len(run_mock.call_args[0][0]) > 1
 
@@ -106,9 +118,13 @@ def test_misfit_preprocessor_with_scaling(snake_oil_facade, snapshot):
     with open(config_file, "w", encoding="utf-8") as f:
         yaml.dump(config, f)
 
-    snake_oil_facade.run_ertscript(
-        misfit_preprocessor.MisfitPreprocessorJob, config_file
-    )
+    with open_storage(snake_oil_facade.enspath, "r") as storage:
+        snake_oil_facade.run_ertscript(
+            misfit_preprocessor.MisfitPreprocessorJob,
+            storage,
+            storage.get_ensemble_by_name("default"),
+            config_file,
+        )
 
     # assert that this arbitrarily chosen cluster gets scaled as expected
     snapshot.assert_match(
@@ -145,9 +161,13 @@ def test_misfit_preprocessor_skip_clusters_yielding_empty_data_matrixes(
         yaml.dump(config, f)
 
     try:
-        snake_oil_facade.run_ertscript(
-            misfit_preprocessor.MisfitPreprocessorJob, config_file
-        )
+        with open_storage(snake_oil_facade.enspath, "r") as storage:
+            snake_oil_facade.run_ertscript(
+                misfit_preprocessor.MisfitPreprocessorJob,
+                storage,
+                storage.get_ensemble_by_name("default"),
+                config_file,
+            )
     except EmptyDatasetException:
         pytest.fail("EmptyDatasetException was not handled by misfit preprocessor")
 
@@ -170,9 +190,13 @@ def test_misfit_preprocessor_invalid_config(snake_oil_facade):
         "  - extra fields not permitted (unknown_key)\n"
     )
     with pytest.raises(semeio.workflows.misfit_preprocessor.ValidationError) as err:
-        snake_oil_facade.run_ertscript(
-            misfit_preprocessor.MisfitPreprocessorJob, config_file
-        )
+        with open_storage(snake_oil_facade.enspath, "r") as storage:
+            snake_oil_facade.run_ertscript(
+                misfit_preprocessor.MisfitPreprocessorJob,
+                storage,
+                storage.get_ensemble_by_name("default"),
+                config_file,
+            )
     assert str(err.value) == expected_err_msg
 
 
@@ -181,8 +205,12 @@ def test_misfit_preprocessor_all_obs(snake_oil_facade, monkeypatch):
     monkeypatch.setattr(
         cos.ObservationScaleFactor, "get_scaling_factor", MagicMock(return_value=1.234)
     )
-
-    snake_oil_facade.run_ertscript(misfit_preprocessor.MisfitPreprocessorJob)
+    with open_storage(snake_oil_facade.enspath, "r") as storage:
+        snake_oil_facade.run_ertscript(
+            misfit_preprocessor.MisfitPreprocessorJob,
+            storage,
+            storage.get_ensemble_by_name("default"),
+        )
 
     scaling_factors = []
 

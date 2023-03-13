@@ -22,7 +22,7 @@ class SpearmanCorrelationJob(SemeioScript):
             for nr, _ in enumerate(self.facade.get_observations())
         ]
 
-        measured_data = self.facade.get_measured_data(obs_keys)
+        measured_data = self.facade.get_measured_data(obs_keys, ensemble=self.ensemble)
 
         parser = spearman_job_parser()
         args = parser.parse_args(args)
@@ -34,7 +34,9 @@ class SpearmanCorrelationJob(SemeioScript):
         if not args.dry_run:
             try:
                 # pylint: disable=not-callable
-                CorrelatedObservationsScalingJob(self.ert()).run(scaling_configs)
+                CorrelatedObservationsScalingJob(
+                    self.ert(), self.storage, ensemble=self.ensemble
+                ).run(scaling_configs)
             except EmptyDatasetException:
                 pass
         return self._output_dir

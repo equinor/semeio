@@ -150,6 +150,7 @@ class CorrelatedObservationsScalingJob(SemeioScript):
 
             measured_data = _get_measured_data(
                 self.facade,
+                self.ensemble,
                 config.get_calculation_keys(),
                 config.get_index_lists(),
                 config.get_alpha(),
@@ -164,9 +165,11 @@ class CorrelatedObservationsScalingJob(SemeioScript):
 
 
 def _get_measured_data(
-    facade, observation_keys, observation_index_list, alpha, std_cutoff
-):
-    measured_data = facade.get_measured_data(observation_keys, observation_index_list)
+    facade, ensemble, observation_keys, observation_index_list, alpha, std_cutoff
+):  # pylint: disable=too-many-arguments
+    measured_data = facade.get_measured_data(
+        observation_keys, observation_index_list, ensemble=ensemble
+    )
     measured_data.remove_failed_realizations()
     measured_data.remove_inactive_observations()
     measured_data.filter_ensemble_mean_obs(alpha)

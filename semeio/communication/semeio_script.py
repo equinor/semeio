@@ -55,8 +55,8 @@ class SemeioScript(ErtScript):
     it forwards log statements to the reporter as well.
     """
 
-    def __init__(self, ert):
-        super().__init__(ert)
+    def __init__(self, ert, storage, ensemble=None):
+        super().__init__(ert, storage, ensemble=ensemble)
         self.facade = LibresFacade(ert)
         self._output_dir = self._get_output_dir()
         self._reporter = FileReporter(self._output_dir)
@@ -77,7 +77,10 @@ class SemeioScript(ErtScript):
 
     def _get_output_dir(self):
         base_dir = Path(self.facade.enspath).parent.absolute()
-        sub_dir = str(self.facade.get_current_case_name())
+        try:
+            sub_dir = self.ensemble.name
+        except AttributeError:
+            sub_dir = "default"
         return os.path.join(
             base_dir,
             "reports",
