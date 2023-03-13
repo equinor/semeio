@@ -5,6 +5,7 @@ from pathlib import Path
 import pandas as pd
 import pytest
 from ert import LibresFacade
+from ert.storage import open_storage
 
 from semeio._exceptions.exceptions import ValidationError
 from semeio.workflows.ahm_analysis import ahmanalysis
@@ -12,7 +13,13 @@ from semeio.workflows.ahm_analysis import ahmanalysis
 
 def test_ahmanalysis_run(snake_oil_facade):
     """test data_set with only scalar parameters"""
-    snake_oil_facade.run_ertscript(ahmanalysis.AhmAnalysisJob, prior_name="default")
+    with open_storage(snake_oil_facade.enspath, "w") as storage:
+        snake_oil_facade.run_ertscript(
+            ahmanalysis.AhmAnalysisJob,
+            storage,
+            storage.get_ensemble_by_name("default"),
+            prior_name="default",
+        )
 
     # assert that this returns/generates a KS csv file
     output_dir = Path("storage/snake_oil/reports/snake_oil/default/AhmAnalysisJob")
@@ -56,8 +63,13 @@ def test_ahmanalysis_run(snake_oil_facade):
 
 def test_ahmanalysis_run_field(snake_oil_facade):
     """test data_set with scalar and Field parameters"""
-    snake_oil_facade.run_ertscript(ahmanalysis.AhmAnalysisJob, prior_name="default")
-
+    with open_storage(snake_oil_facade.enspath, "w") as storage:
+        snake_oil_facade.run_ertscript(
+            ahmanalysis.AhmAnalysisJob,
+            storage,
+            storage.get_ensemble_by_name("default"),
+            prior_name="default",
+        )
     # assert that this returns/generates the delta field parameter
     gen_obs_list = snake_oil_facade.get_all_gen_data_observation_keys()
     summary_obs_list = snake_oil_facade.get_all_summary_observation_keys()
@@ -90,6 +102,13 @@ def test_that_dataset_with_no_prior_will_fail(test_data_root):
     os.chdir(os.path.join("test_data"))
     ert = LibresFacade.from_config_file("snake_oil.ert")
     expected_msg = "Empty prior ensemble"
-    ert.select_or_create_new_case("default")
     with pytest.raises(ValidationError, match=expected_msg):
-        ert.run_ertscript(ahmanalysis.AhmAnalysisJob, prior_name="default")
+        with open_storage(ert.enspath, "w") as storage:
+            ert.run_ertscript(
+                ahmanalysis.AhmAnalysisJob,
+                storage,
+                storage.create_experiment().create_ensemble(
+                    name="default", ensemble_size=ert.get_ensemble_size()
+                ),
+                prior_name="default",
+            )

@@ -5,6 +5,7 @@ from unittest.mock import Mock
 
 import pandas as pd
 import pytest
+from ert.storage import open_storage
 from scipy import stats
 
 import semeio.workflows.spearman_correlation_job.spearman_correlation as sc
@@ -21,7 +22,13 @@ def test_main_entry_point_gen_data(monkeypatch, snake_oil_facade):
     monkeypatch.setattr(sc, "CorrelatedObservationsScalingJob", scal_job)
 
     facade = snake_oil_facade
-    output_dir = facade.run_ertscript(sc.SpearmanCorrelationJob, *["-t", "1.0"])
+    with open_storage(facade.enspath, "w") as storage:
+        output_dir = facade.run_ertscript(
+            sc.SpearmanCorrelationJob,
+            storage,
+            storage.get_ensemble_by_name("default"),
+            *["-t", "1.0"],
+        )
 
     # call_args represents the clusters, we expect the snake_oil
     # observations to generate this amount of them
@@ -52,7 +59,13 @@ def test_main_entry_point_gen_data(monkeypatch, snake_oil_facade):
 def test_scaling(snake_oil_facade, snapshot):
     facade = snake_oil_facade
 
-    facade.run_ertscript(sc.SpearmanCorrelationJob, *["-t", "1.0"])
+    with open_storage(facade.enspath, "w") as storage:
+        facade.run_ertscript(
+            sc.SpearmanCorrelationJob,
+            storage,
+            storage.get_ensemble_by_name("default"),
+            *["-t", "1.0"],
+        )
 
     # assert that this arbitrarily chosen cluster gets scaled as expected
     snapshot.assert_match(
@@ -77,7 +90,13 @@ def test_skip_clusters_yielding_empty_data_matrixes(monkeypatch, snake_oil_facad
     facade = snake_oil_facade
 
     try:
-        facade.run_ertscript(sc.SpearmanCorrelationJob, *["-t", "1.0"])
+        with open_storage(facade.enspath, "w") as storage:
+            facade.run_ertscript(
+                sc.SpearmanCorrelationJob,
+                storage,
+                storage.get_ensemble_by_name("default"),
+                *["-t", "1.0"],
+            )
     except EmptyDatasetException:
         pytest.fail("EmptyDatasetException was not handled by SC job")
 
@@ -123,8 +142,9 @@ def test_main_entry_point_syn_data(monkeypatch, facade, measured_data):
     fs_mock = Mock()
     fs_mock.return_value.getCaseName.return_value = "user_case_name"
     ert_mock.getEnkfFsManager.return_value.getCurrentFileSystem = fs_mock
-
-    job = sc.SpearmanCorrelationJob(ert_mock)
+    ensemble_mock = Mock()
+    ensemble_mock.name = "default"
+    job = sc.SpearmanCorrelationJob(ert_mock, Mock(), ensemble_mock)
     job.run(*["-t", "1.0"])
     cor_matrix_file = os.path.join(
         # pylint: disable=protected-access

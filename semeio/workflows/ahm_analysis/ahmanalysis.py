@@ -113,6 +113,7 @@ class AhmAnalysisJob(SemeioScript):
         output_dir=None,
     ):
         # pylint: disable=method-hidden
+        # pylint: disable=too-many-statements
         # (SemeioScript wraps this run method)
 
         # pylint: disable=too-many-locals
@@ -129,15 +130,22 @@ class AhmAnalysisJob(SemeioScript):
         key_map = _group_observations(self.facade, obs_keys, group_by)
 
         prior_name, target_name = check_names(
-            self.facade.get_current_case_name(),
+            self.ensemble.name,
             prior_name,
             target_name,
         )
         # Get the prior scalar parameter distributions
-        prior_data = self.facade.load_all_gen_kw_data(prior_name)
+        prior_data = self.facade.load_all_gen_kw_data(
+            self.storage.get_ensemble_by_name(prior_name)
+        )
         try:
             raise_if_empty(
-                dataframes=[prior_data, self.facade.load_all_misfit_data(prior_name)],
+                dataframes=[
+                    prior_data,
+                    self.facade.load_all_misfit_data(
+                        self.storage.get_ensemble_by_name(prior_name)
+                    ),
+                ],
                 messages=[
                     "Empty prior ensemble",
                     "Empty parameters set for History Matching",
@@ -170,12 +178,19 @@ class AhmAnalysisJob(SemeioScript):
             #  Use localization to evaluate change of parameters for each observation
             with tempfile.TemporaryDirectory() as update_log_path:
                 try:
+                    prior_ensemble = self.storage.get_ensemble_by_name(prior_name)
+                    target_ensemble = self.storage.create_ensemble(
+                        prior_ensemble.experiment_id,
+                        name=target_name,
+                        ensemble_size=prior_ensemble.ensemble_size,
+                        prior_ensemble=prior_ensemble,
+                    )
                     _run_ministep(
                         self.facade,
+                        prior_ensemble,
+                        target_ensemble,
                         obs_group,
                         field_parameters + scalar_parameters,
-                        prior_name,
-                        target_name,
                         update_log_path,
                     )
                     # Get the active vs total observation info
@@ -193,7 +208,7 @@ class AhmAnalysisJob(SemeioScript):
                     )
             # Get the updated scalar parameter distributions
             self.reporter.publish_csv(
-                group_name, self.facade.load_all_gen_kw_data(target_name)
+                group_name, self.facade.load_all_gen_kw_data(target_ensemble)
             )
 
             active_obs.at["ratio", group_name] = (
@@ -206,7 +221,7 @@ class AhmAnalysisJob(SemeioScript):
                 calc_observationsgroup_misfit(
                     group_name,
                     df_update_log,
-                    self.facade.load_all_misfit_data(prior_name),
+                    self.facade.load_all_misfit_data(prior_ensemble),
                 )
             ]
             # Calculate Ks matrix for scalar parameters
@@ -216,11 +231,11 @@ class AhmAnalysisJob(SemeioScript):
                 calc_kolmogorov_smirnov(
                     dkeysf,
                     prior_data,
-                    self.facade.load_all_gen_kw_data(target_name),
+                    self.facade.load_all_gen_kw_data(target_ensemble),
                 )
             )
             field_output[group_name] = _get_field_params(
-                self.facade, field_parameters, target_name
+                self.facade, field_parameters, target_ensemble
             )
         kolmogorov_smirnov_data.set_index("Parameters", inplace=True)
 
@@ -229,7 +244,7 @@ class AhmAnalysisJob(SemeioScript):
             # Get grid characteristics to be able to plot field avg maps
             grid_xyzcenter = load_grid_to_dataframe(self.facade.grid_file)
             all_input_prior = _get_field_params(
-                self.facade, field_parameters, prior_name
+                self.facade, field_parameters, prior_ensemble
             )
 
             for fieldparam in field_parameters:
@@ -285,7 +300,7 @@ class AhmAnalysisJob(SemeioScript):
 
 
 def _run_ministep(
-    facade, obs_group, data_parameters, prior_name, target_name, output_path
+    facade, prior_storage, target_storage, obs_group, data_parameters, output_path
 ):
     # pylint: disable=too-many-arguments
     update_step = {
@@ -294,16 +309,13 @@ def _run_ministep(
         "parameters": data_parameters,
     }
     facade.update_configuration = [update_step]
-
-    # Perform update analysis
     facade.set_log_path(output_path)
-    prior_storage = facade.select_or_create_new_case(prior_name)
-    target_storage = facade.select_or_create_new_case(target_name)
+    # Perform update analysis
 
-    facade.smoother_update(prior_storage, target_storage, target_name)
+    facade.smoother_update(prior_storage, target_storage, target_storage.name)
 
 
-def _get_field_params(facade, field_parameters, target_name):
+def _get_field_params(facade, field_parameters, target_ensemble):
     """
     Because the FIELD parameters are not exposed in the Python API we have to
     export them to file and read them back again. When they are exposed in the API
@@ -313,7 +325,7 @@ def _get_field_params(facade, field_parameters, target_name):
     with tempfile.TemporaryDirectory() as fout:
         for field_param in field_parameters:
             file_path = os.path.join(fout, "%d_" + field_param)
-            facade.export_field_parameter(field_param, target_name, file_path)
+            facade.export_field_parameter(field_param, target_ensemble, file_path)
             fnames = glob.glob(os.path.join(fout, "*" + field_param + "*"))
             field_data[field_param] = _import_field_param(
                 facade.grid_file, field_param, fnames
