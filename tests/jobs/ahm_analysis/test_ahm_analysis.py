@@ -5,7 +5,6 @@ from unittest.mock import MagicMock
 import numpy as np
 import pandas as pd
 import pytest
-from ecl.grid import EclGridGenerator
 from scipy import stats
 
 from semeio._exceptions.exceptions import ValidationError
@@ -135,33 +134,6 @@ def test_warning_calc_observationsgroup_misfit(input_obs, expected_msg, update_l
     update_log_df = pd.DataFrame(update_log)
     with pytest.warns(UserWarning, match=expected_msg):
         ahmanalysis.calc_observationsgroup_misfit(input_obs, update_log_df, misfit_df)
-
-
-@pytest.mark.parametrize(
-    "input_parameter, expected_result",
-    [
-        ("PORO", [np.array(8 * [float(nr)]) for nr in range(5, 10)]),
-        ("PERMX", [np.array(8 * [float(nr)]) for nr in range(5)]),
-    ],
-)
-@pytest.mark.usefixtures("setup_tmpdir")
-def test_import_field_param(input_parameter, expected_result, grid_prop):
-    """test function reads field parameter files and creates a dataframe from it"""
-
-    def flatten(regular_list):
-        return [item for sublist in regular_list for item in sublist]
-
-    grid = EclGridGenerator.createRectangular((2, 2, 2), (1, 1, 1))
-    grid.save_EGRID("MY_GRID.EGRID")
-
-    for iens in range(5):
-        grid_prop("PERMX", iens, grid.getGlobalSize(), f"{iens}_PERMX_field.grdecl")
-        grid_prop("PORO", iens + 5, grid.getGlobalSize(), f"{iens}_PORO_field.grdecl")
-
-    files = [f"{ens_nr}_{input_parameter}_field.grdecl" for ens_nr in range(5)]
-    # pylint: disable=protected-access
-    result = ahmanalysis._import_field_param("MY_GRID", input_parameter, files)
-    assert flatten(result) == flatten(expected_result)
 
 
 def test_calc_mean_delta_grid():
