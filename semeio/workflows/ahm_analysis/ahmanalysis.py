@@ -1,5 +1,4 @@
 import collections
-import glob
 import itertools
 import os
 import tempfile
@@ -14,7 +13,6 @@ from ert.shared.plugins.plugin_manager import hook_implementation
 from scipy.stats import ks_2samp
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
-from xtgeo.grid3d import GridProperty
 
 from semeio._exceptions.exceptions import ValidationError
 from semeio.communication import SemeioScript
@@ -322,27 +320,11 @@ def _get_field_params(facade, field_parameters, target_ensemble):
     this function should be updated.
     """
     field_data = {}
-    with tempfile.TemporaryDirectory() as fout:
-        for field_param in field_parameters:
-            file_path = os.path.join(fout, "%d_" + field_param)
-            facade.export_field_parameter(field_param, target_ensemble, file_path)
-            fnames = glob.glob(os.path.join(fout, "*" + field_param + "*"))
-            field_data[field_param] = _import_field_param(
-                facade.grid_file, field_param, fnames
-            )
+    for field_param in field_parameters:
+        field_data[field_param] = target_ensemble.load_field(
+            field_param, list(range(facade.get_ensemble_size()))
+        ).T
     return field_data
-
-
-def _import_field_param(input_grid, param_name, files):
-    grid_param = xtgeo.grid_from_file(
-        input_grid.rsplit(".", 1)[0], fformat="eclipserun"
-    )
-    all_input = []
-    for file_path in files:
-        proproff = GridProperty(file_path, name=param_name, grid=grid_param)
-        array_nb = proproff.get_npvalues1d(activeonly=False, fill_value=0, order="C")
-        all_input.append(array_nb)
-    return all_input
 
 
 def make_update_log_df(update_log_dir):
