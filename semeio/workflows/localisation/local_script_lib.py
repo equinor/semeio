@@ -101,7 +101,7 @@ def get_param_from_ert(ens_config):
     for key in keylist:
         node = ens_config.getNode(key)
         impl_type = node.getImplementationType()
-        if node.getVariableType() == EnkfVarType.PARAMETER:
+        if ens_config.get_var_type(key) == EnkfVarType.PARAMETER:
             my_param = Parameter(key, impl_type)
             new_params.append(my_param)
             if impl_type == ErtImplType.GEN_KW:
