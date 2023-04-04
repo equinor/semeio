@@ -567,20 +567,19 @@ def write_design_xlsx(
         defaultssheetname (str): sheet-name in xlsx file. Defaulted if not provided
     """
     # pylint: disable=abstract-class-instantiated
-    writer = pd.ExcelWriter(filename)
-    if designdf is not None:
-        designdf.to_excel(writer, sheet_name=designsheetname, index=False)
-    else:
-        # Write empty sheet.
-        pd.DataFrame().to_excel(writer, sheet_name=designsheetname, index=False)
+    with pd.ExcelWriter(filename) as writer:
+        if designdf is not None:
+            designdf.to_excel(writer, sheet_name=designsheetname, index=False)
+        else:
+            # Write empty sheet.
+            pd.DataFrame().to_excel(writer, sheet_name=designsheetname, index=False)
 
-    if defaultsdf is not None:
-        defaultsdf.to_excel(
-            writer, sheet_name=defaultssheetname, index=False, header=None
-        )
-    else:
-        # Write empty sheet.
-        pd.DataFrame().to_excel(
-            writer, sheet_name=defaultssheetname, index=False, header=None
-        )
-    writer.save()
+        if defaultsdf is not None:
+            defaultsdf.to_excel(
+                writer, sheet_name=defaultssheetname, index=False, header=None
+            )
+        else:
+            # Write empty sheet.
+            pd.DataFrame().to_excel(
+                writer, sheet_name=defaultssheetname, index=False, header=None
+            )
