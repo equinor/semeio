@@ -215,6 +215,8 @@ def _validate_design_matrix_header(design_matrix):
     Validate header in user inputted design matrix
     :raises: ValueError if design matrix contains empty headers
     """
+    if design_matrix.empty:
+        return
     try:
         unnamed = design_matrix.loc[:, design_matrix.columns.str.contains("^Unnamed")]
     except ValueError as err:
