@@ -161,9 +161,7 @@ def test_three_column_defaults(tmpdir):
 
 
 @pytest.mark.filterwarnings("ignore::DeprecationWarning")
-@pytest.mark.parametrize(
-    "ext, engine", [("ods", "odf"), ("xls", "xlwt"), ("xlsx", None)]
-)
+@pytest.mark.parametrize("ext, engine", [("ods", "odf"), ("xlsx", None)])
 def test_support_multiple_formats(tmp_path, ext, engine):
     fname = tmp_path / ("test." + ext)
     df = pd.DataFrame({"col1": [1, 2, 3], "col2": [4, 5, 6]})
