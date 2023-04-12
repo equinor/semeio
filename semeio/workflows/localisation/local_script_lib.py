@@ -13,7 +13,8 @@ from ecl.ecl_type import EclDataType
 from ecl.eclfile import Ecl3DKW
 from ecl.grid.ecl_grid import EclGrid
 from ecl.util.geometry import Surface
-from ert._c_wrappers.enkf.enums.enkf_var_type_enum import EnkfVarType
+from ert._c_wrappers.enkf.config.field_config import Field
+from ert._c_wrappers.enkf.config.surface_config import SurfaceConfig
 from ert._c_wrappers.enkf.enums.ert_impl_type_enum import ErtImplType
 from ert._c_wrappers.enkf.row_scaling import RowScaling
 from numpy import ma
@@ -92,46 +93,15 @@ class Parameters:
 
 def get_param_from_ert(ens_config):
     new_params = Parameters()
-    keylist = ens_config.alloc_keylist()
-    implementation_type_not_scalar = [
-        ErtImplType.GEN_DATA,
-        ErtImplType.FIELD,
-        ErtImplType.SURFACE,
-    ]
-    for key in keylist:
+    for key in ens_config.parameters:
         node = ens_config.getNode(key)
         impl_type = node.getImplementationType()
-        if ens_config.get_var_type(key) == EnkfVarType.PARAMETER:
-            my_param = Parameter(key, impl_type)
-            new_params.append(my_param)
-            if impl_type == ErtImplType.GEN_KW:
-                # Node contains scalar parameters defined by GEN_KW
-                kw_config_model = node.getKeywordModelConfig()
-                my_param.parameters = kw_config_model.getKeyWords().strings
-            elif impl_type in implementation_type_not_scalar:
-                # Node contains parameter from FIELD, SURFACE or GEN_PARAM
-                # The parameters_for_node dict contains empty list for FIELD
-                # and SURFACE.
-                # The number of variables for a FIELD parameter is
-                # defined by the grid in the GRID keyword.
-                # The number of variables for a SURFACE parameter is
-                # defined by the size of a surface object.
-                # For GEN_PARAM the list contains the number of variables.
-                # parameters_for_node[key] = []
-                if impl_type == ErtImplType.GEN_DATA:
-                    gen_data_config = node.getDataModelConfig()
-                    data_size = gen_data_config.get_initial_size()
-                    if data_size <= 0:
-                        # Cannot here know if it will be used or not.
-                        logging.warning(
-                            "\nThe ERT config has defined parameter nodes of type\n"
-                            "GEN_PARAM. If this is used in localisation, \n"
-                            "the localisation workflow must be run AFTER initial \n"
-                            "ensemble is created, but BEFORE first update is run.\n\n"
-                        )
-
-                    my_param.parameters = [str(item) for item in range(data_size)]
-
+        my_param = Parameter(key, impl_type)
+        new_params.append(my_param)
+        if impl_type == ErtImplType.GEN_KW:
+            # Node contains scalar parameters defined by GEN_KW
+            kw_config_model = node.getKeywordModelConfig()
+            my_param.parameters = kw_config_model.getKeyWords().strings
     return new_params
 
 
@@ -609,7 +579,7 @@ def add_ministeps(
                     user_config.log_level,
                 )
                 update_step["parameters"].append([node_name, index_list])
-            elif impl_type == ErtImplType.FIELD:
+            elif isinstance(node, Field):
                 assert grid_for_field is not None
                 _decay_methods_group1 = ["gaussian_decay", "exponential_decay"]
                 _decay_methods_group2 = [
@@ -624,11 +594,8 @@ def add_ministeps(
                         LogLevel.LEVEL3,
                         user_config.log_level,
                     )
-                    field_config = node.getFieldModelConfig()
                     row_scaling = RowScaling()
                     data_size = grid_for_field.get_num_active()
-                    data_size2 = field_config.get_data_size()
-                    assert data_size == data_size2
                     param_for_field = None
                     if corr_spec.field_scale.method in _decay_methods_all:
                         ref_pos = corr_spec.field_scale.ref_point
@@ -724,7 +691,7 @@ def add_ministeps(
                         LogLevel.LEVEL3,
                         user_config.log_level,
                     )
-            elif impl_type == ErtImplType.SURFACE:
+            elif isinstance(node, SurfaceConfig):
                 _decay_methods_surf_group1 = ["gaussian_decay", "exponential_decay"]
                 _decay_methods_surf_group2 = [
                     "const_gaussian_decay",
