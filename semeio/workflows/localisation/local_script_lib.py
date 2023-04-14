@@ -14,6 +14,7 @@ from ecl.eclfile import Ecl3DKW
 from ecl.grid.ecl_grid import EclGrid
 from ecl.util.geometry import Surface
 from ert._c_wrappers.enkf.config.field_config import Field
+from ert._c_wrappers.enkf.config.gen_kw_config import GenKwConfig
 from ert._c_wrappers.enkf.config.surface_config import SurfaceConfig
 from ert._c_wrappers.enkf.enums.ert_impl_type_enum import ErtImplType
 from ert._c_wrappers.enkf.row_scaling import RowScaling
@@ -98,10 +99,8 @@ def get_param_from_ert(ens_config):
         impl_type = node.getImplementationType()
         my_param = Parameter(key, impl_type)
         new_params.append(my_param)
-        if impl_type == ErtImplType.GEN_KW:
-            # Node contains scalar parameters defined by GEN_KW
-            kw_config_model = node.getKeywordModelConfig()
-            my_param.parameters = kw_config_model.getKeyWords().strings
+        if isinstance(node, GenKwConfig):
+            my_param.parameters = node.getKeyWords()
     return new_params
 
 
@@ -571,7 +570,7 @@ def add_ministeps(
                 LogLevel.LEVEL2,
                 user_config.log_level,
             )
-            if impl_type == ErtImplType.GEN_KW:
+            if isinstance(node, GenKwConfig):
                 index_list = activate_gen_kw_param(
                     node_name,
                     param_list,
