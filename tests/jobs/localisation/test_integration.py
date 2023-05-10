@@ -63,53 +63,6 @@ def test_localisation(snake_oil_facade, obs_group_add, param_group_add, snapshot
     )
 
 
-# This test does not work properly since it is run before initial ensemble is
-# created and in that case the number of parameters attached to a GEN_PARAM node
-# is 0.
-@pytest.mark.usefixtures("setup_poly_ert")
-def test_localisation_gen_param():
-    with open("poly.ert", "a", encoding="utf-8") as fout:
-        fout.write(
-            "GEN_PARAM PARAMS_A parameter_file_A INPUT_FORMAT:ASCII "
-            "OUTPUT_FORMAT:ASCII INIT_FILES:initial_param_file_A_%d"
-        )
-    nreal = 5
-    nparam = 10
-    for n in range(nreal):
-        filename = "initial_param_file_A_" + str(n)
-        with open(filename, "w", encoding="utf-8") as fout:
-            for i in range(nparam):
-                fout.write(f"{i}\n")
-
-    ert = LibresFacade.from_config_file("poly.ert")
-    config = {
-        "log_level": 2,
-        "correlations": [
-            {
-                "name": "CORR1",
-                "obs_group": {
-                    "add": "*",
-                },
-                "param_group": {
-                    "add": "*",
-                },
-            },
-        ],
-    }
-
-    with open("local_config.yaml", "w", encoding="utf-8") as fout:
-        yaml.dump(config, fout)
-    with open_storage(ert.enspath, "w") as storage:
-        ert.run_ertscript(
-            LocalisationConfigJob,
-            storage,
-            storage.create_experiment().create_ensemble(
-                name="default", ensemble_size=ert.get_ensemble_size()
-            ),
-            "local_config.yaml",
-        )
-
-
 @pytest.mark.usefixtures("setup_poly_ert")
 def test_localisation_surf():
     # pylint: disable=too-many-locals

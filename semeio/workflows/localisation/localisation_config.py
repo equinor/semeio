@@ -109,8 +109,6 @@ class ParamConfig(ObsConfig):
 
     For nodes with parameters defined by the ERT keyword GEN_KW, the
     parameter name is specified on the format: <NODENAME>:<PARAMETER_NAME>
-    For nodes with parameters defined by the ERT keyword GEN_PARAM, the
-    parameter name is specified on the format: <NODENAME>:<index>.
     For nodes with parameters defined by the ERT keyword SURFACE and FIELD,
     the parameters belonging to a surface node is specified by: <NODENAME>
 
@@ -122,9 +120,7 @@ class ParamConfig(ObsConfig):
     (This includes all model parameters from node GEO_PARAM except parameter A,
       all field parameter nodes starting with node name FIELD_PARAM except
       FIELD_PARAM_GRF1,
-      all surface parameter nodes starting with node name SURF_PARAM_,
-      all parameters for node name GENERAL of type GEN_PARAM
-      except parameters with indices 2 and 3.)
+      all surface parameter nodes starting with node name SURF_PARAM_)
     """
 
 
@@ -239,8 +235,8 @@ class ScalingForSegmentsConfig(BaseModel):
 class CorrelationConfig(BaseModel):
     """
     The keyword 'correlations' specify a set of observations and model parameters
-    to have active correlations. For scalar parameters coming from ERT keyword GEN_KW
-    and GEN_PARAM , the correlations estimated by ERT will not be reduced,
+    to have active correlations. For scalar parameters coming from ERT keyword GEN_KW,
+    the correlations estimated by ERT will not be reduced,
     and the scaling factor is 1.
 
     For model parameter nodes of type FIELD or SURFACE, additional
