@@ -77,5 +77,5 @@ def test_nosim(nosim_command, data_input, data_expected):
         subprocess.check_call(
             ["ert", "test_run", "nosim.ert", "--verbose"],
         )
-    with open("nosim/real_0/iter_0/TEST.DATA", encoding="utf-8") as fh:
+    with open("nosim/realization-0/iter-0/TEST.DATA", encoding="utf-8") as fh:
         assert fh.read() == data_expected
