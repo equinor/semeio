@@ -304,7 +304,7 @@ def define_look_up_index(user_defined_active_region_list, max_region_number):
     corresponding to the region number.
     """
     active_segment_array = np.array(user_defined_active_region_list)
-    index_per_used_region = ma.zeros((max_region_number + 1), dtype=np.uint16)
+    index_per_used_region = ma.zeros((max_region_number + 1), dtype=np.int32)
     index_values = np.arange(len(active_segment_array))
     index_per_used_region[active_segment_array[index_values]] = index_values
     return index_per_used_region
@@ -508,9 +508,8 @@ def read_region_files_for_all_correlation_groups(user_config, grid):
                             strict=True,
                             ecl_type=EclDataType.ECL_INT,
                         )
-                    # Ensure the region_parameter is a numpy 1D array of uint16
-                    region_parameter = np.zeros(nx * ny * nz, dtype=np.uint16)
-                    not_active = np.zeros(nx * ny * nz, dtype=np.uint16)
+                    region_parameter = np.zeros(nx * ny * nz, dtype=np.int32)
+                    not_active = np.zeros(nx * ny * nz, dtype=np.int32)
                     for k, j, i in itertools.product(range(nz), range(ny), range(nx)):
                         index = i + j * nx + k * nx * ny
                         v = region_parameter_read[i, j, k]
