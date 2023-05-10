@@ -334,8 +334,7 @@ def create_box_grid_with_inactive_and_active_cells(
         for i in range(5):
             fout.write(f" {x[i]}  {y[i]}  {zinc}\n")
 
-    polygon = xtgeo.xyz.Polygons()
-    polygon.from_file("polygon.txt", fformat="xyz")
+    polygon = xtgeo.polygons_from_file("polygon.txt", fformat="xyz")
     if has_inactive_values:
         grid.inactivate_outside(polygon, force_close=True)
 
