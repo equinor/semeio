@@ -59,7 +59,7 @@ The following features are implemented:
    groups.
  - Wildcard notation can be used to specify a selection of model parameter groups
    and observation groups.
- - For scalar parameters coming from the ERT keywords GEN_KW and GEN_PARAM,
+ - For scalar parameters coming from the ERT keyword GEN_KW
    the correlation with observations can be specified to be active or inactive.
  - For field parameters coming from the ERT keywords FIELD and SURFACE,
    it is also possible to specify that the correlation between observations and
@@ -83,12 +83,7 @@ To setup localisation:
    but before the first update by using the HOOK_WORKFLOW keyword
    with the option PRE_FIRST_UPDATE.
  - To QC the specification of the config file for localisation, it is possible to
-   run the workflow before running initial ensemble also, but due to limitations
-   in ERT implementation, GEN_PARAM type of parameter nodes will have empty
-   list of parameters if the workflow is run before initialization. If  GEN_PARAM
-   nodes are used in correlation groups, an error message will appear if the
-   initial ensemble does not exist.
-
+   run the workflow before running initial ensemble also.
 """
 
 EXAMPLES = """
@@ -283,11 +278,6 @@ Keywords
       For instance if the ``GEN_KW`` ERT keyword is used, the ERT identifier is
       the node name while the parameter names used in the distribution file, contains
       names of the parameters for that node.
-
-      For ERT node of type ``GEN_PARAM`` the parameter names are only referred to
-      by indices and not names. So in this case the parameter index is specified instead
-      such that a parameter in a GEN_PARAM node is referred to
-      by *node_name:index*.
 
       For ERT nodes defined by the ERT keywords  ``FIELD`` or ``SURFACE``,
       only the nodename is specified like ``aps_Valysar_grf1``.
