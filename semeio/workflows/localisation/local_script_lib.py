@@ -157,26 +157,6 @@ def activate_gen_kw_param(
     return index_list
 
 
-def activate_gen_param(node_name, param_list, data_size, log_level=LogLevel.OFF):
-    """
-    Activate the selected parameters for the specified node.
-    The param_list contains a list of names that are integer numbers
-    for the parameter indices to be activated for parameters belonging
-    to the specified GEN_PARAM node.
-    """
-    index_list = []
-    for param_name in param_list:
-        index = int(param_name)
-        if index < 0 or index >= data_size:
-            raise ValueError(
-                f"Index for parameter in node {node_name} is "
-                f"outside the interval [0,{data_size-1}]"
-            )
-        debug_print(f"Active parameter index: {index}", LogLevel.LEVEL3, log_level)
-        index_list.append(index)
-    return index_list
-
-
 def apply_decay(
     method,
     row_scaling,
@@ -674,21 +654,12 @@ def add_ministeps(
             elif impl_type == ErtImplType.GEN_DATA:
                 gen_data_config = node.getDataModelConfig()
                 data_size = gen_data_config.get_initial_size()
-                if data_size > 0:
-                    index_list = activate_gen_param(
-                        node_name,
-                        param_list,
-                        data_size,
-                        user_config.log_level,
-                    )
-                    update_step["parameters"].append([node_name, index_list])
-                else:
-                    debug_print(
-                        f"Parameter {node_name} has data size: {data_size} "
-                        f"in {ministep_name}",
-                        LogLevel.LEVEL3,
-                        user_config.log_level,
-                    )
+                debug_print(
+                    f"Parameter {node_name} has data size: {data_size} "
+                    f"in {ministep_name}",
+                    LogLevel.LEVEL3,
+                    user_config.log_level,
+                )
             elif isinstance(node, SurfaceConfig):
                 _decay_methods_surf_group1 = ["gaussian_decay", "exponential_decay"]
                 _decay_methods_surf_group2 = [
