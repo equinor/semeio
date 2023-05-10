@@ -358,10 +358,10 @@ def create_region_parameter(filename, grid):
     region_param = xtgeo.GridProperty(
         grid, name=region_param_name, discrete=True, values=1
     )
-    region_param.dtype = np.uint16
+    region_param.dtype = np.int32
     region_param.codes = region_code_names
     (nx, ny, nz) = grid.dimensions
-    values = np.zeros((nx, ny, nz), dtype=np.uint16)
+    values = np.zeros((nx, ny, nz), dtype=np.int32)
     values[:, :, :] = 0
     for k, j, i in itertools.product(range(nz), range(ny), range(nx)):
         if 0 <= i <= nx / 2 and 0 <= j <= ny / 2:
