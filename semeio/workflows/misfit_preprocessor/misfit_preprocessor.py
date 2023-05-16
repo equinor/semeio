@@ -18,7 +18,7 @@ class MisfitPreprocessorJob(SemeioScript):
     # pylint: disable=method-hidden
     def run(self, *args):
         config_record = _fetch_config_record(args)
-        observations = _get_observations(self.facade)
+        observations = [o.getKey() for o in self.facade.get_observations()]
         config = assemble_config(config_record, observations)
         if config.reports_directory:
             self._reports_dir = config.reports_directory
@@ -67,12 +67,6 @@ def _load_measured_record(facade, ensemble, obs_keys):
     measured_data.filter_ensemble_mean_obs(facade.get_alpha())
     measured_data.filter_ensemble_std(facade.get_std_cutoff())
     return measured_data
-
-
-def _get_observations(facade):
-    return [
-        facade.get_observation_key(nr) for nr, _ in enumerate(facade.get_observations())
-    ]
 
 
 def _get_example(config_example):

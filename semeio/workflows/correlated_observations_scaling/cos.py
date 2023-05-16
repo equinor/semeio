@@ -140,7 +140,7 @@ class CorrelatedObservationsScalingJob(SemeioScript):
         user_config = _insert_default_group(user_config)
 
         obs = self.facade.get_observations()
-        obs_keys = [self.facade.get_observation_key(nr) for nr, _ in enumerate(obs)]
+        obs_keys = [o.getKey() for o in obs]
         default_values = _get_default_values(
             self.facade.get_alpha(), self.facade.get_std_cutoff()
         )
