@@ -1,25 +1,18 @@
 #!/usr/bin/env python
-# pylint: disable=consider-using-f-string, redefined-outer-name
 from ecl.summary import EclSum
 
 
-def writeDiff(filename, ecl_sum, key1, key2):
-    with open(filename, "w", encoding="utf-8") as f:
-        for v1, v2 in zip(ecl_sum.numpy_vector(key1), ecl_sum.numpy_vector(key2)):
-            diff = v1 - v2
-            f.write("%f\n" % diff)
+def write_diff(filename, ecl_sum, key1, key2):
+    with open(filename, "w", encoding="utf-8") as file:
+        for vec_1, vec_2 in zip(ecl_sum.numpy_vector(key1), ecl_sum.numpy_vector(key2)):
+            diff = vec_1 - vec_2
+            file.write(f"{diff:f}\n")
 
 
 if __name__ == "__main__":
-    ecl_sum = EclSum("SNAKE_OIL_FIELD")
+    ECL_SUM = EclSum("SNAKE_OIL_FIELD")
+    REPORT_STEP = 199
 
-    report_step = 199
-    writeDiff(
-        "snake_oil_opr_diff_%d.txt" % report_step, ecl_sum, "WOPR:OP1", "WOPR:OP2"
-    )
-    writeDiff(
-        "snake_oil_wpr_diff_%d.txt" % report_step, ecl_sum, "WWPR:OP1", "WWPR:OP2"
-    )
-    writeDiff(
-        "snake_oil_gpr_diff_%d.txt" % report_step, ecl_sum, "WGPR:OP1", "WGPR:OP2"
-    )
+    write_diff(f"snake_oil_opr_diff_{REPORT_STEP}.txt", ECL_SUM, "WOPR:OP1", "WOPR:OP2")
+    write_diff(f"snake_oil_wpr_diff_{REPORT_STEP}.txt", ECL_SUM, "WWPR:OP1", "WWPR:OP2")
+    write_diff(f"snake_oil_gpr_diff_{REPORT_STEP}.txt", ECL_SUM, "WGPR:OP1", "WGPR:OP2")

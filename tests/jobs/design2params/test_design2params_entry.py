@@ -76,7 +76,7 @@ def test_argparse_with_optionals():
     assert res.log_level == logging.getLevelName(_LOG_LEVEL)
 
 
-def test_argparse_XLS_file_not_exists(monkeypatch):
+def test_argparse_xls_file_not_exists(monkeypatch):
     monkeypatch.setattr(sys, "argv", ["path", str(_REALIZATION), "not_a_file", _SHEET])
     with pytest.raises(SystemExit):
         design2params.main_entry_point()

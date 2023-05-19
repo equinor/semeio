@@ -164,15 +164,15 @@ def test_three_column_defaults(tmpdir):
 @pytest.mark.parametrize("ext, engine", [("ods", "odf"), ("xlsx", None)])
 def test_support_multiple_formats(tmp_path, ext, engine):
     fname = tmp_path / ("test." + ext)
-    df = pd.DataFrame({"col1": [1, 2, 3], "col2": [4, 5, 6]})
-    df.to_excel(fname, sheet_name="TEST", index=False, engine=engine)
+    dframe = pd.DataFrame({"col1": [1, 2, 3], "col2": [4, 5, 6]})
+    dframe.to_excel(fname, sheet_name="TEST", index=False, engine=engine)
     loaded_df = design2params._read_excel(
         fname,
         sheet_name="TEST",
     )
     loaded_df["col1"] = pd.to_numeric(loaded_df["col1"])
     loaded_df["col2"] = pd.to_numeric(loaded_df["col2"])
-    pd.testing.assert_frame_equal(df, loaded_df, check_dtype=False)
+    pd.testing.assert_frame_equal(dframe, loaded_df, check_dtype=False)
 
 
 @pytest.mark.usefixtures("input_data")

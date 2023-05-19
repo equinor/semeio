@@ -11,8 +11,8 @@ def fcluster_analysis(
     metric="euclidean",
 ):
     # pylint: disable=too-many-arguments
-    a = linkage(correlation_matrix, method, metric)
-    return fcluster(a, threshold, criterion=criterion, depth=depth)
+    linkage_matrix = linkage(correlation_matrix, method, metric)
+    return fcluster(linkage_matrix, threshold, criterion=criterion, depth=depth)
 
 
 def kmeans_analysis(

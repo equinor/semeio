@@ -45,8 +45,8 @@ def test_valid_config(tmpdir, velocity_model, horizon, vintages_export_file):
     if vintages_export_file:
         conf.update({"vintages_export_file": vintages_export_file})
     with tmpdir.as_cwd():
-        with open("ots_config.yml", "w", encoding="utf-8") as f:
-            yaml.dump(conf, f, default_flow_style=False)
+        with open("ots_config.yml", "w", encoding="utf-8") as file:
+            yaml.dump(conf, file, default_flow_style=False)
         ots_load_params("ots_config.yml")
 
 
@@ -79,8 +79,8 @@ def test_eclbase_config(tmpdir, extension, error_msg):
         },
     }
     with tmpdir.as_cwd():
-        with open("ots_config.yml", "w", encoding="utf-8") as f:
-            yaml.dump(conf, f, default_flow_style=False)
+        with open("ots_config.yml", "w", encoding="utf-8") as file:
+            yaml.dump(conf, file, default_flow_style=False)
         # Renaming a needed ecl file to simulate it not existing
         Path(f"NORNE_ATW2013.{extension}").rename("NOT_ECLBASE")
         with pytest.raises(ConfigurationError, match=error_msg):
@@ -124,8 +124,8 @@ def test_valid_file_format(tmpdir, file_format):
     }
     conf.update({"file_format": file_format})
     with tmpdir.as_cwd():
-        with open("ots_config.yml", "w", encoding="utf-8") as f:
-            yaml.dump(conf, f, default_flow_style=False)
+        with open("ots_config.yml", "w", encoding="utf-8") as file:
+            yaml.dump(conf, file, default_flow_style=False)
         ots_load_params("ots_config.yml")
 
 
@@ -148,7 +148,7 @@ def test_invalid_file_format(tmpdir):
     }
     conf.update({"file_format": "not a file format"})
     with tmpdir.as_cwd():
-        with open("ots_config.yml", "w", encoding="utf-8") as f:
-            yaml.dump(conf, f, default_flow_style=False)
+        with open("ots_config.yml", "w", encoding="utf-8") as file:
+            yaml.dump(conf, file, default_flow_style=False)
         with pytest.raises(ConfigurationError, match="valid file type is false"):
             ots_load_params("ots_config.yml")

@@ -67,8 +67,8 @@ def test_forward_model_error_propagation(forward_model, configuration, expected_
     captured in a specific stderr file.
     """
     config = DEFAULT_CONFIG.format(forward_model, configuration)
-    with open("config.ert", "w", encoding="utf-8") as fh:
-        fh.write(config)
+    with open("config.ert", "w", encoding="utf-8") as file:
+        file.write(config)
 
     with pytest.raises(
         subprocess.CalledProcessError,

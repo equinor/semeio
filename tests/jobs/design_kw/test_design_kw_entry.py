@@ -24,7 +24,7 @@ def input_data(tmpdir):
 _TEMPLATEFILE = "template.yml.tmpl"
 _TEMPLATEFILE_UNMATCHED = "template_unmatched.yml.tmpl"
 _RESULTFILE = "result.txt"
-_log_level = "DEBUG"
+_LOG_LEVEL = "DEBUG"
 _DEFAULT_LOG_LEVEL = "WARNING"
 
 
@@ -42,13 +42,13 @@ def test_argparse():
 
 @pytest.mark.usefixtures("input_data")
 def test_argparse_with_logging():
-    args = [_TEMPLATEFILE, _RESULTFILE, "--log-level", _log_level]
+    args = [_TEMPLATEFILE, _RESULTFILE, "--log-level", _LOG_LEVEL]
     parser = design_kw.create_parser()
     res = parser.parse_args(args)
     assert res
     assert res.templatefile == _TEMPLATEFILE
     assert res.resultfile == _RESULTFILE
-    assert res.log_level == logging.getLevelName(_log_level)
+    assert res.log_level == logging.getLevelName(_LOG_LEVEL)
 
 
 def test_argparse_file_not_exists(monkeypatch):

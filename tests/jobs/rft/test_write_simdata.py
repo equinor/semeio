@@ -17,8 +17,8 @@ from semeio.jobs.rft.gendata_rft import _write_gen_data_files, _write_simdata
 )
 def test_write_simdata(tmpdir, dataname, input_data, expected_result):
     with tmpdir.as_cwd():
-        df = pd.DataFrame(input_data)
-        _write_simdata("some_file_name", dataname, df)
+        dframe = pd.DataFrame(input_data)
+        _write_simdata("some_file_name", dataname, dframe)
 
         with open("some_file_name", "r", encoding="utf8") as fin:
             result = fin.readlines()

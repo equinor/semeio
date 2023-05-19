@@ -33,7 +33,7 @@ def test_assemble_config_default_observations():
 
 
 def test_assemble_config_not_existing_obs():
-    with pytest.raises(ValidationError) as ve:
+    with pytest.raises(ValidationError) as v_error:
         assemble_config(
             {"observations": ["not_an_observation"]},
             ["a", "list", "of", "existing", "observations"],
@@ -43,4 +43,4 @@ def test_assemble_config_not_existing_obs():
         "Invalid configuration of misfit preprocessor\n"
         "  - Found no match for observation not_an_observation (observations)\n"
     )
-    assert str(ve.value) == expected_err_msg
+    assert str(v_error.value) == expected_err_msg

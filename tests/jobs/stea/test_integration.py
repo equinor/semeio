@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 from stea import SteaKeys
 
-base_stea_config = """
+BASE_STEA_CONFIG = """
 project-id: 56892
 project-version: 1
 config-date: 2018-11-01 00:00:00
@@ -19,7 +19,7 @@ results:
   - NPV
 """
 
-base_ert_config = """
+BASE_ERT_CONFIG = """
 RUNPATH realization-%d/iter-%d
 ECLBASE {ecl_base}
 QUEUE_SYSTEM LOCAL
@@ -63,12 +63,12 @@ def test_stea_fm_single_real(httpserver, ecl_case, ecl_base, fm_options):
     server = httpserver.url_for("/foobar")
     # Mock a forward model configuration file
     Path("stea_conf.yml").write_text(
-        base_stea_config.format(ecl_case) + f"\nstea_server: {server}", encoding="utf-8"
+        BASE_STEA_CONFIG.format(ecl_case) + f"\nstea_server: {server}", encoding="utf-8"
     )
 
     # Write an ERT config file
     Path("config.ert").write_text(
-        base_ert_config.format(ecl_base=ecl_base, fm_options=fm_options),
+        BASE_ERT_CONFIG.format(ecl_base=ecl_base, fm_options=fm_options),
         encoding="utf-8",
     )
 

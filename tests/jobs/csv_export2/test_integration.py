@@ -21,7 +21,7 @@ def test_that_a_not_found_realization_is_skipped():
         outputfile="unsmry--yearly.csv",
         column_keys=["F?PT"],
     )
-    verifyExportedFile(
+    verify_exported_file(
         "unsmry--yearly.csv",
         ["ENSEMBLE", "REAL", "DATE"] + NORNE_VECS + ["FOO"],
         {
@@ -41,7 +41,7 @@ def test_that_a_failed_realization_is_skipped():
         outputfile="unsmry--yearly.csv",
         column_keys=["F?PT"],
     )
-    verifyExportedFile(
+    verify_exported_file(
         "unsmry--yearly.csv",
         ["ENSEMBLE", "REAL", "DATE"] + NORNE_VECS + ["FOO"],
         {
@@ -64,7 +64,7 @@ def test_that_a_missing_realization_index_is_ok():
         outputfile="unsmry--yearly.csv",
         column_keys=["F?PT"],
     )
-    verifyExportedFile(
+    verify_exported_file(
         "unsmry--yearly.csv",
         ["ENSEMBLE", "REAL", "DATE"] + NORNE_VECS + ["FOO"],
         {
@@ -110,7 +110,7 @@ def test_norne_ensemble():
         outputfile="unsmry--yearly.csv",
         column_keys=["F?PT"],
     )
-    verifyExportedFile(
+    verify_exported_file(
         "unsmry--yearly.csv",
         ["ENSEMBLE", "REAL", "DATE"] + NORNE_VECS + ["FOO"],
         {
@@ -130,7 +130,7 @@ def test_norne_ensemble_noparams():
         outputfile="unsmry--yearly.csv",
         column_keys=["FOPT"],
     )
-    verifyExportedFile(
+    verify_exported_file(
         "unsmry--yearly.csv",
         ["ENSEMBLE", "REAL", "DATE", "FOPT"],
         {
@@ -142,7 +142,7 @@ def test_norne_ensemble_noparams():
     )
 
 
-def verifyExportedFile(exported_file_name, result_header, result_iter_rel):
+def verify_exported_file(exported_file_name, result_header, result_iter_rel):
     """Verify an exported CSV file with respect to:
 
         * Exactly the set of requested headers is found

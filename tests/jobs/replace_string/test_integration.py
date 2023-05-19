@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-ert_config = """
+ERT_CONFIG = """
 RUNPATH realization-%d/iter-%d
 JOBNAME TEST
 QUEUE_SYSTEM LOCAL
@@ -29,7 +29,7 @@ def test_replace_string(tmpdir, input_text, replace_from, replace_to, expected):
     with tmpdir.as_cwd():
         ert_config_fname = "test.ert"
         Path(ert_config_fname).write_text(
-            ert_config.format(FROM=replace_from, TO=replace_to), encoding="utf-8"
+            ERT_CONFIG.format(FROM=replace_from, TO=replace_to), encoding="utf-8"
         )
 
         Path("file.txt").write_text(input_text, encoding="utf-8")
