@@ -6,7 +6,7 @@ from ert.shared.plugins.plugin_manager import ErtPluginContext
 
 import semeio.hook_implementations.jobs
 
-default_config = """
+DEFAULT_CONFIG = """
 JOBNAME TEST
 
 QUEUE_SYSTEM LOCAL
@@ -66,7 +66,7 @@ def test_forward_model_error_propagation(forward_model, configuration, expected_
     An expected error message from the forward model is asserted
     captured in a specific stderr file.
     """
-    config = default_config.format(forward_model, configuration)
+    config = DEFAULT_CONFIG.format(forward_model, configuration)
     with open("config.ert", "w", encoding="utf-8") as fh:
         fh.write(config)
 
