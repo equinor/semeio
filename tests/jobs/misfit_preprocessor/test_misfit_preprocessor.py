@@ -17,8 +17,8 @@ class MockedMeasuredData:
 
     def _build_data(self, observations, responses):
         # pylint: disable=no-self-use
-        def assert_equal_keys(a, b):
-            assert sorted(a.keys()) == sorted(b.keys())
+        def assert_equal_keys(left, right):
+            assert sorted(left.keys()) == sorted(right.keys())
 
         columns = []
         ens_size = None
@@ -288,7 +288,7 @@ def test_misfit_preprocessor_state_uneven_size(state_size):
 
 
 def test_misfit_preprocessor_configuration_errors():
-    with pytest.raises(misfit_preprocessor.ValidationError) as ve:
+    with pytest.raises(misfit_preprocessor.ValidationError) as v_error:
         assemble_config(
             {
                 "unknown_key": ["not in set"],
@@ -306,7 +306,7 @@ def test_misfit_preprocessor_configuration_errors():
         "  - extra fields not permitted (workflow.clustering.threshold)\n"
         "  - extra fields not permitted (unknown_key)\n"
     )
-    assert str(ve.value) == expected_err_msg
+    assert str(v_error.value) == expected_err_msg
 
 
 @pytest.mark.parametrize("num_polynomials", (2, 3, 4, 20, 100))

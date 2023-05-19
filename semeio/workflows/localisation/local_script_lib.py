@@ -1,4 +1,4 @@
-# pxylint: disable=attribute-defined-outside-init
+# pylint: disable=attribute-defined-outside-init,invalid-name
 import itertools
 import logging
 import math

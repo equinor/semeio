@@ -53,12 +53,12 @@ def spearman_job(
 
 def _cluster_data(data):
     groups = {}
-    for (nr, key), cluster_group in itertools.groupby(
+    for (number, key), cluster_group in itertools.groupby(
         sorted(data), key=lambda x: (x[0], x[1])
     ):
-        if nr not in groups:
-            groups[nr] = {}
-        groups[nr].update({key: [index for _, _, index in cluster_group]})
+        if number not in groups:
+            groups[number] = {}
+        groups[number].update({key: [index for _, _, index in cluster_group]})
     return groups
 
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# pylint: disable=too-many-statements,consider-using-f-string
+# pylint: disable=too-many-statements,consider-using-f-string,invalid-name
 # pylint: disable=too-many-arguments,unused-argument,redefined-outer-name
 from datetime import datetime
 

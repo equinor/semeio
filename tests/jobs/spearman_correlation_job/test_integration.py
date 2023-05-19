@@ -48,8 +48,8 @@ def test_main_entry_point_gen_data(monkeypatch, snake_oil_facade):
         output_dir,
         "clusters.json",
     )
-    with open(clusters_file, encoding="utf-8") as f:
-        cluster_reports = json.load(f)
+    with open(clusters_file, encoding="utf-8") as file:
+        cluster_reports = json.load(file)
         assert len(cluster_reports) == 1
 
         clusters = cluster_reports[0]
@@ -110,6 +110,7 @@ def fixture_facade():
 
 @pytest.fixture(name="measured_data")
 def fixture_measured_data():
+    # pylint: disable=invalid-name
     r1 = [1, 5, 3]
     r2 = [2, 90, 2]
     r3 = [3, 2, 1]
@@ -125,7 +126,7 @@ def fixture_measured_data():
 
 @pytest.mark.usefixtures("setup_tmpdir")
 def test_main_entry_point_syn_data(monkeypatch, facade, measured_data):
-    # pylint: disable=too-many-locals
+    # pylint: disable=too-many-locals,invalid-name
     run_mock = Mock()
     scal_job = Mock(return_value=Mock(run=run_mock))
     facade_mock = Mock()
@@ -171,8 +172,8 @@ def test_main_entry_point_syn_data(monkeypatch, facade, measured_data):
         job._output_dir,
         "clusters.json",
     )
-    with open(clusters_file, encoding="utf-8") as f:
-        cluster_reports = json.load(f)
+    with open(clusters_file, encoding="utf-8") as file:
+        cluster_reports = json.load(file)
         assert len(cluster_reports) == 1
 
         clusters = cluster_reports[0]

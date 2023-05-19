@@ -8,6 +8,7 @@ from semeio.jobs.overburden_timeshift.ots_res_surface import OTSResSurface
 
 
 def get_source_ert(grid):
+    # pylint: disable=invalid-name
     x = np.zeros(grid.getNumActive(), np.float64)
     y = np.zeros(grid.getNumActive(), np.float64)
     z = np.zeros(grid.getNumActive(), np.float64)
@@ -41,6 +42,7 @@ def test_res_surface(ots_tmpdir_enter):
 
 @pytest.mark.usefixtures("tmpdir")
 def test_surface():
+    # pylint: disable=invalid-name
     grid = EclGridGenerator.createRectangular(
         dims=(2, 2, 2), dV=(100, 100, 100), actnum=[0, 0, 0, 0, 1, 1, 1, 1]
     )
@@ -53,6 +55,7 @@ def test_surface():
 
 @pytest.mark.usefixtures("tmpdir")
 def test_surface_above():
+    # pylint: disable=invalid-name
     grid = EclGridGenerator.createRectangular(
         dims=(2, 2, 2), dV=(100, 100, 100), actnum=[0, 0, 0, 0, 1, 1, 1, 1]
     )

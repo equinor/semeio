@@ -216,10 +216,9 @@ class ScalingForSegmentsConfig(BaseModel):
     ] = [0, 0]
 
     @validator("scalingfactors")
-    def check_length_consistency(cls, v, values):
+    def check_length_consistency(cls, scalingfactors, values):
         # pylint: disable=no-self-use
         # Ensure that active segment list and scaling factor lists are of equal length.
-        scalingfactors = v
         active_segment_list = values.get("active_segments", None)
         if not active_segment_list:
             return scalingfactors

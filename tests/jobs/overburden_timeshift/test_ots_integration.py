@@ -26,7 +26,7 @@ from .ots_util import mock_segy
 def test_ots_config_run_parameters(
     ots_tmpdir_enter, res_scale, size_scale, pos_shift, results, surf_res
 ):
-    # pylint: disable=too-many-arguments,too-many-locals
+    # pylint: disable=too-many-arguments,too-many-locals,invalid-name
     eclcase_dir = ots_tmpdir_enter
     grid_file = os.path.join(eclcase_dir, "NORNE_ATW2013.EGRID")
     grid = EclGrid(grid_file, apply_mapaxes=True)
@@ -51,8 +51,8 @@ def test_ots_config_run_parameters(
             "dpv": [["1997-11-06", "1997-12-17"]],
         },
     }
-    with open("ots_config.yml", "w", encoding="utf8") as f:
-        yaml.dump(conf, f, default_flow_style=False)
+    with open("ots_config.yml", "w", encoding="utf8") as file:
+        yaml.dump(conf, file, default_flow_style=False)
     ots_run("ots_config.yml")
 
     # test results

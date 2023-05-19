@@ -10,6 +10,8 @@ from xtgeo.surface.regular_surface import RegularSurface
 
 from semeio.workflows.localisation.local_config_script import LocalisationConfigJob
 
+# pylint: disable=invalid-name
+
 
 @pytest.mark.parametrize(
     "obs_group_add, param_group_add",

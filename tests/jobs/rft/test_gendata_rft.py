@@ -140,8 +140,8 @@ def test_gendata_rft_entry_point_wrong_well_file(tmpdir, monkeypatch):
         "-z",
         "zonemap.txt",
     ]
-    with open("well_and_time.txt", "w+", encoding="utf-8") as fh:
-        fh.write("NO_FILE_HERE 2005-12-01 0\n")
+    with open("well_and_time.txt", "w+", encoding="utf-8") as file:
+        file.write("NO_FILE_HERE 2005-12-01 0\n")
     monkeypatch.setattr(sys, "argv", arguments)
     with pytest.raises(SystemExit, match="NO_FILE_HERE.txt not found"):
         main_entry_point()
@@ -188,9 +188,9 @@ def test_gendata_rft_entry_point(tmpdir, monkeypatch):
 
 @pytest.mark.usefixtures("reek_data")
 def test_multiple_report_steps(tmpdir, monkeypatch):
-    with open("well_and_time.txt", "w+", encoding="utf-8") as fh:
-        fh.write("OP_1 2000-02-01 0\n")
-        fh.write("OP_1 2001-01-01 1\n")
+    with open("well_and_time.txt", "w+", encoding="utf-8") as file:
+        file.write("OP_1 2000-02-01 0\n")
+        file.write("OP_1 2001-01-01 1\n")
 
     arguments = [
         "script_name",
@@ -225,11 +225,11 @@ def test_multiple_report_steps(tmpdir, monkeypatch):
 
 @pytest.mark.usefixtures("norne_data")
 def test_gendata_inactive_info_point_not_in_grid(tmpdir, monkeypatch):
-    with open("B-1AH.txt", "a+", encoding="utf-8") as fh:
-        fh.write("0 1 2 3\n")
+    with open("B-1AH.txt", "a+", encoding="utf-8") as file:
+        file.write("0 1 2 3\n")
 
-    with open("well_and_time.txt", "w+", encoding="utf-8") as fh:
-        fh.write("B-1AH 2005-12-01 0\n")
+    with open("well_and_time.txt", "w+", encoding="utf-8") as file:
+        file.write("B-1AH 2005-12-01 0\n")
 
     arguments = [
         "script_name",
@@ -245,8 +245,8 @@ def test_gendata_inactive_info_point_not_in_grid(tmpdir, monkeypatch):
     monkeypatch.setattr(sys, "argv", arguments)
     main_entry_point()
 
-    with open("RFT_B-1AH_0_inactive_info", encoding="utf-8") as fh:
-        result = fh.read()
+    with open("RFT_B-1AH_0_inactive_info", encoding="utf-8") as file:
+        result = file.read()
         assert result.startswith(
             "TRAJECTORY_POINT_NOT_IN_GRID (utm_x=0.0, utm_y=1.0, measured_depth=2.0)"
         )
@@ -254,17 +254,19 @@ def test_gendata_inactive_info_point_not_in_grid(tmpdir, monkeypatch):
 
 @pytest.mark.usefixtures("norne_data")
 def test_gendata_inactive_info_zone_mismatch(tmpdir, monkeypatch):
-    with open("well_and_time.txt", "w+", encoding="utf-8") as fh:
-        fh.write("B-1AH 2005-12-01 0\n")
+    with open("well_and_time.txt", "w+", encoding="utf-8") as file:
+        file.write("B-1AH 2005-12-01 0\n")
 
-    with open(os.path.join(tmpdir.strpath, "B-1AH.txt"), "r+", encoding="utf-8") as fh:
-        lines = fh.readlines()
+    with open(
+        os.path.join(tmpdir.strpath, "B-1AH.txt"), "r+", encoding="utf-8"
+    ) as file:
+        lines = file.readlines()
 
     line = lines[-1].rsplit(" ", 1)[0]
     line = line + " last_zone"
 
-    with open("B-1AH.txt", "w+", encoding="utf-8") as fh:
-        fh.write(line)
+    with open("B-1AH.txt", "w+", encoding="utf-8") as file:
+        file.write(line)
 
     arguments = [
         "script_name",
@@ -280,24 +282,26 @@ def test_gendata_inactive_info_zone_mismatch(tmpdir, monkeypatch):
     monkeypatch.setattr(sys, "argv", arguments)
     main_entry_point()
 
-    with open("RFT_B-1AH_0_inactive_info", encoding="utf-8") as fh:
-        result = fh.read()
+    with open("RFT_B-1AH_0_inactive_info", encoding="utf-8") as file:
+        result = file.read()
         assert result.startswith("ZONE_MISMATCH (utm_x=")
 
 
 @pytest.mark.usefixtures("norne_data")
 def test_gendata_inactive_info_not_in_rft(tmpdir, monkeypatch):
-    with open("well_and_time.txt", "w+", encoding="utf-8") as fh:
-        fh.write("B-1AH 2005-12-01 0\n")
+    with open("well_and_time.txt", "w+", encoding="utf-8") as file:
+        file.write("B-1AH 2005-12-01 0\n")
 
-    with open(os.path.join(tmpdir.strpath, "B-1AH.txt"), "r+", encoding="utf-8") as fh:
-        lines = fh.readlines()
+    with open(
+        os.path.join(tmpdir.strpath, "B-1AH.txt"), "r+", encoding="utf-8"
+    ) as file:
+        lines = file.readlines()
 
     line = lines[-1].rsplit(" ", 3)[0]
     line += " 2700 2700"
 
-    with open("B-1AH.txt", "w+", encoding="utf-8") as fh:
-        fh.write(line)
+    with open("B-1AH.txt", "w+", encoding="utf-8") as file:
+        file.write(line)
 
     arguments = [
         "script_name",
@@ -313,18 +317,18 @@ def test_gendata_inactive_info_not_in_rft(tmpdir, monkeypatch):
     monkeypatch.setattr(sys, "argv", arguments)
     main_entry_point()
 
-    with open("RFT_B-1AH_0_inactive_info", encoding="utf-8") as fh:
-        result = fh.read()
+    with open("RFT_B-1AH_0_inactive_info", encoding="utf-8") as file:
+        result = file.read()
         assert result.startswith("TRAJECTORY_POINT_NOT_IN_RFT (utm_x=")
 
 
 @pytest.mark.usefixtures("norne_data")
 def test_gendata_inactive_info_zone_missing_value(tmpdir, monkeypatch):
-    with open("well_and_time.txt", "w+", encoding="utf-8") as fh:
-        fh.write("B-1AH 2005-12-01 0\n")
+    with open("well_and_time.txt", "w+", encoding="utf-8") as file:
+        file.write("B-1AH 2005-12-01 0\n")
 
-    with open("zonemap.txt", "w+", encoding="utf-8") as fh:
-        fh.write("1 zone1\n")
+    with open("zonemap.txt", "w+", encoding="utf-8") as file:
+        file.write("1 zone1\n")
 
     arguments = [
         "script_name",
@@ -340,8 +344,8 @@ def test_gendata_inactive_info_zone_missing_value(tmpdir, monkeypatch):
     monkeypatch.setattr(sys, "argv", arguments)
     main_entry_point()
 
-    with open("RFT_B-1AH_0_inactive_info", encoding="utf-8") as fh:
-        result = fh.read()
+    with open("RFT_B-1AH_0_inactive_info", encoding="utf-8") as file:
+        result = file.read()
         assert result.startswith("ZONEMAP_MISSING_VALUE (utm_x=")
 
 
@@ -694,11 +698,11 @@ def test_ert_setup_one_well_two_points_different_time_and_depth(tmpdir):
 
 
 def _assert_almost_equal_line_by_line(file1, file2):
-    with open(file1, encoding="utf-8") as fh:
-        file1_content = fh.readlines()
+    with open(file1, encoding="utf-8") as file:
+        file1_content = file.readlines()
 
-    with open(file2, encoding="utf-8") as fh:
-        file2_content = fh.readlines()
+    with open(file2, encoding="utf-8") as file:
+        file2_content = file.readlines()
 
     assert len(file1_content) == len(file2_content)
 
