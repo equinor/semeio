@@ -12,13 +12,14 @@ def create_init(grid, case):
     poro = EclKW("PORO", grid.getNumActive(), EclDataType.ECL_FLOAT)
     porv = EclKW("PORV", grid.getGlobalSize(), EclDataType.ECL_FLOAT)
 
-    with openFortIO(f"{case}.INIT", mode=FortIO.WRITE_MODE) as f:
-        poro.fwrite(f)
-        porv.fwrite(f)
+    with openFortIO(f"{case}.INIT", mode=FortIO.WRITE_MODE) as file:
+        poro.fwrite(file)
+        porv.fwrite(file)
 
 
 def create_restart(grid, case, rporv=None):
-    with openFortIO(f"{case}.UNRST", mode=FortIO.WRITE_MODE) as f:
+    # pylint: disable=invalid-name
+    with openFortIO(f"{case}.UNRST", mode=FortIO.WRITE_MODE) as file:
         seq_hdr = EclKW("SEQNUM", 1, EclDataType.ECL_FLOAT)
         seq_hdr[0] = 1
         p = EclKW("PRESSURE", grid.getNumActive(), EclDataType.ECL_FLOAT)
@@ -32,49 +33,49 @@ def create_restart(grid, case, rporv=None):
         header[65] = 1
         header[66] = 2000
 
-        seq_hdr.fwrite(f)
-        header.fwrite(f)
-        p.fwrite(f)
+        seq_hdr.fwrite(file)
+        header.fwrite(file)
+        p.fwrite(file)
 
         if rporv:
             rp = EclKW("RPORV", grid.getNumActive(), EclDataType.ECL_FLOAT)
             for idx, val in enumerate(rporv):
                 rp[idx] = val
-            rp.fwrite(f)
+            rp.fwrite(file)
 
         seq_hdr[0] = 2
         header[66] = 2010
         for i, _ in enumerate(p):
             p[i] = 20
 
-        seq_hdr.fwrite(f)
-        header.fwrite(f)
-        p.fwrite(f)
+        seq_hdr.fwrite(file)
+        header.fwrite(file)
+        p.fwrite(file)
 
         if rporv:
             rp = EclKW("RPORV", grid.getNumActive(), EclDataType.ECL_FLOAT)
             for idx, val in enumerate(rporv):
                 rp[idx] = val
-            rp.fwrite(f)
+            rp.fwrite(file)
 
         seq_hdr[0] = 3
         header[66] = 2011
         for i, _ in enumerate(p):
             p[i] = 25
 
-        seq_hdr.fwrite(f)
-        header.fwrite(f)
-        p.fwrite(f)
+        seq_hdr.fwrite(file)
+        header.fwrite(file)
+        p.fwrite(file)
 
         if rporv:
             rp = EclKW("RPORV", grid.getNumActive(), EclDataType.ECL_FLOAT)
             for idx, val in enumerate(rporv):
                 rp[idx] = val
-            rp.fwrite(f)
+            rp.fwrite(file)
 
 
 def create_segy_file(name, spec, trace=None, il=None, xl=None, cdp_x=None, cdp_y=None):
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments,invalid-name
 
     if trace is None:
         trace = np.empty(len(spec.samples), dtype=np.single)
@@ -91,19 +92,19 @@ def create_segy_file(name, spec, trace=None, il=None, xl=None, cdp_x=None, cdp_y
     if cdp_y is None:
         cdp_y = int_val
 
-    with segyio.create(name, spec) as f:
+    with segyio.create(name, spec) as file:
         scalar = 1
         trno = 0
         for i, i_cdp_x in enumerate(cdp_x):
             for j, j_cdp_y in enumerate(cdp_y):
-                f.header[trno] = {
+                file.header[trno] = {
                     TraceField.CDP_Y: j_cdp_y,
                     TraceField.CDP_X: i_cdp_x,
                     TraceField.CROSSLINE_3D: xl[i],
                     TraceField.INLINE_3D: il[j],
                     TraceField.SourceGroupScalar: scalar,
                 }
-                f.trace[trno] = trace + 0.5 * trno
+                file.trace[trno] = trace + 0.5 * trno
                 trno += 1
 
 
@@ -114,7 +115,7 @@ def mock_segy(
     relative_position_shift=(0, 0),
     segy_filename="vel_vol.segy",
 ):
-    # pylint: disable=too-many-locals
+    # pylint: disable=too-many-locals,invalid-name
 
     # get the surface top_corners
     nx = ecl_grid.getNX()

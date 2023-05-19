@@ -47,8 +47,8 @@ def test_semeio_script_publish(monkeypatch, tmpdir):
         namespace + ".json",
     )
 
-    with open(expected_outputfile, encoding="utf-8") as f:
-        published_data = json.load(f)
+    with open(expected_outputfile, encoding="utf-8") as file:
+        published_data = json.load(file)
 
     assert [data] == published_data
 
@@ -78,16 +78,16 @@ def test_semeio_script_logging(monkeypatch, tmpdir):
         SEMEIOSCRIPT_LOG_FILE,
     )
 
-    with open(expected_logfile, encoding="utf-8") as f:
-        loaded_log = f.readlines()
+    with open(expected_logfile, encoding="utf-8") as file:
+        loaded_log = file.readlines()
 
     assert len(loaded_log) == 1
     assert msg in loaded_log[0]
 
 
 def assert_log(messages, log_file):
-    with open(log_file, encoding="utf-8") as f:
-        log_data = f.readlines()
+    with open(log_file, encoding="utf-8") as file:
+        log_data = file.readlines()
 
     assert len(messages) == len(log_data)
     for msg, log_entry in zip(messages, log_data):
@@ -158,8 +158,8 @@ def test_semeio_script_post_logging(monkeypatch, tmpdir):
         SEMEIOSCRIPT_LOG_FILE,
     )
 
-    with open(expected_logfile, encoding="utf-8") as f:
-        loaded_log = f.readlines()
+    with open(expected_logfile, encoding="utf-8") as file:
+        loaded_log = file.readlines()
 
     assert len(loaded_log) == 1
 
@@ -190,8 +190,8 @@ def test_semeio_script_pre_logging(monkeypatch, tmpdir):
         SEMEIOSCRIPT_LOG_FILE,
     )
 
-    with open(expected_logfile, encoding="utf-8") as f:
-        loaded_log = f.readlines()
+    with open(expected_logfile, encoding="utf-8") as file:
+        loaded_log = file.readlines()
 
     assert len(loaded_log) == 1
 
@@ -221,8 +221,8 @@ def test_semeio_script_concurrent_logging(monkeypatch, tmpdir):
         SEMEIOSCRIPT_LOG_FILE,
     )
 
-    with open(expected_logfile, encoding="utf-8") as f:
-        loaded_log = f.readlines()
+    with open(expected_logfile, encoding="utf-8") as file:
+        loaded_log = file.readlines()
 
     assert len(loaded_log) == 1
 
@@ -256,8 +256,8 @@ def test_semeio_script_post_logging_exception(monkeypatch, tmpdir):
         SEMEIOSCRIPT_LOG_FILE,
     )
 
-    with open(expected_logfile, encoding="utf-8") as f:
-        loaded_log = f.readlines()
+    with open(expected_logfile, encoding="utf-8") as file:
+        loaded_log = file.readlines()
 
     assert len(loaded_log) == 1
 
@@ -269,14 +269,14 @@ def test_semeio_script_keyword_args(monkeypatch, tmpdir):
     _ert_mock(monkeypatch, ensemble_path, user_case_name)
 
     class MySuperScript(SemeioScript):
-        def run(self, param_A, param_B):
-            self.reporter.publish_msg(SEMEIOSCRIPT_LOG_FILE, param_A)
-            self.reporter.publish_msg(SEMEIOSCRIPT_LOG_FILE, param_B)
+        def run(self, param_a, param_b):
+            self.reporter.publish_msg(SEMEIOSCRIPT_LOG_FILE, param_a)
+            self.reporter.publish_msg(SEMEIOSCRIPT_LOG_FILE, param_b)
 
     ensemble_mock = Mock()
     ensemble_mock.name = user_case_name
     my_super_script = MySuperScript(None, None, ensemble_mock)
-    my_super_script.run(param_B="param_B", param_A="param_A")
+    my_super_script.run(param_b="param_b", param_a="param_a")
 
     expected_outputfile = os.path.join(
         "reports",
@@ -286,10 +286,10 @@ def test_semeio_script_keyword_args(monkeypatch, tmpdir):
         SEMEIOSCRIPT_LOG_FILE,
     )
 
-    with open(expected_outputfile, encoding="utf-8") as f:
-        published_msgs = f.readlines()
-    assert published_msgs[0] == "param_A\n"
-    assert published_msgs[1] == "param_B\n"
+    with open(expected_outputfile, encoding="utf-8") as file:
+        published_msgs = file.readlines()
+    assert published_msgs[0] == "param_a\n"
+    assert published_msgs[1] == "param_b\n"
 
 
 def test_semeio_script_relative_report_dir(monkeypatch, tmpdir):
@@ -298,22 +298,22 @@ def test_semeio_script_relative_report_dir(monkeypatch, tmpdir):
     _ert_mock(monkeypatch, ensemble_path, user_case_name)
 
     class MySuperScript(SemeioScript):
-        def run(self, param_A):
+        def run(self, param_a):
             self._reports_dir = "a_new_subdir"
-            self.reporter.publish_msg(SEMEIOSCRIPT_LOG_FILE, param_A)
+            self.reporter.publish_msg(SEMEIOSCRIPT_LOG_FILE, param_a)
 
     ensemble_mock = Mock()
     ensemble_mock.name = user_case_name
     my_super_script = MySuperScript(None, None, ensemble_mock)
-    my_super_script.run(param_A="param_A")  # pylint: disable=not-callable
+    my_super_script.run(param_a="param_a")  # pylint: disable=not-callable
 
     expected_outputfile = os.path.join(
         "a_new_subdir",
         SEMEIOSCRIPT_LOG_FILE,
     )
-    with open(expected_outputfile, encoding="utf-8") as f:
-        published_msgs = f.readlines()
-    assert published_msgs[0] == "param_A\n"
+    with open(expected_outputfile, encoding="utf-8") as file:
+        published_msgs = file.readlines()
+    assert published_msgs[0] == "param_a\n"
 
 
 def test_semeio_script_absolute_report_dir(monkeypatch, tmpdir):
@@ -321,22 +321,22 @@ def test_semeio_script_absolute_report_dir(monkeypatch, tmpdir):
     _ert_mock(monkeypatch, ensemble_path, user_case_name)
 
     class MySuperScript(SemeioScript):
-        def run(self, param_A):
+        def run(self, param_a):
             self._reports_dir = tmpdir
-            self.reporter.publish_msg(SEMEIOSCRIPT_LOG_FILE, param_A)
+            self.reporter.publish_msg(SEMEIOSCRIPT_LOG_FILE, param_a)
 
     ensemble_mock = Mock()
     ensemble_mock.name = user_case_name
     my_super_script = MySuperScript(None, None, ensemble_mock)
-    my_super_script.run(param_A="param_A")  # pylint: disable=not-callable
+    my_super_script.run(param_a="param_a")  # pylint: disable=not-callable
 
     expected_outputfile = os.path.join(
         tmpdir,
         SEMEIOSCRIPT_LOG_FILE,
     )
-    with open(expected_outputfile, encoding="utf-8") as f:
-        published_msgs = f.readlines()
-    assert published_msgs[0] == "param_A\n"
+    with open(expected_outputfile, encoding="utf-8") as file:
+        published_msgs = file.readlines()
+    assert published_msgs[0] == "param_a\n"
 
 
 def test_semeio_script_subdirs(monkeypatch, tmpdir):
@@ -344,14 +344,14 @@ def test_semeio_script_subdirs(monkeypatch, tmpdir):
     _ert_mock(monkeypatch, ensemble_path, user_case_name)
 
     class MySuperScript(SemeioScript):
-        def run(self, param_A):
+        def run(self, param_a):
             self._reports_dir = os.path.join(tmpdir, "sub_dir_1", "sub_dir_2")
-            self.reporter.publish_msg(SEMEIOSCRIPT_LOG_FILE, param_A)
+            self.reporter.publish_msg(SEMEIOSCRIPT_LOG_FILE, param_a)
 
     ensemble_mock = Mock()
     ensemble_mock.name = user_case_name
     my_super_script = MySuperScript(None, None, ensemble_mock)
-    my_super_script.run(param_A="param_A")  # pylint: disable=not-callable
+    my_super_script.run(param_a="param_a")  # pylint: disable=not-callable
 
     expected_outputfile = os.path.join(
         tmpdir,
@@ -359,6 +359,6 @@ def test_semeio_script_subdirs(monkeypatch, tmpdir):
         "sub_dir_2",
         SEMEIOSCRIPT_LOG_FILE,
     )
-    with open(expected_outputfile, encoding="utf-8") as f:
-        published_msgs = f.readlines()
-    assert published_msgs[0] == "param_A\n"
+    with open(expected_outputfile, encoding="utf-8") as file:
+        published_msgs = file.readlines()
+    assert published_msgs[0] == "param_a\n"

@@ -137,6 +137,7 @@ def test_warning_calc_observationsgroup_misfit(input_obs, expected_msg, update_l
 
 
 def test_calc_mean_delta_grid():
+    # pylint: disable=invalid-name
     """test function creates a dataframe reporting mean
     delta grids for field parameters"""
     all_input_post = [

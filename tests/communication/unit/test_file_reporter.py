@@ -20,8 +20,8 @@ def test_file_reporter_publish_msg_valid_msg(msg, tmpdir):
     namespace = "my_msg.log"
     reporter.publish_msg(namespace, msg)
 
-    with open(namespace, encoding="utf-8") as f:
-        loaded_msg = f.readlines()
+    with open(namespace, encoding="utf-8") as file:
+        loaded_msg = file.readlines()
 
     assert (msg + "\n",) == tuple(loaded_msg)
 
@@ -43,8 +43,8 @@ def test_file_reporter_publish_msg_multiple_messages(messages, tmpdir):
     for msg in messages:
         reporter.publish_msg(namespace, msg)
 
-    with open(namespace, encoding="utf-8") as f:
-        loaded_msg = f.readlines()
+    with open(namespace, encoding="utf-8") as file:
+        loaded_msg = file.readlines()
 
     assert tuple(msg + "\n" for msg in messages) == tuple(loaded_msg)
 
@@ -61,12 +61,12 @@ def test_file_reporter_publish_msg_multiple_namespaces(tmpdir):
     reporter.publish_msg(namespace1, msg1)
     reporter.publish_msg(namespace2, msg2)
 
-    with open(namespace1, encoding="utf-8") as f:
-        namespace1_msg = f.readlines()
+    with open(namespace1, encoding="utf-8") as file:
+        namespace1_msg = file.readlines()
     assert (msg1 + "\n",) == tuple(namespace1_msg)
 
-    with open(namespace2, encoding="utf-8") as f:
-        namespace2_msg = f.readlines()
+    with open(namespace2, encoding="utf-8") as file:
+        namespace2_msg = file.readlines()
     assert (msg2 + "\n",) == tuple(namespace2_msg)
 
 
@@ -88,8 +88,8 @@ def test_file_reporter_publisg_msg_output_location(folder, namespace, tmpdir):
 
     expected_output_file = os.path.join(os.getcwd(), folder, namespace)
 
-    with open(expected_output_file, encoding="utf-8") as f:
-        loaded_msg = f.readlines()
+    with open(expected_output_file, encoding="utf-8") as file:
+        loaded_msg = file.readlines()
 
     assert (msg + "\n",) == tuple(loaded_msg)
 

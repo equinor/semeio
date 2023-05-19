@@ -2,6 +2,8 @@
 import json
 from pathlib import Path
 
+# pylint: disable=invalid-name
+
 
 def _load_coeffs(filename):
     return json.load(Path(filename).read_text(encoding="utf-8"))

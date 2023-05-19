@@ -50,8 +50,8 @@ def _fetch_config_record(args):
     if len(args) == 0:
         return {}
     if len(args) == 1:
-        with open(args[0], encoding="utf8") as f:
-            return yaml.safe_load(f)
+        with open(args[0], encoding="utf8") as file:
+            return yaml.safe_load(file)
     raise ValueError(
         (
             "Excepted at most one argument, namely the path to a "

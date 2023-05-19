@@ -66,8 +66,8 @@ def test_main_entry_point_gen_data(snake_oil_facade):
         "svd.json",
     )
     # Assert that data was published correctly
-    with open(svd_file, encoding="utf-8") as f:
-        svd_reports = json.load(f)
+    with open(svd_file, encoding="utf-8") as file:
+        svd_reports = json.load(file)
         assert len(svd_reports) == 2
 
         reported_svd = svd_reports[1]
@@ -85,8 +85,8 @@ def test_main_entry_point_gen_data(snake_oil_facade):
         "CorrelatedObservationsScalingJob",
         "scale_factor.json",
     )
-    with open(scale_file, encoding="utf-8") as f:
-        scalefactor_reports = json.load(f)
+    with open(scale_file, encoding="utf-8") as file:
+        scalefactor_reports = json.load(file)
         assert len(scalefactor_reports) == 2
 
         reported_scalefactor = scalefactor_reports[1]

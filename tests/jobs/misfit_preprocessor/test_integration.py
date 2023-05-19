@@ -34,8 +34,8 @@ def test_misfit_preprocessor_main_entry_point_gen_data(
         },
     }
     config_file = "my_config_file.yaml"
-    with open(config_file, "w", encoding="utf-8") as f:
-        yaml.dump(config, f)
+    with open(config_file, "w", encoding="utf-8") as file:
+        yaml.dump(config, file)
     with open_storage(snake_oil_facade.enspath, "r") as storage:
         snake_oil_facade.run_ertscript(
             misfit_preprocessor.MisfitPreprocessorJob,
@@ -71,8 +71,8 @@ def test_misfit_preprocessor_passing_scaling_parameters(monkeypatch, snake_oil_f
     }
 
     config_file = "my_config_file.yaml"
-    with open(config_file, "w", encoding="utf-8") as f:
-        yaml.dump(config, f)
+    with open(config_file, "w", encoding="utf-8") as file:
+        yaml.dump(config, file)
     with open_storage(snake_oil_facade.enspath, "r") as storage:
         snake_oil_facade.run_ertscript(
             misfit_preprocessor.MisfitPreprocessorJob,
@@ -115,8 +115,8 @@ def test_misfit_preprocessor_with_scaling(snake_oil_facade, snapshot):
         }
     }
     config_file = "my_config_file.yaml"
-    with open(config_file, "w", encoding="utf-8") as f:
-        yaml.dump(config, f)
+    with open(config_file, "w", encoding="utf-8") as file:
+        yaml.dump(config, file)
 
     with open_storage(snake_oil_facade.enspath, "r") as storage:
         snake_oil_facade.run_ertscript(
@@ -142,6 +142,7 @@ def test_misfit_preprocessor_with_scaling(snake_oil_facade, snapshot):
 def test_misfit_preprocessor_skip_clusters_yielding_empty_data_matrixes(
     monkeypatch, snake_oil_facade
 ):
+    # pylint: disable=invalid-name
     def raising_scaling_job(data):
         if data == {"CALCULATE_KEYS": {"keys": [{"index": [88, 89], "key": "FOPR"}]}}:
             raise EmptyDatasetException("foo")
@@ -157,8 +158,8 @@ def test_misfit_preprocessor_skip_clusters_yielding_empty_data_matrixes(
         },
     }
     config_file = "my_config_file.yaml"
-    with open(config_file, "w", encoding="utf-8") as f:
-        yaml.dump(config, f)
+    with open(config_file, "w", encoding="utf-8") as file:
+        yaml.dump(config, file)
 
     try:
         with open_storage(snake_oil_facade.enspath, "r") as storage:
@@ -179,8 +180,8 @@ def test_misfit_preprocessor_invalid_config(snake_oil_facade):
         "workflow": {"type": "custom_scale", "clustering": {"threshold": 1.0}},
     }
     config_file = "my_config_file.yaml"
-    with open(config_file, "w", encoding="utf-8") as f:
-        yaml.dump(config, f)
+    with open(config_file, "w", encoding="utf-8") as file:
+        yaml.dump(config, file)
 
     expected_err_msg = (
         "Invalid configuration of misfit preprocessor\n"

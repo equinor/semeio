@@ -42,8 +42,8 @@ def get_mock_data_content_norne():
 
 def _generate_mock_data_norne(write_directory):
     for fname, content in MOCK_DATA_CONTENT_NORNE.items():
-        with open(os.path.join(write_directory, fname), "w+", encoding="utf-8") as fh:
-            fh.write("\n".join([str(c) for c in content]))
+        with open(os.path.join(write_directory, fname), "w+", encoding="utf-8") as file:
+            file.write("\n".join([str(c) for c in content]))
 
 
 @pytest.fixture
