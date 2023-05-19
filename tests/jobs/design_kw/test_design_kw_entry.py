@@ -21,39 +21,39 @@ def input_data(tmpdir):
     os.chdir(cwd)
 
 
-_templatefile = "template.yml.tmpl"
-_templatefile_unmatched = "template_unmatched.yml.tmpl"
-_resultfile = "result.txt"
+_TEMPLATEFILE = "template.yml.tmpl"
+_TEMPLATEFILE_UNMATCHED = "template_unmatched.yml.tmpl"
+_RESULTFILE = "result.txt"
 _log_level = "DEBUG"
-_default_log_level = "WARNING"
+_DEFAULT_LOG_LEVEL = "WARNING"
 
 
 @pytest.mark.usefixtures("input_data")
 def test_argparse():
-    args = [_templatefile, _resultfile]
+    args = [_TEMPLATEFILE, _RESULTFILE]
     parser = design_kw.create_parser()
     res = parser.parse_args(args)
 
     assert res
-    assert res.templatefile == _templatefile
-    assert res.resultfile == _resultfile
-    assert res.log_level == logging.getLevelName(_default_log_level)
+    assert res.templatefile == _TEMPLATEFILE
+    assert res.resultfile == _RESULTFILE
+    assert res.log_level == logging.getLevelName(_DEFAULT_LOG_LEVEL)
 
 
 @pytest.mark.usefixtures("input_data")
 def test_argparse_with_logging():
-    args = [_templatefile, _resultfile, "--log-level", _log_level]
+    args = [_TEMPLATEFILE, _RESULTFILE, "--log-level", _log_level]
     parser = design_kw.create_parser()
     res = parser.parse_args(args)
     assert res
-    assert res.templatefile == _templatefile
-    assert res.resultfile == _resultfile
+    assert res.templatefile == _TEMPLATEFILE
+    assert res.resultfile == _RESULTFILE
     assert res.log_level == logging.getLevelName(_log_level)
 
 
 def test_argparse_file_not_exists(monkeypatch):
     monkeypatch.setattr(
-        sys, "argv", ["script_name", "file_not_existing.yml.tmpl", _resultfile]
+        sys, "argv", ["script_name", "file_not_existing.yml.tmpl", _RESULTFILE]
     )
     with pytest.raises(SystemExit):
         design_kw.main_entry_point()
@@ -61,7 +61,7 @@ def test_argparse_file_not_exists(monkeypatch):
 
 @pytest.mark.usefixtures("input_data")
 def test_argparse_result_file_missing(monkeypatch):
-    monkeypatch.setattr(sys, "argv", ["script_name", _templatefile])
+    monkeypatch.setattr(sys, "argv", ["script_name", _TEMPLATEFILE])
     with pytest.raises(SystemExit):
         design_kw.main_entry_point()
 
@@ -69,7 +69,7 @@ def test_argparse_result_file_missing(monkeypatch):
 @pytest.mark.usefixtures("input_data")
 def test_unmatched_template(monkeypatch):
     monkeypatch.setattr(
-        sys, "argv", ["script_name", _templatefile_unmatched, _resultfile]
+        sys, "argv", ["script_name", _TEMPLATEFILE_UNMATCHED, _RESULTFILE]
     )
     with pytest.raises(SystemExit):
         design_kw.main_entry_point()

@@ -21,63 +21,63 @@ def input_data(tmpdir):
     os.chdir(cwd)
 
 
-_realization = 1
-_xls = "design_matrix.xlsx"
-_sheet = "DesignSheet01"
-_default_sheet = "DefaultSheet01"
-_parametersfilename = "parameters.txt"
-_log_level = "DEBUG"
-_default_log_level = "WARNING"
+_REALIZATION = 1
+_XLS = "design_matrix.xlsx"
+_SHEET = "DesignSheet01"
+_DEFAULT_SHEET = "DefaultSheet01"
+_PARAMETERSFILENAME = "parameters.txt"
+_LOG_LEVEL = "DEBUG"
+_DEFAULT_LOG_LEVEL = "WARNING"
 
 
 @pytest.mark.usefixtures("input_data")
 def test_argparse():
-    args = [str(_realization), _xls, _sheet, _default_sheet]
+    args = [str(_REALIZATION), _XLS, _SHEET, _DEFAULT_SHEET]
     parser = design2params.create_parser()
     res = parser.parse_args(args)
     assert res
-    assert res.realization == _realization
-    assert res.xlsfilename == _xls
-    assert res.designsheetname == _sheet
-    assert res.defaultssheetname == _default_sheet
+    assert res.realization == _REALIZATION
+    assert res.xlsfilename == _XLS
+    assert res.designsheetname == _SHEET
+    assert res.defaultssheetname == _DEFAULT_SHEET
 
 
 @pytest.mark.usefixtures("input_data")
 def test_argparse_no_default():
-    args = [str(_realization), _xls, _sheet]
+    args = [str(_REALIZATION), _XLS, _SHEET]
     parser = design2params.create_parser()
     res = parser.parse_args(args)
     assert res
-    assert res.realization == _realization
-    assert res.xlsfilename == _xls
-    assert res.designsheetname == _sheet
+    assert res.realization == _REALIZATION
+    assert res.xlsfilename == _XLS
+    assert res.designsheetname == _SHEET
     assert res.defaultssheetname is None
 
 
 @pytest.mark.usefixtures("input_data")
 def test_argparse_with_optionals():
     args = [
-        str(_realization),
-        _xls,
-        _sheet,
+        str(_REALIZATION),
+        _XLS,
+        _SHEET,
         "-p",
-        _parametersfilename,
+        _PARAMETERSFILENAME,
         "-l",
-        _log_level,
+        _LOG_LEVEL,
     ]
     parser = design2params.create_parser()
     res = parser.parse_args(args)
     assert res
-    assert res.realization == _realization
-    assert res.xlsfilename == _xls
-    assert res.designsheetname == _sheet
+    assert res.realization == _REALIZATION
+    assert res.xlsfilename == _XLS
+    assert res.designsheetname == _SHEET
     assert res.defaultssheetname is None
-    assert res.parametersfilename == _parametersfilename
-    assert res.log_level == logging.getLevelName(_log_level)
+    assert res.parametersfilename == _PARAMETERSFILENAME
+    assert res.log_level == logging.getLevelName(_LOG_LEVEL)
 
 
-def test_argparse_xls_file_not_exists(monkeypatch):
-    monkeypatch.setattr(sys, "argv", ["path", str(_realization), "not_a_file", _sheet])
+def test_argparse_XLS_file_not_exists(monkeypatch):
+    monkeypatch.setattr(sys, "argv", ["path", str(_REALIZATION), "not_a_file", _SHEET])
     with pytest.raises(SystemExit):
         design2params.main_entry_point()
 
@@ -87,25 +87,25 @@ def test_argparse_parameters_file_not_exists():
     not_existing_parameters_txt = "not_a_file.txt"
 
     args = [
-        str(_realization),
-        _xls,
-        _sheet,
+        str(_REALIZATION),
+        _XLS,
+        _SHEET,
         "-p",
         not_existing_parameters_txt,
     ]
     parser = design2params.create_parser()
     res = parser.parse_args(args)
     assert res
-    assert res.realization == _realization
-    assert res.xlsfilename == _xls
-    assert res.designsheetname == _sheet
+    assert res.realization == _REALIZATION
+    assert res.xlsfilename == _XLS
+    assert res.designsheetname == _SHEET
     assert res.defaultssheetname is None
     assert res.parametersfilename == not_existing_parameters_txt
-    assert res.log_level == logging.getLevelName(_default_log_level)
+    assert res.log_level == logging.getLevelName(_DEFAULT_LOG_LEVEL)
 
 
 @pytest.mark.usefixtures("input_data")
 def test_argparse_design_sheet_missing(monkeypatch):
-    monkeypatch.setattr(sys, "argv", ["path", str(_realization), _xls])
+    monkeypatch.setattr(sys, "argv", ["path", str(_REALIZATION), _XLS])
     with pytest.raises(SystemExit):
         design2params.main_entry_point()
