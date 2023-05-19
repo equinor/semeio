@@ -13,8 +13,8 @@ from ecl.grid import EclGridGenerator
 from tests import legacy_test_data
 
 
-@pytest.fixture()
-def test_data_root():
+@pytest.fixture(name="test_data_root")
+def fixture_test_data_root():
     yield legacy_test_data.__path__[0]
 
 
@@ -109,8 +109,8 @@ def _shared_snake_oil_case(request, monkeypatch, test_data_root, grid_prop):
     yield os.getcwd()
 
 
-@pytest.fixture
-def grid_prop():
+@pytest.fixture(name="grid_prop")
+def fixture_grid_prop():
     def wrapper(prop_name, value, grid_size, fname):
         prop = EclKW(prop_name, grid_size, EclDataType.ECL_FLOAT)
         prop.assign(value)
