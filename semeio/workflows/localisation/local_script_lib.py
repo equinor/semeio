@@ -14,9 +14,9 @@ from ecl.eclfile import Ecl3DKW
 from ecl.grid.ecl_grid import EclGrid
 from ecl.util.geometry import Surface
 from ert._c_wrappers.enkf.config.field_config import Field
+from ert._c_wrappers.enkf.config.gen_data_config import GenDataConfig
 from ert._c_wrappers.enkf.config.gen_kw_config import GenKwConfig
 from ert._c_wrappers.enkf.config.surface_config import SurfaceConfig
-from ert._c_wrappers.enkf.enums.ert_impl_type_enum import ErtImplType
 from ert._c_wrappers.enkf.row_scaling import RowScaling
 from numpy import ma
 
@@ -29,7 +29,6 @@ from semeio.workflows.localisation.localisation_debug_settings import (
 @dataclass
 class Parameter:
     name: str
-    type: str
     parameters: List = field(default_factory=list)
 
     def to_list(self):
@@ -89,15 +88,14 @@ class Parameters:
                 result[name].append(parameters)
             else:
                 result[name] = []
-        return cls([Parameter(key, "UNKNOWN", val) for key, val in result.items()])
+        return cls([Parameter(key, val) for key, val in result.items()])
 
 
 def get_param_from_ert(ens_config):
     new_params = Parameters()
     for key in ens_config.parameters:
         node = ens_config.getNode(key)
-        impl_type = node.getImplementationType()
-        my_param = Parameter(key, impl_type)
+        my_param = Parameter(key)
         new_params.append(my_param)
         if isinstance(node, GenKwConfig):
             my_param.parameters = node.getKeyWords()
@@ -542,8 +540,7 @@ def add_ministeps(
         # Setup model parameter group
         for node_name, param_list in param_dict.items():
             node = ert_ensemble_config.getNode(node_name)
-            impl_type = node.getImplementationType()
-
+            impl_type = type(node).__name__
             debug_print(
                 f"Add node: {node_name} of type: {impl_type}",
                 LogLevel.LEVEL2,
@@ -651,11 +648,9 @@ def add_ministeps(
                         LogLevel.LEVEL3,
                         user_config.log_level,
                     )
-            elif impl_type == ErtImplType.GEN_DATA:
-                gen_data_config = node.getDataModelConfig()
-                data_size = gen_data_config.get_initial_size()
+            elif isinstance(node, GenDataConfig):
                 debug_print(
-                    f"Parameter {node_name} has data size: {data_size} "
+                    f"Parameter {node_name} of type: {impl_type} "
                     f"in {ministep_name}",
                     LogLevel.LEVEL3,
                     user_config.log_level,
