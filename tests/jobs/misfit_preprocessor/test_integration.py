@@ -130,7 +130,7 @@ def test_misfit_preprocessor_with_scaling(snake_oil_facade, snapshot):
     snapshot.assert_match(
         str(
             [
-                observation.getStdScaling()
+                observation.std_scaling
                 for observation in snake_oil_facade.get_observations()["FOPR"]
             ]
         ),
@@ -227,7 +227,10 @@ def test_misfit_preprocessor_all_obs(snake_oil_facade, monkeypatch):
     ]:
         obs_vector = obs[key]
         for index, node in enumerate(obs_vector):
-            scaling_factors.append((index, key, node.getStdScaling(index)))
+            if isinstance(node.std_scaling, float):
+                scaling_factors.append((index, key, node.std_scaling))
+            else:
+                scaling_factors.append((index, key, node.std_scaling[index]))
 
     for index, key, scaling_factor in scaling_factors:
         assert scaling_factor == 1.234, f"{index}, {key}"
