@@ -71,7 +71,7 @@ def test_scaling(snake_oil_facade, snapshot):
     snapshot.assert_match(
         str(
             [
-                observation.getStdScaling()
+                observation.std_scaling
                 for observation in facade.get_observations()["FOPR"]
             ]
         ),
