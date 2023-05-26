@@ -16,8 +16,7 @@ from semeio.workflows.correlated_observations_scaling.cos import (
 def get_std_from_obs_vector(vector):
     result = []
     for node in vector:
-        for i, _ in enumerate(node):
-            result.append(node.getStdScaling(i))
+        result += list(node.std_scaling)
     return result
 
 
@@ -102,10 +101,7 @@ def test_main_entry_point_summary_data_calc(snake_oil_facade):
     obs = snake_oil_facade.get_observations()
 
     obs_vector = obs["WOPR_OP1_108"]
-    result = []
-    for index, node in enumerate(obs_vector):
-        result.append(node.getStdScaling(index))
-    assert result == [1]
+    assert [node.std_scaling for node in obs_vector] == [1]
 
     with open_storage(snake_oil_facade.enspath, "w") as storage:
         snake_oil_facade.run_ertscript(
@@ -115,8 +111,8 @@ def test_main_entry_point_summary_data_calc(snake_oil_facade):
             cos_config,
         )
 
-    for index, node in enumerate(obs_vector):
-        assert node.getStdScaling(index) == np.sqrt(2 / 1)
+    for node in obs_vector:
+        assert node.std_scaling == np.sqrt(2 / 1)
 
 
 @pytest.mark.parametrize(
@@ -144,10 +140,7 @@ def test_main_entry_point_history_data_calc(snake_oil_facade, config, expected_r
             config,
         )
     obs_vector = obs["FOPR"]
-    result = []
-    for index, node in enumerate(obs_vector):
-        result.append(node.getStdScaling(index))
-    assert result == [expected_result] * 200
+    assert [node.std_scaling for node in obs_vector] == [expected_result] * 200
 
 
 def test_main_entry_point_history_data_calc_subset(snake_oil_facade):
@@ -166,12 +159,11 @@ def test_main_entry_point_history_data_calc_subset(snake_oil_facade):
             config,
         )
 
-    result = []
-    for index, node in enumerate(obs_vector):
-        result.append(node.getStdScaling(index))
-    assert (
-        result == expected_result
-    ), "Check that only the selected subset of obs have updated scaling"
+    assert [
+        node.std_scaling for node in obs_vector
+    ] == expected_result, (
+        "Check that only the selected subset of obs have updated scaling"
+    )
 
 
 def test_main_entry_point_sum_data_update(snake_oil_facade, monkeypatch):
@@ -181,8 +173,8 @@ def test_main_entry_point_sum_data_update(snake_oil_facade, monkeypatch):
 
     obs_vector = obs["WOPR_OP1_108"]
 
-    for index, node in enumerate(obs_vector):
-        assert node.getStdScaling(index) == 1.0
+    for node in obs_vector:
+        assert node.std_scaling == 1.0
     monkeypatch.setattr(
         cos.ObservationScaleFactor, "get_scaling_factor", MagicMock(return_value=1.23)
     )
@@ -194,8 +186,8 @@ def test_main_entry_point_sum_data_update(snake_oil_facade, monkeypatch):
             cos_config,
         )
 
-    for index, node in enumerate(obs_vector):
-        assert node.getStdScaling(index) == 1.23
+    for node in obs_vector:
+        assert node.std_scaling == 1.23
 
 
 @pytest.mark.usefixtures("copy_snake_oil_case_storage")
@@ -209,8 +201,8 @@ def test_main_entry_point_shielded_data(monkeypatch):
 
     obs_vector = obs["FOPR"]
 
-    for index, node in enumerate(obs_vector):
-        assert node.getStdScaling(index) == 1.0
+    for node in obs_vector:
+        assert node.std_scaling == 1.0
 
     monkeypatch.setattr(
         cos.ObservationScaleFactor, "get_scaling_factor", MagicMock(return_value=1.23)
@@ -225,6 +217,6 @@ def test_main_entry_point_shielded_data(monkeypatch):
 
     for index, node in enumerate(obs_vector):
         if index in [1, 2, 3, 4, 5]:
-            assert node.getStdScaling(index) == 1.23, f"index: {index}"
+            assert node.std_scaling == 1.23
         else:
-            assert node.getStdScaling(index) == 1.0, f"index: {index}"
+            assert node.std_scaling == 1.0

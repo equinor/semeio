@@ -113,5 +113,5 @@ def _data_index_to_obs_index(obs, obs_key, data_index_list):
 
     for timestep in obs[obs_key].getStepList():
         node = obs[obs_key].getNode(timestep)
-        index_map = {node.getIndex(nr): nr for nr in range(len(node))}
+        index_map = {node.indices[nr]: nr for nr in range(len(node))}
     return [index_map[index] for index in data_index_list]

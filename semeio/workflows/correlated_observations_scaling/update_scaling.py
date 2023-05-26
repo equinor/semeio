@@ -31,7 +31,7 @@ def _update_scaling(obs, scale_factor, obs_list):
             if obs_vector.getImplementationType().name == "SUMMARY_OBS":
                 index_list = event.index if event.index else [x - 1 for x in step_list]
                 if step - 1 in index_list:
-                    obs_node.set_std_scaling(scale_factor)
+                    obs_node.std_scaling = scale_factor
             else:
                 obs_node.updateStdScaling(scale_factor, event.active_list)
     logging.info(  # pylint: disable=logging-fstring-interpolation
