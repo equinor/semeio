@@ -106,12 +106,12 @@ def _active_list_from_index_list(index_list):
 
 
 def _data_index_to_obs_index(obs, obs_key, data_index_list):
-    if obs[obs_key].getImplementationType().name != "GEN_OBS":
+    if obs[obs_key].observation_type.name != "GEN_OBS":
         return data_index_list
     if data_index_list is None:
         return data_index_list
 
-    for timestep in obs[obs_key].getStepList():
-        node = obs[obs_key].getNode(timestep)
+    for timestep, node in obs[obs_key].observations.items():
+        node = obs[obs_key].observations[timestep]
         index_map = {node.indices[nr]: nr for nr in range(len(node))}
     return [index_map[index] for index in data_index_list]

@@ -14,7 +14,7 @@ class LocalisationConfigJob(SemeioScript):
         config_dict = local.read_localisation_config(args)
 
         # Get all observations from ert instance
-        obs_keys = [o.getKey() for o in self.facade.get_observations()]
+        obs_keys = list(self.facade.get_observations().obs_vectors.keys())
 
         ensemble_config = ert.ensembleConfig()
         ert_parameters = local.get_param_from_ert(ensemble_config)

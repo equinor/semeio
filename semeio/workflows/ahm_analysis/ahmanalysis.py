@@ -121,7 +121,7 @@ class AhmAnalysisJob(SemeioScript):
         if output_dir is not None:
             self._reports_dir = output_dir
 
-        obs_keys = [o.getKey() for o in self.facade.get_observations()]
+        obs_keys = list(self.facade.get_observations().obs_vectors.keys())
         key_map = _group_observations(self.facade, obs_keys, group_by)
 
         prior_name, target_name = check_names(
