@@ -17,7 +17,7 @@ class SpearmanCorrelationJob(SemeioScript):
         # pylint: disable=method-hidden
         # (SemeioScript wraps this run method)
 
-        obs_keys = [o.getKey() for o in self.facade.get_observations()]
+        obs_keys = list(self.facade.get_observations().obs_vectors.keys())
 
         measured_data = self.facade.get_measured_data(obs_keys, ensemble=self.ensemble)
 
