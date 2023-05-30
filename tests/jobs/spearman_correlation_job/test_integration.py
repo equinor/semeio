@@ -104,7 +104,7 @@ def test_skip_clusters_yielding_empty_data_matrixes(monkeypatch, snake_oil_facad
 @pytest.fixture(name="facade")
 def fixture_facade():
     facade = Mock()
-    facade.get_observations.return_value = []
+    facade.get_observations.return_value.obs_vectors = {}
     return facade
 
 

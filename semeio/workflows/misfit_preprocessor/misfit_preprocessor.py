@@ -18,7 +18,7 @@ class MisfitPreprocessorJob(SemeioScript):
     # pylint: disable=method-hidden
     def run(self, *args):
         config_record = _fetch_config_record(args)
-        observations = [o.getKey() for o in self.facade.get_observations()]
+        observations = list(self.facade.get_observations().obs_vectors.keys())
         config = assemble_config(config_record, observations)
         if config.reports_directory:
             self._reports_dir = config.reports_directory

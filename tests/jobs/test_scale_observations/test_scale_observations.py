@@ -33,7 +33,7 @@ def test_scale_summary_obs(snake_oil_obs, index_list):
     scale_observations(snake_oil_obs, 1.2345, [Config("WOPR_OP1_36", index_list)])
 
     obs_vector = snake_oil_obs["WOPR_OP1_36"]
-    node = obs_vector.getNode(36)
+    node = obs_vector.observations[36]
     assert node.std_scaling == 1.2345, f"index: {36}"
 
 
