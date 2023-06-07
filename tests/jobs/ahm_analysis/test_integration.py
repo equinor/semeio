@@ -71,9 +71,7 @@ def test_ahmanalysis_run_field(snake_oil_facade):
             prior_name="default",
         )
     # assert that this returns/generates the delta field parameter
-    gen_obs_list = snake_oil_facade.get_all_gen_data_observation_keys()
-    summary_obs_list = snake_oil_facade.get_all_summary_observation_keys()
-    obs_keys = gen_obs_list + summary_obs_list
+    obs_keys = ["WPR_DIFF_1", "FOPR", "WOPR:OP1"]
     output_deltafield = os.path.join(
         "storage",
         "snake_oil",
