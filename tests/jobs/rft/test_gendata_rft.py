@@ -532,7 +532,7 @@ def test_ert_setup_one_well_one_rft_point(tmpdir):
     # pylint: disable=line-too-long
     Path("config.ert").write_text(
         """
-RUNPATH realization-%d/iter-%d
+RUNPATH realization-<IENS>/iter-<ITER>
 ECLBASE 2_R001_REEK-%d
 TIME_MAP time_map.txt
 QUEUE_SYSTEM LOCAL
@@ -574,7 +574,6 @@ GEN_DATA OP_1_RFT_SIM1 INPUT_FORMAT:ASCII REPORT_STEPS:1 RESULT_FILE:RFT_OP_1_%d
     # The purpose of the test is to demonstrate and run through the GEN_DATA
     # forward model without errors, but it will fail in the update step as this
     # test is not constructed for that:
-    assert "No active observations" in stdouterr
     assert "Simulations failed" in stdouterr
 
     # Asserts on GENDATA_RFT output:
@@ -643,7 +642,7 @@ def test_ert_setup_one_well_two_points_different_time_and_depth(tmpdir):
     Path("config.ert").write_text(
         dedent(
             """
-    RUNPATH realization-%d/iter-%d
+    RUNPATH realization-<IENS>/iter-<ITER>
     ECLBASE 2_R001_REEK-%d
     TIME_MAP time_map.txt
     QUEUE_SYSTEM LOCAL
@@ -688,7 +687,7 @@ def test_ert_setup_one_well_two_points_different_time_and_depth(tmpdir):
     # The purpose of the test is to demonstrate and run through the GEN_DATA
     # forward model without errors, but it will fail in the update step as this
     # test is not constructed for that:
-    assert "No active observations" in stdouterr
+    assert "OP_1_OBS1 is missing one or more responses" in stdouterr
     assert "Simulations failed" in stdouterr
 
     # Asserts on GENDATA_RFT output:
