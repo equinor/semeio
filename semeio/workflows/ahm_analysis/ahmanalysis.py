@@ -318,9 +318,12 @@ def _get_field_params(facade, field_parameters, target_ensemble):
     """
     field_data = {}
     for field_param in field_parameters:
-        field_data[field_param] = target_ensemble.load_field(
+        dataset = target_ensemble.load_parameters(
             field_param, list(range(facade.get_ensemble_size()))
-        ).T
+        )
+        field_data[field_param] = dataset.values.reshape(
+            facade.get_ensemble_size(), len(dataset.x) * len(dataset.y) * len(dataset.z)
+        )
     return field_data
 
 
