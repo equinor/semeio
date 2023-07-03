@@ -5,5 +5,5 @@ copy_test_files () {
 }
 
 start_tests () {
-    pytest --ert_integration
+    pytest --ert-integration
 }
