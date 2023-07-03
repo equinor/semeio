@@ -45,7 +45,7 @@ def move_to_shared_tmp(tmp_path_factory):
 
 def pytest_addoption(parser):
     parser.addoption(
-        "--ert_integration",
+        "--ert-integration",
         action="store_true",
         default=False,
         help="Run ERT integration tests",
@@ -53,14 +53,14 @@ def pytest_addoption(parser):
 
 
 def pytest_collection_modifyitems(config, items):
-    if config.getoption("--ert_integration"):
-        # Do not skip tests when --ert_integration is supplied on pytest command line
+    if config.getoption("--ert-integration"):
+        # Do not skip tests when --ert-integration is supplied on pytest command line
         return
     skip_ert_integration = pytest.mark.skip(
-        reason="need --ert_integration option to run"
+        reason="need --ert-integration option to run"
     )
     for item in items:
-        if "ert_integration" in item.keywords:
+        if "ert-integration" in item.keywords:
             item.add_marker(skip_ert_integration)
 
 
