@@ -16,7 +16,7 @@ from semeio.workflows.misfit_preprocessor.workflow_config import MisfitConfig
 
 class MisfitPreprocessorJob(SemeioScript):
     # pylint: disable=method-hidden
-    def run(self, *args):
+    def run(self, *args, **_):
         config_record = _fetch_config_record(args)
         observations = list(self.facade.get_observations().obs_vectors.keys())
         config = assemble_config(config_record, observations)

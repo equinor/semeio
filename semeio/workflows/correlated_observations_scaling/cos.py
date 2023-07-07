@@ -134,7 +134,7 @@ of passing two different configs.
 
 class CorrelatedObservationsScalingJob(SemeioScript):
     def run(self, job_configuration):
-        # pylint: disable=method-hidden
+        # pylint: disable=method-hidden, arguments-differ
         # (SemeioScript wraps this run method)
         user_config = load_yaml(job_configuration)
         user_config = _insert_default_group(user_config)

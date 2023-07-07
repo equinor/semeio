@@ -55,6 +55,8 @@ class SemeioScript(ErtScript):
     it forwards log statements to the reporter as well.
     """
 
+    # pylint: disable=abstract-method
+
     def __init__(self, ert, storage, ensemble=None):
         super().__init__(ert, storage, ensemble=ensemble)
         self.facade = LibresFacade(ert)

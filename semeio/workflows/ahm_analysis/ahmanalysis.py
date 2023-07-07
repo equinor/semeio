@@ -110,8 +110,7 @@ class AhmAnalysisJob(SemeioScript):
         group_by="data_key",
         output_dir=None,
     ):
-        # pylint: disable=method-hidden
-        # pylint: disable=too-many-statements
+        # pylint: disable=method-hidden, too-many-statements, arguments-differ
         # (SemeioScript wraps this run method)
 
         # pylint: disable=too-many-locals
