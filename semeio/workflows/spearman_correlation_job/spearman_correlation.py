@@ -13,7 +13,7 @@ from semeio.workflows.spearman_correlation_job.job import spearman_job
 
 
 class SpearmanCorrelationJob(SemeioScript):
-    def run(self, *args):
+    def run(self, *args, **_):
         # pylint: disable=method-hidden
         # (SemeioScript wraps this run method)
 

@@ -1,12 +1,12 @@
 import logging
 from threading import Thread
 
-from semeio.communication import SemeioScript
+from semeio.communication import SemeioScript  # pylint: disable=import-error
 
 
 class TestWorkflowJob(SemeioScript):
-    # pylint: disable=method-hidden
-    def run(self, *args):
+    # pylint: disable=method-hidden, too-few-public-methods
+    def run(self, *args, **_):
         # pylint: disable=unused-argument
         self.reporter.publish("test_data", list(range(10)))
 
