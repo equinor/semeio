@@ -8,7 +8,7 @@ import pytest
 
 from semeio.communication import SEMEIOSCRIPT_LOG_FILE, SemeioScript, semeio_script
 
-# pylint: disable=method-hidden,no-self-use
+# pylint: disable=method-hidden,no-self-use, arguments-differ
 
 
 def _ert_mock(monkeypatch, ensemble_path="storage", user_case_name="case_name"):
