@@ -2,8 +2,6 @@ import fnmatch
 from collections import namedtuple
 from copy import deepcopy
 
-from ert._c_wrappers.enkf import ActiveList
-
 from semeio.workflows.correlated_observations_scaling.exceptions import ValidationError
 
 
@@ -63,22 +61,9 @@ def create_active_lists(enkf_observations, events):
     new_events = []
     for event in events:
         obs_index = _data_index_to_obs_index(enkf_observations, event.key, event.index)
-        new_active_list = _get_active_list(obs_index)
-
-        new_events.append(_make_tuple(event.key, event.index, new_active_list))
+        new_events.append(_make_tuple(event.key, event.index, obs_index))
 
     return new_events
-
-
-def _get_active_list(index_list):
-    """
-    If the user doesn't supply an index list, we assume ALL-ACTIVE on the
-    observations, otherwise an active list is
-    created from the index list.
-    """
-    if index_list is None:
-        index_list = []
-    return _active_list_from_index_list(index_list)
 
 
 def _make_tuple(
@@ -88,21 +73,6 @@ def _make_tuple(
     new_event=namedtuple("named_dict", ["key", "index", "active_list"]),
 ):
     return new_event(key, index, active_list)
-
-
-def _active_list_from_index_list(index_list):
-    """
-    Creates an ActiveList from a list of indexes
-    :param index_list: list of index
-    :type index_list:  list
-    :return: Active list, a c-object with mode (ALL-ACTIVE, PARTIALLY-ACTIVE)
-        and list of indices
-    :rtype: active_list
-    """
-    active_list = ActiveList()
-    for index in index_list:
-        active_list.addActiveIndex(index)
-    return active_list
 
 
 def _data_index_to_obs_index(obs, obs_key, data_index_list):
