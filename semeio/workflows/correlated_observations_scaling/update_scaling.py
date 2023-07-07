@@ -35,7 +35,7 @@ def _update_scaling(obs, scale_factor, obs_list):
                 if step - 1 in index_list:
                     obs_node.std_scaling = scale_factor
             else:
-                obs_node.updateStdScaling(scale_factor, event.active_list)
+                obs_node.std_scaling[event.active_list] = scale_factor
     logging.info(  # pylint: disable=logging-fstring-interpolation
         f"Keys: {[event.key for event in obs_list]} scaled "
         f"with scaling factor: {scale_factor}"
