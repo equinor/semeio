@@ -13,11 +13,11 @@ from ecl.ecl_type import EclDataType
 from ecl.eclfile import Ecl3DKW
 from ecl.grid.ecl_grid import EclGrid
 from ecl.util.geometry import Surface
-from ert._c_wrappers.enkf.config.field_config import Field
-from ert._c_wrappers.enkf.config.gen_data_config import GenDataConfig
-from ert._c_wrappers.enkf.config.gen_kw_config import GenKwConfig
-from ert._c_wrappers.enkf.config.surface_config import SurfaceConfig
 from ert._c_wrappers.enkf.row_scaling import RowScaling
+from ert.config.field_config import Field
+from ert.config.gen_data_config import GenDataConfig
+from ert.config.gen_kw_config import GenKwConfig
+from ert.config.surface_config import SurfaceConfig
 from numpy import ma
 
 from semeio.workflows.localisation.localisation_debug_settings import (
