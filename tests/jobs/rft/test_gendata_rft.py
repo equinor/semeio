@@ -574,7 +574,7 @@ GEN_DATA OP_1_RFT_SIM1 INPUT_FORMAT:ASCII REPORT_STEPS:1 RESULT_FILE:RFT_OP_1_%d
     # The purpose of the test is to demonstrate and run through the GEN_DATA
     # forward model without errors, but it will fail in the update step as this
     # test is not constructed for that:
-    assert "Simulations failed" in stdouterr
+    assert "Experiment failed" in stdouterr
 
     # Asserts on GENDATA_RFT output:
     assert Path("realization-0/iter-0/RFT_OP_1_1").is_file()
@@ -688,7 +688,7 @@ def test_ert_setup_one_well_two_points_different_time_and_depth(tmpdir):
     # forward model without errors, but it will fail in the update step as this
     # test is not constructed for that:
     assert "No active observations" in stdouterr
-    assert "Simulations failed" in stdouterr
+    assert "Experiment failed" in stdouterr
 
     # Asserts on GENDATA_RFT output:
     assert Path("realization-0/iter-0/gendata_rft/RFT_OP_1_1").is_file()
