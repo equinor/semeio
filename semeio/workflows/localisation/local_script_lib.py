@@ -13,7 +13,7 @@ from ecl.ecl_type import EclDataType
 from ecl.eclfile import Ecl3DKW
 from ecl.grid.ecl_grid import EclGrid
 from ecl.util.geometry import Surface
-from ert._c_wrappers.enkf.row_scaling import RowScaling
+from ert.analysis.row_scaling import RowScaling
 from ert.config import Field, GenDataConfig, GenKwConfig, SurfaceConfig
 from numpy import ma
 
