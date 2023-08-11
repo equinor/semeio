@@ -122,7 +122,7 @@ def test_valid_config_setup(valid_config):
             },
             [
                 (
-                    "'Will go through the input and try to convert to list of int' "
+                    "'Will go through the input and try to convert to list' "
                     "failed on input '[-1, 2, 3]' with error 'Elements can not be "
                     "negative, neither singletons nor in range, got: -1'"
                 ),

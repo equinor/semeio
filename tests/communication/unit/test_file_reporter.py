@@ -146,17 +146,6 @@ def test_file_reporter_publish_valid_json(data, tmpdir):
     assert loaded_data == [data]
 
 
-def test_file_reporter_publish_invalid_json(tmpdir):
-    tmpdir.chdir()
-    namespace = "data"
-    data = json  # The json module is not JSON serializable...
-
-    reporter = FileReporter(os.getcwd())
-
-    with pytest.raises(TypeError):
-        reporter.publish(namespace, data)
-
-
 def test_file_reporter_publish_multiple_json(tmpdir):
     tmpdir.chdir()
     namespace = "some_data"

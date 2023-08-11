@@ -1,5 +1,6 @@
 import json
 import os
+from datetime import datetime
 from unittest.mock import MagicMock
 
 import numpy as np
@@ -144,7 +145,19 @@ def test_main_entry_point_history_data_calc(snake_oil_facade, config, expected_r
 
 
 def test_main_entry_point_history_data_calc_subset(snake_oil_facade):
-    config = {"CALCULATE_KEYS": {"keys": [{"key": "FOPR", "index": [10, 20]}]}}
+    config = {
+        "CALCULATE_KEYS": {
+            "keys": [
+                {
+                    "key": "FOPR",
+                    "index": [
+                        datetime(2010, 4, 20),
+                        datetime(2010, 7, 29),
+                    ],
+                }
+            ]
+        }
+    }
     obs = snake_oil_facade.get_observations()
     obs_vector = obs["FOPR"]
 
@@ -194,7 +207,20 @@ def test_main_entry_point_sum_data_update(snake_oil_facade, monkeypatch):
 def test_main_entry_point_shielded_data(monkeypatch):
     ert = LibresFacade.from_config_file("snake_oil.ert")
     cos_config = {
-        "CALCULATE_KEYS": {"keys": [{"key": "FOPR", "index": [1, 2, 3, 4, 5]}]}
+        "CALCULATE_KEYS": {
+            "keys": [
+                {
+                    "key": "FOPR",
+                    "index": [
+                        datetime(2010, 1, 20),
+                        datetime(2010, 1, 30),
+                        datetime(2010, 2, 9),
+                        datetime(2010, 2, 19),
+                        datetime(2010, 3, 1),
+                    ],
+                }
+            ]
+        }
     }
 
     obs = ert.get_observations()
