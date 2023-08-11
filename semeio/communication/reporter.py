@@ -26,7 +26,7 @@ class FileReporter:
 
         all_data.append(data)
         with open(output_file, "w", encoding="utf-8") as f_handle:
-            json.dump(all_data, f_handle)
+            json.dump(all_data, f_handle, default=str)
 
     def publish_msg(self, namespace, msg):
         output_file = self._prepare_output_file(namespace)

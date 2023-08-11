@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import pytest
 
 from semeio.workflows.correlated_observations_scaling.update_scaling import (
@@ -16,25 +18,28 @@ def fixture_snake_oil_obs(snake_oil_facade):
     return snake_oil_facade.get_observations()
 
 
-@pytest.mark.parametrize("index_list", [None, [0, 1, 2, 3]])
+@pytest.mark.parametrize(
+    "index_list",
+    [None, [datetime(2010, 1, 10), datetime(2010, 1, 30), datetime(2010, 2, 9, 0, 0)]],
+)
 def test_scale_history_summary_obs(snake_oil_obs, index_list):
     scale_observations(snake_oil_obs, 1.2345, [Config("FOPR", index_list)])
 
     obs_vector = snake_oil_obs["FOPR"]
-    for index, node in enumerate(obs_vector):
-        if not index_list or index in index_list:
-            assert node.std_scaling == 1.2345, f"index: {index}"
+    for date, node in obs_vector.observations.items():
+        if not index_list or date in index_list:
+            assert node.std_scaling == 1.2345, f"index: {date}"
         else:
-            assert node.std_scaling == 1.0, f"index: {index}"
+            assert node.std_scaling == 1.0, f"index: {date}"
 
 
-@pytest.mark.parametrize("index_list", [None, [35]])
+@pytest.mark.parametrize("index_list", [None, [datetime(2010, 12, 26)]])
 def test_scale_summary_obs(snake_oil_obs, index_list):
     scale_observations(snake_oil_obs, 1.2345, [Config("WOPR_OP1_36", index_list)])
 
     obs_vector = snake_oil_obs["WOPR_OP1_36"]
-    node = obs_vector.observations[36]
-    assert node.std_scaling == 1.2345, f"index: {36}"
+    node = obs_vector.observations[datetime(2010, 12, 26)]
+    assert node.std_scaling == 1.2345, f"index: {datetime(2010, 12, 26)}"
 
 
 @pytest.mark.parametrize("index_list", [None, [400, 800]])

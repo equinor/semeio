@@ -26,13 +26,11 @@ def _update_scaling(obs, scale_factor, obs_list):
     for event in obs_list:
         obs_vector = obs[event.key]
         index_list = (
-            event.index
-            if event.index
-            else [x - 1 for x in obs_vector.observations.keys()]
+            event.index if event.index else list(obs_vector.observations.keys())
         )
         for step, obs_node in obs_vector.observations.items():
             if obs_vector.observation_type.name == "SUMMARY_OBS":
-                if step - 1 in index_list:
+                if step in index_list:
                     obs_node.std_scaling = scale_factor
             else:
                 obs_node.std_scaling[event.active_list] = scale_factor

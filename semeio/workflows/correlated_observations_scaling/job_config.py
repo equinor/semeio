@@ -1,4 +1,5 @@
 from copy import deepcopy
+from datetime import datetime
 
 import configsuite
 from configsuite import MetaKeys as MK
@@ -21,10 +22,12 @@ def _min_length(value):
 
 @configsuite.validator_msg("Minimum value of index must be >= 0")
 def _min_value(value):
-    return value >= 0
+    if isinstance(value, int):
+        return value >= 0
+    return True
 
 
-_NUM_CONVERT_MSG = "Will go through the input and try to convert to list of int"
+_NUM_CONVERT_MSG = "Will go through the input and try to convert to list"
 
 
 @configsuite.transformation_msg(_NUM_CONVERT_MSG)
@@ -33,6 +36,8 @@ def _to_int_list(value):
     if isinstance(value, int):
         return [value]
     if isinstance(value, (list, tuple)):
+        if all(isinstance(val, datetime) for val in value):
+            return value
         value = ",".join([str(x) for x in value])
     return _realize_list(value)
 
@@ -146,6 +151,15 @@ This configuration will calculate a scaling factor from indices 1-10,50-100
 on "FOPR", but only update the scaling on indices "50-100".
 """
 
+
+@configsuite.validator_msg("int or datetime")
+def _is_int_or_datetime(value):
+    return isinstance(value, (datetime, int))
+
+
+IntOrDate = configsuite.BasicType("int_or_datetime", _is_int_or_datetime)
+
+
 _KEYS_SCHEMA = {
     MK.ElementValidators: (_CALCULATE_KEYS_key_not_empty_list,),
     MK.Type: types.List,
@@ -167,7 +181,7 @@ _KEYS_SCHEMA = {
                     "(1,2,4-6,14-15) ->[1, 2, 4, 5, 6, 14, 15]",
                     MK.Content: {
                         MK.Item: {
-                            MK.Type: types.Integer,
+                            MK.Type: IntOrDate,
                             MK.ElementValidators: (_min_value,),
                         }
                     },

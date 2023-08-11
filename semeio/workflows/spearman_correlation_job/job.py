@@ -37,7 +37,7 @@ def spearman_job(
         zip(
             clusters,
             columns.get_level_values(0),
-            columns.get_level_values("data_index"),
+            columns.get_level_values("key_index"),
         )
     )
 
