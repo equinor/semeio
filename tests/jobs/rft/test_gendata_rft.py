@@ -624,7 +624,7 @@ def test_ert_setup_one_well_two_points_different_time_and_depth(tmpdir):
     )
 
     # Chosen filename syntax for obs file: <wellname>_<report_step>.obs
-    Path("observations/OP_1_1.obs").write_text("304 1\n-1 0\n", encoding="utf-8")
+    Path("observations/OP_1_1.obs").write_text("304 1\n-1 0.1\n", encoding="utf-8")
     Path("observations/OP_1_2.obs").write_text("-1 0.1\n249 1\n", encoding="utf-8")
     # measured pressure, abs error
 
