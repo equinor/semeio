@@ -4,7 +4,7 @@ import logging
 import math
 from collections import defaultdict
 from dataclasses import dataclass, field
-from typing import List
+from typing import Dict, List
 
 import cwrap
 import numpy as np
@@ -114,34 +114,22 @@ def read_localisation_config(args):
     return localisation_yml
 
 
-def active_index_for_parameter(node_name, param_name, ert_param_dict):
-    # For parameters defined as scalar parameters (coming from GEN_KW)
-    # the parameters for a node have a name. Get the index from the order
-    # of these parameters.
-
-    ert_param_list = ert_param_dict[node_name]
-    if len(ert_param_list) > 0:
-        index = -1
-        for count, name in enumerate(ert_param_list):
-            if name == param_name:
-                index = count
-                break
-        assert index > -1
-    return index
-
-
 def activate_gen_kw_param(
-    node_name, param_list, ert_param_dict, log_level=LogLevel.OFF
-):
+    node_name: str,
+    param_list: List[str],
+    ert_param_dict: Dict[str, List[str]],
+    log_level: LogLevel = LogLevel.OFF,
+) -> List[int]:
     """
     Activate the selected parameters for the specified node.
     The param_list contains the list of parameters defined in GEN_KW
     for this node to be activated.
     """
     debug_print("Set active parameters", LogLevel.LEVEL2, log_level)
+    all_params = ert_param_dict[node_name]
     index_list = []
     for param_name in param_list:
-        index = active_index_for_parameter(node_name, param_name, ert_param_dict)
+        index = all_params.index(param_name)
         if index is not None:
             debug_print(
                 f"Active parameter: {param_name}  index: {index}",
