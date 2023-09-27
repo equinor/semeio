@@ -339,7 +339,7 @@ def make_update_log_df(update_log_dir):
     updatelog = pd.read_csv(
         list_of_files[0],
         delim_whitespace=True,
-        skiprows=6,
+        skiprows=12,
         usecols=[2, 3, 5, 6, 8, 10],
         header=None,
         engine="python",
