@@ -6,8 +6,6 @@ from typing import Dict, List, Literal, Optional, Union
 from pydantic import BaseModel as PydanticBaseModel
 from pydantic import Extra, confloat, conint, conlist, root_validator, validator
 
-from semeio.workflows.localisation.localisation_debug_settings import LogLevel
-
 
 def expand_wildcards(patterns, list_of_words):
     all_matches = []
@@ -369,13 +367,6 @@ class LocalisationConfig(BaseModel):
     correlations: List[CorrelationConfig]
     log_level: Optional[conint(ge=0, le=5)] = 1
     write_scaling_factors: Optional[bool] = False
-
-    @validator("log_level")
-    def validate_log_level(cls, level):
-        # pylint: disable=no-self-use
-        if not isinstance(level, int):
-            level = LogLevel.OFF
-        return level
 
     @root_validator(pre=True)
     def inject_context(cls, values: Dict) -> Dict:
