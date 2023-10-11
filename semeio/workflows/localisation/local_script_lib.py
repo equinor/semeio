@@ -207,7 +207,8 @@ def apply_decay(
             f"The only allowed methods for function 'apply_decay' are: {_valid_methods}"
         )
 
-    scaling_vector = np.zeros(data_size, dtype=np.float32)
+    # scaling_vector = np.zeros(data_size, dtype=np.float32)
+    scaling_vector = np.zeros(data_size, dtype=np.float64)
     for index in range(data_size):
         scaling_vector[index] = decay_obj(index)
     row_scaling.assign_vector(scaling_vector)
@@ -238,7 +239,8 @@ def apply_from_file(row_scaling, data_size, grid, filename, param_name, log_leve
             file,
             param_name,
             strict=True,
-            ecl_type=EclDataType.ECL_FLOAT,
+            # ecl_type=EclDataType.ECL_FLOAT,
+            ecl_type=EclDataType.ECL_DOUBLE,
         )
         for index in range(data_size):
             global_index = grid.global_index(active_index=index)
@@ -702,6 +704,12 @@ def add_ministeps(
 
         # Setup observation group
         update_step["observations"] = obs_list
+        debug_print(
+            f"Observations in {ministep_name}:   {obs_list} ",
+            LogLevel.LEVEL3,
+            user_config.log_level,
+        )
+
         update_steps.append(update_step)
 
     return update_steps
