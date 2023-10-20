@@ -1078,15 +1078,6 @@ def add_ministeps(
                             param_for_field,
                             user_config.log_level,
                         )
-
-                        # write_qc_parameter_field(
-                        #     node_name,
-                        #     corr_spec.name,
-                        #     corr_spec.field_scale,
-                        #     grid_for_field,
-                        #     param_for_field,
-                        #     user_config.log_level,
-                        # )
                     update_step["row_scaling_parameters"].append(
                         [node_name, row_scaling]
                     )

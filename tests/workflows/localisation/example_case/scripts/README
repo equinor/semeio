@@ -1,0 +1,11 @@
+### Source code scripts
+
+- `common_functions.py`:  Functions used by the two scripts make_reference_data.py and sim_fields.py
+- `make_reference_data.py`:
+    - Create grid files, random seed file localisation config file and observation files for the test cases
+    - Create reference data (assuming the ERT and localistion code is correct and updated)
+- `sim_fields.py`:
+    - Used as forward model in ERT
+    - Simulate the GRF field, upscale it, extract responses (predictions) of observations.
+
+- `FM_SIM_FIELD`: ERT configuration of forward model SIM_FIELD using sim_fields.py.
