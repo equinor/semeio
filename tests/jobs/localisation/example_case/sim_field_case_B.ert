@@ -1,0 +1,57 @@
+DEFINE <USER>              $USER
+DEFINE <SCRATCH>           /scratch/fmu
+DEFINE <CASE_DIR>          sim_field_B
+DEFINE <ENSEMBLE_SEED_FILE> randomseeds.txt
+DEFINE <TEST_CONFIG>  <CONFIG_PATH>/example_test_config_B.yml
+INSTALL_JOB  SIM_FIELD  scripts/FM_SIM_FIELD
+-----------------------------------------------------
+-- Observations
+-----------------------------------------------------
+
+DEFINE      <OBS_FILE>  <CONFIG_PATH>/observations/observations.obs
+OBS_CONFIG  <OBS_FILE>
+TIME_MAP time_map.txt
+
+JOBNAME  sim_fields_<IENS>
+
+
+NUM_REALIZATIONS    10        -- Set number of realizations to run
+MAX_RUNTIME         18000          -- Set the maximum allowed run time (in seconds)
+MIN_REALIZATIONS    1              -- Success criteria
+MAX_SUBMIT          1              -- How many times should the queue system retry a simulation.
+QUEUE_OPTION  LSF MAX_RUNNING 100  -- Choke the number of simultaneous run
+QUEUE_OPTION LSF LSF_QUEUE  mr     -- Assign LSF cluster queue to use
+
+RUNPATH  <SCRATCH>/<USER>/<CASE_DIR>/realization-<IENS>/iter-<ITER>
+RANDOM_SEED  123456  -- ERT seed value
+
+ENSPATH         output/<CASE_DIR>/storage       -- Storage of internal ert data
+UPDATE_LOG_PATH  output/<CASE_DIR>/update_log    -- Info of active and inactive data points
+RUNPATH_FILE     output/<CASE_DIR>/runpath_file  -- List of runpaths
+
+-- LOAD_WORKFLOW localisation.wf  LOCALISATION_WORKFLOW
+-- HOOK_WORKFLOW  LOCALISATION_WORKFLOW    PRE_FIRST_UPDATE
+
+--Result data from forward model--
+GEN_DATA RESULT_UPSCALED_FIELD    RESULT_FILE:UpscaledField_%d.txt   REPORT_STEPS:0 INPUT_FORMAT:ASCII OUTPUT_FORMAT:ASCII
+
+-----------------------------------------------------
+-- Forward models
+-----------------------------------------------------
+--Simulate Gaussian field with trend and calculate upscaled values. Observables are upscaled values of selected grid cells.
+FORWARD_MODEL MAKE_DIRECTORY(<DIRECTORY>=init_files)
+-- Is used to identify iteration number (only relevant for old komodo versions)
+FORWARD_MODEL MAKE_DIRECTORY(<DIRECTORY>=<ITER>)
+-- The common seed file
+FORWARD_MODEL COPY_FILE(<FROM>=<CONFIG_PATH>/<ENSEMBLE_SEED_FILE>,  <TO>=<RUNPATH>/<ENSEMBLE_SEED_FILE>)
+-- For QC purpose only
+FORWARD_MODEL COPY_FILE(<FROM>=<CONFIG_PATH>/init_files/ObsField.GRDECL,  <TO>=<RUNPATH>/init_files/ObsField.GRDECL)
+FORWARD_MODEL MAKE_SYMLINK(<TARGET>=<CONFIG_PATH>/GRID_ECLIPSE_STANDARD_GRID_INDEX_ORIGO.EGRID, <LINKNAME>=<RUNPATH>/GRID_ECLIPSE_STANDARD_GRID_INDEX_ORIGO.EGRID)
+FORWARD_MODEL MAKE_SYMLINK(<TARGET>=<CONFIG_PATH>/UpscaleGrid.EGRID, <LINKNAME>=<RUNPATH>/UpscaleGrid.EGRID)
+-- The main forward model simulating gaussian field with trend, and upscale
+FORWARD_MODEL  SIM_FIELD(<ITERATION>=<ITER>,  <REALNUMBER>=<IENS>, <TEST_CONFIG>=<TEST_CONFIG>)
+
+
+GRID     <CONFIG_PATH>/GRID_ECLIPSE_STANDARD_GRID_INDEX_ORIGO.EGRID     -- Necessary for AHM using field parameters
+
+FIELD FIELDPAR   PARAMETER   FieldParam.GRDECL   INIT_FILES:init_files/FieldParam.GRDECL   MIN:-5.0   MAX:5.0   FORWARD_INIT:True

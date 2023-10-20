@@ -1,0 +1,5 @@
+settings:
+
+  field:
+    variogram: "spherical"
+    correlation_range: [4000.0, 4000.0,  2.0]

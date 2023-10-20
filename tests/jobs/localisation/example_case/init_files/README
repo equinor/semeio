@@ -1,0 +1,7 @@
+Directory where initial ensemble realisation is saved:
+FieldParam.roff - The field parameter
+Upscaled.roff    - The upscaled field parameter (for QC purpose)
+UpscaledObsField.roff  - The upscaled field parameter used when
+                                         extracting observations (selected grid cells to be used as observables)
+UpscaledConditionedCells.roff - A coarse grid parameter with all cells except the cells defined as observable
+                                                      with a dummy value  and the observable grid cells with the values used as observations.

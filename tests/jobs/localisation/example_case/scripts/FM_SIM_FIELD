@@ -1,0 +1,6 @@
+EXECUTABLE  ./sim_fields.py
+
+ARGLIST <ITER> <IENS> <TEST_CONFIG>
+
+STDERR  sim_fields.stderr
+STDOUT  sim_fields.stdout

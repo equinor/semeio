@@ -13,6 +13,8 @@ import numpy as np
 import yaml
 from ert.analysis.row_scaling import RowScaling
 from ert.config import Field, GenDataConfig, GenKwConfig, SurfaceConfig
+from ert.field_utils import save_field
+from ert.field_utils.field_file_format import FieldFileFormat
 from numpy import ma
 from resdata.geometry import Surface
 from resdata.grid.rd_grid import Grid
@@ -632,7 +634,9 @@ def add_ministeps(
                             tapering_range = (
                                 corr_spec.field_scale.normalised_tapering_range
                             )
-                        check_if_ref_point_in_grid(ref_pos, grid_for_field)
+                        check_if_ref_point_in_grid(
+                            ref_pos, grid_for_field, log_level=user_config.log_level
+                        )
                         param_for_field = apply_decay(
                             corr_spec.field_scale.method,
                             row_scaling,
@@ -695,6 +699,7 @@ def add_ministeps(
                             grid_for_field,
                             param_for_field,
                             user_config.log_level,
+                            node.file_format,
                         )
                     update_step["row_scaling_parameters"].append(
                         [node_name, row_scaling]
@@ -810,15 +815,21 @@ def add_ministeps(
     return update_steps
 
 
-def check_if_ref_point_in_grid(ref_point, grid):
+def check_if_ref_point_in_grid(ref_point, grid, log_level):
     try:
-        grid.find_cell_xy(ref_point[0], ref_point[1], 0)
+        (i_indx, j_indx) = grid.find_cell_xy(ref_point[0], ref_point[1], 0)
     except ValueError as err:
         raise ValueError(
             f"Reference point {ref_point} corresponds to undefined grid cell "
             f"or is outside the area defined by the grid {grid.get_name()}\n"
-            "Check specification of reference point."
+            "Check specification of reference point ",
+            "and grid index origin of grid with field parameters.",
         ) from err
+    debug_print(
+        f"Reference point {ref_point} has grid indices: ({i_indx}, {j_indx})",
+        LogLevel.LEVEL3,
+        log_level,
+    )
 
 
 @dataclass
@@ -946,35 +957,56 @@ class ScalingValues:
         grid,
         param_for_field,
         log_level=LogLevel.OFF,
+        file_format=FieldFileFormat.GRDECL,
     ):
         # pylint: disable=too-many-arguments
+
         if param_for_field is None or field_scale is None:
             return
 
-        scaling_values = np.reshape(
-            param_for_field, (grid.getNX(), grid.getNY(), grid.getNZ()), "F"
+        # Write scaling parameter  once per corr_name
+        if corr_name == cls.corr_name:
+            return
+
+        cls.corr_name = corr_name
+
+        # Need a parameter name <= 8 character long for GRDECL format
+        scaling_kw_name = "S_" + str(cls.scaling_param_number)
+        file_name_without_suffix = (
+            cls.corr_name + "_" + node_name + "_" + scaling_kw_name
         )
 
-        # Write scaling parameter  once per corr_name
-        if corr_name != cls.corr_name:
-            cls.corr_name = corr_name
-            # Need a parameter name <= 8 character long
-            scaling_kw_name = "S_" + str(cls.scaling_param_number)
+        if file_format == FieldFileFormat.GRDECL:
+            scaling_values = np.reshape(
+                param_for_field, (grid.getNX(), grid.getNY(), grid.getNZ()), "F"
+            )
+
             scaling_kw = grid.create_kw(scaling_values, scaling_kw_name, False)
-            filename = (
-                cls.corr_name + "_" + node_name + "_" + scaling_kw_name + ".GRDECL"
-            )
-            print(
-                "Write calculated scaling factor  with name: "
-                f"{scaling_kw_name} to file: {filename}"
-            )
-            debug_print(
-                f"Write calculated scaling factor with name: "
-                f"{scaling_kw_name} to file: {filename}",
-                LogLevel.LEVEL3,
-                log_level,
-            )
+            filename = file_name_without_suffix + ".GRDECL"
+
             with cwrap.open(filename, "w") as file:
                 grid.write_grdecl(scaling_kw, file)
-            # Increase parameter number to define unique parameter name
-            cls.scaling_param_number = cls.scaling_param_number + 1
+            # For testing
+            name = scaling_kw_name + "_use_save_field"
+            save_field(scaling_values, name, filename, FieldFileFormat.GRDECL)
+
+        elif file_format == FieldFileFormat.ROFF:
+            scaling_values = np.reshape(
+                param_for_field, (grid.getNX(), grid.getNY(), grid.getNZ()), "C"
+            )
+            filename = file_name_without_suffix + ".roff"
+            save_field(scaling_values, scaling_kw_name, filename, FieldFileFormat.ROFF)
+
+        print(
+            "Write calculated scaling factor  with name: "
+            f"{scaling_kw_name} to file: {filename}"
+        )
+        debug_print(
+            f"Write calculated scaling factor with name: "
+            f"{scaling_kw_name} to file: {filename}",
+            LogLevel.LEVEL3,
+            log_level,
+        )
+
+        # Increase parameter number to define unique parameter name
+        cls.scaling_param_number = cls.scaling_param_number + 1

@@ -1,0 +1,54 @@
+# ROFF format standard Eclipse origo
+settings:
+  grid_size:
+    xsize: 7500.0
+    ysize: 12500.0
+    zsize: 50.0
+    use_eclipse_grid_index_origo: True
+    polygon_file: "Polygons.txt"
+
+  field:
+    name: "FIELDPAR"
+    algorithm: "gstools"
+    file_format: "ROFF"
+    initial_file_name: "init_files/FieldParam"
+    updated_file_name: "FieldParam"
+    seed_file: "randomseeds.txt"
+    variogram: "gaussian"
+    correlation_range: [3000.0, 2000.0,  2.0]
+    correlation_azimuth:  45.0
+    correlation_dip: 0.0
+    correlation_exponent: 1.9
+    trend_use: False
+    trend_params: [ 1.0, -1.0 ]
+    trend_relstd: 0.15
+    grid_dimension: [150, 250, 1]
+    grid_file_name: "GRID_WITH_ACTNUM.EGRID"
+
+  response:
+    name: "UPSCALED"
+    grid_dimension: [15, 25, 1]
+    upscaled_file_name:  "Upscaled"
+    grid_file_name: "UpscaleGrid.EGRID"
+    file_format: "ROFF"
+    write_upscaled_field: True
+    response_function: "average"
+    gen_data_file_name: "UpscaledField_0.txt"
+
+  observation:
+    directory: "observations"
+    file_name: "observations.obs"
+    data_dir: "obs_data"
+    reference_param_file: "init_files/ObsField"
+    reference_field_name: "ObsField"
+    rel_error: 0.10
+    min_abs_error: 0.01
+#    selected_grid_cells:
+#      - [5, 10, 1]
+#      - [10, 5, 1]
+
+  localisation:
+    method: "gaussian"
+
+  optional:
+    write_obs_pred_diff_field_file: True
