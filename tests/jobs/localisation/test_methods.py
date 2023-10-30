@@ -16,8 +16,7 @@ from semeio.workflows.localisation.local_script_lib import (
     smooth_parameter,
 )
 
-# pylint: disable=duplicate-code,invalid-name
-
+# pylint: disable=invalid-name
 
 def create_box_grid(
     nx=10,
