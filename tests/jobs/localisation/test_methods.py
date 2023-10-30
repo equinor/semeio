@@ -26,7 +26,6 @@ def create_box_grid(
     dx=50.0,
     dy=50.0,
     dz=10.0,
-    write_grid_file=False,
     use_actnum=False,
 ):
     # pylint: disable=too-many-arguments
@@ -37,8 +36,6 @@ def create_box_grid(
         actnum = actnum_parameter(nx, ny, nz)
     grid = EclGridGenerator.create_rectangular(dimensions, increments, actnum=actnum)
 
-    if write_grid_file:
-        grid.save_EGRID("tmp_grid.EGRID")
     return grid, nx, ny, nz
 
 
@@ -325,9 +322,10 @@ def test_decay_function_with_new_options(snapshot):
         dx=20.0,
         dy=20.0,
         dz=10.0,
-        write_grid_file=True,
         use_actnum=False,
     )
+    grid.save_EGRID("tmp_grid.EGRID")
+
     method_name = "const_gaussian_decay"
     scaling_values = create_parameter_from_decay_functions(method_name, grid)
     snapshot.assert_match(str(scaling_values), "testdata_scaling_decay_method1.txt")
