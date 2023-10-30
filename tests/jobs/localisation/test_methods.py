@@ -18,6 +18,7 @@ from semeio.workflows.localisation.local_script_lib import (
 
 # pylint: disable=invalid-name
 
+
 def create_box_grid(
     nx=10,
     ny=10,
@@ -42,14 +43,13 @@ def create_box_grid(
 
 
 def actnum_parameter(nx, ny, nz):
-    actnum_param = np.ones(nx * ny * nz, dtype=np.int32)
-    for k, j, i in itertools.product(range(nz), range(ny), range(nx)):
-        index = i + j * nx + k * nx * ny
-        if 0 <= i < 2 and 0 <= j < ny / 2:
-            actnum_param[index] = 0
-        if nx - 2 <= i < nx and ny - 3 <= j < ny:
-            actnum_param[index] = 0
-    return actnum_param
+    actnum_param = np.ones((nz, ny, nx), dtype=np.int32)
+
+    actnum_param[:, : ny // 2, :2] = 0
+
+    actnum_param[:, -3:, -2:] = 0
+
+    return actnum_param.ravel()
 
 
 def create_region_parameter(
