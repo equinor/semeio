@@ -52,40 +52,40 @@ def actnum_parameter(nx, ny, nz):
 def create_region_parameter(
     grid, nx, ny, nz, scaling_per_region=None, used_regions=None
 ):
-    # pylint: disable=too-many-branches,too-many-arguments
-    region_param = ma.zeros(nx * ny * nz, dtype=np.int32)
-    scaling_param = ma.zeros(nx * ny * nz, dtype=np.float32)
-    for k, j, i in itertools.product(range(nz), range(ny), range(nx)):
-        index = i + j * nx + k * nx * ny
-        active_index = grid.get_active_index(global_index=index)
-        if active_index >= 0:
-            if 0 <= i < nx / 2 and 0 <= j < ny / 2:
-                region_param[index] = 1
-            elif 0 <= i < nx / 2 and ny / 2 <= j < ny:
-                region_param[index] = 2
-            elif nx / 2 <= i < nx and ny / 3 <= j < 2 * ny / 3:
-                region_param[index] = 3
-        else:
-            region_param[index] = ma.masked
+    # Create 3D meshgrids for indices using 'xy' indexing for Fortran order
+    j, i, k = np.meshgrid(np.arange(ny), np.arange(nx), np.arange(nz), indexing="xy")
 
+    # Initialize region and scaling arrays
+    region_param = ma.zeros((ny, nx, nz), dtype=np.int32)
+    scaling_param = ma.zeros((ny, nx, nz), dtype=np.float32)
+
+    # Generate the global index in Fortran order and get the active index
+    global_indices = i + j * nx + k * nx * ny
+    active_indices = np.vectorize(grid.get_active_index)(global_index=global_indices)
+
+    # Set region values based on conditions
+    condition_1 = (i < nx / 2) & (j < ny / 2)
+    condition_2 = (i < nx / 2) & (j >= ny / 2) & (j < ny)
+    condition_3 = (i >= nx / 2) & (j >= ny / 3) & (j < 2 * ny / 3)
+
+    region_param[condition_1] = 1
+    region_param[condition_2] = 2
+    region_param[condition_3] = 3
+
+    inactive = active_indices < 0
+    region_param[inactive] = ma.masked
+
+    # If scaling factors are provided
     if scaling_per_region is not None:
-        for k, j, i in itertools.product(range(nz), range(ny), range(nx)):
-            index = i + j * nx + k * nx * ny
-            active_index = grid.get_active_index(global_index=index)
-            if active_index >= 0:
-                scaling_param[index] = scaling_per_region[region_param[index]]
-            else:
-                scaling_param[index] = ma.masked
+        scaling_param = np.take(scaling_per_region, region_param)
+        scaling_param[inactive] = ma.masked
 
+    # If used regions are specified
     if used_regions is not None:
-        for k, j, i in itertools.product(range(nz), range(ny), range(nx)):
-            index = i + j * nx + k * nx * ny
-            active_index = grid.get_active_index(global_index=index)
-            if active_index >= 0:
-                if region_param[index] not in used_regions:
-                    region_param[index] = ma.masked
+        mask_used = np.isin(region_param, used_regions, invert=True)
+        region_param[np.logical_and(mask_used, ~inactive)] = ma.masked
 
-    return region_param, scaling_param
+    return region_param.ravel(order="F"), scaling_param.ravel(order="F")
 
 
 def create_parameter_from_decay_functions(method_name, grid):
