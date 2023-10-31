@@ -1,4 +1,3 @@
-import itertools
 from collections import namedtuple
 
 import cwrap
@@ -246,9 +245,9 @@ def test_exponentialtype_decay_functions(method, index_list, expected):
 
     data_size = nx * ny * nz
     scaling_vector = np.zeros(data_size, dtype=np.float32)
-    for k, j, i in itertools.product(range(nz), range(ny), range(nx)):
-        index = i + j * nx + k * nx * ny
-        scaling_vector[index] = decay_obj(index)
+    j, i, k = np.meshgrid(np.arange(ny), np.arange(nx), np.arange(nz), indexing="xy")
+    global_indices = i + j * nx + k * nx * ny
+    scaling_vector[global_indices] = np.vectorize(decay_obj)(global_indices)
 
     result = [scaling_vector[i] for i in index_list]
     assert result == [expected] * len(index_list)
