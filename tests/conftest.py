@@ -1,5 +1,4 @@
 import fileinput
-import gc
 import os
 import shutil
 import subprocess
@@ -22,11 +21,6 @@ def fixture_test_data_root():
 def setup_tmpdir(tmpdir):
     with tmpdir.as_cwd():
         yield
-    # This makes sure EnkFMain is cleaned up between
-    # each test, otherwise a storage folder is created
-    # in semeio root dir at the end of the test run.
-    # Should be deleted when we no longer use EnkFMain
-    gc.collect()
 
 
 @pytest.fixture(scope="session", autouse=True)
