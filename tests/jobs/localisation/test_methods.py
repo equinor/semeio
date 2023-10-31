@@ -1,4 +1,5 @@
 import itertools
+from collections import namedtuple
 
 import cwrap
 import numpy as np
@@ -18,25 +19,21 @@ from semeio.workflows.localisation.local_script_lib import (
 
 # pylint: disable=invalid-name
 
+BoxDimensions = namedtuple("BoxDimensions", ["nx", "ny", "nz"])
+BoxIncrements = namedtuple("BoxIncrements", ["dx", "dy", "dz"])
+
 
 def create_box_grid(
-    nx=10,
-    ny=10,
-    nz=3,
-    dx=50.0,
-    dy=50.0,
-    dz=10.0,
+    dimensions=BoxDimensions(10, 10, 3),
+    increments=BoxIncrements(50.0, 50.0, 10.0),
     use_actnum=False,
 ):
-    # pylint: disable=too-many-arguments
-    dimensions = (nx, ny, nz)
-    increments = (dx, dy, dz)
     actnum = None
     if use_actnum:
-        actnum = actnum_parameter(nx, ny, nz)
+        actnum = actnum_parameter(*dimensions)
     grid = EclGridGenerator.create_rectangular(dimensions, increments, actnum=actnum)
 
-    return grid, nx, ny, nz
+    return grid, *dimensions
 
 
 def actnum_parameter(nx, ny, nz):
@@ -316,12 +313,8 @@ def test_smooth_parameter(snapshot):
 
 def test_decay_function_with_new_options(snapshot):
     grid, _, _, _ = create_box_grid(
-        nx=25,
-        ny=25,
-        nz=10,
-        dx=20.0,
-        dy=20.0,
-        dz=10.0,
+        dimensions=BoxDimensions(25, 25, 10),
+        increments=BoxIncrements(20.0, 20.0, 10.0),
         use_actnum=False,
     )
     grid.save_EGRID("tmp_grid.EGRID")
