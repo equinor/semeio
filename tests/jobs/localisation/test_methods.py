@@ -47,8 +47,12 @@ def actnum_parameter(nx, ny, nz):
 
 
 def create_region_parameter(
-    grid, nx, ny, nz, scaling_per_region=None, used_regions=None
+    grid, dimensions, scaling_per_region=None, used_regions=None
 ):
+    # pylint: disable=too-many-locals
+    # Extracting dimensions from the named tuple
+    nx, ny, nz = dimensions
+
     # Create 3D meshgrids for indices using 'xy' indexing for Fortran order
     j, i, k = np.meshgrid(np.arange(ny), np.arange(nx), np.arange(nz), indexing="xy")
 
@@ -264,7 +268,7 @@ def test_calculate_scaling_factors_in_regions(snapshot):
           write_param(param_filename, grid, param_values, param_name, nx, ny, nz)
     """
     grid, nx, ny, nz = create_box_grid(use_actnum=True)
-    region_param_masked, _ = create_region_parameter(grid, nx, ny, nz)
+    region_param_masked, _ = create_region_parameter(grid, BoxDimensions(nx, ny, nz))
     active_segment_list = [1, 2, 3]
     scaling_value_list = [1.0, 0.5, 0.2]
     smooth_range_list = None
@@ -296,9 +300,7 @@ def test_smooth_parameter(snapshot):
     scaling_per_region = [0, 1.0, 0.5, 0.2]
     region_param_used, scaling_param = create_region_parameter(
         grid,
-        nx,
-        ny,
-        nz,
+        BoxDimensions(nx, ny, nz),
         scaling_per_region=scaling_per_region,
         used_regions=[1, 2, 3],
     )
