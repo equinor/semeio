@@ -47,9 +47,7 @@ repository = "https://github.com/equinor/semeio"
 
 [project.entry-points."ert"]
 semeio_jobs = "semeio.hook_implementations.jobs"
-SpearmanCorrelation = "semeio.workflows.spearman_correlation_job.spearman_correlation"
 MisfitPreprocessor = "semeio.workflows.misfit_preprocessor.misfit_preprocessor"
-CorrelatedObsScaling = "semeio.workflows.correlated_observations_scaling.cos"
 CsvExport2Job = "semeio.workflows.csv_export2.csv_export2"
 AhmAnalysisJob = "semeio.workflows.ahm_analysis.ahmanalysis"
 LocalisationConfigJob = "semeio.workflows.localisation.local_config_script"
