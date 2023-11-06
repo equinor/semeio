@@ -8,10 +8,9 @@ from numpy import ma
 
 from semeio.workflows.localisation.local_script_lib import (
     ConstantScalingFactor,
-    ConstExponentialDecay,
-    ConstGaussianDecay,
     ExponentialDecay,
     GaussianDecay,
+    build_decay_object,
     calculate_scaling_factors_in_regions,
     smooth_parameter,
 )
@@ -103,49 +102,19 @@ def create_parameter_from_decay_functions(method_name, grid):
     ny = grid.getNY()
     nz = grid.getNZ()
     filename = "tmp_" + method_name + ".grdecl"
-    if method_name == "const_gaussian_decay":
-        decay_obj = ConstGaussianDecay(
-            ref_pos,
-            main_range,
-            perp_range,
-            azimuth,
-            grid,
-            tapering_range,
-            use_cutoff,
-        )
-    elif method_name == "const_exponential_decay":
-        decay_obj = ConstExponentialDecay(
-            ref_pos,
-            main_range,
-            perp_range,
-            azimuth,
-            grid,
-            tapering_range,
-            use_cutoff,
-        )
-    elif method_name == "gaussian_decay":
-        decay_obj = GaussianDecay(
-            ref_pos,
-            main_range,
-            perp_range,
-            azimuth,
-            grid,
-            use_cutoff,
-        )
-    elif method_name == "exponential_decay":
-        decay_obj = ExponentialDecay(
-            ref_pos,
-            main_range,
-            perp_range,
-            azimuth,
-            grid,
-            use_cutoff,
-        )
-    elif method_name == "constant":
+    if method_name == "constant":
         decay_obj = ConstantScalingFactor(constant_value)
     else:
-        raise ValueError(f"Not implemented:  {method_name}")
-
+        decay_obj = build_decay_object(
+            method_name,
+            ref_pos,
+            main_range,
+            perp_range,
+            azimuth,
+            grid,
+            tapering_range,
+            use_cutoff,
+        )
     data_size = nx * ny * nz
     scaling_vector = np.zeros(data_size, dtype=np.float32)
     for index in range(data_size):
