@@ -142,25 +142,17 @@ def activate_gen_kw_param(
     return index_list
 
 
-def apply_decay(
+def build_decay_object(
     method,
-    row_scaling,
-    data_size,
-    grid,
     ref_pos,
     main_range,
     perp_range,
     azimuth,
-    use_cutoff=False,
+    grid,
+    use_cutoff,
     tapering_range=None,
-    calculate_qc_parameter=False,
 ):
-    # pylint: disable=too-many-arguments,too-many-locals
-    """
-    Calculates the scaling factor, assign it to ERT instance by row_scaling
-    and returns a full sized grid parameter with scaling factors for active
-    grid cells and 0 elsewhere to be used for QC purpose.
-    """
+    # pylint: disable=too-many-arguments
     if method == "gaussian_decay":
         decay_obj = GaussianDecay(
             ref_pos,
@@ -209,8 +201,39 @@ def apply_decay(
         raise NotImplementedError(
             f"The only allowed methods for function 'apply_decay' are: {_valid_methods}"
         )
+    return decay_obj
 
-    # scaling_vector = np.zeros(data_size, dtype=np.float32)
+
+def apply_decay(
+    method,
+    row_scaling,
+    data_size,
+    grid,
+    ref_pos,
+    main_range,
+    perp_range,
+    azimuth,
+    use_cutoff=False,
+    tapering_range=None,
+    calculate_qc_parameter=False,
+):
+    # pylint: disable=too-many-arguments,too-many-locals
+    """
+    Calculates the scaling factor, assign it to ERT instance by row_scaling
+    and returns a full sized grid parameter with scaling factors for active
+    grid cells and 0 elsewhere to be used for QC purpose.
+    """
+    decay_obj = build_decay_object(
+        method,
+        ref_pos,
+        main_range,
+        perp_range,
+        azimuth,
+        grid,
+        use_cutoff,
+        tapering_range,
+    )
+
     scaling_vector = np.zeros(data_size, dtype=np.float64)
     for index in range(data_size):
         scaling_vector[index] = decay_obj(index)
