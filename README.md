@@ -61,7 +61,7 @@ this requires that the test dependencies from `test_requirements.txt` are instal
 
 ```sh
 # Install test requirements
-pip install -r test_requirements.txt
+pip install "semeio[test]"
 ```
 
 [pre-commit](https://pre-commit.com/) is used to comply with the formatting standards.
@@ -80,7 +80,7 @@ to avoid commiting with formatting errors. This will only run on the diff so is 
 To configure this, run:
 
 ```sh
-pip install -r test_requirements.txt
+pip install "semeio[test]"
 pip install pre-commit
 pre-commit install
 ```
