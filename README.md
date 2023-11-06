@@ -57,7 +57,7 @@ iteration it is possible to run:
 pytest
 ```
 
-this requires that the test dependencies from `test_requirements.txt` are installed:
+this requires that test-dependencies are installed:
 
 ```sh
 # Install test requirements

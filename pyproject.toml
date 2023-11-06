@@ -67,6 +67,20 @@ replace_string = "semeio.jobs.scripts.replace_string:main_entry_point"
 [tool.setuptools_scm]
 write_to = "semeio/version.py"
 
+[project.optional-dependencies]
+test = [
+"hypothesis",
+"odfpy",
+"oil_reservoir_synthesizer",
+"openpyxl",
+"pytest",
+"pytest-console-scripts",
+"pytest-httpserver",
+"pytest-snapshot",
+"rstcheck-core<=1.0.3",
+"xlwt",
+]
+
 [tool.black]
 exclude = '''
 
