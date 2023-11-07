@@ -5,8 +5,8 @@ import warnings
 from pathlib import Path
 from typing import List, Tuple
 
-from ecl.grid import EclGrid
-from ecl.rft import EclRFTFile
+from resdata.grid import Grid
+from resdata.rft import ResdataRFTFile
 
 
 def strip_comments(line):
@@ -131,7 +131,7 @@ def valid_eclbase(file_path):
         raise argparse.ArgumentTypeError(f"The path {rft_filepath} does not exist")
 
     try:
-        ecl_rft = EclRFTFile(rft_filepath)
+        ecl_rft = ResdataRFTFile(rft_filepath)
     except (IOError, OSError) as err:
         raise argparse.ArgumentTypeError(
             (
@@ -146,7 +146,7 @@ def valid_eclbase(file_path):
         raise argparse.ArgumentTypeError(f"The path {grid_filepath} does not exist")
 
     try:
-        ecl_grid = EclGrid(grid_filepath)
+        ecl_grid = Grid(grid_filepath)
     except (IOError, OSError) as err:
         raise argparse.ArgumentTypeError(
             (

@@ -2,7 +2,7 @@ import os
 
 import numpy as np
 import pytest
-from ecl.grid import EclGrid, EclGridGenerator
+from resdata.grid import Grid, GridGenerator
 
 from semeio.jobs.overburden_timeshift.ots_res_surface import OTSResSurface
 
@@ -23,7 +23,7 @@ def get_source_ert(grid):
 def test_res_surface(ots_tmpdir_enter):
     eclcase_dir = ots_tmpdir_enter
     grid_path = os.path.join(eclcase_dir, "NORNE_ATW2013.EGRID")
-    grid = EclGrid(grid_path, apply_mapaxes=False)
+    grid = Grid(grid_path, apply_mapaxes=False)
 
     rec = OTSResSurface(grid=grid, above=100)
 
@@ -43,7 +43,7 @@ def test_res_surface(ots_tmpdir_enter):
 @pytest.mark.usefixtures("tmpdir")
 def test_surface():
     # pylint: disable=invalid-name
-    grid = EclGridGenerator.createRectangular(
+    grid = GridGenerator.create_rectangular(
         dims=(2, 2, 2), dV=(100, 100, 100), actnum=[0, 0, 0, 0, 1, 1, 1, 1]
     )
 
@@ -56,7 +56,7 @@ def test_surface():
 @pytest.mark.usefixtures("tmpdir")
 def test_surface_above():
     # pylint: disable=invalid-name
-    grid = EclGridGenerator.createRectangular(
+    grid = GridGenerator.create_rectangular(
         dims=(2, 2, 2), dV=(100, 100, 100), actnum=[0, 0, 0, 0, 1, 1, 1, 1]
     )
 

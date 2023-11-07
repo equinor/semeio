@@ -3,8 +3,8 @@ from collections import namedtuple
 import cwrap
 import numpy as np
 import pytest
-from ecl.grid.ecl_grid_generator import EclGridGenerator
 from numpy import ma
+from resdata.grid.rd_grid_generator import GridGenerator
 
 from semeio.workflows.localisation.local_script_lib import (
     ConstantScalingFactor,
@@ -29,7 +29,7 @@ def create_box_grid(
     actnum = None
     if use_actnum:
         actnum = actnum_parameter(*dimensions)
-    grid = EclGridGenerator.create_rectangular(dimensions, increments, actnum=actnum)
+    grid = GridGenerator.create_rectangular(dimensions, increments, actnum=actnum)
 
     return grid, *dimensions
 

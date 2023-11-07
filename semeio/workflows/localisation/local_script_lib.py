@@ -11,13 +11,13 @@ from typing import Dict, List
 import cwrap
 import numpy as np
 import yaml
-from ecl.ecl_type import EclDataType
-from ecl.eclfile import Ecl3DKW
-from ecl.grid.ecl_grid import EclGrid
-from ecl.util.geometry import Surface
 from ert.analysis.row_scaling import RowScaling
 from ert.config import Field, GenDataConfig, GenKwConfig, SurfaceConfig
 from numpy import ma
+from resdata.geometry import Surface
+from resdata.grid.rd_grid import Grid
+from resdata.rd_type import ResDataType
+from resdata.resfile import Resdata3DKW
 
 from semeio.workflows.localisation.localisation_debug_settings import (
     LogLevel,
@@ -241,10 +241,10 @@ def apply_decay(
 
     scaling_values = None
     if calculate_qc_parameter:
-        if isinstance(grid, EclGrid):
-            nx = grid.getNX()
-            ny = grid.getNY()
-            nz = grid.getNZ()
+        if isinstance(grid, Grid):
+            nx = grid.get_nx()
+            ny = grid.get_ny()
+            nz = grid.get_nz()
             scaling_values = np.zeros(nx * ny * nz, dtype=np.float32)
             for index in range(data_size):
                 global_index = grid.global_index(active_index=index)
@@ -278,10 +278,10 @@ def apply_constant(
 
     scaling_values = None
     if calculate_qc_parameter:
-        if isinstance(grid, EclGrid):
-            nx = grid.getNX()
-            ny = grid.getNY()
-            nz = grid.getNZ()
+        if isinstance(grid, Grid):
+            nx = grid.get_nx()
+            ny = grid.get_ny()
+            nz = grid.get_nz()
             scaling_values = np.zeros(nx * ny * nz, dtype=np.float32)
             for index in range(data_size):
                 global_index = grid.global_index(active_index=index)
@@ -297,12 +297,12 @@ def apply_from_file(row_scaling, data_size, grid, filename, param_name, log_leve
     )
     debug_print(f"File name:  {filename}", LogLevel.LEVEL3, log_level)
     with cwrap.open(filename, "r") as file:
-        scaling_parameter = Ecl3DKW.read_grdecl(
+        scaling_parameter = Resdata3DKW.read_grdecl(
             grid,
             file,
             param_name,
             strict=True,
-            ecl_type=EclDataType.ECL_FLOAT,
+            rd_type=ResDataType.RD_FLOAT,
         )
         for index in range(data_size):
             global_index = grid.global_index(active_index=index)
@@ -528,12 +528,12 @@ def read_region_files_for_all_correlation_groups(user_config, grid):
                 if filename not in corr_name_dict:
                     # Read the file
                     with cwrap.open(filename, "r") as file:
-                        region_parameter_read = Ecl3DKW.read_grdecl(
+                        region_parameter_read = Resdata3DKW.read_grdecl(
                             grid,
                             file,
                             param_name,
                             strict=True,
-                            ecl_type=EclDataType.ECL_INT,
+                            rd_type=ResDataType.RD_INT,
                         )
                     region_parameter = np.zeros(nx * ny * nz, dtype=np.int32)
                     not_active = np.zeros(nx * ny * nz, dtype=np.int32)
@@ -837,7 +837,7 @@ class Decay:
 
     def get_dx_dy(self, data_index):
         try:
-            # Assume the grid is 3D EclGrid
+            # Assume the grid is 3D Grid
             x, y, _ = self.grid.get_xyz(active_index=data_index)
         except AttributeError:
             # Assume the grid is a 2D Surface grid

@@ -4,8 +4,8 @@ import datetime
 
 import numpy as np
 import pytest
-from ecl.grid import EclGrid
-from ecl.rft import EclRFTFile
+from resdata.grid import Grid
+from resdata.rft import ResdataRFTFile
 
 from semeio.jobs.rft.trajectory import Trajectory, TrajectoryPoint
 from tests.jobs.rft import conftest
@@ -19,8 +19,8 @@ def test_update_simdata_from_rft_reek():
     """Test data extraction from the binary Eclipse files
     for a single well point using TrajectoryPoint.update_simdata_from_rft()"""
 
-    grid = EclGrid(ECL_BASE_REEK + ".EGRID")
-    rft = EclRFTFile(ECL_BASE_REEK + ".RFT")
+    grid = Grid(ECL_BASE_REEK + ".EGRID")
+    rft = ResdataRFTFile(ECL_BASE_REEK + ".RFT")
     rft_well_date = rft.get("OP_1", datetime.date(2000, 2, 1))
 
     # A trajectory point for an active cell in reek:
@@ -51,8 +51,8 @@ def test_update_simdata_from_rft_norne():
     does not contain saturations, and in libecl terms contains EclPLTCell
     as opposed to EclRFTCell as in Reek"""
 
-    grid = EclGrid(ECL_BASE_NORNE + ".EGRID")
-    rft = EclRFTFile(ECL_BASE_NORNE + ".RFT")
+    grid = Grid(ECL_BASE_NORNE + ".EGRID")
+    rft = ResdataRFTFile(ECL_BASE_NORNE + ".RFT")
     rft_well_date = rft.get("C-3H", datetime.date(1999, 5, 4))
 
     # A trajectory point for an active cell in Norne, picked
@@ -83,8 +83,8 @@ def test_update_simdata_from_rft_norne():
 
 
 def test_update_simdata_outside_grid():
-    grid = EclGrid(ECL_BASE_REEK + ".EGRID")
-    rft = EclRFTFile(ECL_BASE_REEK + ".RFT")
+    grid = Grid(ECL_BASE_REEK + ".EGRID")
+    rft = ResdataRFTFile(ECL_BASE_REEK + ".RFT")
     rft_well_date = rft.get("OP_1", datetime.date(2000, 2, 1))
 
     # A point outside the grid:
@@ -103,8 +103,8 @@ def test_update_simdata_outside_grid():
 
 
 def test_update_simdata_outside_well():
-    grid = EclGrid(ECL_BASE_REEK + ".EGRID")
-    rft = EclRFTFile(ECL_BASE_REEK + ".RFT")
+    grid = Grid(ECL_BASE_REEK + ".EGRID")
+    rft = ResdataRFTFile(ECL_BASE_REEK + ".RFT")
     rft_well_date = rft.get("OP_1", datetime.date(2000, 2, 1))
 
     # A point in the grid, but not related to the well

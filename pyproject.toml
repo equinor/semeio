@@ -26,7 +26,7 @@ classifiers=[
 ]
 dynamic = ["version"]
 dependencies=[
-    "ecl",
+    "resdata",
     "ert>=6.0.0-rc0",
     "configsuite>=0.6",
     "numpy",
@@ -35,7 +35,7 @@ dependencies=[
     "scikit-learn",
     "scipy",
     "xlrd",
-    "stea",
+    "stea @ git+https://github.com/equinor/fmu-steaclient.git",
     "pyscal>=0.4.0",
     "fmu-ensemble",
     "segyio",
