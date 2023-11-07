@@ -3,7 +3,7 @@ import os
 import pytest
 import xtgeo
 import yaml
-from ecl.grid import EclGrid
+from resdata.grid import Grid
 
 from semeio.jobs.overburden_timeshift.ots import ots_run
 
@@ -29,7 +29,7 @@ def test_ots_config_run_parameters(
     # pylint: disable=too-many-arguments,too-many-locals,invalid-name
     eclcase_dir = ots_tmpdir_enter
     grid_file = os.path.join(eclcase_dir, "NORNE_ATW2013.EGRID")
-    grid = EclGrid(grid_file, apply_mapaxes=True)
+    grid = Grid(grid_file, apply_mapaxes=True)
 
     mock_segy(grid, res_scale, size_scale, pos_shift, "norne_vol.segy")
 

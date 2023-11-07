@@ -2,15 +2,15 @@ import os
 
 import numpy as np
 import segyio
-from ecl import EclDataType
-from ecl.eclfile import EclKW, FortIO, openFortIO
-from ecl.grid import EclGrid
+from resdata import ResDataType
+from resdata.grid import Grid
+from resdata.resfile import FortIO, ResdataKW, openFortIO
 from segyio import TraceField
 
 
 def create_init(grid, case):
-    poro = EclKW("PORO", grid.getNumActive(), EclDataType.ECL_FLOAT)
-    porv = EclKW("PORV", grid.getGlobalSize(), EclDataType.ECL_FLOAT)
+    poro = ResdataKW("PORO", grid.getNumActive(), ResDataType.RD_FLOAT)
+    porv = ResdataKW("PORV", grid.getGlobalSize(), ResDataType.RD_FLOAT)
 
     with openFortIO(f"{case}.INIT", mode=FortIO.WRITE_MODE) as file:
         poro.fwrite(file)
@@ -20,15 +20,15 @@ def create_init(grid, case):
 def create_restart(grid, case, rporv=None):
     # pylint: disable=invalid-name
     with openFortIO(f"{case}.UNRST", mode=FortIO.WRITE_MODE) as file:
-        seq_hdr = EclKW("SEQNUM", 1, EclDataType.ECL_FLOAT)
+        seq_hdr = ResdataKW("SEQNUM", 1, ResDataType.RD_FLOAT)
         seq_hdr[0] = 1
-        p = EclKW("PRESSURE", grid.getNumActive(), EclDataType.ECL_FLOAT)
+        p = ResdataKW("PRESSURE", grid.getNumActive(), ResDataType.RD_FLOAT)
         p.assign(1)
 
         for i, _ in enumerate(p):
             p[i] = 10
 
-        header = EclKW("INTEHEAD", 67, EclDataType.ECL_INT)
+        header = ResdataKW("INTEHEAD", 67, ResDataType.RD_INT)
         header[64] = 1
         header[65] = 1
         header[66] = 2000
@@ -38,7 +38,7 @@ def create_restart(grid, case, rporv=None):
         p.fwrite(file)
 
         if rporv:
-            rp = EclKW("RPORV", grid.getNumActive(), EclDataType.ECL_FLOAT)
+            rp = ResdataKW("RPORV", grid.getNumActive(), ResDataType.RD_FLOAT)
             for idx, val in enumerate(rporv):
                 rp[idx] = val
             rp.fwrite(file)
@@ -53,7 +53,7 @@ def create_restart(grid, case, rporv=None):
         p.fwrite(file)
 
         if rporv:
-            rp = EclKW("RPORV", grid.getNumActive(), EclDataType.ECL_FLOAT)
+            rp = ResdataKW("RPORV", grid.getNumActive(), ResDataType.RD_FLOAT)
             for idx, val in enumerate(rporv):
                 rp[idx] = val
             rp.fwrite(file)
@@ -68,7 +68,7 @@ def create_restart(grid, case, rporv=None):
         p.fwrite(file)
 
         if rporv:
-            rp = EclKW("RPORV", grid.getNumActive(), EclDataType.ECL_FLOAT)
+            rp = ResdataKW("RPORV", grid.getNumActive(), ResDataType.RD_FLOAT)
             for idx, val in enumerate(rporv):
                 rp[idx] = val
             rp.fwrite(file)
@@ -109,7 +109,7 @@ def create_segy_file(name, spec, trace=None, il=None, xl=None, cdp_x=None, cdp_y
 
 
 def mock_segy(
-    ecl_grid,
+    rd_grid,
     relative_resolution_scale=(1.0, 1.0, 1.0),
     relative_size_scale=(1.0, 1.0),
     relative_position_shift=(0, 0),
@@ -118,13 +118,13 @@ def mock_segy(
     # pylint: disable=too-many-locals,invalid-name
 
     # get the surface top_corners
-    nx = ecl_grid.getNX()
-    ny = ecl_grid.getNY()
-    nz = ecl_grid.getNZ()
+    nx = rd_grid.get_nx()
+    ny = rd_grid.get_ny()
+    nz = rd_grid.get_nz()
     top_corners = np.empty(shape=(nx + 1, ny + 1, 3), dtype=np.float32)
     for i in range(nx + 1):
         for j in range(ny + 1):
-            top_corners[i, j] = ecl_grid.getNodePos(i, j, 0)
+            top_corners[i, j] = rd_grid.getNodePos(i, j, 0)
 
     # get the bounding box of the surface
     min_x = np.min(top_corners[:, :, 0])
@@ -175,7 +175,7 @@ if __name__ == "__main__":
         os.path.join(os.path.dirname(__file__), "../../../test-data/norne")
     )
     grid_file = os.path.join(grid_path, "NORNE_ATW2013.EGRID")
-    norne_grid = EclGrid(grid_file, apply_mapaxes=True)
+    norne_grid = Grid(grid_file, apply_mapaxes=True)
 
     mock_segy(
         norne_grid,
