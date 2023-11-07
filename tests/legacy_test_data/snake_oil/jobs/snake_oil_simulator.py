@@ -3,8 +3,8 @@
 # pylint: disable=too-many-arguments,unused-argument,redefined-outer-name
 from datetime import datetime
 
-from ecl.summary import EclSum
 from oil_reservoir_synthesizer import OilSimulator
+from resdata.summary import Summary
 
 
 def globalIndex(i, j, k, nx=10, ny=10, nz=10):
@@ -22,50 +22,50 @@ def readParameters(filename):
 
 
 def runSimulator(simulator, history_simulator, time_step_count):
-    ecl_sum = EclSum.writer("SNAKE_OIL_FIELD", datetime(2010, 1, 1), 10, 10, 10)
+    summary = Summary.writer("SNAKE_OIL_FIELD", datetime(2010, 1, 1), 10, 10, 10)
 
-    ecl_sum.addVariable("FOPT")
-    ecl_sum.addVariable("FOPR")
-    ecl_sum.addVariable("FGPT")
-    ecl_sum.addVariable("FGPR")
-    ecl_sum.addVariable("FWPT")
-    ecl_sum.addVariable("FWPR")
-    ecl_sum.addVariable("FGOR")
-    ecl_sum.addVariable("FWCT")
+    summary.add_variable("FOPT")
+    summary.add_variable("FOPR")
+    summary.add_variable("FGPT")
+    summary.add_variable("FGPR")
+    summary.add_variable("FWPT")
+    summary.add_variable("FWPR")
+    summary.add_variable("FGOR")
+    summary.add_variable("FWCT")
 
-    ecl_sum.addVariable("FOPTH")
-    ecl_sum.addVariable("FOPRH")
-    ecl_sum.addVariable("FGPTH")
-    ecl_sum.addVariable("FGPRH")
-    ecl_sum.addVariable("FWPTH")
-    ecl_sum.addVariable("FWPRH")
-    ecl_sum.addVariable("FGORH")
-    ecl_sum.addVariable("FWCTH")
+    summary.add_variable("FOPTH")
+    summary.add_variable("FOPRH")
+    summary.add_variable("FGPTH")
+    summary.add_variable("FGPRH")
+    summary.add_variable("FWPTH")
+    summary.add_variable("FWPRH")
+    summary.add_variable("FGORH")
+    summary.add_variable("FWCTH")
 
-    ecl_sum.addVariable("WOPR", wgname="OP1")
-    ecl_sum.addVariable("WOPR", wgname="OP2")
-    ecl_sum.addVariable("WWPR", wgname="OP1")
-    ecl_sum.addVariable("WWPR", wgname="OP2")
-    ecl_sum.addVariable("WGPR", wgname="OP1")
-    ecl_sum.addVariable("WGPR", wgname="OP2")
-    ecl_sum.addVariable("WGOR", wgname="OP1")
-    ecl_sum.addVariable("WGOR", wgname="OP2")
-    ecl_sum.addVariable("WWCT", wgname="OP1")
-    ecl_sum.addVariable("WWCT", wgname="OP2")
+    summary.add_variable("WOPR", wgname="OP1")
+    summary.add_variable("WOPR", wgname="OP2")
+    summary.add_variable("WWPR", wgname="OP1")
+    summary.add_variable("WWPR", wgname="OP2")
+    summary.add_variable("WGPR", wgname="OP1")
+    summary.add_variable("WGPR", wgname="OP2")
+    summary.add_variable("WGOR", wgname="OP1")
+    summary.add_variable("WGOR", wgname="OP2")
+    summary.add_variable("WWCT", wgname="OP1")
+    summary.add_variable("WWCT", wgname="OP2")
 
-    ecl_sum.addVariable("WOPRH", wgname="OP1")
-    ecl_sum.addVariable("WOPRH", wgname="OP2")
-    ecl_sum.addVariable("WWPRH", wgname="OP1")
-    ecl_sum.addVariable("WWPRH", wgname="OP2")
-    ecl_sum.addVariable("WGPRH", wgname="OP1")
-    ecl_sum.addVariable("WGPRH", wgname="OP2")
-    ecl_sum.addVariable("WGORH", wgname="OP1")
-    ecl_sum.addVariable("WGORH", wgname="OP2")
-    ecl_sum.addVariable("WWCTH", wgname="OP1")
-    ecl_sum.addVariable("WWCTH", wgname="OP2")
+    summary.add_variable("WOPRH", wgname="OP1")
+    summary.add_variable("WOPRH", wgname="OP2")
+    summary.add_variable("WWPRH", wgname="OP1")
+    summary.add_variable("WWPRH", wgname="OP2")
+    summary.add_variable("WGPRH", wgname="OP1")
+    summary.add_variable("WGPRH", wgname="OP2")
+    summary.add_variable("WGORH", wgname="OP1")
+    summary.add_variable("WGORH", wgname="OP2")
+    summary.add_variable("WWCTH", wgname="OP1")
+    summary.add_variable("WWCTH", wgname="OP2")
 
-    ecl_sum.addVariable("BPR", num=globalIndex(5, 5, 5))
-    ecl_sum.addVariable("BPR", num=globalIndex(1, 3, 8))
+    summary.add_variable("BPR", num=globalIndex(5, 5, 5))
+    summary.add_variable("BPR", num=globalIndex(1, 3, 8))
 
     time_map = []
     mini_step_count = 10
@@ -73,11 +73,11 @@ def runSimulator(simulator, history_simulator, time_step_count):
 
     for report_step in range(time_step_count):
         for mini_step in range(mini_step_count):
-            t_step = ecl_sum.addTStep(
+            t_step = summary.add_t_step(
                 report_step + 1, sim_days=report_step * mini_step_count + mini_step
             )
 
-            time_map.append(t_step.getSimTime().datetime().strftime("%d/%m/%Y"))
+            time_map.append(t_step.get_sim_time().datetime().strftime("%d/%m/%Y"))
 
             simulator.step(scale=1.0 / total_step_count)
             history_simulator.step(scale=1.0 / total_step_count)
@@ -133,7 +133,7 @@ def runSimulator(simulator, history_simulator, time_step_count):
             t_step["WWCTH:OP1"] = history_simulator.wct("OP1")
             t_step["WWCTH:OP2"] = history_simulator.wct("OP2")
 
-    return ecl_sum, time_map
+    return summary, time_map
 
 
 def roundedInt(value):
@@ -181,9 +181,9 @@ if __name__ == "__main__":
     history_simulator.addWell("OP2", 118116362)
 
     report_step_count = 200
-    ecl_sum, time_map = runSimulator(simulator, history_simulator, report_step_count)
+    summary, time_map = runSimulator(simulator, history_simulator, report_step_count)
 
-    ecl_sum.fwrite()
+    summary.fwrite()
 
     with open("time_map.txt", "w", encoding="utf-8") as fhandle:
         for date in time_map:

@@ -1,7 +1,7 @@
 import os
 
 import pandas as pd
-from ecl.rft import EclRFTCell
+from resdata.rft import ResdataRFTCell
 
 from semeio.jobs.rft.utility import strip_comments
 
@@ -124,15 +124,15 @@ class TrajectoryPoint:
             if rftcell:
                 self.pressure = rftcell.pressure
                 # The rftcell object is either a EclPLTCell instance, then it
-                # contains only pressure information, or it is an EclRFTCell
+                # contains only pressure information, or it is an ResdataRFTCell
                 # instance, then it also contains saturation information. The
                 # type of cell written to the binary rftfile is determined by
                 # configuration settings in the Eclipse deck.
-                if isinstance(rftcell, EclRFTCell):
+                if isinstance(rftcell, ResdataRFTCell):
                     self.swat = rftcell.swat
                     self.sgas = rftcell.sgas
                     if self.sgas is not None and self.sgas > -1:
-                        # EclRFTCell will return -1 as an invalid value.
+                        # ResdataRFTCell will return -1 as an invalid value.
                         self.soil = 1 - self.swat - self.sgas
                     else:
                         # Two-phase Eclipse runs

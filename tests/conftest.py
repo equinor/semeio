@@ -5,9 +5,9 @@ import subprocess
 
 import cwrap
 import pytest
-from ecl import EclDataType
-from ecl.eclfile import EclKW
-from ecl.grid import EclGridGenerator
+from resdata import ResDataType
+from resdata.grid import GridGenerator
+from resdata.resfile import ResdataKW
 
 from tests import legacy_test_data
 
@@ -69,7 +69,7 @@ def _run_snake_oil(source_root, grid_prop):
     shutil.copytree(os.path.join(source_root, "snake_oil"), "test_data")
     os.chdir("test_data")
     os.makedirs("fields")
-    grid = EclGridGenerator.createRectangular((10, 12, 5), (1, 1, 1))
+    grid = GridGenerator.create_rectangular((10, 12, 5), (1, 1, 1))
     for iens in range(10):
         grid_prop("PERMX", 10, grid.getGlobalSize(), f"fields/permx{iens}.grdecl")
         grid_prop("PORO", 0.2, grid.getGlobalSize(), f"fields/poro{iens}.grdecl")
@@ -106,7 +106,7 @@ def _shared_snake_oil_case(request, monkeypatch, test_data_root, grid_prop):
 @pytest.fixture(name="grid_prop")
 def fixture_grid_prop():
     def wrapper(prop_name, value, grid_size, fname):
-        prop = EclKW(prop_name, grid_size, EclDataType.ECL_FLOAT)
+        prop = ResdataKW(prop_name, grid_size, ResDataType.RD_FLOAT)
         prop.assign(value)
         with cwrap.open(fname, "w") as file:
             prop.write_grdecl(file)

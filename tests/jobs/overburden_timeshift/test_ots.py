@@ -5,7 +5,7 @@ from collections import namedtuple
 
 import pytest
 import segyio
-from ecl.grid import EclGridGenerator
+from resdata.grid import GridGenerator
 from xtgeo import surface_from_file
 
 from semeio.jobs.overburden_timeshift.ots import OverburdenTimeshift
@@ -68,7 +68,7 @@ def fixture_set_up():
 @pytest.mark.usefixtures("setup_tmpdir")
 def test_create_missing_ecl_file(set_up, missing_file, expected_error):
     _, _, params = set_up
-    grid = EclGridGenerator.createRectangular(dims=(10, 10, 10), dV=(1, 1, 1))
+    grid = GridGenerator.create_rectangular(dims=(10, 10, 10), dV=(1, 1, 1))
 
     grid.save_EGRID("TEST.EGRID")
     create_init(grid, "TEST")
@@ -92,7 +92,7 @@ def test_create_missing_ecl_file(set_up, missing_file, expected_error):
 def test_create_invalid_input_missing_segy(set_up):
     _, _, parms = set_up
 
-    grid = EclGridGenerator.createRectangular(dims=(10, 10, 10), dV=(1, 1, 1))
+    grid = GridGenerator.create_rectangular(dims=(10, 10, 10), dV=(1, 1, 1))
     grid.save_EGRID("TEST.EGRID")
 
     create_init(grid, "TEST")
@@ -120,7 +120,7 @@ def test_create_invalid_input_missing_segy(set_up):
 @pytest.mark.usefixtures("setup_tmpdir")
 def test_create_valid(set_up, config_item, value):
     spec, _, params = set_up
-    grid = EclGridGenerator.createRectangular(dims=(10, 10, 10), dV=(1, 1, 1))
+    grid = GridGenerator.create_rectangular(dims=(10, 10, 10), dV=(1, 1, 1))
 
     grid.save_EGRID("TEST.EGRID")
     create_init(grid, "TEST")
@@ -147,7 +147,7 @@ def test_create_valid(set_up, config_item, value):
 @pytest.mark.usefixtures("setup_tmpdir")
 def test_eval(set_up):
     spec, actnum, parms = set_up
-    grid = EclGridGenerator.createRectangular(
+    grid = GridGenerator.create_rectangular(
         dims=(2, 2, 2), dV=(100, 100, 100), actnum=actnum
     )
 
@@ -190,7 +190,7 @@ def test_eval(set_up):
 @pytest.mark.usefixtures("setup_tmpdir")
 def test_geertsma_TS_simple(set_up):
     spec, actnum, parms = set_up
-    grid = EclGridGenerator.createRectangular(
+    grid = GridGenerator.create_rectangular(
         dims=(2, 2, 2), dV=(100, 100, 100), actnum=actnum
     )
 
@@ -250,7 +250,7 @@ def test_geertsma_TS_simple(set_up):
 @pytest.mark.usefixtures("setup_tmpdir")
 def test_geertsma_TS_rporv(set_up):
     spec, actnum, parms = set_up
-    grid = EclGridGenerator.createRectangular(
+    grid = GridGenerator.create_rectangular(
         dims=(2, 2, 2), dV=(100, 100, 100), actnum=actnum
     )
 
@@ -289,7 +289,7 @@ def test_geertsma_TS_rporv(set_up):
 @pytest.mark.usefixtures("setup_tmpdir")
 def test_geertsma_TS(set_up):
     spec, actnum, parms = set_up
-    grid = EclGridGenerator.createRectangular(
+    grid = GridGenerator.create_rectangular(
         dims=(2, 2, 2), dV=(100, 100, 100), actnum=actnum
     )
 
@@ -351,7 +351,7 @@ def test_geertsma_TS(set_up):
 @pytest.mark.usefixtures("setup_tmpdir")
 def test_dPV(set_up):
     _, actnum, parms = set_up
-    grid = EclGridGenerator.createRectangular(
+    grid = GridGenerator.create_rectangular(
         dims=(2, 2, 2), dV=(100, 100, 100), actnum=actnum
     )
 
@@ -403,7 +403,7 @@ def test_dPV(set_up):
 @pytest.mark.usefixtures("setup_tmpdir")
 def test_irap_surface(set_up):
     spec, actnum, parms = set_up
-    grid = EclGridGenerator.createRectangular(
+    grid = GridGenerator.create_rectangular(
         dims=(2, 2, 2), dV=(100, 100, 100), actnum=actnum
     )
 

@@ -10,9 +10,9 @@ import configsuite
 import numpy as np
 import xtgeo
 import yaml
-from ecl.eclfile import Ecl3DKW, EclFile
-from ecl.gravimetry import EclSubsidence
-from ecl.grid import EclGrid
+from resdata.gravimetry import ResdataSubsidence
+from resdata.grid import Grid
+from resdata.resfile import Resdata3DKW, ResdataFile
 from scipy.interpolate import CloughTocher2DInterpolator
 
 from semeio._exceptions.exceptions import ConfigurationError
@@ -25,7 +25,7 @@ def extract_ots_context(configuration):
     rstfile_path = Path(f"{configuration.eclbase}.UNRST")
     if not rstfile_path.exists():
         return []
-    dates = [d.date() for d in EclFile(str(rstfile_path)).dates]
+    dates = [d.date() for d in ResdataFile(str(rstfile_path)).dates]
     return dates
 
 
@@ -176,15 +176,15 @@ class OverburdenTimeshift:
         The constructor will look for the Eclipse files INIT, EGRID
         and UNRST based on the input case, if some of the files are
         missing an exception will be raised. It will then instantiate
-        a EclSubsidence object will be used to manage the rest of the
+        a ResdataSubsidence object will be used to manage the rest of the
         overburden timeshift calculations.
         """
         case = os.path.splitext(eclbase)[0]
-        self._init_file = EclFile(f"{case}.INIT")
-        self._rst_file = EclFile(f"{case}.UNRST")
-        self._grid = EclGrid(f"{case}.EGRID", apply_mapaxes=mapaxes)
+        self._init_file = ResdataFile(f"{case}.INIT")
+        self._rst_file = ResdataFile(f"{case}.UNRST")
+        self._grid = Grid(f"{case}.EGRID", apply_mapaxes=mapaxes)
 
-        self.subsidence = EclSubsidence(self._grid, self._init_file)
+        self.subsidence = ResdataSubsidence(self._grid, self._init_file)
 
         self._seabed = seabed
         self._youngs_modulus = youngs * 1e9
@@ -262,7 +262,7 @@ class OverburdenTimeshift:
         instance, this date should be present as a report step in the
         restart file - otherwise an exception will be raised.
         """
-        restart_view = self._rst_file.restartView(sim_time=date)
+        restart_view = self._rst_file.restart_view(sim_time=date)
         self.subsidence.add_survey_PRESSURE(name, restart_view)
 
         self._restart_views[name] = restart_view
@@ -296,7 +296,7 @@ class OverburdenTimeshift:
         :param vintage_pairs:
         """
         return self._geertsma_ts_custom(
-            vintage_pairs, self.subsidence.evalGeertsma, "TS_SIMPLE"
+            vintage_pairs, self.subsidence.eval_geertsma, "TS_SIMPLE"
         )
 
     def _geertsma_ts_custom(self, vintage_pairs, subsidence_func, method_name):
@@ -410,7 +410,7 @@ class OverburdenTimeshift:
                         # subsidence and displacement have opposite sign
                         # should have minus here, more efficient
                         # when calculating ts
-                        dz1 = self.subsidence.evalGeertsma(
+                        dz1 = self.subsidence.eval_geertsma(
                             base_survey="base",
                             monitor_survey="monitor",
                             pos=r1,
@@ -418,7 +418,7 @@ class OverburdenTimeshift:
                             poisson_ratio=self._poisson_ratio,
                             seabed=self._seabed,
                         )
-                        dz2 = self.subsidence.evalGeertsma(
+                        dz2 = self.subsidence.eval_geertsma(
                             base_survey="base",
                             monitor_survey="monitor",
                             pos=r2,
@@ -518,7 +518,7 @@ class OverburdenTimeshift:
                 " {:%Y.%m.%d}".format(dt.now(), vintage.date)
             )
             self.add_survey(vintage.name, vintage.date)
-            pressure = Ecl3DKW.castFromKW(
+            pressure = Resdata3DKW.cast_from_kw(
                 self._restart_views[vintage.name]["PRESSURE"][0], self._grid
             )
             pressure_volume[vintage.date] = np.zeros(len(surf))
@@ -526,9 +526,9 @@ class OverburdenTimeshift:
             for point in points_to_calculate:
                 r = surf.x[point], surf.y[point], 0
                 try:
-                    i, j = self._grid.findCellXY(*r)
+                    i, j = self._grid.find_cell_xy(*r)
                     sum_pv = 0
-                    for k in range(self._grid.getNZ()):
+                    for k in range(self._grid.get_nz()):
                         v = self._grid.cell_volume(ijk=(i, j, k))
                         sum_pv += pressure[i, j, k] * v
 
