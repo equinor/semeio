@@ -27,13 +27,11 @@ def generate_seed_file(
     start_seed: int = 9828862224,
     number_of_seeds: int = 1000,
 ):
-    # pylint: disable=unused-variable
-
     seed_file_name = settings.field.seed_file
     print(f"Generate random seed file: {seed_file_name}")
     random.seed(start_seed)
     with open(seed_file_name, "w", encoding="utf8") as file:
-        for i in range(number_of_seeds):
+        for _ in range(number_of_seeds):
             file.write(f"{random.randint(1, 999999999)}\n")
 
 

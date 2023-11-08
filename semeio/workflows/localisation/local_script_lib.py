@@ -145,14 +145,14 @@ def activate_gen_kw_param(
 
 
 def build_decay_object(
-    method,
-    ref_pos,
-    main_range,
-    perp_range,
-    azimuth,
-    grid,
-    use_cutoff,
-    tapering_range=None,
+    method: str,
+    ref_pos: List[float],
+    main_range: float,
+    perp_range: float,
+    azimuth: float,
+    grid: object,
+    use_cutoff: bool,
+    tapering_range: float = None,
 ):
     # pylint: disable=too-many-arguments
     if method == "gaussian_decay":
@@ -206,18 +206,53 @@ def build_decay_object(
     return decay_obj
 
 
+def calculate_scaling_vector_fields(grid: object, decay_obj: object):
+    assert isinstance(grid, Grid)
+    nx = grid.getNX()
+    ny = grid.getNY()
+    nz = grid.getNZ()
+    # Set 0 as initial value for scaling everywhere
+    scaling_vector = np.ma.zeros(nx * ny * nz, dtype=np.float32)
+    for i in range(nx):
+        for j in range(ny):
+            for k in range(nz):
+                # The grid uses fortran order and save only active cell values
+                active_index = grid.get_active_index(ijk=(i, j, k))
+                if active_index >= 0:
+                    # active grid cell use c-index order
+                    c_indx = k + j * nz + i * nz * ny
+                    scaling_vector[c_indx] = decay_obj(active_index)
+
+    return scaling_vector
+
+
+def calculate_scaling_vector_surface(grid: object, decay_obj: object):
+    assert isinstance(grid, Surface)
+    nx = grid.getNX()
+    ny = grid.getNY()
+
+    # Set 0 as initial value for scaling everywhere
+    scaling_vector = np.ma.zeros(nx * ny, dtype=np.float32)
+    for i in range(nx):
+        for j in range(ny):
+            index = i + j * nx
+            # Convert to c-order
+            c_indx = j + i * ny
+            scaling_vector[c_indx] = decay_obj(index)
+    return scaling_vector
+
+
 def apply_decay(
-    method,
-    row_scaling,
-    data_size,
-    grid,
-    ref_pos,
-    main_range,
-    perp_range,
-    azimuth,
-    use_cutoff=False,
-    tapering_range=None,
-    calculate_qc_parameter=False,
+    method: str,
+    row_scaling: object,
+    grid: object,
+    ref_pos: list,
+    main_range: float,
+    perp_range: float,
+    azimuth: float,
+    use_cutoff: bool = False,
+    tapering_range: float = None,
+    calculate_qc_parameter: bool = False,
 ):
     # pylint: disable=too-many-arguments,too-many-locals
     """
@@ -235,32 +270,31 @@ def apply_decay(
         use_cutoff,
         tapering_range,
     )
+    if isinstance(grid, Grid):
+        scaling_vector_for_fields = calculate_scaling_vector_fields(grid, decay_obj)
+        row_scaling.assign_vector(scaling_vector_for_fields)
 
-    scaling_vector = np.zeros(data_size, dtype=np.float64)
-    for index in range(data_size):
-        scaling_vector[index] = decay_obj(index)
-    row_scaling.assign_vector(scaling_vector)
+    elif isinstance(grid, Surface):
+        scaling_vector_for_surface = calculate_scaling_vector_surface(grid, decay_obj)
+        row_scaling.assign_vector(scaling_vector_for_surface)
+    else:
+        raise ValueError("No grid or surface object used in apply_decay")
 
-    scaling_values = None
+    # Return field or surface scaling factor for QC purpose
     if calculate_qc_parameter:
         if isinstance(grid, Grid):
-            nx = grid.get_nx()
-            ny = grid.get_ny()
-            nz = grid.get_nz()
-            scaling_values = np.zeros(nx * ny * nz, dtype=np.float32)
-            for index in range(data_size):
-                global_index = grid.global_index(active_index=index)
-                scaling_values[global_index] = scaling_vector[index]
+            return scaling_vector_for_fields, None
+        if isinstance(grid, Surface):
+            return None, scaling_vector_for_surface
 
-    return scaling_values
+    return None, None
 
 
 def apply_constant(
-    row_scaling,
-    data_size,
-    grid,
-    value,
-    log_level,
+    row_scaling: object,
+    grid: object,
+    value: float,
+    log_level: LogLevel,
     calculate_qc_parameter=False,
 ):
     # pylint: disable=too-many-arguments,too-many-locals
@@ -272,28 +306,30 @@ def apply_constant(
     """
     debug_print(f"Scaling factor is constant: {value}", LogLevel.LEVEL3, log_level)
     decay_obj = ConstantScalingFactor(value)
+    if isinstance(grid, Grid):
+        scaling_vector_field = calculate_scaling_vector_fields(grid, decay_obj)
+        row_scaling.assign_vector(scaling_vector_field)
+    elif isinstance(grid, Surface):
+        scaling_vector_surface = calculate_scaling_vector_surface(grid, decay_obj)
+        row_scaling.assign_vector(scaling_vector_surface)
 
-    scaling_vector = np.zeros(data_size, dtype=np.float32)
-    for index in range(data_size):
-        scaling_vector[index] = decay_obj(index)
-    row_scaling.assign_vector(scaling_vector)
-
-    scaling_values = None
     if calculate_qc_parameter:
         if isinstance(grid, Grid):
-            nx = grid.get_nx()
-            ny = grid.get_ny()
-            nz = grid.get_nz()
-            scaling_values = np.zeros(nx * ny * nz, dtype=np.float32)
-            for index in range(data_size):
-                global_index = grid.global_index(active_index=index)
-                scaling_values[global_index] = scaling_vector[index]
-
-    return scaling_values
+            return scaling_vector_field, None
+        if isinstance(grid, Surface):
+            return None, scaling_vector_surface
+    return None, None
 
 
-def apply_from_file(row_scaling, data_size, grid, filename, param_name, log_level):
-    # pylint: disable=too-many-arguments
+def apply_from_file(
+    row_scaling: object,
+    grid: object,
+    filename: str,
+    param_name: str,
+    log_level: LogLevel,
+    calculate_qc_parameter: bool = False,
+):
+    # pylint: disable=too-many-arguments, too-many-locals
     debug_print(
         f"Read scaling factors as parameter {param_name}", LogLevel.LEVEL3, log_level
     )
@@ -306,9 +342,28 @@ def apply_from_file(row_scaling, data_size, grid, filename, param_name, log_leve
             strict=True,
             rd_type=ResDataType.RD_FLOAT,
         )
-        for index in range(data_size):
-            global_index = grid.global_index(active_index=index)
-            row_scaling[index] = scaling_parameter[global_index]
+    nx = grid.getNX()
+    ny = grid.getNY()
+    nz = grid.getNZ()
+
+    # Set 0 as initial value for scaling everywhere
+    scaling_vector = np.ma.zeros(nx * ny * nz, dtype=np.float32)
+    for i in range(nx):
+        for j in range(ny):
+            for k in range(nz):
+                # The grid uses fortran order and save only active cell values
+                active_index = grid.get_active_index(ijk=(i, j, k))
+                if active_index >= 0:
+                    # active grid cell use c-index order
+                    c_indx = k + j * nz + i * nz * ny
+                    global_index = grid.global_index(active_index=active_index)
+                    scaling_vector[c_indx] = scaling_parameter[global_index]
+    row_scaling.assign_vector(scaling_vector)
+
+    # Return field or surface scaling factor for QC purpose
+    if calculate_qc_parameter:
+        return scaling_vector, None
+    return None, None
 
 
 def active_region(region_parameter, user_defined_active_region_list):
@@ -340,11 +395,8 @@ def define_look_up_index(user_defined_active_region_list, max_region_number):
 
 
 def calculate_scaling_factors_in_regions(
-    grid, region_parameter, active_segment_list, scaling_value_list, smooth_range_list
+    region_parameter, active_segment_list, scaling_value_list
 ):
-    # pylint: disable=unused-argument,too-many-locals
-    # ('grid' and 'smooth-range-list' are not currently used)
-
     min_region_number = region_parameter.min()
     max_region_number = region_parameter.max()
 
@@ -370,7 +422,7 @@ def calculate_scaling_factors_in_regions(
 
     # Create a full sized 3D parameter for scaling values
     # where all but the selected region values have 0 scaling value.
-    scaling_values = np.zeros(len(region_parameter), dtype=np.float32)
+    scaling_values = np.ma.zeros(len(region_parameter), dtype=np.float32)
     scaling_values[selected_grid_cells] = scaling_values_active
 
     return scaling_values, active_region_values_used, regions_in_param
@@ -399,9 +451,10 @@ def smooth_parameter(
     nz = grid.get_nz()
     di = smooth_range_list[0]
     dj = smooth_range_list[1]
-    scaling_values_smooth = np.zeros(nx * ny * nz, dtype=np.float32)
+    scaling_values_smooth = np.ma.zeros(nx * ny * nz, dtype=np.float32)
     for k, j0, i0 in itertools.product(range(nz), range(ny), range(nx)):
-        index0 = i0 + j0 * nx + k * nx * ny
+        # index0 = i0 + j0 * nx + k * nx * ny
+        index0 = k + j0 * nz + i0 * nz * ny
         if not active_region_values_used[index0] is ma.masked:
             sumv = 0.0
             nval = 0
@@ -411,7 +464,8 @@ def smooth_parameter(
             jhigh = min(j0 + dj + 1, ny)
             for i in range(ilow, ihigh):
                 for j in range(jlow, jhigh):
-                    index = i + j * nx + k * nx * ny
+                    # index = i + j * nx + k * nx * ny
+                    index = k + j * nz + i * nz * ny
                     if not active_region_values_used[index] is ma.masked:
                         # Only use values from grid cells that are active
                         # and from regions defined as active by the user.
@@ -425,7 +479,6 @@ def smooth_parameter(
 
 def apply_segment(
     row_scaling,
-    data_size,
     grid,
     region_param_dict,
     active_segment_list,
@@ -433,6 +486,7 @@ def apply_segment(
     smooth_range_list,
     corr_name,
     log_level=LogLevel.OFF,
+    calculate_qc_parameter: bool = False,
 ):
     # pylint: disable=too-many-arguments,too-many-locals
     """
@@ -470,11 +524,9 @@ def apply_segment(
         active_localisation_region,
         regions_in_param,
     ) = calculate_scaling_factors_in_regions(
-        grid,
         region_parameter,
         active_segment_list,
         scaling_factor_list,
-        smooth_range_list,
     )
     if smooth_range_list is not None:
         scaling_values = smooth_parameter(
@@ -482,9 +534,11 @@ def apply_segment(
         )
 
     # Assign values to row_scaling object
-    for index in range(data_size):
-        global_index = grid.global_index(active_index=index)
-        row_scaling[index] = scaling_values[global_index]
+    row_scaling.assign_vector(scaling_values)
+
+    #    for index in range(data_size):
+    #        global_index = grid.global_index(active_index=index)
+    #        row_scaling[index] = scaling_values[global_index]
 
     not_defined_in_region_param = []
     for n in active_segment_list:
@@ -500,7 +554,9 @@ def apply_segment(
             LogLevel.LEVEL3,
             log_level,
         )
-    return scaling_values
+    if calculate_qc_parameter:
+        return scaling_values, None
+    return None, None
 
 
 def read_region_files_for_all_correlation_groups(user_config, grid):
@@ -540,7 +596,9 @@ def read_region_files_for_all_correlation_groups(user_config, grid):
                     region_parameter = np.zeros(nx * ny * nz, dtype=np.int32)
                     not_active = np.zeros(nx * ny * nz, dtype=np.int32)
                     for k, j, i in itertools.product(range(nz), range(ny), range(nx)):
-                        index = i + j * nx + k * nx * ny
+                        # c-index order
+                        index = k + j * nz + i * nz * ny
+                        # index = i + j * nx + k * nx * ny
                         v = region_parameter_read[i, j, k]
                         region_parameter[index] = v
                         if grid.get_active_index(ijk=(i, j, k)) == -1:
@@ -621,7 +679,6 @@ def add_ministeps(
                         user_config.log_level,
                     )
                     row_scaling = RowScaling()
-                    data_size = grid_for_field.get_num_active()
                     param_for_field = None
                     if corr_spec.field_scale.method in _decay_methods_all:
                         ref_pos = corr_spec.field_scale.ref_point
@@ -637,10 +694,9 @@ def add_ministeps(
                         check_if_ref_point_in_grid(
                             ref_pos, grid_for_field, log_level=user_config.log_level
                         )
-                        param_for_field = apply_decay(
+                        (param_for_field, _) = apply_decay(
                             corr_spec.field_scale.method,
                             row_scaling,
-                            data_size,
                             grid_for_field,
                             ref_pos,
                             main_range,
@@ -651,28 +707,26 @@ def add_ministeps(
                             user_config.write_scaling_factors,
                         )
                     elif corr_spec.field_scale.method == "constant":
-                        param_for_field = apply_constant(
+                        (param_for_field, _) = apply_constant(
                             row_scaling,
-                            data_size,
                             grid_for_field,
                             corr_spec.field_scale.value,
                             user_config.log_level,
                             user_config.write_scaling_factors,
                         )
                     elif corr_spec.field_scale.method == "from_file":
-                        apply_from_file(
+                        (param_for_field, _) = apply_from_file(
                             row_scaling,
-                            data_size,
                             grid_for_field,
                             corr_spec.field_scale.filename,
                             corr_spec.field_scale.param_name,
                             user_config.log_level,
+                            user_config.write_scaling_factors,
                         )
 
                     elif corr_spec.field_scale.method == "segment":
-                        param_for_field = apply_segment(
+                        (param_for_field, _) = apply_segment(
                             row_scaling,
-                            data_size,
                             grid_for_field,
                             region_param_dict,
                             corr_spec.field_scale.active_segments,
@@ -680,6 +734,7 @@ def add_ministeps(
                             corr_spec.field_scale.smooth_ranges,
                             corr_spec.name,
                             user_config.log_level,
+                            user_config.write_scaling_factors,
                         )
                     else:
                         logging.error(
@@ -692,14 +747,13 @@ def add_ministeps(
                         )
 
                     if user_config.write_scaling_factors:
-                        ScalingValues.write_qc_parameter(
+                        ScalingValues.write_qc_parameter_field(
                             node_name,
                             corr_spec.name,
                             corr_spec.field_scale,
                             grid_for_field,
                             param_for_field,
                             user_config.log_level,
-                            node.file_format,
                         )
                     update_step["row_scaling_parameters"].append(
                         [node_name, row_scaling]
@@ -744,7 +798,7 @@ def add_ministeps(
                     )
 
                     surface = Surface(surface_file)
-                    data_size = surface.getNX() * surface.getNY()
+                    # data_size = surface.getNX() * surface.getNY()
                     row_scaling = RowScaling()
                     if corr_spec.surface_scale.method in _decay_methods_surf_all:
                         ref_pos = corr_spec.surface_scale.ref_point
@@ -757,10 +811,9 @@ def add_ministeps(
                             tapering_range = (
                                 corr_spec.surface_scale.normalised_tapering_range
                             )
-                        apply_decay(
+                        (_, param_for_surface) = apply_decay(
                             corr_spec.surface_scale.method,
                             row_scaling,
-                            data_size,
                             surface,
                             ref_pos,
                             main_range,
@@ -768,14 +821,15 @@ def add_ministeps(
                             azimuth,
                             use_cutoff,
                             tapering_range,
+                            user_config.write_scaling_factors,
                         )
                     elif corr_spec.surface_scale.method == "constant":
-                        param_for_field = apply_constant(
+                        (_, param_for_surface) = apply_constant(
                             row_scaling,
-                            data_size,
-                            None,
+                            surface,
                             corr_spec.surface_scale.value,
                             user_config.log_level,
+                            user_config.write_scaling_factors,
                         )
                     else:
                         logging.error(
@@ -785,6 +839,15 @@ def add_ministeps(
                         raise ValueError(
                             f"Scaling method: {corr_spec.surface_scale.method} "
                             "is not implemented"
+                        )
+                    if user_config.write_scaling_factors:
+                        ScalingValues.write_qc_parameter_surface(
+                            node_name,
+                            corr_spec.name,
+                            corr_spec.surface_scale,
+                            corr_spec.surface_scale.surface_file,
+                            param_for_surface,
+                            user_config.log_level,
                         )
 
                     update_step["row_scaling_parameters"].append(
@@ -949,7 +1012,7 @@ class ScalingValues:
         cls.corr_name = None
 
     @classmethod
-    def write_qc_parameter(
+    def write_qc_parameter_field(
         cls,
         node_name,
         corr_name,
@@ -957,7 +1020,6 @@ class ScalingValues:
         grid,
         param_for_field,
         log_level=LogLevel.OFF,
-        file_format=FieldFileFormat.GRDECL,
     ):
         # pylint: disable=too-many-arguments
 
@@ -972,30 +1034,12 @@ class ScalingValues:
 
         # Need a parameter name <= 8 character long for GRDECL format
         scaling_kw_name = "S_" + str(cls.scaling_param_number)
-        file_name_without_suffix = (
-            cls.corr_name + "_" + node_name + "_" + scaling_kw_name
+        filename = cls.corr_name + "_" + node_name + "_" + scaling_kw_name + ".roff"
+
+        scaling_values = np.reshape(
+            param_for_field, (grid.getNX(), grid.getNY(), grid.getNZ()), "C"
         )
-
-        if file_format == FieldFileFormat.GRDECL:
-            scaling_values = np.reshape(
-                param_for_field, (grid.getNX(), grid.getNY(), grid.getNZ()), "F"
-            )
-
-            scaling_kw = grid.create_kw(scaling_values, scaling_kw_name, False)
-            filename = file_name_without_suffix + ".GRDECL"
-
-            with cwrap.open(filename, "w") as file:
-                grid.write_grdecl(scaling_kw, file)
-            # For testing
-            name = scaling_kw_name + "_use_save_field"
-            save_field(scaling_values, name, filename, FieldFileFormat.GRDECL)
-
-        elif file_format == FieldFileFormat.ROFF:
-            scaling_values = np.reshape(
-                param_for_field, (grid.getNX(), grid.getNY(), grid.getNZ()), "C"
-            )
-            filename = file_name_without_suffix + ".roff"
-            save_field(scaling_values, scaling_kw_name, filename, FieldFileFormat.ROFF)
+        save_field(scaling_values, scaling_kw_name, filename, FieldFileFormat.ROFF)
 
         print(
             "Write calculated scaling factor  with name: "
@@ -1004,6 +1048,57 @@ class ScalingValues:
         debug_print(
             f"Write calculated scaling factor with name: "
             f"{scaling_kw_name} to file: {filename}",
+            LogLevel.LEVEL3,
+            log_level,
+        )
+
+        # Increase parameter number to define unique parameter name
+        cls.scaling_param_number = cls.scaling_param_number + 1
+
+    @classmethod
+    def write_qc_parameter_surface(
+        # pylint: disable=too-many-locals
+        cls,
+        node_name: str,
+        corr_name: str,
+        surface_scale: bool,
+        reference_surface_file: str,
+        param_for_surface: object,
+        log_level=LogLevel.OFF,
+    ):
+        # pylint: disable=too-many-arguments
+
+        if param_for_surface is None or surface_scale is None:
+            return
+
+        # Write scaling parameter  once per corr_name
+        if corr_name == cls.corr_name:
+            return
+
+        cls.corr_name = corr_name
+
+        scaling_surface_name = str(cls.scaling_param_number)
+        filename = cls.corr_name + "_" + node_name + "_map.irap"
+
+        # Surface object is created from the known reference surface to get
+        # surface attributes. The param_for_surface array is c-order,
+        # but need f-order for surface to write with the libecl object
+        qc_surface = Surface(reference_surface_file)
+        nx = qc_surface.getNX()
+        ny = qc_surface.getNY()
+        for i in range(nx):
+            for j in range(ny):
+                c_indx = j + i * ny
+                f_indx = i + j * nx
+                qc_surface[f_indx] = param_for_surface[c_indx]
+        qc_surface.write(filename)
+        print(
+            "Write calculated scaling factor  with name: "
+            f"{scaling_surface_name} to file: {filename}"
+        )
+        debug_print(
+            f"Write calculated scaling factor with name: "
+            f"{scaling_surface_name} to file: {filename}",
             LogLevel.LEVEL3,
             log_level,
         )

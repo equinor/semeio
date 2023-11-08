@@ -587,18 +587,12 @@ def upscale_average(field_values, upscaled_values):
     for Kindx in range(NZ):
         for Jindx in range(NY):
             for Iindx in range(NX):
-                istart = mx * Iindx
-                iend = istart + mx
-                jstart = my * Jindx
-                jend = jstart + my
-                kstart = mz * Kindx
-                kend = kstart + mz
-                sum_val = 0.0
-                for k in range(kstart, kend):
-                    for j in range(jstart, jend):
-                        for i in range(istart, iend):
-                            sum_val += field_values[i, j, k]
-                upscaled_values[Iindx, Jindx, Kindx] = sum_val / (mx * my * mz)
+                i_slice = slice(Iindx * mx, (Iindx + 1) * mx)
+                j_slice = slice(Jindx * my, (Jindx + 1) * my)
+                k_slice = slice(Kindx * mz, (Kindx + 1) * mz)
+                upscaled_values[Iindx, Jindx, Kindx] = np.mean(
+                    field_values[i_slice, j_slice, k_slice]
+                )
     return upscaled_values
 
 
@@ -636,7 +630,7 @@ def trend():
 
 
 def simulate_field(start_seed):
-    # pylint: disable=no-member,import-outside-toplevel
+    # pylint: disable=import-outside-toplevel
     # This function will not be available untill gaussianfft is available on python 3.10
     # import gaussianfft as sim  # isort: skip
     # dummy code to avoid pylint complaining in github actions
@@ -714,8 +708,6 @@ def simulate_field_using_gstools(start_seed):
     # Rescale factor is set to:
     #    sqrt(3.0) for gaussian correlation functions,
     #    3.0 for exponetial correlation function,
-    #    pow(3.0, 1/alpha) for general exponential correlation function
-    #    with exponent alpha
     # to ensure the correlation function have the same definition of correlation
     # lenght as is used in RMS and gaussianfft algorithm.
     print(f"Variogram name:  {variogram_name}")
