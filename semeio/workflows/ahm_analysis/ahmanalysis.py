@@ -409,7 +409,8 @@ def calc_observationsgroup_misfit(obs_keys, df_update_log, misfit_df):
         ]["obs_key"].astype(str)
         df_misfit_calc = pd.DataFrame.drop_duplicates(df_misfit_calc)
         mean = (
-            misfit_df[df_misfit_calc["Misfit_key"].to_list()].sum(axis=1) / total_obs_nr
+            misfit_df[df_misfit_calc.loc[:, "Misfit_key"].to_list()].sum(axis=1)
+            / total_obs_nr
         )
     return mean.mean()
 
