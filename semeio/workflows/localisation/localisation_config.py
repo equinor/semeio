@@ -4,7 +4,8 @@ import pathlib
 from typing import Dict, List, Literal, Optional, Union
 
 from pydantic import BaseModel as PydanticBaseModel
-from pydantic import Extra, confloat, conint, conlist, root_validator, validator
+from pydantic import Extra, Field, root_validator, validator
+from typing_extensions import Annotated
 
 
 def expand_wildcards(patterns, list_of_words):
@@ -142,11 +143,11 @@ class GaussianConfig(BaseModel):
     a file specifying the grid layout of the surface must be specified.
     """
 
-    method: Literal["gaussian_decay"]
-    main_range: confloat(gt=0)
-    perp_range: confloat(gt=0)
-    azimuth: confloat(ge=0.0, le=360)
-    ref_point: conlist(float, min_items=2, max_items=2)
+    method = "gaussian_decay"
+    main_range: Annotated[float, Field(gt=0)]
+    perp_range: Annotated[float, Field(gt=0)]
+    azimuth: Annotated[float, Field(ge=0.0, le=360)]
+    ref_point: Annotated[List[float], Field(min_items=2, max_items=2)]
     cutoff: Optional[bool] = False
     surface_file: Optional[str]
 
@@ -181,8 +182,8 @@ class ConstWithGaussianTaperingConfig(GaussianConfig):
     a file specifying the grid layout of the surface must be specified.
     """
 
-    method: Literal["const_gaussian_decay"]
-    normalised_tapering_range: Optional[confloat(gt=1)] = 1.5
+    method = "const_gaussian_decay"
+    normalised_tapering_range: Optional[Annotated[float, Field(gt=1)]] = 1.5
 
 
 class ConstWithExponentialTaperingConfig(ConstWithGaussianTaperingConfig):
@@ -192,7 +193,7 @@ class ConstWithExponentialTaperingConfig(ConstWithGaussianTaperingConfig):
     ConstWithGaussianTaperingConfig.
     """
 
-    method: Literal["const_exponential_decay"]
+    method = "const_exponential_decay"
 
 
 class ScalingFromFileConfig(BaseModel):
@@ -205,12 +206,25 @@ class ScalingForSegmentsConfig(BaseModel):
     method: Literal["segment"]
     segment_filename: str
     param_name: str
-    active_segments: Union[conint(ge=0), conlist(item_type=conint(ge=0), min_items=1)]
+    active_segments: Union[
+        Annotated[int, Field(strict=True, ge=0)],
+        Annotated[
+            List[Annotated[int, Field(strict=True, ge=0)]],
+            Field(strict=True, min_items=1),
+        ],
+    ]
     scalingfactors: Union[
-        confloat(ge=0), conlist(item_type=confloat(ge=0, le=1), min_items=1)
+        Annotated[float, Field(strict=True, ge=0)],
+        Annotated[
+            List[Annotated[float, Field(strict=True, ge=0, le=1)]],
+            Field(strict=True, min_items=1),
+        ],
     ]
     smooth_ranges: Optional[
-        conlist(item_type=conint(ge=0), min_items=2, max_items=2)
+        Annotated[
+            List[Annotated[int, Field(strict=True, ge=0)]],
+            Field(strict=True, min_items=2, max_items=2),
+        ]
     ] = [0, 0]
 
     @validator("scalingfactors")
@@ -235,7 +249,7 @@ class ConstantScalingConfig(BaseModel):
     """
 
     method: Literal["constant"]
-    value: Optional[confloat(gt=0, le=1)] = 1.0
+    value: Optional[Annotated[float, Field(strict=True, gt=0, le=1)]] = 1.0
     surface_file: Optional[str]
 
 
@@ -381,7 +395,7 @@ class LocalisationConfig(BaseModel):
     observations: List[str]
     parameters: List[str]
     correlations: List[CorrelationConfig]
-    log_level: Optional[conint(ge=0, le=5)] = 1
+    log_level: Optional[Annotated[int, Field(strict=True, ge=0, le=5)]] = 1
     write_scaling_factors: Optional[bool] = False
 
     @root_validator(pre=True)
