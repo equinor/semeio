@@ -78,6 +78,10 @@ test = [
 "pytest-snapshot",
 "rstcheck-core<=1.0.3",
 "xlwt",
+"mypy",
+"pandas-stubs",
+"types-setuptools",
+"types-PyYAML",
 ]
 
 [tool.black]
