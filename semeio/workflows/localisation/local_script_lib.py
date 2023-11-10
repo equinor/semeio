@@ -759,7 +759,21 @@ def add_ministeps(
                         [node_name, row_scaling]
                     )
                 else:
+                    # The keyword for how to specify scaling parameter for field
+                    # is not used. Use default: scaling factor = 1 everywhere
+                    row_scaling = RowScaling()
                     scaling_factor_default = 1.0
+                    (param_for_field, _) = apply_constant(
+                        row_scaling,
+                        grid_for_field,
+                        scaling_factor_default,
+                        user_config.log_level,
+                        user_config.write_scaling_factors,
+                    )
+                    update_step["row_scaling_parameters"].append(
+                        [node_name, row_scaling]
+                    )
+
                     debug_print(
                         f"No correlation scaling specified for node {node_name} "
                         f"in {ministep_name}. "
@@ -798,7 +812,6 @@ def add_ministeps(
                     )
 
                     surface = Surface(surface_file)
-                    # data_size = surface.getNX() * surface.getNY()
                     row_scaling = RowScaling()
                     if corr_spec.surface_scale.method in _decay_methods_surf_all:
                         ref_pos = corr_spec.surface_scale.ref_point
@@ -855,8 +868,8 @@ def add_ministeps(
                     )
                 else:
                     debug_print(
-                        "Surface parameter is specified, but no surface_scale "
-                        "keyword is specified. Require that surface_scale "
+                        "Surface parameter is specified, but no 'surface_scale' "
+                        "keyword is specified. Require that 'surface_scale' "
                         "keyword is specified.",
                         LogLevel.LEVEL3,
                         user_config.log_level,
@@ -998,7 +1011,7 @@ class ConstExponentialDecay(Decay):
 class ConstantScalingFactor:
     value: float
 
-    def __call__(self, data_index):
+    def __call__(self, _):
         return self.value
 
 
@@ -1093,8 +1106,8 @@ class ScalingValues:
                 qc_surface[f_indx] = param_for_surface[c_indx]
         qc_surface.write(filename)
         print(
-            "Write calculated scaling factor  with name: "
-            f"{scaling_surface_name} to file: {filename}"
+            "Write calculated scaling factor for SURFACE parameter "
+            f"in {cls.corr_name} to file: {filename}"
         )
         debug_print(
             f"Write calculated scaling factor with name: "
