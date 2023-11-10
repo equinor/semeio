@@ -830,7 +830,6 @@ class Decay:
     grid: object
 
     def __post_init__(self):
-        # pylint: disable=attribute-defined-outside-init
         angle = (90.0 - self.azimuth) * math.pi / 180.0
         self.cosangle = math.cos(angle)
         self.sinangle = math.sin(angle)
