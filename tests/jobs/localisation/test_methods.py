@@ -135,15 +135,6 @@ def create_parameter_from_decay_functions(method_name, grid):
     return scaling_values
 
 
-def write_param(filename, grid, param_values, param_name, nx, ny, nz):
-    # pylint: disable=too-many-arguments
-    print(f"\nWrite file: {filename}")
-    values = np.reshape(param_values, (nx, ny, nz), "F")
-    kw = grid.create_kw(values, param_name, False)
-    with cwrap.open(filename, "w") as file:
-        grid.write_grdecl(kw, file)
-
-
 # The selected grid cell values below should have same value for both
 # the GaussianDecay and the ExponentialDecay method since the
 # normalized distance is 1 for those grid cells not at the reference point grid
@@ -226,14 +217,7 @@ def test_calculate_scaling_factors_in_regions(snapshot):
     """
     Test calculation of scaling factor parameter for regions.
     For visual QC of the calculated scaling factors, write the grid to EGRID format
-    and the parameter to GRDECL format for easy import into visualization tool.
-    Add e.g the following code to the end of this function with  som chosen filename
-    and param_name and param_values:
-          grid_filename = "box_grid.EGRID"
-          grid.save_EGRID(grid_filename)
-          param_filename = "param.grdecl"
-          param_name = "param"
-          write_param(param_filename, grid, param_values, param_name, nx, ny, nz)
+    and the parameter to GRDECL format for easy import into a visualization tool.
     """
     grid, nx, ny, nz = create_box_grid(use_actnum=True)
     region_param_masked, _ = create_region_parameter(grid, BoxDimensions(nx, ny, nz))
