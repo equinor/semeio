@@ -319,7 +319,7 @@ def _get_field_params(facade, field_parameters, target_ensemble):
     return field_data
 
 
-def make_update_log_df(update_log: SmootherSnapshot):
+def make_update_log_df(update_log: SmootherSnapshot) -> pd.DataFrame:
     """Read update_log file to get active and inactive observations"""
     update_step = update_log.update_step_snapshots["MINISTEP"]
     obs_key = [step.obs_name for step in update_step]

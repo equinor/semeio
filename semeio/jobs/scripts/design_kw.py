@@ -50,7 +50,7 @@ def create_parser():
     return parser
 
 
-def main_entry_point() -> bool:
+def main_entry_point() -> None:
     parser = create_parser()
     parsed_args = parser.parse_args()
 

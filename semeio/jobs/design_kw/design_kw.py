@@ -81,7 +81,7 @@ def is_perl(file_name, template):
     return file_name.endswith(".pl") or template[0].find("perl") != -1
 
 
-def is_xml(file_name: str, template: List[str]):
+def is_xml(file_name: str, template: List[str]) -> bool:
     return file_name.endswith(".xml") or template[0].find("?xml") != -1
 
 
