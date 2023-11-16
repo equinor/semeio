@@ -1,6 +1,7 @@
 """
 Common functions used by the scripts: init_test_case.py and sim_field.py
 """
+import copy
 import math
 import os
 from dataclasses import dataclass
@@ -18,7 +19,7 @@ import yaml
 
 # Settings for the test case in the following dataclasses
 @dataclass
-class GridSize:
+class ModelSize:
     """
     Length, width, thickness of a box containing the field
     Same size is used for both fine scale grid with
@@ -26,11 +27,7 @@ class GridSize:
     containing upscaled values of the simulated field.
     """
 
-    xsize: float = 7500.0
-    ysize: float = 12500.0
-    #    xsize: float = 7500.0
-    #    ysize: float = 7500.0
-    zsize: float = 50.0
+    size: Tuple[float] = (7500.0, 12500.0, 50.0)
     polygon_file: str = None
     use_eclipse_grid_index_origo: bool = True
 
@@ -132,7 +129,7 @@ class Settings:
     Settings for the test case
     """
 
-    grid_size: GridSize = GridSize()
+    model_size: ModelSize = ModelSize()
     field: Field = Field()
     response: Response = Response()
     observation: Observation = Observation()
@@ -140,17 +137,17 @@ class Settings:
     optional: Optional = Optional()
 
 
-settings = Settings()
-
-
-def read_config_file(config_file_name=None):
+def read_config_file(config_file_name):
     # Modify default settings  if config_file exists
-    if config_file_name:
-        if os.path.exists(config_file_name):
-            with open(config_file_name, "r", encoding="utf-8") as yml_file:
-                settings_yml = yaml.safe_load(yml_file)
+    settings = Settings()
+    if os.path.exists(config_file_name):
+        with open(config_file_name, "r", encoding="utf-8") as yml_file:
+            settings_yml = yaml.safe_load(yml_file)
 
-            update_settings(settings_yml)
+        updated_settings = update_settings(settings, settings_yml)
+        return updated_settings
+
+    raise IOError("Missing config file ")
 
 
 def update_key(key, default_value, settings_dict, parent_key=None):
@@ -163,12 +160,12 @@ def update_key(key, default_value, settings_dict, parent_key=None):
     return value
 
 
-def update_settings(config_dict: dict):
+def update_settings(settings_original: Settings, config_dict: dict):
     # pylint: disable=too-many-branches, too-many-statements
     settings_dict = config_dict["settings"]
-
+    settings = copy.deepcopy(settings_original)
     valid_keys = [
-        "grid_size",
+        "model_size",
         "field",
         "response",
         "observation",
@@ -179,18 +176,16 @@ def update_settings(config_dict: dict):
         if key not in valid_keys:
             raise KeyError(f"Unknown keyword {key} in 'settings' ")
 
-    key = "grid_size"
-    grid_size_dict = settings_dict[key] if key in settings_dict else None
+    key = "model_size"
+    model_size_dict = settings_dict[key] if key in settings_dict else None
     valid_keys = [
-        "xsize",
-        "ysize",
-        "zsize",
+        "size",
         "polygon_file",
         "use_eclipse_grid_index_origo",
     ]
-    if grid_size_dict:
+    if model_size_dict:
         err_msg = []
-        for sub_key in grid_size_dict:
+        for sub_key in model_size_dict:
             if sub_key not in valid_keys:
                 err_msg.append(f"  {sub_key}")
         if len(err_msg) > 0:
@@ -199,23 +194,17 @@ def update_settings(config_dict: dict):
                 print(text)
             raise KeyError("Unknown keywords")
 
-        grid_size_object = settings.grid_size
-        grid_size_object.xsize = update_key(
-            "xsize", grid_size_object.xsize, grid_size_dict, key
+        model_size_object = settings.model_size
+        model_size_object.size = update_key(
+            "size", model_size_object.size, model_size_dict, key
         )
-        grid_size_object.ysize = update_key(
-            "ysize", grid_size_object.ysize, grid_size_dict, key
+        model_size_object.polygon_file = update_key(
+            "polygon_file", model_size_object.polygon_file, model_size_dict, key
         )
-        grid_size_object.zsize = update_key(
-            "zsize", grid_size_object.zsize, grid_size_dict, key
-        )
-        grid_size_object.polygon_file = update_key(
-            "polygon_file", grid_size_object.polygon_file, grid_size_dict, key
-        )
-        grid_size_object.use_eclipse_grid_index_origo = update_key(
+        model_size_object.use_eclipse_grid_index_origo = update_key(
             "use_eclipse_grid_index_origo",
-            grid_size_object.use_eclipse_grid_index_origo,
-            grid_size_dict,
+            model_size_object.use_eclipse_grid_index_origo,
+            model_size_dict,
             key,
         )
 
@@ -424,35 +413,83 @@ def update_settings(config_dict: dict):
             optional_dict,
             key,
         )
+    return settings
 
 
-def generate_field_and_upscale(real_number):
-    seed_file_name = settings.field.seed_file
-    relative_std = settings.field.trend_relstd
-    use_trend = settings.field.trend_use
-    algorithm_method = settings.field.algorithm
+def generate_field_and_upscale(
+    # pylint: disable=too-many-arguments
+    real_number: int,
+    iteration: int,
+    seed_file_name: str,
+    algorithm_method: str,
+    field_name: str,
+    field_file_name: str,
+    file_format: str,
+    grid_dimension: tuple,
+    model_size: tuple,
+    variogram_name: str,
+    corr_ranges: tuple,
+    azimuth: float,
+    dip: float,
+    alpha: float,
+    use_trend: bool,
+    trend_params: tuple,
+    relative_std: float,
+    upscale_name: str,
+    response_function: str,
+    upscaled_file_name: str,
+    grid_dimension_upscaled: tuple,
+    write_upscaled_field: bool,
+    use_standard_grid_index_origo: bool,
+):
     start_seed = get_seed(seed_file_name, real_number)
     if algorithm_method == "gstools":
         print(f"Use algorithm: {algorithm_method}")
-        residual_field = simulate_field_using_gstools(start_seed)
+        residual_field = simulate_field_using_gstools(
+            start_seed,
+            variogram_name,
+            corr_ranges,
+            azimuth,
+            grid_dimension,
+            model_size,
+            use_standard_grid_index_origo,
+        )
     else:
         print("Use algorithm: gaussianfft")
-        residual_field = simulate_field(start_seed)
-    if use_trend == 1:
-        trend_field = trend()
+        residual_field = simulate_field(
+            start_seed,
+            variogram_name,
+            corr_ranges,
+            azimuth,
+            dip,
+            alpha,
+            grid_dimension,
+            model_size,
+            use_standard_grid_index_origo,
+        )
+    if use_trend:
+        trend_field = trend(grid_dimension, model_size, trend_params)
         field3D = trend_field + relative_std * residual_field
-
     else:
         field3D = residual_field
 
     # Write field parameter for fine scale grid
-    field_object = export_field(field3D)
+    field_object = export_field(
+        field3D, field_name, field_file_name, file_format, grid_dimension
+    )
+
     field_values = field_object.values
 
     # Calculate upscaled values for selected coarse grid cells
     upscaled_values = upscaling(
         field_values,
-        iteration=0,
+        response_function,
+        file_format,
+        upscale_name,
+        write_upscaled_field,
+        upscaled_file_name,
+        grid_dimension_upscaled,
+        iteration,
     )
     return upscaled_values
 
@@ -471,16 +508,22 @@ def get_seed(seed_file_name, r_number):
     return seed_value
 
 
-def upscaling(field_values, iteration=0):
+def upscaling(
+    # pylint: disable=too-many-arguments
+    field_values,
+    response_function_name: str,
+    file_format: str,
+    upscaled_field_name: str,
+    write_upscaled_field: bool,
+    upscaled_file_name: str,
+    dimension: tuple,
+    iteration: int = 0,
+):
     """
     Calculate upscaled values and optionally write upscaled values to file.
     Return upscaled values
     """
-    response_function_name = settings.response.response_function
-    file_format = settings.response.file_format
-    upscaled_field_name = settings.response.name
-    write_upscaled_field = settings.response.write_upscaled_field
-    NX, NY, NZ = settings.response.grid_dimension
+    NX, NY, NZ = dimension
     upscaled_values = np.zeros((NX, NY, NZ), dtype=np.float32, order="F")
     upscaled_values[:, :, :] = -999
 
@@ -491,7 +534,6 @@ def upscaling(field_values, iteration=0):
         )
 
     if write_upscaled_field:
-        upscaled_file_name = settings.response.upscaled_file_name
         if iteration == 0:
             upscaled_file_name = "init_files/" + upscaled_file_name
 
@@ -538,7 +580,7 @@ def write_upscaled_field_to_file(
         # Grid index order to xtgeo must be c-order masked array
         selected_upscaled_values = np.ma.zeros((nx, ny, nz), dtype=np.float32)
         selected_upscaled_values[:, :, :] = -1
-        nobs = get_nobs()
+        nobs = get_nobs(selected_cell_index_list)
         for obs_number in range(nobs):
             (Iindx, Jindx, Kindx) = get_cell_indices(
                 obs_number, nobs, selected_cell_index_list
@@ -596,15 +638,14 @@ def upscale_average(field_values, upscaled_values):
     return upscaled_values
 
 
-def trend():
+def trend(grid_dimension: tuple, model_size: tuple, trend_params: tuple):
     """
     Return 3D numpy array with values following a linear trend
     scaled to take values between 0 and 1.
     """
-    nx, ny, nz = settings.field.grid_dimension
-    xsize = settings.grid_size.xsize
-    ysize = settings.grid_size.ysize
-    a, b = settings.field.trend_params
+    nx, ny, nz = grid_dimension
+    xsize, ysize, _ = model_size
+    a, b = trend_params
 
     x0 = 0.0
     y0 = 0.0
@@ -629,26 +670,25 @@ def trend():
     return val_normalized
 
 
-def simulate_field(start_seed):
+def simulate_field(
+    start_seed: int,
+    variogram_name: str,
+    corr_ranges: tuple,
+    azimuth: float,
+    dip: float,
+    alpha: float,
+    grid_dimension: tuple,
+    model_size: tuple,
+    use_standard_grid_index_origo: bool,
+):
     # pylint: disable=import-outside-toplevel
     # This function will not be available untill gaussianfft is available on python 3.10
     # import gaussianfft as sim  # isort: skip
     # dummy code to avoid pylint complaining in github actions
     sim = None
-
-    variogram_name = settings.field.variogram
-    corr_ranges = settings.field.correlation_range
-    azimuth = settings.field.correlation_azimuth
-    dip = settings.field.correlation_dip
-    alpha = settings.field.correlation_exponent
-    nx, ny, nz = settings.field.grid_dimension
-    xsize = settings.grid_size.xsize
-    ysize = settings.grid_size.ysize
-    zsize = settings.grid_size.zsize
-
-    xrange = corr_ranges[0]
-    yrange = corr_ranges[1]
-    zrange = corr_ranges[2]
+    nx, ny, nz = grid_dimension
+    xrange, yrange, zrange = corr_ranges
+    xsize, ysize, zsize = model_size
 
     dx = xsize / nx
     dy = ysize / ny
@@ -671,7 +711,7 @@ def simulate_field(start_seed):
     # gaussianfft.simulate  will save the values in F-order
     field1D = sim.simulate(variogram, nx, dx, ny, dy, nz, dz)
     field_sim = field1D.reshape((nx, ny, nz), order="F")
-    if settings.grid_size.use_eclipse_grid_index_origo:
+    if use_standard_grid_index_origo:
         field_c_order = np.ma.zeros((nx, ny, nz), dtype=np.float32)
         j_indices = -np.arange(ny) + ny - 1
         # Flip j index and use c-order
@@ -683,20 +723,19 @@ def simulate_field(start_seed):
     return field_c_order
 
 
-def simulate_field_using_gstools(start_seed):
+def simulate_field_using_gstools(
+    start_seed: int,
+    variogram_name: str,
+    corr_ranges: tuple,
+    azimuth: float,
+    grid_dimension: tuple,
+    model_size: tuple,
+    use_standard_grid_index_origo: bool,
+):
     # pylint: disable=no-member,
-
-    variogram_name = settings.field.variogram
-    corr_ranges = settings.field.correlation_range
-    azimuth = settings.field.correlation_azimuth
-    xrange = corr_ranges[0]
-    yrange = corr_ranges[1]
-    zrange = corr_ranges[2]
-
-    nx, ny, nz = settings.field.grid_dimension
-    xsize = settings.grid_size.xsize
-    ysize = settings.grid_size.ysize
-    zsize = settings.grid_size.zsize
+    xrange, yrange, zrange = corr_ranges
+    xsize, ysize, zsize = model_size
+    nx, ny, nz = grid_dimension
 
     dx = xsize / nx
     dy = ysize / ny
@@ -740,7 +779,7 @@ def simulate_field_using_gstools(start_seed):
     # print(f"Field nugget: {srf.nugget} ")
     # print(f"Field opt arg:   {srf.opt_arg}")
     field = field_srf.reshape((nx, ny, nz))
-    if settings.grid_size.use_eclipse_grid_index_origo:
+    if use_standard_grid_index_origo:
         field_flip_j_index = np.ma.zeros((nx, ny, nz), dtype=np.float32)
         j_indices = -np.arange(ny) + ny - 1
         field_flip_j_index[:, j_indices, :] = field[:, :, :]
@@ -749,21 +788,21 @@ def simulate_field_using_gstools(start_seed):
     return field
 
 
-def export_field(field3D):
+def export_field(
+    field3D,
+    field_name: str,
+    field_file_name: str,
+    file_format: str,
+    grid_dimension: tuple,
+):
     """
     Export initial realization of field to roff format
     Input field3D should be C-index order since xtgeo requires that
     """
-
-    # nx, ny, nz = settings.field.grid_dimension
-    field_name = settings.field.name
-    field_file_name = settings.field.initial_file_name
-    file_format = settings.field.file_format
-    nx, ny, nz = settings.field.grid_dimension
+    nx, ny, nz = grid_dimension
     field_object = xtgeo.grid3d.GridProperty(
         ncol=nx, nrow=ny, nlay=nz, values=field3D, discrete=False, name=field_name
     )
-
     if file_format.upper() == "GRDECL":
         fullfilename = field_file_name + ".GRDECL"
         field_object.to_file(fullfilename, fformat="grdecl", dtype="float32")
@@ -776,16 +815,14 @@ def export_field(field3D):
     return field_object
 
 
-def read_field_from_file():
+def read_field_from_file(
+    input_file_name: str, name: str, file_format: str, grid_file_name: str
+):
     """
     Read field from roff formatted file and return xtgeo property object
     """
-
-    input_file_name = settings.field.updated_file_name
-    name = settings.field.name
-    file_format = settings.field.file_format
     if file_format.upper() == "GRDECL":
-        grid = xtgeo.grid_from_file(settings.field.grid_file_name, fformat="egrid")
+        grid = xtgeo.grid_from_file(grid_file_name, fformat="egrid")
         fullfilename = input_file_name + ".GRDECL"
         field_object = xtgeo.grid3d.GridProperty(
             fullfilename, fformat="grdecl", grid=grid, name=name
@@ -800,40 +837,39 @@ def read_field_from_file():
     return field_object
 
 
-def read_obs_field_from_file():
+def read_obs_field_from_file(
+    file_format: str, pred_obs_file_name: str, grid_file_name: str, field_name: str
+):
     """
     Read field parameter containing parameter with observed values
     for selected grid cells
     """
-
-    file_format = settings.response.file_format
-    pred_obs_file_name = settings.observation.reference_param_file
     if file_format.upper() == "ROFF":
         fullfilename = pred_obs_file_name + ".roff"
         obs_field_object = xtgeo.gridproperty_from_file(fullfilename, fformat="roff")
     elif file_format.upper() == "GRDECL":
-        grid = xtgeo.grid_from_file(settings.response.grid_file_name, fformat="egrid")
+        grid = xtgeo.grid_from_file(grid_file_name, fformat="egrid")
         fullfilename = pred_obs_file_name + ".GRDECL"
         obs_field_object = xtgeo.gridproperty_from_file(
-            fullfilename,
-            fformat="grdecl",
-            grid=grid,
-            name=settings.observation.reference_field_name,
+            fullfilename, fformat="grdecl", grid=grid, name=field_name
         )
     else:
         raise IOError(f"Unknown file format:{file_format} ")
     return obs_field_object
 
 
-def read_upscaled_field_from_file(iteration):
+def read_upscaled_field_from_file(
+    iteration: int,
+    input_file_name: str,
+    file_format: str,
+    upscaled_field_name: str,
+    grid_file_name: str,
+):
     """
     Read upscaled field parameter either from initial ensemble or updated ensemble.
     Return xtgeo property object
     """
 
-    input_file_name = settings.response.upscaled_file_name
-    file_format = settings.response.file_format
-    upscaled_field_name = settings.response.name
     if iteration == 0:
         filename = "init_files/" + input_file_name
     else:
@@ -842,7 +878,7 @@ def read_upscaled_field_from_file(iteration):
         fullfilename = filename + ".roff"
         field_object = xtgeo.gridproperty_from_file(fullfilename, fformat="roff")
     elif file_format.upper() == "GRDECL":
-        grid = xtgeo.grid_from_file(settings.response.grid_file_name, fformat="egrid")
+        grid = xtgeo.grid_from_file(grid_file_name, fformat="egrid")
         fullfilename = filename + ".GRDECL"
         field_object = xtgeo.gridproperty_from_file(
             fullfilename, fformat="grdecl", grid=grid, name=upscaled_field_name
@@ -852,7 +888,9 @@ def read_upscaled_field_from_file(iteration):
     return field_object
 
 
-def write_obs_pred_diff_field(upscaled_field_object, observation_field_object):
+def write_obs_pred_diff_field(
+    upscaled_field_object, observation_field_object, file_format: str
+):
     """
     Get xtgeo property objects for predicted values for observables
     and observation values.
@@ -860,7 +898,6 @@ def write_obs_pred_diff_field(upscaled_field_object, observation_field_object):
     """
     nx, ny, nz = upscaled_field_object.dimensions
     values_diff = upscaled_field_object.values - observation_field_object.values
-    file_format = settings.response.file_format
 
     diff_object = xtgeo.grid3d.GridProperty(
         ncol=nx,
@@ -900,13 +937,13 @@ def get_cell_indices(obs_number, nobs, cell_indx_list):
     return (Iindx, Jindx, Kindx)
 
 
-def get_nobs():
+def get_nobs(cell_indx_list: list):
     """
     Check if cell_indx_list is a single tuple (i,j,k) or
     a list of tuples  of type (i,j,k).
     Return number of cell indices found in list
     """
-    cell_indx_list = settings.observation.selected_grid_cells
+
     is_list_of_ints = all(isinstance(indx, int) for indx in cell_indx_list)
     if is_list_of_ints:
         nobs = 1

@@ -25,14 +25,14 @@
 ​
 ### Typical Workflow:
 ​
-1. **Preparation:** Prepare ERT config input by running `scripts/init_test_case.py`.
-2. Directories for observations are created automatically according to the default settings.
+1. **Preparation:** Prepare ERT config input by running `scripts/init_test_case.py` with a config file in yaml format as input.
+2. Directories for observations are created automatically according to the default settings or settings in config file..
 3. Activate or deactivate localisation in ERT config file (`HOOK_WORKFLOW LOAD_WORKFLOW` for localisation).
 4. Now ready to run ERT.
 ​
 ### What the Script `sim_fields.py` Does:
-​
-1. Get iteration and realisation number from ERT using ERT environment variables `_ERT_ITERATION_NUMBER` and `_ERT_REALIZATION_NUMBER`. If running with an old Komodo version, the script will require iteration and realisation_number as command line input.
+​1. Require 3 input arguments: iteration number, realization_number, config file.
+1. Get iteration and realisation number from ERT.
 2. If iteration = 0, then:
      - Simulate field and export to file to be used in `FIELD` keyword in ERT config file.
      - Upscale field and optionally export to file for QC purpose.

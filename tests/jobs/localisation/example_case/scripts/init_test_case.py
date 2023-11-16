@@ -15,7 +15,6 @@ from common_functions import (
     get_cell_indices,
     get_nobs,
     read_config_file,
-    settings,
     write_upscaled_field_to_file,
 )
 
@@ -24,26 +23,29 @@ from common_functions import (
 
 
 def generate_seed_file(
+    file_name: str,
     start_seed: int = 9828862224,
     number_of_seeds: int = 1000,
 ):
-    seed_file_name = settings.field.seed_file
-    print(f"Generate random seed file: {seed_file_name}")
+    print(f"Generate random seed file: {file_name}")
     random.seed(start_seed)
-    with open(seed_file_name, "w", encoding="utf8") as file:
+    with open(file_name, "w", encoding="utf8") as file:
         for _ in range(number_of_seeds):
             file.write(f"{random.randint(1, 999999999)}\n")
 
 
-def obs_positions():
-    NX, NY, _ = settings.response.grid_dimension
-    use_eclipse_origo = settings.grid_size.use_eclipse_grid_index_origo
+def obs_positions(
+    grid_dimension_upscaled: tuple,
+    model_size: tuple,
+    cell_indx_list: list,
+    use_eclipse_origo: bool,
+):
+    nx, ny, _ = grid_dimension_upscaled
+    xsize, ysize, _ = model_size
 
-    xsize = settings.grid_size.xsize
-    ysize = settings.grid_size.ysize
-    dx = xsize / NX
-    dy = ysize / NY
-    cell_indx_list = settings.observation.selected_grid_cells
+    dx = xsize / nx
+    dy = ysize / ny
+
     if use_eclipse_origo:
         print("Grid index origin: Eclipse standard")
     else:
@@ -54,7 +56,7 @@ def obs_positions():
     )
 
     pos_list = []
-    nobs = get_nobs()
+    nobs = get_nobs(cell_indx_list)
     for obs_number in range(nobs):
         (Iindx, Jindx, _) = get_cell_indices(obs_number, nobs, cell_indx_list)
         x = (Iindx + 0.5) * dx
@@ -69,24 +71,29 @@ def obs_positions():
 
 
 def write_localisation_config(
-    config_file_name="local_config.yml",
-    write_scaling=True,
-    localisation_method="gaussian",
+    obs_index_list: list,
+    field_name: str,
+    corr_ranges: tuple,
+    azimuth: float,
+    grid_dimension: tuple,
+    model_size: tuple,
+    use_eclipse_grid_index_origo: bool,
+    config_file_name: str = "local_config.yml",
+    write_scaling: bool = True,
+    localisation_method: str = "gaussian",
 ):
-    obs_index_list = settings.observation.selected_grid_cells
-    field_name = settings.field.name
-    corr_ranges = settings.field.correlation_range
-    azimuth = settings.field.correlation_azimuth
     space = " " * 2
     space2 = " " * 4
     space3 = " " * 6
-    positions = obs_positions()
+    positions = obs_positions(
+        grid_dimension, model_size, obs_index_list, use_eclipse_grid_index_origo
+    )
     print(f"Write localisation config file: {config_file_name}")
     with open(config_file_name, "w", encoding="utf8") as file:
         file.write("log_level: 3\n")
         file.write(f"write_scaling_factors: {write_scaling}\n")
         file.write("correlations:\n")
-        nobs = get_nobs()
+        nobs = get_nobs(obs_index_list)
         for obs_number in range(nobs):
             (Iindx, Jindx, Kindx) = get_cell_indices(obs_number, nobs, obs_index_list)
             obs_name = f"OBS_{Iindx+1}_{Jindx+1}_{Kindx+1}"
@@ -108,13 +115,15 @@ def write_localisation_config(
                 file.write(f"{space3}value: 1.0\n")
 
 
-def write_gen_obs(upscaled_values):
-    observation_dir = settings.observation.directory
-    obs_file_name = settings.observation.file_name
-    obs_data_dir = settings.observation.data_dir
-    cell_indx_list = settings.observation.selected_grid_cells
-    rel_err = settings.observation.rel_error
-    min_err = settings.observation.min_abs_error
+def write_gen_obs(
+    upscaled_values,
+    observation_dir: str,
+    obs_file_name: str,
+    obs_data_dir: str,
+    cell_indx_list: list,
+    rel_err: float,
+    min_err: float,
+):
     if not os.path.exists(observation_dir):
         print(f"Create directory: {observation_dir} ")
         os.makedirs(observation_dir)
@@ -128,7 +137,7 @@ def write_gen_obs(upscaled_values):
     with open(filename, "w", encoding="utf8") as obs_file:
         # Check if cell_indx_list is a single tuple (i,j,k)
         # or a list of tuples  of type (i,j,k)
-        nobs = get_nobs()
+        nobs = get_nobs(cell_indx_list)
         for obs_number in range(nobs):
             (Iindx, Jindx, Kindx) = get_cell_indices(obs_number, nobs, cell_indx_list)
             value = upscaled_values[Iindx, Jindx, Kindx]
@@ -161,13 +170,16 @@ def write_gen_obs(upscaled_values):
                 data_file.write(f"{value}  {value_err}\n")
 
 
-def create_grid():
-    grid_file_name = settings.field.grid_file_name
-    nx, ny, nz = settings.field.grid_dimension
-    xsize = settings.grid_size.xsize
-    ysize = settings.grid_size.ysize
-    zsize = settings.grid_size.zsize
-    if settings.grid_size.use_eclipse_grid_index_origo:
+def create_grid(
+    grid_file_name,
+    dimensions,
+    size,
+    standard_grid_index_origo,
+    polygon_file_name=None,
+):
+    xsize, ysize, zsize = size
+    nx, ny, nz = dimensions
+    if standard_grid_index_origo:
         flip = -1
         x0 = 0.0
         y0 = ysize
@@ -190,7 +202,6 @@ def create_grid():
         flip=flip,
     )
 
-    polygon_file_name = settings.grid_size.polygon_file
     if polygon_file_name is not None and os.path.exists(polygon_file_name):
         print(f"Use polygon  file {polygon_file_name} to create actnum ")
         polygon = xtgeo.polygons_from_file(polygon_file_name, fformat="xyz")
@@ -201,55 +212,33 @@ def create_grid():
     return grid_object
 
 
-def create_upscaled_grid():
-    grid_file_name = settings.response.grid_file_name
-    nx, ny, nz = settings.response.grid_dimension
-    xsize = settings.grid_size.xsize
-    ysize = settings.grid_size.ysize
-    zsize = settings.grid_size.zsize
-    if settings.grid_size.use_eclipse_grid_index_origo:
-        flip = -1
-        x0 = 0.0
-        y0 = ysize
-        z0 = 0.0
-    else:
-        flip = 1
-        x0 = 0.0
-        y0 = 0.0
-        z0 = 0.0
-
-    dx = xsize / nx
-    dy = ysize / ny
-    dz = zsize / nz
-
-    grid_object = xtgeo.create_box_grid(
-        dimension=(nx, ny, nz),
-        origin=(x0, y0, z0),
-        increment=(dx, dy, dz),
-        rotation=0.0,
-        flip=flip,
-    )
-
-    print(f"Write grid file: {grid_file_name} ")
-    grid_object.to_file(grid_file_name, fformat="egrid")
-    return grid_object
-
-
-def main(config_file_name=None):
+def main(config_file_name):
     """
     Initialize seed file, grid files, observation files and localisation config file
     """
 
-    read_config_file(config_file_name)
+    settings = read_config_file(config_file_name)
 
     # Create seed file
-    generate_seed_file()
+    generate_seed_file(settings.field.seed_file)
 
     # Create grid for the field parameter
-    create_grid()
+    create_grid(
+        settings.field.grid_file_name,
+        settings.field.grid_dimension,
+        settings.model_size.size,
+        settings.model_size.use_eclipse_grid_index_origo,
+        settings.model_size.polygon_file,
+    )
 
     # Create coarse grid to be used in QC of upscaled field parameter
-    create_upscaled_grid()
+    create_grid(
+        settings.response.grid_file_name,
+        settings.response.grid_dimension,
+        settings.model_size.size,
+        settings.model_size.use_eclipse_grid_index_origo,
+        settings.model_size.polygon_file,
+    )
 
     print("Generate field parameter and upscale this.")
     print(
@@ -259,33 +248,89 @@ def main(config_file_name=None):
 
     # Simulate field (with trend)
     real_number = 0
-    upscaled_values = generate_field_and_upscale(real_number)
+    iteration = 0
+    upscaled_values = generate_field_and_upscale(
+        real_number,
+        iteration,
+        settings.field.seed_file,
+        settings.field.algorithm,
+        settings.field.name,
+        settings.field.initial_file_name,
+        settings.field.file_format,
+        settings.field.grid_dimension,
+        settings.model_size.size,
+        settings.field.variogram,
+        settings.field.correlation_range,
+        settings.field.correlation_azimuth,
+        settings.field.correlation_dip,
+        settings.field.correlation_exponent,
+        settings.field.trend_use,
+        settings.field.trend_params,
+        settings.field.trend_relstd,
+        settings.response.name,
+        settings.response.response_function,
+        settings.response.upscaled_file_name,
+        settings.response.grid_dimension,
+        settings.response.write_upscaled_field,
+        settings.model_size.use_eclipse_grid_index_origo,
+    )
 
     # Create observations by extracting from existing upscaled field
-    write_gen_obs(upscaled_values)
+    write_gen_obs(
+        upscaled_values,
+        settings.observation.directory,
+        settings.observation.file_name,
+        settings.observation.data_dir,
+        settings.observation.selected_grid_cells,
+        settings.observation.rel_error,
+        settings.observation.min_abs_error,
+    )
 
     # Write upscaled field used as reference
     # since obs are extracted from this field
     write_upscaled_field_to_file(
         upscaled_values,
         settings.observation.reference_param_file,
+        upscaled_field_name=settings.observation.reference_field_name,
         selected_cell_index_list=settings.observation.selected_grid_cells,
         file_format=settings.field.file_format,
-        upscaled_field_name=settings.observation.reference_field_name,
     )
 
     # Write file for non-adaptive localisation using distance based localisation
     write_localisation_config(
+        settings.observation.selected_grid_cells,
+        settings.field.name,
+        settings.field.correlation_range,
+        settings.field.correlation_azimuth,
+        settings.response.grid_dimension,
+        settings.model_size.size,
+        settings.model_size.use_eclipse_grid_index_origo,
         config_file_name="local_config_gaussian_decay.yml",
         write_scaling=True,
         localisation_method="gaussian",
     )
+
     write_localisation_config(
+        settings.observation.selected_grid_cells,
+        settings.field.name,
+        settings.field.correlation_range,
+        settings.field.correlation_azimuth,
+        settings.response.grid_dimension,
+        settings.model_size.size,
+        settings.model_size.use_eclipse_grid_index_origo,
         config_file_name="local_config_constant.yml",
         write_scaling=True,
         localisation_method="constant",
     )
+
     write_localisation_config(
+        settings.observation.selected_grid_cells,
+        settings.field.name,
+        settings.field.correlation_range,
+        settings.field.correlation_azimuth,
+        settings.response.grid_dimension,
+        settings.model_size.size,
+        settings.model_size.use_eclipse_grid_index_origo,
         config_file_name="local_config.yml",
         write_scaling=True,
         localisation_method=settings.localisation.method,

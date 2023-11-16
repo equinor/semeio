@@ -14,22 +14,21 @@ from common_functions import (
     read_field_from_file,
     read_obs_field_from_file,
     read_upscaled_field_from_file,
-    settings,
     upscaling,
     write_obs_pred_diff_field,
 )
 
 
-def write_prediction_gen_data(upscaled_values):
+def write_prediction_gen_data(
+    upscaled_values, cell_indx_list: list, response_file_name: str
+):
     """
     Write GEN_DATA file with predicted values of observables (selected upscaled values)
     """
-    cell_indx_list = settings.observation.selected_grid_cells
-    response_file_name = settings.response.gen_data_file_name
     print(f"Write GEN_DATA file with prediction of observations: {response_file_name}")
     with open(response_file_name, "w", encoding="utf8") as file:
         # NOTE: The sequence of values must be the same as for the observations
-        nobs = get_nobs()
+        nobs = get_nobs(cell_indx_list)
         for obs_number in range(nobs):
             (Iindx, Jindx, Kindx) = get_cell_indices(obs_number, nobs, cell_indx_list)
             value = upscaled_values[Iindx, Jindx, Kindx]
@@ -79,32 +78,84 @@ def main(args):
     iteration, real_number, config_file_name = get_iteration_real_number_config_file(
         args
     )
-    read_config_file(config_file_name)
+    settings = read_config_file(config_file_name)
 
     if iteration == 0:
         print(f"Generate new field parameter realization:{real_number} ")
         # Simulate field (with trend)
-        upscaled_values = generate_field_and_upscale(real_number)
+        upscaled_values = generate_field_and_upscale(
+            real_number,
+            iteration,
+            settings.field.seed_file,
+            settings.field.algorithm,
+            settings.field.name,
+            settings.field.initial_file_name,
+            settings.field.file_format,
+            settings.field.grid_dimension,
+            settings.model_size.size,
+            settings.field.variogram,
+            settings.field.correlation_range,
+            settings.field.correlation_azimuth,
+            settings.field.correlation_dip,
+            settings.field.correlation_exponent,
+            settings.field.trend_use,
+            settings.field.trend_params,
+            settings.field.trend_relstd,
+            settings.response.name,
+            settings.response.response_function,
+            settings.response.upscaled_file_name,
+            settings.response.grid_dimension,
+            settings.response.write_upscaled_field,
+            settings.model_size.use_eclipse_grid_index_origo,
+        )
 
     else:
         print(f"Import updated field parameter realization: {real_number} ")
-        field_object = read_field_from_file()
+        field_object = read_field_from_file(
+            settings.field.updated_file_name,
+            settings.field.name,
+            settings.field.file_format,
+            settings.field.grid_file_name,
+        )
         field_values = field_object.values
 
         # Calculate upscaled values for selected coarse grid cells
         upscaled_values = upscaling(
             field_values,
+            settings.response.response_function,
+            settings.response.file_format,
+            settings.response.name,
+            settings.response.write_upscaled_field,
+            settings.response.upscaled_file_name,
+            settings.response.grid_dimension,
             iteration=iteration,
         )
     # Write GEN_DATA file
-    write_prediction_gen_data(upscaled_values)
+    write_prediction_gen_data(
+        upscaled_values,
+        settings.observation.selected_grid_cells,
+        settings.response.gen_data_file_name,
+    )
 
     # Optional output calculate difference between upscaled field and
     # and reference upscaled field
     if settings.optional.write_obs_pred_diff_field_file:
-        obs_field_object = read_obs_field_from_file()
-        upscaled_field_object = read_upscaled_field_from_file(iteration)
-        write_obs_pred_diff_field(upscaled_field_object, obs_field_object)
+        obs_field_object = read_obs_field_from_file(
+            settings.response.file_format,
+            settings.observation.reference_param_file,
+            settings.response.grid_file_name,
+            settings.observation.reference_field_name,
+        )
+        upscaled_field_object = read_upscaled_field_from_file(
+            iteration,
+            settings.response.upscaled_file_name,
+            settings.response.file_format,
+            settings.response.name,
+            settings.response.grid_file_name,
+        )
+        write_obs_pred_diff_field(
+            upscaled_field_object, obs_field_object, settings.field.file_format
+        )
 
 
 if __name__ == "__main__":

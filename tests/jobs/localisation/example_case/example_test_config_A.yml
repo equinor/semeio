@@ -1,9 +1,7 @@
 # ROFF format standard Eclipse origo
 settings:
-  grid_size:
-    xsize: 7500.0
-    ysize: 12500.0
-    zsize: 50.0
+  model_size:
+    size: [ 7500.0,  12500.0, 50.0 ]
     use_eclipse_grid_index_origo: True
 
   field:
