@@ -2,11 +2,11 @@
 """
 Script initialize the test case by creating the grid files, observation files etc
 """
-
 import math
 import os
 import random
-import sys
+from pathlib import Path
+from typing import Optional, Tuple
 
 # pylint: disable=import-error
 import xtgeo
@@ -171,11 +171,11 @@ def write_gen_obs(
 
 
 def create_grid(
-    grid_file_name,
-    dimensions,
-    size,
-    standard_grid_index_origo,
-    polygon_file_name=None,
+    grid_file_name: str,
+    dimensions: Tuple[int, int, int],
+    size: Tuple[float, float, float],
+    standard_grid_index_origo: bool,
+    polygon_file_name: Optional[str] = None,
 ):
     xsize, ysize, zsize = size
     nx, ny, nz = dimensions
@@ -212,12 +212,12 @@ def create_grid(
     return grid_object
 
 
-def main(config_file_name):
+def main(config_file: Path):
     """
     Initialize seed file, grid files, observation files and localisation config file
     """
 
-    settings = read_config_file(config_file_name)
+    settings = read_config_file(config_file)
 
     # Create seed file
     generate_seed_file(settings.field.seed_file)
@@ -338,10 +338,5 @@ def main(config_file_name):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        raise IOError(
-            f"The script {sys.argv[0]} requires one input with test config yml file"
-        )
-
-    config_file_name = sys.argv[1]
-    main(config_file_name)
+    config_file = Path(__file__).parent / "../example_test_config_A_with_actnum.yml"
+    main(config_file)

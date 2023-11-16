@@ -3,9 +3,9 @@ Common functions used by the scripts: init_test_case.py and sim_field.py
 """
 import copy
 import math
-import os
 from dataclasses import dataclass
-from typing import Tuple
+from pathlib import Path
+from typing import Any, Dict, Tuple
 
 import gstools as gs
 import numpy as np
@@ -137,17 +137,23 @@ class Settings:
     optional: Optional = Optional()
 
 
-def read_config_file(config_file_name):
-    # Modify default settings  if config_file exists
-    settings = Settings()
-    if os.path.exists(config_file_name):
-        with open(config_file_name, "r", encoding="utf-8") as yml_file:
-            settings_yml = yaml.safe_load(yml_file)
-
-        updated_settings = update_settings(settings, settings_yml)
-        return updated_settings
-
-    raise IOError("Missing config file ")
+def read_config_file(config_file_name: Path) -> Dict[str, Any]:
+    with open(config_file_name, "r", encoding="utf-8") as f:
+        settings = yaml.safe_load(f)
+    model_size = ModelSize(**settings["settings"]["model_size"])
+    field = Field(**settings["settings"]["field"])
+    response = Response(**settings["settings"]["response"])
+    observation = Observation(**settings["settings"]["observation"])
+    localisation = Localisation(**settings["settings"]["localisation"])
+    optional = Optional(**settings["settings"]["optional"])
+    return Settings(
+        model_size=model_size,
+        field=field,
+        response=response,
+        observation=observation,
+        localisation=localisation,
+        optional=optional,
+    )
 
 
 def update_key(key, default_value, settings_dict, parent_key=None):
