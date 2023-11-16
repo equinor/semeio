@@ -4,6 +4,10 @@ copy_test_files () {
     cp $CI_SOURCE_ROOT/pyproject.toml $CI_TEST_ROOT
 }
 
+install_test_dependencies () {
+    pip install "semeio[test]"
+}
+
 start_tests () {
     pytest --ert-integration
 }
