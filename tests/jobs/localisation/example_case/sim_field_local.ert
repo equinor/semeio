@@ -1,5 +1,4 @@
 DEFINE <USER>              $USER
-DEFINE <SCRATCH>           /scratch/fmu
 DEFINE <CASE_DIR>          sim_field_local_A
 DEFINE <ENSEMBLE_SEED_FILE> randomseeds.txt
 DEFINE <TEST_CONFIG>  <CONFIG_PATH>/example_test_config_A.yml
@@ -10,7 +9,6 @@ INSTALL_JOB  SIM_FIELD  scripts/FM_SIM_FIELD
 
 DEFINE      <OBS_FILE>  <CONFIG_PATH>/observations/observations.obs
 OBS_CONFIG  <OBS_FILE>
-TIME_MAP time_map.txt
 
 JOBNAME  sim_fields_<IENS>
 
@@ -22,7 +20,6 @@ MAX_SUBMIT          1              -- How many times should the queue system ret
 QUEUE_OPTION  LSF MAX_RUNNING 100  -- Choke the number of simultaneous run
 QUEUE_OPTION LSF LSF_QUEUE  mr     -- Assign LSF cluster queue to use
 
-RUNPATH  <SCRATCH>/<USER>/<CASE_DIR>/realization-<IENS>/iter-<ITER>
 RANDOM_SEED  123456  -- ERT seed value
 
 ENSPATH         output/<CASE_DIR>/storage       -- Storage of internal ert data
@@ -46,12 +43,12 @@ FORWARD_MODEL MAKE_DIRECTORY(<DIRECTORY>=<ITER>)
 FORWARD_MODEL COPY_FILE(<FROM>=<CONFIG_PATH>/<ENSEMBLE_SEED_FILE>,  <TO>=<RUNPATH>/<ENSEMBLE_SEED_FILE>)
 -- For QC purpose only
 FORWARD_MODEL COPY_FILE(<FROM>=<CONFIG_PATH>/init_files/ObsField.roff,  <TO>=<RUNPATH>/init_files/ObsField.roff)
-FORWARD_MODEL MAKE_SYMLINK(<TARGET>=<CONFIG_PATH>/GRID.EGRID, <LINKNAME>=<RUNPATH>/GRID.EGRID)
-FORWARD_MODEL MAKE_SYMLINK(<TARGET>=<CONFIG_PATH>/UpscaleGrid.EGRID, <LINKNAME>=<RUNPATH>/UpscaleGrid.EGRID)
+FORWARD_MODEL MAKE_SYMLINK(<TARGET>=<CONFIG_PATH>/GRID_STANDARD.EGRID, <LINKNAME>=<RUNPATH>/GRID_STANDARD.EGRID)
+FORWARD_MODEL MAKE_SYMLINK(<TARGET>=<CONFIG_PATH>/GRID_STANDARD_UPSCALED.EGRID, <LINKNAME>=<RUNPATH>/GRID_STANDARD_UPSCALED.EGRID)
 
 -- The main forward model simulating gaussian field with trend, and upscale
-FORWARD_MODEL  SIM_FIELD(<ITERATION>=<ITER>,  <REALNUMBER>=<IENS>, <TEST_CONFIG>=<TEST_CONFIG>)
+FORWARD_MODEL  SIM_FIELD(<ITERATION>=<ITER>,  <REALNUMBER>=<IENS>, <TEST_CONFIG>=<TEST_CONFIG>, <CONFIG_PATH>=<CONFIG_PATH>)
 
-GRID     <CONFIG_PATH>/GRID.EGRID     -- Necessary for AHM using field parameters
+GRID     <CONFIG_PATH>/GRID_STANDARD.EGRID     -- Necessary for AHM using field parameters
 
 FIELD FIELDPAR   PARAMETER   FieldParam.roff   INIT_FILES:init_files/FieldParam.roff   MIN:-5.0   MAX:5.0   FORWARD_INIT:True

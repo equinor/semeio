@@ -2,6 +2,7 @@
 Common functions used by the scripts: init_test_case.py and sim_field.py
 """
 import copy
+import dataclasses
 import math
 from dataclasses import dataclass
 from pathlib import Path
@@ -27,7 +28,7 @@ class ModelSize:
     containing upscaled values of the simulated field.
     """
 
-    size: Tuple[float] = (7500.0, 12500.0, 50.0)
+    size: Tuple[float] = (1000.0, 2000.0, 50.0)
     polygon_file: str = None
     use_eclipse_grid_index_origo: bool = True
 
@@ -51,15 +52,15 @@ class Field:
     updated_file_name: str = "FieldParam"
     seed_file: str = "randomseeds.txt"
     variogram: str = "exponential"
-    correlation_range: Tuple[float] = (3000.0, 1000.0, 2.0)
-    correlation_azimuth: float = 45.0
+    correlation_range: Tuple[float] = (250.0, 500.0, 2.0)
+    correlation_azimuth: float = 0.0
     correlation_dip: float = 0.0
     correlation_exponent: float = 1.9
     trend_use: bool = False
     trend_params: Tuple[float] = (1.0, -1.0)
-    trend_relstd: float = 0.05
-    grid_dimension: Tuple[int] = (150, 250, 1)
-    grid_file_name: str = "GRID.EGRID"
+    trend_relstd: float = 0.15
+    grid_dimension: Tuple[int] = (10, 20, 1)
+    grid_file_name: str = "GRID_STANDARD.EGRID"
 
 
 @dataclass
@@ -74,9 +75,9 @@ class Response:
 
     # pylint: disable=too-many-instance-attributes
     name: str = "UPSCALED"
-    grid_dimension: Tuple[int] = (15, 25, 1)
+    grid_dimension: Tuple[int] = (2, 4, 1)
     upscaled_file_name: str = "Upscaled"
-    grid_file_name: str = "UpscaleGrid.EGRID"
+    grid_file_name: str = "GRID_STANDARD_UPSCALED.EGRID"
     file_format: str = "ROFF"
     write_upscaled_field: bool = True
     response_function: str = "average"
@@ -99,8 +100,7 @@ class Observation:
     reference_field_name: str = "ObsField"
     rel_error: float = 0.10
     min_abs_error: float = 0.01
-    # selected_grid_cells: Tuple[Tuple[int]] = ((5, 10, 1), (10, 5, 1))
-    selected_grid_cells: Tuple[Tuple[int]] = (8, 12, 1)
+    selected_grid_cells: Tuple[Tuple[int]] = ((1, 1, 1), (2, 3, 1))
 
 
 @dataclass
@@ -110,7 +110,6 @@ class Localisation:
     """
 
     method: str = "gaussian"
-    # method: str = "constant"
 
 
 @dataclass
@@ -135,6 +134,17 @@ class Settings:
     observation: Observation = Observation()
     localisation: Localisation = Localisation()
     optional: Optional = Optional()
+
+    def update(self, updates):
+        for key, value in updates.items():
+            if hasattr(self, key):
+                attr = getattr(self, key)
+                if dataclasses.is_dataclass(attr):
+                    for attr_key, attr_value in value.items():
+                        if hasattr(attr, attr_key):
+                            setattr(attr, attr_key, attr_value)
+                else:
+                    setattr(self, key, value)
 
 
 def read_config_file(config_file_name: Path) -> Dict[str, Any]:

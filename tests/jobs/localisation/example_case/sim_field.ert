@@ -1,5 +1,5 @@
 DEFINE <USER>              $USER
-DEFINE <SCRATCH>           /scratch/fmu
+DEFINE <SCRATCH>           scratch/fmu
 DEFINE <CASE_DIR>          sim_field_A
 DEFINE <ENSEMBLE_SEED_FILE> randomseeds.txt
 DEFINE <TEST_CONFIG>  <CONFIG_PATH>/example_test_config_A.yml
@@ -10,7 +10,6 @@ INSTALL_JOB  SIM_FIELD  scripts/FM_SIM_FIELD
 
 DEFINE      <OBS_FILE>  <CONFIG_PATH>/observations/observations.obs
 OBS_CONFIG  <OBS_FILE>
-TIME_MAP time_map.txt
 
 JOBNAME  sim_fields_<IENS>
 

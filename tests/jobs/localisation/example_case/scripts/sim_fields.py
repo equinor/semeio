@@ -2,6 +2,7 @@
 """
 Script used as forward model in ERT to test localisation.
 """
+import os
 import sys
 
 # pylint: disable=import-error, redefined-outer-name
@@ -56,7 +57,9 @@ def get_iteration_real_number_config_file(argv):
     print(f"ERT realization: {real_number}")
 
     config_file_name = argv[3]
-    return iteration, real_number, config_file_name
+
+    config_path = argv[4]
+    return iteration, real_number, config_file_name, config_path
 
 
 def main(args):
@@ -75,9 +78,12 @@ def main(args):
     #  and the coarse grid with upscaled values must have Eclipse grid index origin
 
     # Read config_file if it exists. Use default settings for everything not specified.
-    iteration, real_number, config_file_name = get_iteration_real_number_config_file(
-        args
-    )
+    (
+        iteration,
+        real_number,
+        config_file_name,
+        config_path,
+    ) = get_iteration_real_number_config_file(args)
     settings = read_config_file(config_file_name)
 
     if iteration == 0:
@@ -86,7 +92,7 @@ def main(args):
         upscaled_values = generate_field_and_upscale(
             real_number,
             iteration,
-            settings.field.seed_file,
+            os.path.join(config_path, settings.field.seed_file),
             settings.field.algorithm,
             settings.field.name,
             settings.field.initial_file_name,
@@ -142,9 +148,9 @@ def main(args):
     if settings.optional.write_obs_pred_diff_field_file:
         obs_field_object = read_obs_field_from_file(
             settings.response.file_format,
-            settings.observation.reference_param_file,
+            os.path.join(config_path, settings.observation.reference_param_file),
             settings.response.grid_file_name,
-            settings.observation.reference_field_name,
+            os.path.join(config_path, settings.observation.reference_field_name),
         )
         upscaled_field_object = read_upscaled_field_from_file(
             iteration,

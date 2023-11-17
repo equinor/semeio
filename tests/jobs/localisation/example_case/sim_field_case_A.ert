@@ -10,7 +10,6 @@ INSTALL_JOB  SIM_FIELD  scripts/FM_SIM_FIELD
 
 DEFINE      <OBS_FILE>  <CONFIG_PATH>/observations/observations.obs
 OBS_CONFIG  <OBS_FILE>
-TIME_MAP time_map.txt
 
 JOBNAME  sim_fields_<IENS>
 

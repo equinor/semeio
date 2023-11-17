@@ -1,25 +1,31 @@
-#!/usr/bin/env python
-"""
-Script initialize the test case by creating the grid files, observation files etc
-"""
 import math
 import os
 import random
+import shutil
+from argparse import ArgumentParser
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
-# pylint: disable=import-error
+import numpy as np
+import pytest
 import xtgeo
-from common_functions import (
+from ert import LibresFacade
+from ert.__main__ import ert_parser
+from ert.cli import ENSEMBLE_SMOOTHER_MODE
+from ert.cli.main import run_cli
+from ert.shared.plugins.plugin_manager import ErtPluginContext
+from ert.storage import open_storage
+from scripts.common_functions import (
+    Settings,
     generate_field_and_upscale,
     get_cell_indices,
     get_nobs,
-    read_config_file,
     write_upscaled_field_to_file,
 )
 
-# pylint: disable=too-many-arguments,invalid-name,missing-function-docstring
-# pylint: disable=too-many-locals,redefined-outer-name
+# pylint: disable=invalid-name
+# pylint: disable=too-many-locals
+# pylint: disable=too-many-arguments
 
 
 def generate_seed_file(
@@ -32,6 +38,48 @@ def generate_seed_file(
     with open(file_name, "w", encoding="utf8") as file:
         for _ in range(number_of_seeds):
             file.write(f"{random.randint(1, 999999999)}\n")
+
+
+def create_grid(
+    grid_file_name: str,
+    dimensions: Tuple[int, int, int],
+    size: Tuple[float, float, float],
+    standard_grid_index_origo: bool,
+    polygon_file_name: Optional[str] = None,
+):
+    xsize, ysize, zsize = size
+    nx, ny, nz = dimensions
+    if standard_grid_index_origo:
+        flip = -1
+        x0 = 0.0
+        y0 = ysize
+        z0 = 0.0
+    else:
+        flip = 1
+        x0 = 0.0
+        y0 = 0.0
+        z0 = 0.0
+
+    dx = xsize / nx
+    dy = ysize / ny
+    dz = zsize / nz
+
+    grid_object = xtgeo.create_box_grid(
+        dimension=(nx, ny, nz),
+        origin=(x0, y0, z0),
+        increment=(dx, dy, dz),
+        rotation=0.0,
+        flip=flip,
+    )
+
+    if polygon_file_name is not None and os.path.exists(polygon_file_name):
+        print(f"Use polygon  file {polygon_file_name} to create actnum ")
+        polygon = xtgeo.polygons_from_file(polygon_file_name, fformat="xyz")
+        grid_object.inactivate_outside(polygon)
+
+    print(f"Write grid file: {grid_file_name} ")
+    grid_object.to_file(grid_file_name, fformat="egrid")
+    return grid_object
 
 
 def obs_positions(
@@ -170,56 +218,16 @@ def write_gen_obs(
                 data_file.write(f"{value}  {value_err}\n")
 
 
-def create_grid(
-    grid_file_name: str,
-    dimensions: Tuple[int, int, int],
-    size: Tuple[float, float, float],
-    standard_grid_index_origo: bool,
-    polygon_file_name: Optional[str] = None,
+@pytest.mark.parametrize(
+    "new_settings", [pytest.param({"model_size": {"size": (100.0, 100.0, 100.0)}})]
+)
+def test_that_localization_works_with_different_settings(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, new_settings: Dict[str, Any]
 ):
-    xsize, ysize, zsize = size
-    nx, ny, nz = dimensions
-    if standard_grid_index_origo:
-        flip = -1
-        x0 = 0.0
-        y0 = ysize
-        z0 = 0.0
-    else:
-        flip = 1
-        x0 = 0.0
-        y0 = 0.0
-        z0 = 0.0
+    monkeypatch.chdir(tmp_path)
+    settings = Settings()
+    settings.update(new_settings)
 
-    dx = xsize / nx
-    dy = ysize / ny
-    dz = zsize / nz
-
-    grid_object = xtgeo.create_box_grid(
-        dimension=(nx, ny, nz),
-        origin=(x0, y0, z0),
-        increment=(dx, dy, dz),
-        rotation=0.0,
-        flip=flip,
-    )
-
-    if polygon_file_name is not None and os.path.exists(polygon_file_name):
-        print(f"Use polygon  file {polygon_file_name} to create actnum ")
-        polygon = xtgeo.polygons_from_file(polygon_file_name, fformat="xyz")
-        grid_object.inactivate_outside(polygon)
-
-    print(f"Write grid file: {grid_file_name} ")
-    grid_object.to_file(grid_file_name, fformat="egrid")
-    return grid_object
-
-
-def main(config_file: Path):
-    """
-    Initialize seed file, grid files, observation files and localisation config file
-    """
-
-    settings = read_config_file(config_file)
-
-    # Create seed file
     generate_seed_file(settings.field.seed_file)
 
     # Create grid for the field parameter
@@ -245,6 +253,8 @@ def main(config_file: Path):
         f"The upscaled field {settings.observation.reference_param_file} "
         "is used when extracting observations."
     )
+
+    (tmp_path / "init_files").mkdir()
 
     # Simulate field (with trend)
     real_number = 0
@@ -336,7 +346,82 @@ def main(config_file: Path):
         localisation_method=settings.localisation.method,
     )
 
+    parser = ArgumentParser(prog="test_main")
 
-if __name__ == "__main__":
-    config_file = Path(__file__).parent / "../example_test_config_A_with_actnum.yml"
-    main(config_file)
+    ert_config_file = "sim_field_local.ert"
+    shutil.copy(Path(__file__).parent / ert_config_file, ert_config_file)
+    shutil.copy(
+        Path(__file__).parent / "FieldParam_real5_iter0_A_local.grdecl",
+        "FieldParam_real5_iter0_A_local.grdecl",
+    )
+    shutil.copy(
+        Path(__file__).parent / "FieldParam_real5_iter1_A_local.grdecl",
+        "FieldParam_real5_iter1_A_local.grdecl",
+    )
+    shutil.copy(Path(__file__).parent / "localisation.wf", "localisation.wf")
+    shutil.copy(
+        Path(__file__).parent / "example_test_config_A.yml", "example_test_config_A.yml"
+    )
+    Path("scripts").mkdir(parents=True, exist_ok=True)
+    shutil.copy(
+        Path(__file__).parent / "scripts" / "FM_SIM_FIELD", "scripts/FM_SIM_FIELD"
+    )
+    shutil.copy(
+        Path(__file__).parent / "scripts" / "sim_fields.py", "scripts/sim_fields.py"
+    )
+    shutil.copy(
+        Path(__file__).parent / "scripts" / "common_functions.py",
+        "scripts/common_functions.py",
+    )
+
+    parsed = ert_parser(
+        parser,
+        [
+            ENSEMBLE_SMOOTHER_MODE,
+            "--current-case",
+            "es_prior",
+            "--target-case",
+            "es_posterior",
+            ert_config_file,
+        ],
+    )
+
+    with ErtPluginContext() as _:
+        run_cli(parsed)
+
+        facade = LibresFacade.from_config_file(ert_config_file)
+
+        grid_file = xtgeo.grid_from_file("GRID_STANDARD.EGRID", fformat="egrid")
+        es_prior_expected = xtgeo.gridproperty_from_file(
+            "FieldParam_real5_iter0_A_local.grdecl",
+            fformat="grdecl",
+            name="FIELDPAR",
+            grid=grid_file,
+        )
+        es_posterior_expected = xtgeo.gridproperty_from_file(
+            "FieldParam_real5_iter1_A_local.grdecl",
+            fformat="grdecl",
+            name="FIELDPAR",
+            grid=grid_file,
+        )
+        with open_storage(facade.enspath) as storage:
+            realization = 5
+            es_prior = storage.get_ensemble_by_name("es_prior")
+            es_prior_results = es_prior.load_parameters("FIELDPAR").sel(
+                realizations=realization
+            )
+
+            es_posterior = storage.get_ensemble_by_name("es_posterior")
+            es_posterior_results = es_posterior.load_parameters("FIELDPAR").sel(
+                realizations=realization
+            )
+
+        assert np.allclose(
+            es_prior_expected.values3d, np.round(es_prior_results.values, 4), atol=1e-4
+        )
+
+        assert np.allclose(
+            es_posterior_expected.values3d,
+            np.round(es_posterior_results.values, 4),
+            atol=1e-4,
+        )
