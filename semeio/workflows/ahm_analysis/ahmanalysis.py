@@ -1,6 +1,5 @@
 import collections
 import itertools
-import os
 import tempfile
 import warnings
 from pathlib import Path
@@ -8,7 +7,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import xtgeo
-from ert.analysis import ErtAnalysisError
+from ert.analysis import ErtAnalysisError, SmootherSnapshot
 from ert.shared.plugins.plugin_manager import hook_implementation
 from scipy.stats import ks_2samp
 from sklearn.decomposition import PCA
@@ -170,7 +169,7 @@ class AhmAnalysisJob(SemeioScript):
             print("Processing:", group_name)
 
             #  Use localization to evaluate change of parameters for each observation
-            with tempfile.TemporaryDirectory() as update_log_path:
+            with tempfile.TemporaryDirectory():
                 try:
                     prior_ensemble = self.storage.get_ensemble_by_name(prior_name)
                     target_ensemble = self.storage.create_ensemble(
@@ -179,16 +178,15 @@ class AhmAnalysisJob(SemeioScript):
                         ensemble_size=prior_ensemble.ensemble_size,
                         prior_ensemble=prior_ensemble,
                     )
-                    _run_ministep(
+                    update_log = _run_ministep(
                         self.facade,
                         prior_ensemble,
                         target_ensemble,
                         obs_group,
                         field_parameters + scalar_parameters,
-                        update_log_path,
                     )
                     # Get the active vs total observation info
-                    df_update_log = make_update_log_df(update_log_path)
+                    df_update_log = make_update_log_df(update_log)
                 except ErtAnalysisError:
                     df_update_log = pd.DataFrame(
                         columns=[
@@ -293,9 +291,7 @@ class AhmAnalysisJob(SemeioScript):
         self.reporter.publish_csv("prior", prior_data)
 
 
-def _run_ministep(
-    facade, prior_storage, target_storage, obs_group, data_parameters, output_path
-):
+def _run_ministep(facade, prior_storage, target_storage, obs_group, data_parameters):
     # pylint: disable=too-many-arguments
     update_step = {
         "name": "MINISTEP",
@@ -303,10 +299,7 @@ def _run_ministep(
         "parameters": data_parameters,
     }
     facade.update_configuration = [update_step]
-    facade.set_log_path(output_path)
-    # Perform update analysis
-
-    facade.smoother_update(prior_storage, target_storage, target_storage.name)
+    return facade.smoother_update(prior_storage, target_storage, target_storage.name)
 
 
 def _get_field_params(facade, field_parameters, target_ensemble):
@@ -326,39 +319,28 @@ def _get_field_params(facade, field_parameters, target_ensemble):
     return field_data
 
 
-def make_update_log_df(update_log_dir):
+def make_update_log_df(update_log: SmootherSnapshot):
     """Read update_log file to get active and inactive observations"""
-    list_of_files = [
-        os.path.join(update_log_dir, f) for f in os.listdir(update_log_dir)
+    update_step = update_log.update_step_snapshots["MINISTEP"]
+    obs_key = [step.obs_name for step in update_step]
+    obs_mean = [step.obs_val for step in update_step]
+    obs_std = [step.obs_std for step in update_step]
+    sim_mean = [step.response_mean for step in update_step]
+    sim_std = [step.response_std for step in update_step]
+    status = [
+        "Active" if step.response_mean_mask and step.response_std_mask else "Inactive"
+        for step in update_step
     ]
-    if len(list_of_files) > 1:
-        raise OSError("ERROR more than one update_log_file.")
-    if len(list_of_files) == 0:
-        raise OSError("ERROR empty update_log directory.")
-    # read file
-    updatelog = pd.read_csv(
-        list_of_files[0],
-        delim_whitespace=True,
-        skiprows=12,
-        usecols=[2, 3, 5, 6, 8, 10],
-        header=None,
-        engine="python",
-        skipfooter=1,
+    updatelog = pd.DataFrame(
+        {
+            "obs_key": obs_key,
+            "obs_mean": obs_mean,
+            "obs_std": obs_std,
+            "status": status,
+            "sim_mean": sim_mean,
+            "sim_std": sim_std,
+        }
     )
-    # define header
-    updatelog.columns = [
-        "obs_key",
-        "obs_mean",
-        "obs_std",
-        "status",
-        "sim_mean",
-        "sim_std",
-    ]
-
-    # ---------------------------------
-    # add proper name for obs_key in rows where value is '...'
-    updatelog.replace("...", np.nan, inplace=True)
-    updatelog.ffill(inplace=True)
 
     return updatelog
 
