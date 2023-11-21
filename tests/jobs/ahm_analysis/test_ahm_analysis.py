@@ -5,35 +5,39 @@ from unittest.mock import MagicMock
 import numpy as np
 import pandas as pd
 import pytest
+from ert.storage import open_storage
 from scipy import stats
 
 from semeio._exceptions.exceptions import ValidationError
 from semeio.workflows.ahm_analysis import ahmanalysis
+from semeio.workflows.ahm_analysis.ahmanalysis import _run_ministep
 
 
-def test_make_update_log_df(test_data_root):
-    """test function creates a dataframe from update_log file
-    and replace '...' with key_obs"""
-
-    test_data_dir = Path(test_data_root) / "update_log" / "allobs"
-    update_log_path = test_data_dir
-    updatelog_obs = ahmanalysis.make_update_log_df(update_log_path)
-    assert "..." not in updatelog_obs["obs_key"]
-    assert updatelog_obs.at[36, "obs_key"] == "RWI_3_OBS"
-    assert updatelog_obs.at[36, "obs_mean"] == 258.0
-    assert updatelog_obs.at[40, "obs_key"] == "RWI_2_OBS"
-    assert updatelog_obs.at[40, "obs_mean"] == 297.0
-    assert (
-        updatelog_obs.columns
-        == [
-            "obs_key",
-            "obs_mean",
-            "obs_std",
-            "status",
-            "sim_mean",
-            "sim_std",
-        ]
-    ).all()
+def test_make_update_log_df(snake_oil_facade, snapshot):
+    """
+    Note that this is now a snapshot test, so there is no guarantee that the
+    snapshots are correct, they are just documenting the current behavior.
+    """
+    with open_storage(snake_oil_facade.enspath, "w") as storage:
+        prior_ens = storage.get_ensemble_by_name("default")
+        posterior_ens = storage.create_ensemble(
+            prior_ens.experiment_id,
+            ensemble_size=prior_ens.ensemble_size,
+            iteration=1,
+            name="new_ensemble",
+            prior_ensemble=prior_ens,
+        )
+        log = _run_ministep(
+            snake_oil_facade,
+            prior_ens,
+            posterior_ens,
+            sorted(list(prior_ens.experiment.observations.keys())),
+            sorted(list(prior_ens.experiment.parameter_configuration.keys())),
+        )
+    snapshot.assert_match(
+        ahmanalysis.make_update_log_df(log).round(4).to_csv(),
+        "update_log.csv",
+    )
 
 
 def test_count_active_observations():
