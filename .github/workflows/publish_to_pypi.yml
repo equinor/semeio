@@ -18,9 +18,9 @@ jobs:
         with:
           python-version: 3.8
       - name: Install dependencies
-        run: pip install --upgrade setuptools setuptools_scm wheel twine
+        run: pip install --upgrade setuptools setuptools_scm wheel twine build
       - name: Build package
-        run: python setup.py sdist bdist_wheel
+        run: python -m build
       - name: Upload deploy
         env:
           TWINE_USERNAME: __token__
