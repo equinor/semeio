@@ -107,19 +107,22 @@ ERT_PARAM = [
     ],
 )
 def test_simple_config(param_group_add, expected):
-    data = {
-        "log_level": 2,
-        "correlations": [
-            {
-                "name": "some_name",
-                "obs_group": {"add": ["OBS1"]},
-                "param_group": {
-                    "add": param_group_add,
-                },
-            }
-        ],
-    }
-    conf = LocalisationConfig(observations=ERT_OBS, parameters=ERT_PARAM, **data)
+    correlations = [
+        {
+            "name": "some_name",
+            "obs_group": {"add": ["OBS1"]},
+            "param_group": {
+                "add": param_group_add,
+            },
+        }
+    ]
+    log_level = 2
+    conf = LocalisationConfig(
+        observations=ERT_OBS,
+        parameters=ERT_PARAM,
+        log_level=log_level,
+        correlations=correlations,
+    )
     assert sorted(conf.correlations[0].param_group.result_items) == sorted(expected)
 
 
@@ -143,23 +146,26 @@ def test_simple_config(param_group_add, expected):
 def test_simple_config_error(
     obs_group_add, param_group_add, param_group_remove, expected_error
 ):
-    data = {
-        "log_level": 2,
-        "correlations": [
-            {
-                "name": "some_name",
-                "obs_group": {
-                    "add": obs_group_add,
-                },
-                "param_group": {
-                    "add": param_group_add,
-                    "remove": param_group_remove,
-                },
-            }
-        ],
-    }
+    correlations = [
+        {
+            "name": "some_name",
+            "obs_group": {
+                "add": obs_group_add,
+            },
+            "param_group": {
+                "add": param_group_add,
+                "remove": param_group_remove,
+            },
+        }
+    ]
+    log_level = 2
     with pytest.raises(pydantic.error_wrappers.ValidationError, match=expected_error):
-        LocalisationConfig(observations=ERT_OBS, parameters=ERT_PARAM, **data)
+        LocalisationConfig(
+            observations=ERT_OBS,
+            parameters=ERT_PARAM,
+            log_level=log_level,
+            correlations=correlations,
+        )
 
 
 @pytest.mark.parametrize(
@@ -198,31 +204,34 @@ def test_simple_config_error(
 def test_simple_config_duplicate_error(
     obsgroup1, paramgroup1, obsgroup2, paramgroup2, expected_error
 ):
-    data = {
-        "log_level": 2,
-        "correlations": [
-            {
-                "name": "some_name1",
-                "obs_group": {
-                    "add": obsgroup1,
-                },
-                "param_group": {
-                    "add": paramgroup1,
-                },
+    correlations = [
+        {
+            "name": "some_name1",
+            "obs_group": {
+                "add": obsgroup1,
             },
-            {
-                "name": "some_name2",
-                "obs_group": {
-                    "add": obsgroup2,
-                },
-                "param_group": {
-                    "add": paramgroup2,
-                },
+            "param_group": {
+                "add": paramgroup1,
             },
-        ],
-    }
+        },
+        {
+            "name": "some_name2",
+            "obs_group": {
+                "add": obsgroup2,
+            },
+            "param_group": {
+                "add": paramgroup2,
+            },
+        },
+    ]
+    log_level = 2
     with pytest.raises(ValueError, match=expected_error):
-        LocalisationConfig(observations=ERT_OBS, parameters=ERT_PARAM, **data)
+        LocalisationConfig(
+            observations=ERT_OBS,
+            parameters=ERT_PARAM,
+            log_level=log_level,
+            correlations=correlations,
+        )
 
 
 @pytest.mark.parametrize(
@@ -247,28 +256,28 @@ def test_simple_config_duplicate_error(
     ],
 )
 def test_simple_config_ref_point_error(ref_point, expected_error):
-    data = {
-        "correlations": [
-            {
-                "name": "some_name",
-                "obs_group": {
-                    "add": "OBS",
-                },
-                "param_group": {
-                    "add": "PARAM_NODE1",
-                },
-                "field_scale": {
-                    "method": "gaussian_decay",
-                    "main_range": 1000,
-                    "perp_range": 1000,
-                    "azimuth": 200,
-                    "ref_point": ref_point,
-                },
-            }
-        ],
-    }
+    correlations = [
+        {
+            "name": "some_name",
+            "obs_group": {
+                "add": "OBS",
+            },
+            "param_group": {
+                "add": "PARAM_NODE1",
+            },
+            "field_scale": {
+                "method": "gaussian_decay",
+                "main_range": 1000,
+                "perp_range": 1000,
+                "azimuth": 200,
+                "ref_point": ref_point,
+            },
+        }
+    ]
     with pytest.raises(ValueError, match=expected_error):
-        LocalisationConfig(observations=["OBS"], parameters=["PARAM_NODE1"], **data)
+        LocalisationConfig(
+            observations=["OBS"], parameters=["PARAM_NODE1"], correlations=correlations
+        )
 
 
 @pytest.mark.parametrize(
@@ -325,20 +334,23 @@ def test_simple_config_ref_point_error(ref_point, expected_error):
     ],
 )
 def test_add_remove_param_config(param_group_add, param_group_remove, expected):
-    data = {
-        "log_level": 2,
-        "correlations": [
-            {
-                "name": "some_name",
-                "obs_group": {"add": ["OBS1"]},
-                "param_group": {
-                    "add": param_group_add,
-                    "remove": param_group_remove,
-                },
-            }
-        ],
-    }
-    conf = LocalisationConfig(observations=ERT_OBS, parameters=ERT_PARAM, **data)
+    correlations = [
+        {
+            "name": "some_name",
+            "obs_group": {"add": ["OBS1"]},
+            "param_group": {
+                "add": param_group_add,
+                "remove": param_group_remove,
+            },
+        }
+    ]
+    log_level = 2
+    conf = LocalisationConfig(
+        observations=ERT_OBS,
+        parameters=ERT_PARAM,
+        log_level=log_level,
+        correlations=correlations,
+    )
     assert sorted(conf.correlations[0].param_group.result_items) == sorted(expected)
 
 
@@ -369,13 +381,13 @@ def test_add_remove_param_config(param_group_add, param_group_remove, expected):
     ],
 )
 def test_add_remove_param_config_no_param(config, expected):
-    data = {
-        "correlations": [
-            {"name": "some_name", "obs_group": {"add": ["OBS1"]}, "param_group": config}
-        ],
-    }
+    correlations = [
+        {"name": "some_name", "obs_group": {"add": ["OBS1"]}, "param_group": config}
+    ]
     with pytest.raises(ValueError, match=expected):
-        LocalisationConfig(observations=ERT_OBS, parameters=ERT_PARAM, **data)
+        LocalisationConfig(
+            observations=ERT_OBS, parameters=ERT_PARAM, correlations=correlations
+        )
 
 
 @pytest.mark.parametrize(
@@ -404,19 +416,22 @@ def test_add_remove_param_config_no_param(config, expected):
     ],
 )
 def test_add_remove_obs_config(obs_group_add, obs_group_remove, expected):
-    data = {
-        "log_level": 2,
-        "correlations": [
-            {
-                "name": "some_name",
-                "obs_group": {"add": [obs_group_add], "remove": [obs_group_remove]},
-                "param_group": {
-                    "add": ["PARAM_NODE1:PARAM1"],
-                },
-            }
-        ],
-    }
-    conf = LocalisationConfig(observations=ERT_OBS, parameters=ERT_PARAM, **data)
+    correlations = [
+        {
+            "name": "some_name",
+            "obs_group": {"add": [obs_group_add], "remove": [obs_group_remove]},
+            "param_group": {
+                "add": ["PARAM_NODE1:PARAM1"],
+            },
+        }
+    ]
+    log_level = 2
+    conf = LocalisationConfig(
+        observations=ERT_OBS,
+        parameters=ERT_PARAM,
+        log_level=log_level,
+        correlations=correlations,
+    )
     assert len(conf.correlations) == 1
     assert conf.correlations[0].obs_group.result_items == expected
 
@@ -492,29 +507,32 @@ def test_check_for_duplicates(obs_1, obs_2, param_1, param_2, expected):
     ],
 )
 def test_active_region_list(active_segment_list, scaling_factor_list, smooth_ranges):
-    data = {
-        "log_level": 2,
-        "correlations": [
-            {
-                "name": "CORR1_SEGMENT",
-                "obs_group": {
-                    "add": ["OBS1"],
-                },
-                "param_group": {
-                    "add": ["*"],
-                },
-                "field_scale": {
-                    "method": "segment",
-                    "segment_filename": "Region.GRDECL",
-                    "param_name": "Region",
-                    "active_segments": active_segment_list,
-                    "scalingfactors": scaling_factor_list,
-                    "smooth_ranges": smooth_ranges,
-                },
+    correlations = [
+        {
+            "name": "CORR1_SEGMENT",
+            "obs_group": {
+                "add": ["OBS1"],
             },
-        ],
-    }
-    conf = LocalisationConfig(observations=["OBS1"], parameters=["PARAM_NODE1"], **data)
+            "param_group": {
+                "add": ["*"],
+            },
+            "field_scale": {
+                "method": "segment",
+                "segment_filename": "Region.GRDECL",
+                "param_name": "Region",
+                "active_segments": active_segment_list,
+                "scalingfactors": scaling_factor_list,
+                "smooth_ranges": smooth_ranges,
+            },
+        },
+    ]
+    log_level = 2
+    conf = LocalisationConfig(
+        observations=["OBS1"],
+        parameters=["PARAM_NODE1"],
+        log_level=log_level,
+        correlations=correlations,
+    )
     assert conf.correlations[0].field_scale.active_segments == active_segment_list
     assert conf.correlations[0].field_scale.scalingfactors == scaling_factor_list
     assert conf.correlations[0].field_scale.smooth_ranges == smooth_ranges
@@ -566,135 +584,150 @@ def test_active_region_list(active_segment_list, scaling_factor_list, smooth_ran
 def test_active_region_list_mismatch(
     active_segment_list, scaling_factor_list, smooth_ranges, expected_error
 ):
-    data = {
-        "log_level": 2,
-        "correlations": [
-            {
-                "name": "CORR1_SEGMENT",
-                "obs_group": {
-                    "add": ["OBS1"],
-                },
-                "param_group": {
-                    "add": ["*"],
-                },
-                "field_scale": {
-                    "method": "segment",
-                    "segment_filename": "Region.GRDECL",
-                    "param_name": "Region",
-                    "active_segments": active_segment_list,
-                    "scalingfactors": scaling_factor_list,
-                    "smooth_ranges": smooth_ranges,
-                },
+    correlations = [
+        {
+            "name": "CORR1_SEGMENT",
+            "obs_group": {
+                "add": ["OBS1"],
             },
-        ],
-    }
+            "param_group": {
+                "add": ["*"],
+            },
+            "field_scale": {
+                "method": "segment",
+                "segment_filename": "Region.GRDECL",
+                "param_name": "Region",
+                "active_segments": active_segment_list,
+                "scalingfactors": scaling_factor_list,
+                "smooth_ranges": smooth_ranges,
+            },
+        },
+    ]
+    log_level = 2
     with pytest.raises(ValueError, match=expected_error):
-        LocalisationConfig(observations=["OBS1"], parameters=["PARAM_NODE1"], **data)
+        LocalisationConfig(
+            observations=["OBS1"],
+            parameters=["PARAM_NODE1"],
+            log_level=log_level,
+            correlations=correlations,
+        )
 
 
 def test_invalid_keyword_errors_method_segment():
     expected_error = "extra fields not permitted"
-    data = {
-        "log_level": 2,
-        "correlations": [
-            {
-                "name": "CORR1_SEGMENT",
-                "obs_group": {
-                    "add": ["OBS1"],
-                },
-                "param_group": {
-                    "add": ["*"],
-                },
-                "field_scale": {
-                    "method": "segment",
-                    "segment_filename": "Region.GRDECL",
-                    "param_name": "Region",
-                    "active_segments": [1, 2, 3],
-                    "scalingfactors": [1.0, 0.5, 0.05],
-                    "smooth_ranges": [0, 0],
-                    "dummy1": "unused1",
-                    "dummy2": "unused2",
-                },
+    correlations = [
+        {
+            "name": "CORR1_SEGMENT",
+            "obs_group": {
+                "add": ["OBS1"],
             },
-        ],
-    }
+            "param_group": {
+                "add": ["*"],
+            },
+            "field_scale": {
+                "method": "segment",
+                "segment_filename": "Region.GRDECL",
+                "param_name": "Region",
+                "active_segments": [1, 2, 3],
+                "scalingfactors": [1.0, 0.5, 0.05],
+                "smooth_ranges": [0, 0],
+                "dummy1": "unused1",
+                "dummy2": "unused2",
+            },
+        },
+    ]
+    log_level = 2
     with pytest.raises(ValueError, match=expected_error):
-        LocalisationConfig(observations=["OBS1"], parameters=["PARAM_NODE1"], **data)
+        LocalisationConfig(
+            observations=["OBS1"],
+            parameters=["PARAM_NODE1"],
+            log_level=log_level,
+            correlations=correlations,
+        )
 
 
 def test_invalid_keyword_errors_method_from_file():
     expected_error = "extra fields not permitted"
-    data = {
-        "log_level": 2,
-        "correlations": [
-            {
-                "name": "CORR1_FROM_FILE",
-                "obs_group": {
-                    "add": ["OBS1"],
-                },
-                "param_group": {
-                    "add": ["*"],
-                },
-                "field_scale": {
-                    "method": "from_file",
-                    "segment_filename": "dummy.GRDECL",
-                    "param_name": "Scaling",
-                    "active_segments": [1, 2, 3],
-                },
+    correlations = [
+        {
+            "name": "CORR1_FROM_FILE",
+            "obs_group": {
+                "add": ["OBS1"],
             },
-        ],
-    }
+            "param_group": {
+                "add": ["*"],
+            },
+            "field_scale": {
+                "method": "from_file",
+                "segment_filename": "dummy.GRDECL",
+                "param_name": "Scaling",
+                "active_segments": [1, 2, 3],
+            },
+        },
+    ]
+    log_level = 2
     with pytest.raises(ValueError, match=expected_error):
-        LocalisationConfig(observations=["OBS1"], parameters=["PARAM_NODE1"], **data)
+        LocalisationConfig(
+            observations=["OBS1"],
+            parameters=["PARAM_NODE1"],
+            log_level=log_level,
+            correlations=correlations,
+        )
 
 
 def test_invalid_keyword_errors_in_obs_group_or_param_group():
     expected_error = "extra fields not permitted"
-    data = {
-        "log_level": 2,
-        "correlations": [
-            {
-                "name": "CORR1",
-                "obs_group": {
-                    "add": ["OBS1"],
-                    "unknown_obs_keyword": "dummy",
-                },
-                "param_group": {
-                    "add": ["*"],
-                    "unknown_param_keyword": "dummy",
-                },
-                "field_scale": {
-                    "method": "from_file",
-                    "segment_filename": "dummy.GRDECL",
-                    "param_name": "Scaling",
-                    "active_segments": [1, 2, 3],
-                },
+    correlations = [
+        {
+            "name": "CORR1",
+            "obs_group": {
+                "add": ["OBS1"],
+                "unknown_obs_keyword": "dummy",
             },
-        ],
-    }
+            "param_group": {
+                "add": ["*"],
+                "unknown_param_keyword": "dummy",
+            },
+            "field_scale": {
+                "method": "from_file",
+                "segment_filename": "dummy.GRDECL",
+                "param_name": "Scaling",
+                "active_segments": [1, 2, 3],
+            },
+        },
+    ]
+    log_level = 2
     with pytest.raises(ValueError, match=expected_error):
-        LocalisationConfig(observations=["OBS1"], parameters=["PARAM_NODE1"], **data)
+        LocalisationConfig(
+            observations=["OBS1"],
+            parameters=["PARAM_NODE1"],
+            log_level=log_level,
+            correlations=correlations,
+        )
 
 
 def test_missing_keyword_errors_method_gaussian_decay():
     expected_error = "correlations -> 0 -> field_scale -> perp_range\n  field required"
-    data = {
-        "log_level": 2,
-        "correlations": [
-            {
-                "name": "CORR1_SEGMENT",
-                "obs_group": {
-                    "add": ["OBS1"],
-                },
-                "param_group": {
-                    "add": ["*"],
-                },
-                "field_scale": {
-                    "method": "gaussian_decay",
-                    "main_range": 1000,
-                },
+    correlations = [
+        {
+            "name": "CORR1_SEGMENT",
+            "obs_group": {
+                "add": ["OBS1"],
             },
-        ],
-    }
+            "param_group": {
+                "add": ["*"],
+            },
+            "field_scale": {
+                "method": "gaussian_decay",
+                "main_range": 1000,
+            },
+        },
+    ]
+    log_level = 2
     with pytest.raises(ValueError, match=expected_error):
-        LocalisationConfig(observations=["OBS1"], parameters=["PARAM_NODE1"], **data)
+        LocalisationConfig(
+            observations=["OBS1"],
+            parameters=["PARAM_NODE1"],
+            log_level=log_level,
+            correlations=correlations,
+        )
