@@ -19,10 +19,16 @@ class LocalisationConfigJob(SemeioScript):
         ensemble_config = ert.ert_config.ensemble_config
         ert_parameters = local.get_param_from_ert(ensemble_config)
 
+        correlations = config_dict.get("correlations", [])
+        log_level = config_dict.get("log_level", 1)
+        write_scaling_factors = config_dict.get("write_scaling_factors", False)
+
         config = LocalisationConfig(
             observations=obs_keys,
             parameters=ert_parameters.to_list(),
-            **config_dict,
+            correlations=correlations,
+            log_level=log_level,
+            write_scaling_factors=write_scaling_factors,
         )
 
         update_configuration = local.add_ministeps(
