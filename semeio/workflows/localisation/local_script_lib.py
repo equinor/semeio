@@ -400,7 +400,7 @@ def smooth_parameter(
     scaling_values_smooth = np.zeros(nx * ny * nz, dtype=np.float32)
     for k, j0, i0 in itertools.product(range(nz), range(ny), range(nx)):
         index0 = i0 + j0 * nx + k * nx * ny
-        if not active_region_values_used[index0] is ma.masked:
+        if active_region_values_used[index0] is not ma.masked:
             sumv = 0.0
             nval = 0
             ilow = max(0, i0 - di)
@@ -410,7 +410,7 @@ def smooth_parameter(
             for i in range(ilow, ihigh):
                 for j in range(jlow, jhigh):
                     index = i + j * nx + k * nx * ny
-                    if not active_region_values_used[index] is ma.masked:
+                    if active_region_values_used[index] is not ma.masked:
                         # Only use values from grid cells that are active
                         # and from regions defined as active by the user.
                         v = scaling_values[index]

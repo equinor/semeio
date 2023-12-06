@@ -47,7 +47,9 @@ def load_and_parse_well_time_file(
 
     lines = Path(filename).read_text(encoding="utf-8").splitlines()
 
-    well_time_lines = [(strip_comments(l), i + 1) for i, l in enumerate(lines)]
+    well_time_lines = [
+        (strip_comments(line), idx + 1) for idx, line in enumerate(lines)
+    ]
 
     for line, line_number in well_time_lines:
         # line_number starts at 1
