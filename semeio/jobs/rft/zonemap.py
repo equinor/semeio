@@ -48,7 +48,7 @@ class ZoneMap:
             zonemap_lines = file_handle.readlines()
 
         zonemap_lines = [
-            (strip_comments(l), i + 1) for i, l in enumerate(zonemap_lines)
+            (strip_comments(line), idx + 1) for idx, line in enumerate(zonemap_lines)
         ]
         basic_err_msg = (
             "Line {line_number} in ZoneMap file {filename} "
