@@ -42,9 +42,6 @@ combination of wildcards used in this workflow and the actual vectors that are
 requested in the Eclipse DATA file. A wildcard like ``W*`` can in certain cases
 (e.g. Eclipse simulations with 100+ wells) produce thousands of vectors, and can
 then be replaced by something more explicit like ``WOPT* WGPT* WWPT*``.
-
-Dates beyond year 2262 are not supported. Use ecl2csv in combination with
-merge_csv in such scenarios.
 """  # noqa
 
 EXAMPLES = """

@@ -1,3 +1,4 @@
+import datetime
 import os
 import shutil
 import subprocess
@@ -6,6 +7,7 @@ from pathlib import Path
 import pandas as pd
 import pytest
 import rstcheck_core.checker
+from resdata.summary import Summary
 
 from semeio.workflows.csv_export2 import csv_export2
 
@@ -140,6 +142,45 @@ def test_norne_ensemble_noparams():
             ("iter-1", 1),
         },
     )
+
+
+def test_can_export_summary_files_beyond_2262(tmpdir, monkeypatch):
+    """Pandas is/has been eager to use datetime64[ns] which overflows in year 2262,
+    ensure this limitation is sufficiently worked around."""
+    monkeypatch.chdir(tmpdir)
+    res_sum = Summary.from_pandas(
+        "TESTCASE",
+        pd.DataFrame(
+            [
+                {"DATE": datetime.date(2000, 1, 1), "FPR": 200},
+                {"DATE": datetime.date(2263, 1, 1), "FPR": 1},
+            ]
+        ).set_index("DATE"),
+    )
+
+    Path("realization-0/iter-0").mkdir(parents=True)
+    os.chdir("realization-0/iter-0")
+    # fwrite() can only write to cwd
+    Summary.fwrite(res_sum)
+    os.chdir("../..")
+
+    Path("runpathfile").write_text(
+        "0 realization-0/iter-0 TESTCASE 0", encoding="utf-8"
+    )
+    csv_export2.csv_exporter(
+        runpathfile="runpathfile",
+        time_index="yearly",
+        outputfile="unsmry--yearly.csv",
+        column_keys=["FPR"],
+    )
+    verify_exported_file(
+        "unsmry--yearly.csv",
+        ["ENSEMBLE", "REAL", "DATE", "FPR"],
+        {
+            ("iter-0", 0),
+        },
+    )
+    assert "2263-01-01" in Path("unsmry--yearly.csv").read_text(encoding="utf-8")
 
 
 def verify_exported_file(exported_file_name, result_header, result_iter_rel):
