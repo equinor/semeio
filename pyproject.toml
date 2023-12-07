@@ -37,7 +37,7 @@ dependencies=[
     "xlrd",
     "fmu-steaclient",
     "pyscal>=0.4.0",
-    "fmu-ensemble",
+    "fmu-ensemble>1.6.5",
     "segyio",
     "xtgeo>=2.15",
 ]
