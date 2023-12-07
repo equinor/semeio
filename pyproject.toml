@@ -7,7 +7,7 @@ name = "semeio"
 authors = [
   {name = "Equinor ASA", email = "fg_sib-scout@equinor.com"},
 ]
-description="Jobs and workflow jobs for Ert."
+description="Forward models and workflows for Ert."
 requires-python = ">=3.8"
 readme = "README.md"
 license = {text = "GPL-3.0"}
@@ -46,7 +46,7 @@ dependencies=[
 repository = "https://github.com/equinor/semeio"
 
 [project.entry-points."ert"]
-semeio_jobs = "semeio.hook_implementations.jobs"
+semeio_forward_models = "semeio.hook_implementations.forward_models"
 MisfitPreprocessor = "semeio.workflows.misfit_preprocessor.misfit_preprocessor"
 CsvExport2Job = "semeio.workflows.csv_export2.csv_export2"
 AhmAnalysisJob = "semeio.workflows.ahm_analysis.ahmanalysis"
@@ -54,13 +54,13 @@ LocalisationConfigJob = "semeio.workflows.localisation.local_config_script"
 
 [project.entry-points."console_scripts"]
 csv_export2 = "semeio.workflows.csv_export2.csv_export2:cli"
-overburden_timeshift = "semeio.jobs.scripts.overburden_timeshift:main_entry_point"
-design2params = "semeio.jobs.scripts.design2params:main_entry_point"
-gendata_rft = "semeio.jobs.scripts.gendata_rft:main_entry_point"
-design_kw = "semeio.jobs.scripts.design_kw:main_entry_point"
-fm_pyscal = "semeio.jobs.scripts.fm_pyscal:main_entry_point"
-semeio_stea = "semeio.jobs.scripts.fm_stea:main_entry_point"
-replace_string = "semeio.jobs.scripts.replace_string:main_entry_point"
+overburden_timeshift = "semeio.forward_models.scripts.overburden_timeshift:main_entry_point"
+design2params = "semeio.forward_models.scripts.design2params:main_entry_point"
+gendata_rft = "semeio.forward_models.scripts.gendata_rft:main_entry_point"
+design_kw = "semeio.forward_models.scripts.design_kw:main_entry_point"
+fm_pyscal = "semeio.forward_models.scripts.fm_pyscal:main_entry_point"
+semeio_stea = "semeio.forward_models.scripts.fm_stea:main_entry_point"
+replace_string = "semeio.forward_models.scripts.replace_string:main_entry_point"
 
 [tool.setuptools_scm]
 write_to = "semeio/version.py"
