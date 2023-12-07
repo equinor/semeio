@@ -2,7 +2,7 @@ import os
 
 from ert.shared.plugins.plugin_manager import ErtPluginManager
 
-import semeio.hook_implementations.jobs
+import semeio.hook_implementations.forward_models
 from semeio.workflows.ahm_analysis import ahmanalysis
 from semeio.workflows.csv_export2 import csv_export2
 from semeio.workflows.localisation import local_config_script
@@ -11,30 +11,34 @@ from semeio.workflows.localisation import local_config_script
 def test_hook_implementations():
     plugin_manager = ErtPluginManager(
         plugins=[
-            semeio.hook_implementations.jobs,
+            semeio.hook_implementations.forward_models,
             local_config_script,
             csv_export2,
             ahmanalysis,
         ]
     )
 
-    expected_jobs = {
-        "DESIGN_KW": "semeio/jobs/config_jobs/DESIGN_KW_CONFIG",
-        "DESIGN2PARAMS": "semeio/jobs/config_jobs/DESIGN2PARAMS_CONFIG",
-        "STEA": "semeio/jobs/config_jobs/STEA_CONFIG",
-        "GENDATA_RFT": "semeio/jobs/config_jobs/GENDATA_RFT_CONFIG",
-        "PYSCAL": "semeio/jobs/config_jobs/PYSCAL_CONFIG",
-        "INSERT_NOSIM": "semeio/jobs/config_jobs/INSERT_NOSIM_CONFIG",
-        "REMOVE_NOSIM": "semeio/jobs/config_jobs/REMOVE_NOSIM_CONFIG",
-        "OTS": "semeio/jobs/config_jobs/OTS_CONFIG",
-        "REPLACE_STRING": "semeio/jobs/config_jobs/REPLACE_STRING_CONFIG",
+    _fm_path = "semeio/forward_models/config"
+    expected_forward_models = {
+        forward_model_name: f"{_fm_path}/{forward_model_name}_CONFIG"
+        for forward_model_name in [
+            "DESIGN_KW",
+            "DESIGN2PARAMS",
+            "STEA",
+            "GENDATA_RFT",
+            "PYSCAL",
+            "INSERT_NOSIM",
+            "REMOVE_NOSIM",
+            "OTS",
+            "REPLACE_STRING",
+        ]
     }
-    installable_jobs = plugin_manager.get_installable_jobs()
-    for wf_name, wf_location in expected_jobs.items():
-        assert wf_name in installable_jobs
-        assert installable_jobs[wf_name].endswith(wf_location)
+    installable_fms = plugin_manager.get_installable_jobs()
+    for fm_name, fm_location in expected_forward_models.items():
+        assert fm_name in installable_fms
+        assert installable_fms[fm_name].endswith(fm_location)
 
-    assert set(installable_jobs.keys()) == set(expected_jobs.keys())
+    assert set(installable_fms.keys()) == set(expected_forward_models.keys())
 
     expected_workflow_jobs = [
         "CSV_EXPORT2",
@@ -49,15 +53,17 @@ def test_hook_implementations():
     assert set(installable_workflow_jobs.keys()) == set(expected_workflow_jobs)
 
 
-def test_hook_implementations_job_docs():
-    plugin_manager = ErtPluginManager(plugins=[semeio.hook_implementations.jobs])
+def test_hook_implementations_forward_model_docs():
+    plugin_manager = ErtPluginManager(
+        plugins=[semeio.hook_implementations.forward_models]
+    )
 
-    installable_jobs = plugin_manager.get_installable_jobs()
+    installable_fms = plugin_manager.get_installable_jobs()
 
     docs = plugin_manager.get_documentation_for_jobs()
 
-    assert set(docs.keys()) == set(installable_jobs.keys())
+    assert set(docs.keys()) == set(installable_fms.keys())
 
-    for job_name in installable_jobs.keys():
-        assert docs[job_name]["description"] != ""
-        assert docs[job_name]["category"] != "other"
+    for forward_model_name in installable_fms.keys():
+        assert docs[forward_model_name]["description"] != ""
+        assert docs[forward_model_name]["category"] != "other"

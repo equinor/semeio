@@ -1,1 +1,1 @@
-include semeio/jobs/config_jobs/*
+include semeio/forward_models/config_forward_models/*

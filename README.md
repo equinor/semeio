@@ -5,9 +5,9 @@
 
 # semeio #
 
-Semeio is a collection of jobs and workflow jobs used in [ERT](https://github.com/equinor/ert). These are
+Semeio is a collection of forward models and workflows used in [ERT](https://github.com/equinor/ert). These are
 exposing end points which is considered the API of semeio. If there are submodules that can be applied
-more generally, or have use outside these jobs and workflows, please create an issue and it can be exposed in
+more generally, or have use outside these forward models and workflows, please create an issue and it can be exposed in
 the API.
 
 # Installation and usage
@@ -21,11 +21,11 @@ pip install semeio
 
 ## Usage
 
-Once installed semeio will automatically register its workflows and forward model jobs with
+Once installed semeio will automatically register its workflows and forward models with
 [ERT](https://github.com/equinor/ert). Through the plugin hooks it will also add its own documentation to the [ERT](https://github.com/equinor/ert)
 documentation. See the [ERT](https://github.com/equinor/ert) documentation for examples on
-how to run workflows and forward model jobs, and build the [ERT](https://github.com/equinor/ert) documentation to get
-documentation for the workflows and forward model jobs.
+how to run workflows and forward models, and build the [ERT](https://github.com/equinor/ert) documentation to get
+documentation for the workflows and forward models.
 
 ## Run tests
 [tox](https://tox.readthedocs.io/en/latest/) is used as the test facilitator,
