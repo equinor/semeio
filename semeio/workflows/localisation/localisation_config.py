@@ -4,7 +4,7 @@ import pathlib
 from typing import Dict, List, Literal, Optional, Union
 
 from pydantic import BaseModel as PydanticBaseModel
-from pydantic import Extra, Field, root_validator, validator
+from pydantic import Extra, Field, root_validator, validator, conint, conlist, confloat
 from typing_extensions import Annotated
 
 
@@ -206,25 +206,14 @@ class ScalingForSegmentsConfig(BaseModel):
     method: Literal["segment"]
     segment_filename: str
     param_name: str
-    active_segments: Union[
-        Annotated[int, Field(strict=True, ge=0)],
-        Annotated[
-            List[Annotated[int, Field(strict=True, ge=0)]],
-            Field(strict=True, min_items=1),
-        ],
+    active_segments: Union[  # type: ignore
+        conint(ge=0), conlist(item_type=conint(ge=0), min_items=1)
     ]
-    scalingfactors: Union[
-        Annotated[float, Field(strict=True, ge=0)],
-        Annotated[
-            List[Annotated[float, Field(strict=True, ge=0, le=1)]],
-            Field(strict=True, min_items=1),
-        ],
+    scalingfactors: Union[  # type: ignore
+        confloat(ge=0), conlist(item_type=confloat(ge=0, le=1), min_items=1)
     ]
-    smooth_ranges: Optional[
-        Annotated[
-            List[Annotated[int, Field(strict=True, ge=0)]],
-            Field(strict=True, min_items=2, max_items=2),
-        ]
+    smooth_ranges: Optional[  # type: ignore
+        conlist(item_type=conint(ge=0), min_items=2, max_items=2)
     ] = [0, 0]
 
     @validator("scalingfactors")
