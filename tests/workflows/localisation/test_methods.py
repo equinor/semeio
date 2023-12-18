@@ -84,7 +84,8 @@ def create_region_parameter(
         mask_used = np.isin(region_param, used_regions, invert=True)
         region_param[np.logical_and(mask_used, ~inactive)] = ma.masked
 
-    return region_param.ravel(order="F"), scaling_param.ravel(order="F")
+    # return region_param.ravel(order="F"), scaling_param.ravel(order="F")
+    return region_param.ravel(order="C"), scaling_param.ravel(order="C")
 
 
 def create_parameter_from_decay_functions(method_name, grid):
@@ -213,6 +214,7 @@ def test_exponentialtype_decay_functions(method, index_list, expected):
 
 
 def test_calculate_scaling_factors_in_regions(snapshot):
+    # pylint: disable=duplicate-code
     """
     Test calculation of scaling factor parameter for regions.
     For visual QC of the calculated scaling factors, write the grid to EGRID format
@@ -222,17 +224,15 @@ def test_calculate_scaling_factors_in_regions(snapshot):
     region_param_masked, _ = create_region_parameter(grid, BoxDimensions(nx, ny, nz))
     active_segment_list = [1, 2, 3]
     scaling_value_list = [1.0, 0.5, 0.2]
-    smooth_range_list = None
+
     (
         scaling_factor_param,
         active_region_values_used_masked,
         _,
     ) = calculate_scaling_factors_in_regions(
-        grid,
         region_param_masked,
         active_segment_list,
         scaling_value_list,
-        smooth_range_list,
     )
     active_region_param = np.zeros(nx * ny * nz, dtype=np.int32)
     active = ~active_region_values_used_masked.mask
