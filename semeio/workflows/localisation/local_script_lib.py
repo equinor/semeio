@@ -224,7 +224,6 @@ class ScalingValues:
         log_level=LogLevel.OFF,
     ):
         # pylint: disable=too-many-arguments
-
         if param_for_field is None or field_scale is None:
             return
 
@@ -307,7 +306,6 @@ class ScalingValues:
 
         # Increase parameter number to define unique parameter name
         cls.scaling_param_number = cls.scaling_param_number + 1
-
 
 
 def get_param_from_ert(ens_config):
@@ -1130,4 +1128,3 @@ def check_if_ref_point_in_grid(ref_point, grid, log_level):
         LogLevel.LEVEL3,
         log_level,
     )
-
