@@ -679,7 +679,6 @@ def smooth_parameter(
     dj = smooth_range_list[1]
     scaling_values_smooth = np.ma.zeros(nx * ny * nz, dtype=np.float32)
     for k, j0, i0 in itertools.product(range(nz), range(ny), range(nx)):
-        # index0 = i0 + j0 * nx + k * nx * ny
         index0 = k + j0 * nz + i0 * nz * ny
         if active_region_values_used[index0] is not ma.masked:
             sumv = 0.0
@@ -819,7 +818,6 @@ def read_region_files_for_all_correlation_groups(user_config, grid):
                     for k, j, i in itertools.product(range(nz), range(ny), range(nx)):
                         # c-index order
                         index = k + j * nz + i * nz * ny
-                        # index = i + j * nx + k * nx * ny
                         v = region_parameter_read[i, j, k]
                         region_parameter[index] = v
                         if grid.get_active_index(ijk=(i, j, k)) == -1:
@@ -1074,7 +1072,12 @@ def add_ministeps(
                             f"Scaling method: {corr_spec.surface_scale.method} "
                             "is not implemented"
                         )
-                    if user_config.write_scaling_factors:
+                    # Inactivate this temporarily untill pytest for this is ready
+                    can_write_qc_data_for_surface = False
+                    if (
+                        user_config.write_scaling_factors
+                        and can_write_qc_data_for_surface
+                    ):
                         ScalingValues.write_qc_parameter_surface(
                             node_name,
                             corr_spec.name,
