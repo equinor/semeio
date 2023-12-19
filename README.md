@@ -6,12 +6,12 @@
 
 # semeio #
 
-Semeio is a collection of jobs and workflow jobs used in [ERT](https://github.com/equinor/ert). These are
+semeio is a collection of jobs and workflow jobs used in [ERT](https://github.com/equinor/ert). These are
 exposing end points which is considered the API of semeio. If there are submodules that can be applied
 more generally, or have use outside these jobs and workflows, please create an issue and it can be exposed in
 the API.
 
-# Installation and usage
+# Installation
 
 Semeio is available on [pypi](https://pypi.org/project/semeio/) and can be installed using `pip install semeio`.
 
@@ -20,7 +20,7 @@ Semeio is available on [pypi](https://pypi.org/project/semeio/) and can be insta
 pip install semeio
 ```
 
-## Usage
+# Usage
 
 Once installed semeio will automatically register its workflows and forward model jobs with
 [ERT](https://github.com/equinor/ert). Through the plugin hooks it will also add its own documentation to the [ERT](https://github.com/equinor/ert)
@@ -28,43 +28,45 @@ documentation. See the [ERT](https://github.com/equinor/ert) documentation for e
 how to run workflows and forward model jobs, and build the [ERT](https://github.com/equinor/ert) documentation to get
 documentation for the workflows and forward model jobs.
 
-## Run tests
-[tox](https://tox.readthedocs.io/en/latest/) is used as the test facilitator,
-to run the full test suite:
+# Run tests
 
+Tests in **semeio** can be run with `tox` or `pytest`.
+
+## Running test suit with [tox](https://tox.readthedocs.io/en/latest/)
+To run the full test suite use:
 ```sh
 pip install tox
 tox
 ```
 
-or to run it for a particular Python version (in this case Python 3.10):
+To run test suit for a particular Python version (in this case Python 3.10) use:
 
 ```sh
 pip install tox
 tox -e py310
 ```
 
-or to run it for a the current Python version:
+To run test suit for a the current Python version:
 
 ```sh
 pip install tox
 tox -e py
 ```
 
-[pytest](https://docs.pytest.org/en/latest/) is used as the test runner, so for quicker
-iteration it is possible to run:
+## Running test suit with [pytest](https://docs.pytest.org/en/latest/)
 
 ```sh
 pytest
 ```
 
-this requires that test-dependencies are installed:
+This requires that test-dependencies are installed:
 
 ```sh
 # Install test requirements
 pip install "semeio[test]"
 ```
 
+## Style requirmenets
 [pre-commit](https://pre-commit.com/) is used to comply with the formatting standards.
 The complete formatting tests can be run with:
 
