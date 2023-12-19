@@ -106,6 +106,7 @@ def test_localisation_surf():
 
     ert = LibresFacade.from_config_file("poly.ert")
     config = {
+        "write_scaling_factors": True,
         "log_level": 3,
         "correlations": [
             {
@@ -179,6 +180,7 @@ def test_localisation_surf_const():
 
     ert = LibresFacade.from_config_file("poly.ert")
     config = {
+        "write_scaling_factors": True,
         "log_level": 3,
         "correlations": [
             {

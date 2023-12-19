@@ -84,7 +84,6 @@ def create_region_parameter(
         mask_used = np.isin(region_param, used_regions, invert=True)
         region_param[np.logical_and(mask_used, ~inactive)] = ma.masked
 
-    # return region_param.ravel(order="F"), scaling_param.ravel(order="F")
     return region_param.ravel(order="C"), scaling_param.ravel(order="C")
 
 
