@@ -11,7 +11,6 @@ import pytest
         "gendata_rft",
         "design_kw",
         "fm_pyscal",
-        "semeio_stea",
     ],
 )
 def test_console_scripts_help(script_runner, entry_point):

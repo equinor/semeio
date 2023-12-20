@@ -72,7 +72,7 @@ def job_documentation(job_name):
             "category": "utility.eclipse",
         }
 
-    if forward_model_name in ["STEA", "PYSCAL"]:
+    if forward_model_name == "PYSCAL":
         module_name = f"semeio.forward_models.scripts.fm_{forward_model_name.lower()}"
     elif forward_model_name == "OTS":
         module_name = "semeio.forward_models.scripts.overburden_timeshift"

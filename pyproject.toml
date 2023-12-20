@@ -36,7 +36,6 @@ dependencies=[
     "scikit-learn",
     "scipy",
     "xlrd",
-    "fmu-steaclient",
     "pyscal>=0.4.0",
     "fmu-ensemble>1.6.5",
     "segyio",
@@ -60,7 +59,6 @@ design2params = "semeio.forward_models.scripts.design2params:main_entry_point"
 gendata_rft = "semeio.forward_models.scripts.gendata_rft:main_entry_point"
 design_kw = "semeio.forward_models.scripts.design_kw:main_entry_point"
 fm_pyscal = "semeio.forward_models.scripts.fm_pyscal:main_entry_point"
-semeio_stea = "semeio.forward_models.scripts.fm_stea:main_entry_point"
 replace_string = "semeio.forward_models.scripts.replace_string:main_entry_point"
 
 [tool.setuptools_scm]
@@ -74,7 +72,6 @@ test = [
 "openpyxl",
 "pytest",
 "pytest-console-scripts",
-"pytest-httpserver",
 "pytest-snapshot",
 "rstcheck-core<=1.0.3",
 "xlwt",
