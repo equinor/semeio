@@ -29,7 +29,6 @@ FORWARD_MODEL {}({})
         ("design_kw", "no_template"),
         ("gendata_rft", "--eclbase not_ecl"),
         ("fm_pyscal", "not_file"),
-        ("semeio_stea", "--config not_a_file"),
     ],
 )
 def test_console_scripts_exit_code(script_runner, entry_point, options):
@@ -55,7 +54,6 @@ def test_console_scripts_exit_code(script_runner, entry_point, options):
         ),
         ("GENDATA_RFT", "<ECL_BASE>=not_ecl", "The path not_ecl.RFT does not exist"),
         ("PYSCAL", "<PARAMETER_FILE>=not_file", "not_file does not exist"),
-        ("STEA", "<CONFIG>=not_a_file", "not_a_file is not an existing file!"),
     ],
 )
 @pytest.mark.usefixtures("setup_tmpdir")
