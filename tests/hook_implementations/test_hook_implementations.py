@@ -24,7 +24,6 @@ def test_hook_implementations():
         for forward_model_name in [
             "DESIGN_KW",
             "DESIGN2PARAMS",
-            "STEA",
             "GENDATA_RFT",
             "PYSCAL",
             "INSERT_NOSIM",
