@@ -159,7 +159,7 @@ def test_simple_config_error(
         }
     ]
     log_level = 2
-    with pytest.raises(pydantic.error_wrappers.ValidationError, match=expected_error):
+    with pytest.raises(pydantic.ValidationError, match=expected_error):
         LocalisationConfig(
             observations=ERT_OBS,
             parameters=ERT_PARAM,
@@ -247,7 +247,8 @@ def test_simple_config_duplicate_error(
         ),
         (
             ["not_float", 200],
-            "value is not a valid float",
+            "[\\s\\S]*correlations.0.ref_point.0[\\s\\S]*Input "
+            "should be a valid number",
         ),
         (
             [100, 200, 300],
@@ -614,7 +615,7 @@ def test_active_region_list_mismatch(
 
 
 def test_invalid_keyword_errors_method_segment():
-    expected_error = "extra fields not permitted"
+    expected_error = "Extra inputs are not permitted"
     correlations = [
         {
             "name": "CORR1_SEGMENT",
@@ -647,7 +648,7 @@ def test_invalid_keyword_errors_method_segment():
 
 
 def test_invalid_keyword_errors_method_from_file():
-    expected_error = "extra fields not permitted"
+    expected_error = "Extra inputs are not permitted"
     correlations = [
         {
             "name": "CORR1_FROM_FILE",
@@ -676,7 +677,7 @@ def test_invalid_keyword_errors_method_from_file():
 
 
 def test_invalid_keyword_errors_in_obs_group_or_param_group():
-    expected_error = "extra fields not permitted"
+    expected_error = "Extra inputs are not permitted"
     correlations = [
         {
             "name": "CORR1",
@@ -707,7 +708,12 @@ def test_invalid_keyword_errors_in_obs_group_or_param_group():
 
 
 def test_missing_keyword_errors_method_gaussian_decay():
-    expected_error = "correlations -> 0 -> field_scale -> perp_range\n  field required"
+    expected_error = (
+        "3 validation errors for LocalisationConfig\n"
+        "correlations.0.perp_range[\\s\\S]*"
+        "correlations.0.azimuth[\\s\\S]*"
+        "correlations.0.ref_point"
+    )
     correlations = [
         {
             "name": "CORR1_SEGMENT",

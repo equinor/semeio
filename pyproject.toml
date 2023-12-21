@@ -28,10 +28,10 @@ classifiers=[
 dynamic = ["version"]
 dependencies=[
     "resdata",
-    "ert>=8.0.2",
+    "ert>=8.2.1",
     "numpy",
     "pandas>1.3.0",
-    "pydantic",
+    "pydantic>2",
     "configsuite",
     "scikit-learn",
     "scipy",
@@ -73,7 +73,7 @@ test = [
 "pytest",
 "pytest-console-scripts",
 "pytest-snapshot",
-"rstcheck-core<=1.0.3",
+"rstcheck-core",
 "xlwt",
 "mypy",
 "pandas-stubs",
