@@ -1,10 +1,19 @@
 # pylint: disable=no-self-argument
 import itertools
 import pathlib
-from typing import Dict, List, Literal, Optional, Union
+from typing import List, Literal, Optional, Union
 
-from pydantic import BaseModel as PydanticBaseModel
-from pydantic import Extra, Field, root_validator, validator, conint, conlist, confloat
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    computed_field,
+    confloat,
+    conint,
+    conlist,
+    field_validator,
+    validator,
+)
 from typing_extensions import Annotated
 
 
@@ -50,12 +59,6 @@ def check_for_duplicated_correlation_specifications(correlations):
     return errors
 
 
-class BaseModel(PydanticBaseModel):
-    # pylint: disable=too-few-public-methods
-    class Config:
-        extra = Extra.forbid
-
-
 class ObsConfig(BaseModel):
     """
     Specification of list of observations. A wildcard notation is allowed.
@@ -69,35 +72,35 @@ class ObsConfig(BaseModel):
          remove: ["WELLC2*"]
     """
 
+    model_config = ConfigDict(extra="forbid")
+
     add: Union[str, List[str]]
-    remove: Optional[Union[str, List[str]]]
+    remove: Optional[Union[str, List[str]]] = None
+
+    @computed_field  # type: ignore[misc]
+    @property
+    def result_items(self) -> List[str]:
+        res = _check_specification(self.add, self.remove, self.context)
+        return res
+
     context: List[str]
-    result_items: Optional[List[str]]
 
-    @validator("add")
-    def validate_add(cls, add):
-        # pylint: disable=no-self-use
+    def __init__(self, **data):
+        add = data.get("add")
         if isinstance(add, str):
-            add = [add]
-        return add
+            add = data["add"] = [add]
 
-    @validator("remove")
-    def validate_remove(cls, remove):
-        # pylint: disable=no-self-use
+        remove = data.get("remove", None)
         if isinstance(remove, str):
-            remove = [remove]
-        return remove
+            remove = data["remove"] = [remove]
 
-    @validator("result_items", always=True)
-    def expanded_items(cls, _, values):
-        # pylint: disable=no-self-use
-        add, remove = values["add"], values.get("remove", None)
-        result = _check_specification(add, remove, values["context"])
+        result = _check_specification(add, remove, data["context"])
         if len(result) == 0:
             raise ValueError(
                 f"Adding: {add} and removing: {remove} resulted in no items"
             )
-        return result
+
+        super().__init__(**data)
 
 
 class ParamConfig(ObsConfig):
@@ -122,6 +125,8 @@ class ParamConfig(ObsConfig):
       all surface parameter nodes starting with node name SURF_PARAM_)
     """
 
+    model_config = ConfigDict(extra="forbid")
+
 
 class GaussianConfig(BaseModel):
     """
@@ -143,13 +148,20 @@ class GaussianConfig(BaseModel):
     a file specifying the grid layout of the surface must be specified.
     """
 
-    method = "gaussian_decay"
+    model_config = ConfigDict(extra="forbid")
+
+    method: Literal[
+        "gaussian_decay",
+        "exponential_decay",
+        "const_gaussian_decay",
+        "const_exponential_decay",
+    ]
     main_range: Annotated[float, Field(gt=0)]
     perp_range: Annotated[float, Field(gt=0)]
     azimuth: Annotated[float, Field(ge=0.0, le=360)]
-    ref_point: Annotated[List[float], Field(min_items=2, max_items=2)]
-    cutoff: Optional[bool] = False
-    surface_file: Optional[str]
+    ref_point: Annotated[List[float], Field(min_length=2, max_length=2)]
+    cutoff: Optional[bool] = Field(default=False)
+    surface_file: Optional[str] = None
 
 
 class ExponentialConfig(GaussianConfig):
@@ -158,7 +170,7 @@ class ExponentialConfig(GaussianConfig):
     See the doc string for Gaussian function for more details.
     """
 
-    method: Literal["exponential_decay"]
+    method: Literal["exponential_decay"] = "exponential_decay"
 
 
 class ConstWithGaussianTaperingConfig(GaussianConfig):
@@ -182,38 +194,43 @@ class ConstWithGaussianTaperingConfig(GaussianConfig):
     a file specifying the grid layout of the surface must be specified.
     """
 
-    method = "const_gaussian_decay"
+    method: Literal["const_gaussian_decay"] = "const_gaussian_decay"
     normalised_tapering_range: Optional[Annotated[float, Field(gt=1)]] = 1.5
 
 
-class ConstWithExponentialTaperingConfig(ConstWithGaussianTaperingConfig):
+class ConstWithExponentialTaperingConfig(GaussianConfig):
     """
     Method for calculating correlation scaling factor which is 1 inside range
     and fall off using Exponential function outside range. See above for
     ConstWithGaussianTaperingConfig.
     """
 
-    method = "const_exponential_decay"
+    method: Literal["const_exponential_decay"] = "const_exponential_decay"
+    normalised_tapering_range: Optional[Annotated[float, Field(gt=1)]] = 1.5
 
 
 class ScalingFromFileConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     method: Literal["from_file"]
     filename: str
     param_name: str
 
 
 class ScalingForSegmentsConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     method: Literal["segment"]
     segment_filename: str
     param_name: str
     active_segments: Union[  # type: ignore
-        conint(ge=0), conlist(item_type=conint(ge=0), min_items=1)
+        conint(ge=0), conlist(item_type=conint(ge=0), min_length=1)
     ]
     scalingfactors: Union[  # type: ignore
-        confloat(ge=0), conlist(item_type=confloat(ge=0, le=1), min_items=1)
+        confloat(ge=0), conlist(item_type=confloat(ge=0, le=1), min_length=1)
     ]
     smooth_ranges: Optional[  # type: ignore
-        conlist(item_type=conint(ge=0), min_items=2, max_items=2)
+        conlist(item_type=conint(ge=0), min_length=2, max_length=2)
     ] = [0, 0]
 
     @validator("scalingfactors")
@@ -237,9 +254,10 @@ class ConstantScalingConfig(BaseModel):
     Method for calculating constant correlation scaling factor.
     """
 
+    model_config = ConfigDict(extra="forbid")
     method: Literal["constant"]
     value: Optional[Annotated[float, Field(strict=True, gt=0, le=1)]] = 1.0
-    surface_file: Optional[str]
+    surface_file: Optional[str] = None
 
 
 class CorrelationConfig(BaseModel):
@@ -267,6 +285,7 @@ class CorrelationConfig(BaseModel):
 
     """
 
+    model_config = ConfigDict(extra="forbid")
     name: str
     obs_group: ObsConfig
     param_group: ParamConfig
@@ -295,76 +314,68 @@ class CorrelationConfig(BaseModel):
     obs_context: list
     params_context: list
 
-    @root_validator(pre=True)
-    def inject_context(cls, values: Dict) -> Dict:
-        # pylint: disable=no-self-use
-        values["obs_group"]["context"] = values["obs_context"]
-        values["param_group"]["context"] = values["params_context"]
-        return values
+    def __init__(self, **data):
+        data["obs_group"]["context"] = data["obs_context"]
+        data["param_group"]["context"] = data["params_context"]
 
-    @validator("field_scale", pre=True)
-    def validate_field_scale(cls, value):
-        # pylint: disable=no-self-use
-        """
-        To improve the user feedback we explicitly check
-        which method is configured and bypass the Union
-        """
-        if isinstance(value, BaseModel):
-            return value
-        if not isinstance(value, dict):
-            raise ValueError("value must be dict")
-        method = value.get("method")
-        _valid_methods = {
-            "gaussian_decay": GaussianConfig,
-            "exponential_decay": ExponentialConfig,
-            "const_gaussian_decay": ConstWithGaussianTaperingConfig,
-            "const_exponential_decay": ConstWithExponentialTaperingConfig,
-            "from_file": ScalingFromFileConfig,
-            "segment": ScalingForSegmentsConfig,
-            "constant": ConstantScalingConfig,
-        }
-        if method not in _valid_methods:
-            raise ValueError(
-                f"Unknown method: {method}, valid methods are: {_valid_methods.keys()}"
-            )
-        return _valid_methods[method](**value)
+        if "surface_scale" in data:
+            surf_scale = data["surface_scale"]
+            if not isinstance(surf_scale, dict):
+                raise ValueError("surface_scale must be dict")
 
-    @validator("surface_scale", pre=True)
-    def validate_surface_scale(cls, value):
-        # pylint: disable=no-self-use
-        """
-        To improve the user feedback we explicitly check
-        which method is configured and bypass the Union
-        """
-        if isinstance(value, BaseModel):
-            return value
-        if not isinstance(value, dict):
-            raise ValueError("value must be dict")
+            # String with relative path to surface files relative to config path
+            if "surface_file" not in surf_scale.keys():
+                raise ValueError(
+                    "Missing keyword: 'surface_file' in keyword: 'surface_scale' "
+                )
 
-        # String with relative path to surface files relative to config path
-        key = "surface_file"
-        if key not in value.keys():
-            raise ValueError(f"Missing keyword: '{key}' in keyword: 'surface_scale' ")
+            filename = pathlib.Path(surf_scale["surface_file"])
+            # Check  that the file exists
+            if not filename.exists():
+                raise ValueError(f"File for surface: {filename} does not exist.")
 
-        filename = pathlib.Path(value[key])
-        # Check  that the file exists
-        if not filename.exists():
-            raise ValueError(f"File for surface: {filename} does not exist.")
+            method = surf_scale.get("method")
+            _valid_methods = {
+                "gaussian_decay": GaussianConfig,
+                "exponential_decay": ExponentialConfig,
+                "const_gaussian_decay": ConstWithGaussianTaperingConfig,
+                "const_exponential_decay": ConstWithExponentialTaperingConfig,
+                "constant": ConstantScalingConfig,
+            }
 
-        method = value.get("method")
-        _valid_methods = {
-            "gaussian_decay": GaussianConfig,
-            "exponential_decay": ExponentialConfig,
-            "const_gaussian_decay": ConstWithGaussianTaperingConfig,
-            "const_exponential_decay": ConstWithExponentialTaperingConfig,
-            "constant": ConstantScalingConfig,
-        }
+            if method not in _valid_methods:
+                raise ValueError(
+                    f"Unknown method: {method}, valid methods are:"
+                    f" {_valid_methods.keys()}"
+                )
+            data["surface_scale"] = _valid_methods[method](**surf_scale)
+        else:
+            data["surface_scale"] = None
 
-        if method not in _valid_methods:
-            raise ValueError(
-                f"Unknown method: {method}, valid methods are: {_valid_methods.keys()}"
-            )
-        return _valid_methods[method](**value)
+        if "field_scale" in data:
+            field_scale = data.get("field_scale")
+            # field_scale["surface_file"] = field_scale.get("surface_file", None)
+            method = field_scale.get("method")
+            _valid_methods = {
+                "gaussian_decay": GaussianConfig,
+                "exponential_decay": ExponentialConfig,
+                "const_gaussian_decay": ConstWithGaussianTaperingConfig,
+                "const_exponential_decay": ConstWithExponentialTaperingConfig,
+                "from_file": ScalingFromFileConfig,
+                "segment": ScalingForSegmentsConfig,
+                "constant": ConstantScalingConfig,
+            }
+            if method not in _valid_methods:
+                raise ValueError(
+                    f"Unknown method: {method}, valid methods are:"
+                    f" {_valid_methods.keys()}"
+                )
+
+            data["field_scale"] = _valid_methods[method](**field_scale)
+        else:
+            data["field_scale"] = None
+
+        super().__init__(**data)
 
 
 class LocalisationConfig(BaseModel):
@@ -381,21 +392,22 @@ class LocalisationConfig(BaseModel):
                             Possible values: True/False. Default: False
     """
 
+    model_config = ConfigDict(extra="forbid")
     observations: List[str]
     parameters: List[str]
     correlations: List[CorrelationConfig]
     log_level: Optional[Annotated[int, Field(strict=True, ge=0, le=5)]] = 1
     write_scaling_factors: Optional[bool] = False
 
-    @root_validator(pre=True)
-    def inject_context(cls, values: Dict) -> Dict:
-        # pylint: disable=no-self-use
-        for correlation in values["correlations"]:
-            correlation["obs_context"] = values["observations"]
-            correlation["params_context"] = values["parameters"]
-        return values
+    def __init__(self, **data):
+        for correlation in data["correlations"]:
+            correlation["obs_context"] = data["observations"]
+            correlation["params_context"] = data["parameters"]
 
-    @validator("correlations")
+        super().__init__(**data)
+
+    @field_validator("correlations", mode="after")
+    @classmethod
     def validate_correlations(cls, correlations):
         # pylint: disable=no-self-use
         duplicates = check_for_duplicated_correlation_specifications(correlations)

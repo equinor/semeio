@@ -43,8 +43,8 @@ def test_gaussian_config_valid_angle(azimuth, config_class, method):
 @pytest.mark.parametrize(
     "azimuth, expected_error",
     [
-        (-0.0001, "ensure this value is greater than or equal to 0.0"),
-        (360.0001, "ensure this value is less than or equal to 360"),
+        (-0.0001, "Input should be greater than or equal to 0"),
+        (360.0001, "Input should be less than or equal to 360"),
     ],
 )
 def test_invalid_angle(config_class, method, azimuth, expected_error):
@@ -206,12 +206,12 @@ def test_correlation_config_no_ref_point(field_config, surface_config, monkeypat
     }
     if field_config:
         config_dict["field_scale"] = field_config
-        with pytest.raises(ValueError, match="field_scale -> ref_point"):
+        with pytest.raises(ValueError, match="1 validation error[\\s\\S]+ref_point"):
             CorrelationConfig(**config_dict)
 
     if surface_config:
         config_dict["surface_scale"] = surface_config
-        with pytest.raises(ValueError, match="surface_scale -> ref_point"):
+        with pytest.raises(ValueError, match="1 validation error[\\s\\S]+ref_point"):
             CorrelationConfig(**config_dict)
 
 
@@ -227,9 +227,7 @@ def test_invalid_field_config_init():
         "add": "*",
     }
     param_group = {"add": "*"}
-    with pytest.raises(
-        pydantic.ValidationError, match="Unknown method: not_implemented_method"
-    ):
+    with pytest.raises(ValueError, match="Unknown method: not_implemented_method"):
         CorrelationConfig(
             name="a_name",
             obs_group=obs_config,
