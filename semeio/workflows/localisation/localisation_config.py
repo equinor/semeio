@@ -3,8 +3,16 @@ import itertools
 import pathlib
 from typing import Dict, List, Literal, Optional, Union
 
-from pydantic import BaseModel as PydanticBaseModel
-from pydantic import Extra, Field, root_validator, validator, conint, conlist, confloat
+from pydantic.v1 import BaseModel as PydanticBaseModel
+from pydantic.v1 import (
+    Extra,
+    Field,
+    confloat,
+    conint,
+    conlist,
+    root_validator,
+    validator,
+)
 from typing_extensions import Annotated
 
 
