@@ -1,7 +1,7 @@
 import pathlib
 from unittest.mock import MagicMock
 
-import pydantic
+import pydantic.v1 as pydantic
 import pytest
 from hypothesis import given
 from hypothesis import strategies as st

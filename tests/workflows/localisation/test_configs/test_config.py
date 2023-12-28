@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock
 
-import pydantic
+import pydantic.v1 as pydantic
 import pytest
 
 from semeio.workflows.localisation.localisation_config import (
