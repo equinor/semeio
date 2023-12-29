@@ -128,9 +128,8 @@ class AhmAnalysisJob(SemeioScript):
             target_name,
         )
         # Get the prior scalar parameter distributions
-        prior_data = self.facade.load_all_gen_kw_data(
-            self.storage.get_ensemble_by_name(prior_name)
-        )
+        ensemble = self.storage.get_ensemble_by_name(prior_name)
+        prior_data = ensemble.load_all_gen_kw_data()
         try:
             raise_if_empty(
                 dataframes=[
@@ -200,7 +199,7 @@ class AhmAnalysisJob(SemeioScript):
                     )
             # Get the updated scalar parameter distributions
             self.reporter.publish_csv(
-                group_name, self.facade.load_all_gen_kw_data(target_ensemble)
+                group_name, target_ensemble.load_all_gen_kw_data()
             )
 
             active_obs.at["ratio", group_name] = (
@@ -223,7 +222,7 @@ class AhmAnalysisJob(SemeioScript):
                 calc_kolmogorov_smirnov(
                     dkeysf,
                     prior_data,
-                    self.facade.load_all_gen_kw_data(target_ensemble),
+                    target_ensemble.load_all_gen_kw_data(),
                 )
             )
             field_output[group_name] = _get_field_params(
