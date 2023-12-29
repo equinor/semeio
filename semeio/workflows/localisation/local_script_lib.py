@@ -308,6 +308,100 @@ class ScalingValues:
         cls.scaling_param_number = cls.scaling_param_number + 1
 
 
+def write_qc_parameter_field(
+    node_name: str,
+    corr_name_current: str,
+    corr_name: str,
+    scaling_param_number: int,
+    field_scale: bool,
+    grid: Grid,
+    param_for_field: ma.MaskedArray,
+    log_level=LogLevel.OFF,
+) -> Tuple[str, int]:
+    # pylint: disable=too-many-arguments
+    if param_for_field is None or field_scale is None:
+        return corr_name_current, scaling_param_number
+
+    # Write scaling parameter  once per corr_name
+    if corr_name == corr_name_current:
+        return corr_name_current, scaling_param_number
+
+    # Need a parameter name <= 8 character long for GRDECL format
+    scaling_kw_name = "S_" + str(scaling_param_number)
+    filename = corr_name + "_" + node_name + "_" + scaling_kw_name + ".roff"
+
+    scaling_values = np.reshape(
+        param_for_field, (grid.getNX(), grid.getNY(), grid.getNZ()), "C"
+    )
+    save_field(scaling_values, scaling_kw_name, filename, FieldFileFormat.ROFF)
+
+    print(
+        "Write calculated scaling factor  with name: "
+        f"{scaling_kw_name} to file: {filename}"
+    )
+    debug_print(
+        f"Write calculated scaling factor with name: "
+        f"{scaling_kw_name} to file: {filename}",
+        LogLevel.LEVEL3,
+        log_level,
+    )
+
+    # Increase parameter number to define unique parameter name
+    scaling_param_number = scaling_param_number + 1
+    return corr_name, scaling_param_number
+
+
+def write_qc_parameter_surface(
+    # pylint: disable=too-many-locals
+    node_name: str,
+    corr_name_current: str,
+    corr_name: str,
+    scaling_param_number: int,
+    surface_scale: bool,
+    reference_surface_file: str,
+    param_for_surface: ma.MaskedArray,
+    log_level: LogLevel = LogLevel.OFF,
+) -> Tuple[str, int]:
+    # pylint: disable=too-many-arguments
+
+    if param_for_surface is None or surface_scale is None:
+        return corr_name_current, scaling_param_number
+
+    # Write scaling parameter  once per corr_name
+    if corr_name == corr_name_current:
+        return corr_name_current, scaling_param_number
+
+    scaling_surface_name = str(scaling_param_number)
+    filename = corr_name + "_" + node_name + "_map.irap"
+
+    # Surface object is created from the known reference surface to get
+    # surface attributes. The param_for_surface array is c-order,
+    # but need f-order for surface to write with the libecl object
+    qc_surface = Surface(reference_surface_file)
+    nx = qc_surface.getNX()
+    ny = qc_surface.getNY()
+    for i in range(nx):
+        for j in range(ny):
+            c_indx = j + i * ny
+            f_indx = i + j * nx
+            qc_surface[f_indx] = param_for_surface[c_indx]
+    qc_surface.write(filename)
+    print(
+        "Write calculated scaling factor for SURFACE parameter "
+        f"in {corr_name} to file: {filename}"
+    )
+    debug_print(
+        f"Write calculated scaling factor with name: "
+        f"{scaling_surface_name} to file: {filename}",
+        LogLevel.LEVEL3,
+        log_level,
+    )
+
+    # Increase parameter number to define unique parameter name
+    scaling_param_number = scaling_param_number + 1
+    return corr_name, scaling_param_number
+
+
 def get_param_from_ert(ens_config):
     new_params = Parameters()
     for key in ens_config.parameters:
@@ -847,7 +941,11 @@ def add_ministeps(
     # pylint: disable=too-many-nested-blocks,too-many-locals
 
     debug_print("Add all ministeps:", LogLevel.LEVEL1, user_config.log_level)
-    ScalingValues.initialize()
+    number_of_scaling_parameter_of_type_field = 0
+    corr_name_using_fields = None
+    number_of_scaling_parameter_of_type_surface = 0
+    corr_name_using_surface = None
+    # ScalingValues.initialize()
     # Read all region files used in correlation groups,
     # but only once per unique region file.
 
@@ -966,14 +1064,29 @@ def add_ministeps(
                         )
 
                     if user_config.write_scaling_factors:
-                        ScalingValues.write_qc_parameter_field(
+                        #                        ScalingValues.write_qc_parameter_field(
+                        (
+                            corr_name_using_fields,
+                            number_of_scaling_parameter_of_type_field,
+                        ) = write_qc_parameter_field(
                             node_name,
+                            corr_name_using_fields,
                             corr_spec.name,
+                            number_of_scaling_parameter_of_type_field,
                             corr_spec.field_scale,
                             grid_for_field,
                             param_for_field,
                             user_config.log_level,
                         )
+
+                        # write_qc_parameter_field(
+                        #     node_name,
+                        #     corr_spec.name,
+                        #     corr_spec.field_scale,
+                        #     grid_for_field,
+                        #     param_for_field,
+                        #     user_config.log_level,
+                        # )
                     update_step["row_scaling_parameters"].append(
                         [node_name, row_scaling]
                     )
@@ -1078,9 +1191,24 @@ def add_ministeps(
                         user_config.write_scaling_factors
                         and can_write_qc_data_for_surface
                     ):
-                        ScalingValues.write_qc_parameter_surface(
+                        # ScalingValues.write_qc_parameter_surface(
+                        # write_qc_parameter_surface(
+                        #     node_name,
+                        #     corr_spec.name,
+                        #     corr_spec.surface_scale,
+                        #     corr_spec.surface_scale.surface_file,
+                        #     param_for_surface,
+                        #     user_config.log_level,
+                        # )
+                        (
+                            corr_name_using_surface,
+                            number_of_scaling_parameter_of_type_surface,
+                        ) = write_qc_parameter_surface(
+                            # pylint: disable=too-many-locals
                             node_name,
+                            corr_name_using_surface,
                             corr_spec.name,
+                            number_of_scaling_parameter_of_type_surface,
                             corr_spec.surface_scale,
                             corr_spec.surface_scale.surface_file,
                             param_for_surface,
