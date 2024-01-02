@@ -316,7 +316,7 @@ def write_qc_parameter_field(
     field_scale: bool,
     grid: Grid,
     param_for_field: ma.MaskedArray,
-    log_level=LogLevel.OFF,
+    log_level: LogLevel = LogLevel.OFF,
 ) -> Tuple[str, int]:
     # pylint: disable=too-many-arguments
     if param_for_field is None or field_scale is None:
@@ -1185,35 +1185,21 @@ def add_ministeps(
                             f"Scaling method: {corr_spec.surface_scale.method} "
                             "is not implemented"
                         )
-                    # Inactivate this temporarily untill pytest for this is ready
-                    can_write_qc_data_for_surface = False
-                    if (
-                        user_config.write_scaling_factors
-                        and can_write_qc_data_for_surface
-                    ):
-                        # ScalingValues.write_qc_parameter_surface(
-                        # write_qc_parameter_surface(
-                        #     node_name,
-                        #     corr_spec.name,
-                        #     corr_spec.surface_scale,
-                        #     corr_spec.surface_scale.surface_file,
-                        #     param_for_surface,
-                        #     user_config.log_level,
-                        # )
-                        (
-                            corr_name_using_surface,
-                            number_of_scaling_parameter_of_type_surface,
-                        ) = write_qc_parameter_surface(
-                            # pylint: disable=too-many-locals
-                            node_name,
-                            corr_name_using_surface,
-                            corr_spec.name,
-                            number_of_scaling_parameter_of_type_surface,
-                            corr_spec.surface_scale,
-                            corr_spec.surface_scale.surface_file,
-                            param_for_surface,
-                            user_config.log_level,
-                        )
+
+                    (
+                        corr_name_using_surface,
+                        number_of_scaling_parameter_of_type_surface,
+                    ) = write_qc_parameter_surface(
+                        # pylint: disable=too-many-locals
+                        node_name,
+                        corr_name_using_surface,
+                        corr_spec.name,
+                        number_of_scaling_parameter_of_type_surface,
+                        corr_spec.surface_scale,
+                        corr_spec.surface_scale.surface_file,
+                        param_for_surface,
+                        user_config.log_level,
+                    )
 
                     update_step["row_scaling_parameters"].append(
                         [node_name, row_scaling]
