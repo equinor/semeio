@@ -32,7 +32,6 @@ dependencies=[
     "numpy",
     "pandas>1.3.0",
     "pydantic>2",
-    "configsuite",
     "scikit-learn",
     "scipy",
     "xlrd",
