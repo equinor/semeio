@@ -11,22 +11,10 @@ from semeio._docs_utils._json_schema_2_rst import _create_docs
 
 TEST_NORNE_DIR = Path(__file__).parent / ".." / ".." / "test_data" / "norne"
 
-# pylint: disable=duplicate-code
 
-
-@pytest.fixture()
-def ecl_files(tmp_path, monkeypatch):
-    monkeypatch.chdir(tmp_path)
-    for extension in ["INIT", "EGRID", "UNRST"]:
-        shutil.copy(TEST_NORNE_DIR / f"NORNE_ATW2013.{extension}", tmp_path)
-
-
-@pytest.mark.parametrize("vintages_export_file", ["ts.txt", None])
-@pytest.mark.parametrize("horizon", ["horizon.irap", None])
-@pytest.mark.parametrize("velocity_model", ["norne_vol.segy", None])
-@pytest.mark.usefixtures("ecl_files")
-def test_valid_config(velocity_model, horizon, vintages_export_file):
-    conf = {
+@pytest.fixture(name="conf")
+def conf_fixture():
+    yield {
         "eclbase": "NORNE_ATW2013",
         "above": 100,
         "seabed": 300,
@@ -41,6 +29,20 @@ def test_valid_config(velocity_model, horizon, vintages_export_file):
             "dpv": [["1997-11-06", "1997-12-17"]],
         },
     }
+
+
+@pytest.fixture()
+def ecl_files(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    for extension in ["INIT", "EGRID", "UNRST"]:
+        shutil.copy(TEST_NORNE_DIR / f"NORNE_ATW2013.{extension}", tmp_path)
+
+
+@pytest.mark.parametrize("vintages_export_file", ["ts.txt", None])
+@pytest.mark.parametrize("horizon", ["horizon.irap", None])
+@pytest.mark.parametrize("velocity_model", ["norne_vol.segy", None])
+@pytest.mark.usefixtures("ecl_files")
+def test_valid_config(conf, velocity_model, horizon, vintages_export_file):
     if velocity_model:
         conf.update({"velocity_model": velocity_model})
     if horizon:
@@ -59,25 +61,7 @@ def test_valid_config(velocity_model, horizon, vintages_export_file):
     ],
 )
 @pytest.mark.usefixtures("ecl_files")
-def test_eclbase_config(extension, error_msg):
-    conf = {
-        "eclbase": "NORNE_ATW2013",
-        "above": 100,
-        "seabed": 300,
-        "youngs": 0.5,
-        "poisson": 0.3,
-        "rfactor": 20,
-        "mapaxes": False,
-        "convention": 1,
-        "output_dir": "ts",
-        "horizon": "horizon.irap",
-        "vintages_export_file": "ts.txt",
-        "velocity_model": "norne_vol.segy",
-        "vintages": {
-            "ts_simple": [["1997-11-06", "1998-02-01"], ["1997-12-17", "1998-02-01"]],
-            "dpv": [["1997-11-06", "1997-12-17"]],
-        },
-    }
+def test_eclbase_config(extension, error_msg, conf):
     # Renaming a needed ecl file to simulate it not existing
     Path(f"NORNE_ATW2013.{extension}").rename("NOT_ECLBASE")
     with pytest.raises(ValidationError, match=error_msg):
@@ -103,90 +87,28 @@ def test_eclbase_config(extension, error_msg):
     ],
 )
 @pytest.mark.usefixtures("ecl_files")
-def test_valid_file_format(file_format):
-    conf = {
-        "eclbase": "NORNE_ATW2013",
-        "above": 100,
-        "seabed": 300,
-        "youngs": 0.5,
-        "poisson": 0.3,
-        "rfactor": 20,
-        "mapaxes": False,
-        "convention": 1,
-        "output_dir": "ts",
-        "vintages": {
-            "ts_simple": [["1997-11-06", "1998-02-01"], ["1997-12-17", "1998-02-01"]],
-            "dpv": [["1997-11-06", "1997-12-17"]],
-        },
-    }
+def test_valid_file_format(file_format, conf):
     conf.update({"file_format": file_format})
     OTSConfig(**conf)
 
 
 @pytest.mark.usefixtures("ecl_files")
-def test_invalid_file_format():
-    conf = {
-        "eclbase": "NORNE_ATW2013",
-        "above": 100,
-        "seabed": 300,
-        "youngs": 0.5,
-        "poisson": 0.3,
-        "rfactor": 20,
-        "mapaxes": False,
-        "convention": 1,
-        "output_dir": "ts",
-        "vintages": {
-            "ts_simple": [["1997-11-06", "1998-02-01"], ["1997-12-17", "1998-02-01"]],
-            "dpv": [["1997-11-06", "1997-12-17"]],
-        },
-    }
+def test_invalid_file_format(conf):
     conf.update({"file_format": "not a file format"})
     with pytest.raises(ValidationError, match="file_format\n  Input should be"):
         OTSConfig(**conf)
 
 
 @pytest.mark.usefixtures("ecl_files")
-def test_missing_date(tmpdir):
-    conf = {
-        "eclbase": "NORNE_ATW2013",
-        "above": 100,
-        "seabed": 300,
-        "youngs": 0.5,
-        "poisson": 0.3,
-        "rfactor": 20,
-        "mapaxes": False,
-        "convention": 1,
-        "output_dir": "ts",
-        "horizon": "horizon.irap",
-        "vintages_export_file": "ts.txt",
-        "velocity_model": "norne_vol.segy",
-        "vintages": {
-            "ts_simple": [["1997-11-06", "2024-01-03"]],
-        },
-    }
+def test_missing_date(conf):
+    conf["vintages"]["ts_simple"] = [["1997-11-06", "2024-01-03"]]
     with pytest.raises(ValidationError, match="Vintages with dates not found"):
         OTSConfig(**conf)
 
 
 @pytest.mark.usefixtures("ecl_files")
-def test_extra_date():
-    conf = {
-        "eclbase": "NORNE_ATW2013",
-        "above": 100,
-        "seabed": 300,
-        "youngs": 0.5,
-        "poisson": 0.3,
-        "rfactor": 20,
-        "mapaxes": False,
-        "convention": 1,
-        "output_dir": "ts",
-        "horizon": "horizon.irap",
-        "vintages_export_file": "ts.txt",
-        "velocity_model": "norne_vol.segy",
-        "vintages": {
-            "ts_simple": [["1997-11-06", "1998-02-01", "1997-12-17"]],
-        },
-    }
+def test_extra_date(conf):
+    conf["vintages"]["ts_simple"] = [["1997-11-06", "1998-02-01", "1997-12-17"]]
     with pytest.raises(ValidationError, match="List should have at most 2 items"):
         OTSConfig(**conf)
 
