@@ -6,46 +6,33 @@ from datetime import datetime as dt
 from itertools import product
 from pathlib import Path
 
-import configsuite
 import numpy as np
 import xtgeo
 import yaml
+from pydantic import ValidationError
 from resdata.gravimetry import ResdataSubsidence
 from resdata.grid import Grid
 from resdata.resfile import Resdata3DKW, ResdataFile
 from scipy.interpolate import CloughTocher2DInterpolator
 
 from semeio._exceptions.exceptions import ConfigurationError
-from semeio.forward_models.overburden_timeshift.ots_config import build_schema
-from semeio.forward_models.overburden_timeshift.ots_res_surface import OTSResSurface
-from semeio.forward_models.overburden_timeshift.ots_vel_surface import OTSVelSurface
-
-
-def extract_ots_context(configuration):
-    rstfile_path = Path(f"{configuration.eclbase}.UNRST")
-    if not rstfile_path.exists():
-        return []
-    dates = [d.date() for d in ResdataFile(str(rstfile_path)).dates]
-    return dates
+from semeio.forward_models.overburden_timeshift import (
+    OTSConfig,
+    OTSResSurface,
+    OTSVelSurface,
+)
 
 
 def ots_load_params(input_file):
-    with open(input_file, "r", encoding="utf-8") as fin:
-        config = yaml.safe_load(fin)
-    config = configsuite.ConfigSuite(
-        config,
-        build_schema(),
-        deduce_required=True,
-        extract_validation_context=extract_ots_context,
-    )
-    if not config.valid:
+    try:
+        with open(input_file, "r", encoding="utf-8") as fin:
+            config = OTSConfig(**yaml.safe_load(fin))
+    except ValidationError as err:
         raise ConfigurationError(
             f"Invalid configuration for config file: {input_file}",
-            config.errors,
-        )
-
-    input_data = config.snapshot
-    return input_data
+            err,
+        ) from err
+    return config
 
 
 def write_surface(vintage_pairs, ts, output_dir, type_str, file_format="irap_binary"):

@@ -4,8 +4,9 @@ import sys
 
 from semeio import valid_file
 from semeio._exceptions.exceptions import ConfigurationError
-from semeio.forward_models.overburden_timeshift.ots import ots_run
-from semeio.forward_models.overburden_timeshift.ots_config import generate_rst_doc
+from semeio.forward_models.overburden_timeshift import ots_run, OTSConfig
+
+from semeio._docs_utils._json_schema_2_rst import _create_docs
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +22,11 @@ short_description = (
     "By specifying --params, one gets the full list of yml config parameters."
 )
 
-description = short_description + generate_rst_doc()
+description = (
+    short_description
+    + 2 * "\n"
+    + _create_docs(OTSConfig.model_json_schema(by_alias=False, ref_template="{model}"))
+)
 category = "modelling.surface"
 
 
@@ -54,7 +59,7 @@ def main_entry_point():
     logger.setLevel(options.log_level)
 
     if options.help_params:
-        print(generate_rst_doc())
+        print(OTSConfig.model_json_schema())
     else:
         try:
             ots_run(options.config)
