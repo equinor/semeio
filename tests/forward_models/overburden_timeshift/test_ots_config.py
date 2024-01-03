@@ -15,16 +15,17 @@ TEST_NORNE_DIR = Path(__file__).parent / ".." / ".." / "test_data" / "norne"
 
 
 @pytest.fixture()
-def ecl_files(tmpdir):
+def ecl_files(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
     for extension in ["INIT", "EGRID", "UNRST"]:
-        shutil.copy(TEST_NORNE_DIR / f"NORNE_ATW2013.{extension}", tmpdir)
+        shutil.copy(TEST_NORNE_DIR / f"NORNE_ATW2013.{extension}", tmp_path)
 
 
 @pytest.mark.parametrize("vintages_export_file", ["ts.txt", None])
 @pytest.mark.parametrize("horizon", ["horizon.irap", None])
 @pytest.mark.parametrize("velocity_model", ["norne_vol.segy", None])
 @pytest.mark.usefixtures("ecl_files")
-def test_valid_config(tmpdir, velocity_model, horizon, vintages_export_file):
+def test_valid_config(velocity_model, horizon, vintages_export_file):
     conf = {
         "eclbase": "NORNE_ATW2013",
         "above": 100,
@@ -46,8 +47,7 @@ def test_valid_config(tmpdir, velocity_model, horizon, vintages_export_file):
         conf.update({"horizon": horizon})
     if vintages_export_file:
         conf.update({"vintages_export_file": vintages_export_file})
-    with tmpdir.as_cwd():
-        OTSConfig(**conf)
+    OTSConfig(**conf)
 
 
 @pytest.mark.parametrize(
@@ -59,7 +59,7 @@ def test_valid_config(tmpdir, velocity_model, horizon, vintages_export_file):
     ],
 )
 @pytest.mark.usefixtures("ecl_files")
-def test_eclbase_config(tmpdir, extension, error_msg):
+def test_eclbase_config(extension, error_msg):
     conf = {
         "eclbase": "NORNE_ATW2013",
         "above": 100,
@@ -78,11 +78,10 @@ def test_eclbase_config(tmpdir, extension, error_msg):
             "dpv": [["1997-11-06", "1997-12-17"]],
         },
     }
-    with tmpdir.as_cwd():
-        # Renaming a needed ecl file to simulate it not existing
-        Path(f"NORNE_ATW2013.{extension}").rename("NOT_ECLBASE")
-        with pytest.raises(ValidationError, match=error_msg):
-            OTSConfig(**conf)
+    # Renaming a needed ecl file to simulate it not existing
+    Path(f"NORNE_ATW2013.{extension}").rename("NOT_ECLBASE")
+    with pytest.raises(ValidationError, match=error_msg):
+        OTSConfig(**conf)
 
 
 @pytest.mark.parametrize(
@@ -104,8 +103,7 @@ def test_eclbase_config(tmpdir, extension, error_msg):
     ],
 )
 @pytest.mark.usefixtures("ecl_files")
-def test_valid_file_format(file_format, tmp_path, monkeypatch):
-    monkeypatch.chdir(tmp_path)
+def test_valid_file_format(file_format):
     conf = {
         "eclbase": "NORNE_ATW2013",
         "above": 100,
@@ -126,7 +124,7 @@ def test_valid_file_format(file_format, tmp_path, monkeypatch):
 
 
 @pytest.mark.usefixtures("ecl_files")
-def test_invalid_file_format(tmpdir):
+def test_invalid_file_format():
     conf = {
         "eclbase": "NORNE_ATW2013",
         "above": 100,
@@ -143,9 +141,7 @@ def test_invalid_file_format(tmpdir):
         },
     }
     conf.update({"file_format": "not a file format"})
-    with tmpdir.as_cwd(), pytest.raises(
-        ValidationError, match="file_format\n  Input should be"
-    ):
+    with pytest.raises(ValidationError, match="file_format\n  Input should be"):
         OTSConfig(**conf)
 
 
@@ -168,9 +164,7 @@ def test_missing_date(tmpdir):
             "ts_simple": [["1997-11-06", "2024-01-03"]],
         },
     }
-    with tmpdir.as_cwd(), pytest.raises(
-        ValidationError, match="Vintages with dates not found"
-    ):
+    with pytest.raises(ValidationError, match="Vintages with dates not found"):
         OTSConfig(**conf)
 
 
