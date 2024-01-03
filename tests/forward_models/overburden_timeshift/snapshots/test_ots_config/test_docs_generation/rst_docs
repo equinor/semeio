@@ -1,0 +1,199 @@
+**file_format**:
+
+  **default**: irap_binary
+
+  The file format of the exported surfaces
+
+  **type**: string
+
+  **must be one of**:
+
+       irap_ascii
+
+       irapascii
+
+       irap_txt
+
+       irapasc
+
+       irap_binary
+
+       irapbinary
+
+       irapbin
+
+       irap
+
+       gri
+
+       zmap
+
+       storm_binary
+
+       petromod
+
+       ijxyz
+
+**seabed***:
+
+  The depth of the seabead in meters.
+
+  **type**: number
+
+**rfactor***:
+
+  Scales the surface displacement between base_survey and monitor_survey, eg. 20.
+
+  **type**: number
+
+**above***:
+
+  Distance in meters above the reservoir where shift is calculated. The distance from the shallowest cell, eg. 100
+
+  **type**: number
+
+**convention**:
+
+  **default**: 1
+
+  Positive or negative shift can be either 1 or -1, where 1 = monitor-base and -1 = base-monitor
+
+  **type**: integer
+
+  **must be one of**:
+
+       -1
+
+       1
+
+**poisson***:
+
+  Poisson ratio. Describes the expansion or contraction of material in ecl_subsidence_eval
+
+  **type**: number
+
+**youngs**:
+
+  Youngs modulus
+
+  **type**: number
+
+**output_dir***:
+
+  Directory(ies) where the shift is written to disk. Post fixed with type of algorithm: ts, ts_simple, dpv and ts_rporv
+
+  **type**: string
+
+**horizon**:
+
+  Path to result irap file, the surface mapped to the velocity grid, with the depth of horizon.
+
+**eclbase***:
+
+  Path to the Eclipse case
+
+  **type**: string
+
+**vintages_export_file**:
+
+  Path to resulting text file, which contains all computed vintage pair dates: lines of x, y, z, ts1, ts2, ts3...
+
+**velocity_model**:
+
+  Path to segy file containing the velocity field
+
+**mapaxes***:
+
+  Mapping axes from the global to local geometry. If False EclGrid will not apply transformation to the grid
+
+  **type**: boolean
+
+**vintages***:
+
+  Vintage date pairs: date of base and monitor survey
+
+  .. code-block:: yaml
+
+    vintages:
+      dpv:
+      - ['1997-11-06', '1997-12-17']
+      ts_simple:
+      - ['1997-11-06', '1998-02-01']
+      - ['1997-12-17', '1998-02-01']
+    
+
+
+  **must be**:
+
+      **ts_simple**:
+        Simple TimeShift geertsma algorithm. It assumes a constant velocity and is fast
+
+        **items**:
+
+          **items**:
+
+            **format**: date
+
+            **type**: string
+
+          **type**: array
+
+          **minimum length**: 2
+
+          **maximum length**: 2
+
+        **type**: array
+      **ts**:
+        TimeShift geertsma algorithm, which uses velocity, very slow
+
+        **items**:
+
+          **items**:
+
+            **format**: date
+
+            **type**: string
+
+          **type**: array
+
+          **minimum length**: 2
+
+          **maximum length**: 2
+
+        **type**: array
+      **ts_rporv**:
+        Delta pressure multiplied by cell volume, relatively fast
+
+        **items**:
+
+          **items**:
+
+            **format**: date
+
+            **type**: string
+
+          **type**: array
+
+          **minimum length**: 2
+
+          **maximum length**: 2
+
+        **type**: array
+      **dpv**:
+        Calculates timeshift without using velocity. The velocity is only used to get the surface on the velocity grid. It uses a change in porevolume from Eclipse (RPORV in .UNRST) as input to Geertsma model.
+
+        **items**:
+
+          **items**:
+
+            **format**: date
+
+            **type**: string
+
+          **type**: array
+
+          **minimum length**: 2
+
+          **maximum length**: 2
+
+        **type**: array
