@@ -111,7 +111,8 @@ class Response:
     response_function: str = "average"
     gen_data_file_prefix: str = "UpscaledField"
     ert_config_template_file: str = "init_files/sim_field_template.ert"
-    ert_config_file: str = "sim_field.ert"
+    ert_config_template_file_lsf: str = "init_files/sim_field_template_with_lsf.ert"
+    ert_config_file = "sim_field.ert"
 
     def reset_to_default(self):
         self.name = "UPSCALED"
@@ -123,6 +124,7 @@ class Response:
         self.response_function = "average"
         self.gen_data_file_prefix = "UpscaledField"
         self.ert_config_template_file = "init_files/sim_field_template.ert"
+        self.ert_config_template_file_lsf = "init_files/sim_field_template_with_lsf.ert"
         self.ert_config_file = "sim_field.ert"
 
 
@@ -199,6 +201,7 @@ class Settings:
     """
 
     case_name: str = None
+    nreal: int = None
     model_size: ModelSize = None
     field: Field = None
     response: Response = None
@@ -244,6 +247,7 @@ class Settings:
         self.optional = Optional()
         self.optional.reset_to_default()
         self.case_name = "A"
+        self.nreal = 10
 
     def set_observed_cell_indices(self):
         self.observation.selected_grid_cells = cell_index_list_from_obs_positions(
@@ -1672,11 +1676,15 @@ def initialize_case(settings):
             grid_object,
         )
 
+    if settings.nreal < 25:
+        ert_template_file = settings.response.ert_config_template_file
+    else:
+        ert_template_file = settings.response.ert_config_template_file_lsf
     create_ert_config_file(
-        settings.response.ert_config_template_file,
+        ert_template_file,
         settings.case_name,
         settings.field.seed_file,
-        10,
+        settings.nreal,
         59716487,
         settings.response.gen_data_file_prefix,
         settings.field.grid_file_name,
@@ -1695,9 +1703,11 @@ def example_cases(name):
     They define how to modify default settings
     for the varios cases to test.
     """
+    nreal = 100
     if name == "A":
         params = {
             "case_name": "A",
+            "nreal": nreal,
             "model_size": {
                 "use_eclipse_grid_index_origo": True,
             },
@@ -1723,6 +1733,7 @@ def example_cases(name):
     elif name == "B":
         params = {
             "case_name": "B",
+            "nreal": nreal,
             "model_size": {
                 "use_eclipse_grid_index_origo": True,
             },
@@ -1735,7 +1746,11 @@ def example_cases(name):
                 "grid_file_name": "GRID_STANDARD_UPSCALED.EGRID",
             },
             "observation": {
-                "obs_positions": [[750.0, 750.0, 25.0], [250.0, 1750.0, 25.0]],
+                "obs_positions": [
+                    [750.0, 750.0, 25.0],
+                    [250.0, 1750.0, 25.0],
+                    [250.0, 250.0, 25.0],
+                ],
             },
             "localisation": {
                 "use_localisation": True,
@@ -1744,6 +1759,7 @@ def example_cases(name):
     elif name == "C":
         params = {
             "case_name": "C",
+            "nreal": nreal,
             "model_size": {
                 "use_eclipse_grid_index_origo": False,
             },
@@ -1756,7 +1772,11 @@ def example_cases(name):
                 "grid_file_name": "GRID_RMS_ORIGO_UPSCALED.EGRID",
             },
             "observation": {
-                "obs_positions": [[750.0, 750.0, 25.0], [250.0, 1750.0, 25.0]],
+                "obs_positions": [
+                    [750.0, 750.0, 25.0],
+                    [250.0, 1750.0, 25.0],
+                    [250.0, 250.0, 25.0],
+                ],
             },
             "localisation": {
                 "use_localisation": True,
@@ -1765,6 +1785,7 @@ def example_cases(name):
     elif name == "A2":
         params = {
             "case_name": "A2",
+            "nreal": nreal,
             "model_size": {
                 "use_eclipse_grid_index_origo": True,
                 "polygon_file": "init_files/polygons.txt",
@@ -1778,7 +1799,11 @@ def example_cases(name):
                 "grid_file_name": "UpscaleGrid.EGRID",
             },
             "observation": {
-                "obs_positions": [[750.0, 750.0, 25.0], [250.0, 1750.0, 25.0]],
+                "obs_positions": [
+                    [750.0, 750.0, 25.0],
+                    [250.0, 1750.0, 25.0],
+                    [250.0, 250.0, 25.0],
+                ],
             },
             "localisation": {
                 "use_localisation": True,
@@ -1787,6 +1812,7 @@ def example_cases(name):
     elif name == "D":
         params = {
             "case_name": "D",
+            "nreal": nreal,
             "model_size": {
                 "use_eclipse_grid_index_origo": True,
             },
@@ -1803,12 +1829,17 @@ def example_cases(name):
                 "use_localisation": True,
             },
             "observation": {
-                "obs_positions": [[750.0, 750.0, 25.0], [250.0, 1750.0, 25.0]],
+                "obs_positions": [
+                    [750.0, 750.0, 25.0],
+                    [250.0, 1750.0, 25.0],
+                    [250.0, 250.0, 25.0],
+                ],
             },
         }
     elif name == "E":
         params = {
             "case_name": "E",
+            "nreal": nreal,
             "model_size": {
                 "use_eclipse_grid_index_origo": True,
             },
@@ -1827,12 +1858,17 @@ def example_cases(name):
                 "use_localisation": True,
             },
             "observation": {
-                "obs_positions": [[450.0, 1750.0, 25.0], [250.0, 250.0, 25.0]],
+                "obs_positions": [
+                    [750.0, 750.0, 25.0],
+                    [250.0, 1750.0, 25.0],
+                    [250.0, 250.0, 25.0],
+                ],
             },
         }
     elif name == "F":
         params = {
             "case_name": "F",
+            "nreal": nreal,
             "model_size": {
                 "use_eclipse_grid_index_origo": True,
             },
@@ -1850,12 +1886,17 @@ def example_cases(name):
                 "use_localisation": True,
             },
             "observation": {
-                "obs_positions": [[650.0, 850.0, 25.0]],
+                "obs_positions": [
+                    [750.0, 750.0, 25.0],
+                    [250.0, 1750.0, 25.0],
+                    [250.0, 250.0, 25.0],
+                ],
             },
         }
     elif name == "G":
         params = {
             "case_name": "G",
+            "nreal": nreal,
             "model_size": {
                 "use_eclipse_grid_index_origo": False,
                 "polygon_file": None,
@@ -1874,7 +1915,11 @@ def example_cases(name):
                 "use_localisation": True,
             },
             "observation": {
-                "obs_positions": [[650.0, 850.0, 25.0]],
+                "obs_positions": [
+                    [750.0, 750.0, 25.0],
+                    [250.0, 1750.0, 25.0],
+                    [250.0, 250.0, 25.0],
+                ],
             },
         }
     return params
