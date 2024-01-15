@@ -79,6 +79,7 @@ test = [
 "pandas-stubs",
 "types-setuptools",
 "types-PyYAML",
+"gstools",
 ]
 
 [tool.black]

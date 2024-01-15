@@ -1,0 +1,58 @@
+DEFINE <USER>              $$USER
+DEFINE <CASE_DIR>          ${CASE_NAME}
+DEFINE <ENSEMBLE_SEED_FILE>  ${ENSEMBLE_SEED_FILE}
+DEFINE <TEST_CONFIG>  <CONFIG_PATH>/example_config.yml
+
+INSTALL_JOB  SIM_FIELD  scripts/FM_SIM_FIELD
+-----------------------------------------------------
+-- Observations
+-----------------------------------------------------
+
+DEFINE      <OBS_FILE>  <CONFIG_PATH>/observations/observations.obs
+OBS_CONFIG  <OBS_FILE>
+
+JOBNAME  sim_fields_<IENS>
+
+
+NUM_REALIZATIONS    ${NREAL}        -- Set number of realizations to run
+MAX_RUNTIME         18000          -- Set the maximum allowed run time (in seconds)
+MIN_REALIZATIONS    1              -- Success criteria
+MAX_SUBMIT          1              -- How many times should the queue system retry a simulation.
+
+--Use the LSF cluster to run simulations
+QUEUE_OPTION LSF LSF_QUEUE  mr     -- Assign LSF queue to use (default value in site-config is 'mr')
+QUEUE_OPTION   LSF MAX_RUNNING 100  -- Choke the number of simultaneous run
+
+RANDOM_SEED  ${ERT_START_SEED}  -- ERT seed value
+
+RUNPATH  simulations/<CASE_DIR>/realization-<IENS>/iter-<ITER>
+ENSPATH         output/<CASE_DIR>/storage       -- Storage of internal ert data
+UPDATE_LOG_PATH  output/<CASE_DIR>/update_log    -- Info of active and inactive data points
+RUNPATH_FILE     output/<CASE_DIR>/runpath_file  -- List of runpaths
+
+-- Activate localisation setup
+${LOAD_LOCALISATION_WORKFLOW}
+${HOOK_LOCALISATION_WORKFLOW}
+
+--Result data from forward model--
+GEN_DATA RESULT_UPSCALED_FIELD    RESULT_FILE:${RESPONSE_FILE_PREFIX}_%d.txt   REPORT_STEPS:0 INPUT_FORMAT:ASCII OUTPUT_FORMAT:ASCII
+
+-----------------------------------------------------
+-- Forward models
+-----------------------------------------------------
+--Simulate Gaussian field with trend and calculate upscaled values. Observables are upscaled values of selected grid cells.
+FORWARD_MODEL MAKE_DIRECTORY(<DIRECTORY>=init_files)
+-- Is used to identify iteration number (only relevant for old komodo versions)
+FORWARD_MODEL MAKE_DIRECTORY(<DIRECTORY>=<ITER>)
+-- The common seed file
+FORWARD_MODEL COPY_FILE(<FROM>=<CONFIG_PATH>/<ENSEMBLE_SEED_FILE>,  <TO>=<RUNPATH>/<ENSEMBLE_SEED_FILE>)
+
+FORWARD_MODEL MAKE_SYMLINK(<TARGET>=<CONFIG_PATH>/${GRID_FILE_NAME}, <LINKNAME>=<RUNPATH>/${GRID_FILE_NAME})
+FORWARD_MODEL MAKE_SYMLINK(<TARGET>=<CONFIG_PATH>/${GRID_FILE_NAME_UPSCALED}, <LINKNAME>=<RUNPATH>/${GRID_FILE_NAME_UPSCALED})
+
+-- The main forward model simulating gaussian field with trend, and upscale
+FORWARD_MODEL  SIM_FIELD(<ITERATION>=<ITER>,  <REALNUMBER>=<IENS>, <TEST_CONFIG>=<TEST_CONFIG>, <CONFIG_PATH>=<CONFIG_PATH>)
+
+GRID     <CONFIG_PATH>/${GRID_FILE_NAME}     -- Necessary for AHM using field parameters
+
+FIELD FIELDPAR   PARAMETER   ${UPDATED_FIELDPARAM_FILE_NAME}   INIT_FILES:${INITIAL_FIELDPARAM_FILE_NAME}   MIN:-5.0   MAX:5.0   FORWARD_INIT:True

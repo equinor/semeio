@@ -1,0 +1,18 @@
+### Directory with reference data and input files
+
+- **Input files:**
+  - `sim_field_template.ert`
+  - `polygons.txt`
+  - `region_polygons.txt`
+  - `scaling_factor.grdecl`
+  - `scaling_factor_rms_orgo.grdecl`
+
+- **Reference files:**
+  - `FieldParam_real5_iter0_X_local.grdecl`
+  - `FieldParam_real5_iter3_X_local.grdecl`
+  - `X is case name (A, B, C, ...)`
+
+- **Temporary files:**
+  - Initial ensemble files are stored here when running scripts/make_reference_data.py:
+    - `FieldParam.roff`:  The field parameter
+    - `Upscaled.roff`:  The upscaled field parameter (for QC purpose)
