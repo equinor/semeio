@@ -61,7 +61,10 @@ fm_pyscal = "semeio.forward_models.scripts.fm_pyscal:main_entry_point"
 replace_string = "semeio.forward_models.scripts.replace_string:main_entry_point"
 
 [tool.setuptools_scm]
-write_to = "semeio/version.py"
+write_to = "src/semeio/version.py"
+
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [project.optional-dependencies]
 test = [
