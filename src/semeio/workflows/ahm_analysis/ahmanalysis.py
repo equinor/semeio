@@ -277,9 +277,9 @@ class AhmAnalysisJob(SemeioScript):
                     )
                 all_kolmogorov_smirnov.set_index("PCFieldParameters", inplace=True)
                 # add the field max Ks to the scalar Ks matrix
-                kolmogorov_smirnov_data.loc[
-                    "FIELD_" + fieldparam
-                ] = all_kolmogorov_smirnov.max()
+                kolmogorov_smirnov_data.loc["FIELD_" + fieldparam] = (
+                    all_kolmogorov_smirnov.max()
+                )
                 self.reporter.publish_csv(
                     "delta_field" + fieldparam, map_calc_properties
                 )
