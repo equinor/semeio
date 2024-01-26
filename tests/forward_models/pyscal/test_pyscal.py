@@ -1,4 +1,5 @@
 """Test module for ERT-Pyscal integration"""
+
 import os
 import random
 import sys
