@@ -1,4 +1,5 @@
 """Forward model for connecting ERT with the Pyscal command line client"""
+
 import argparse
 import logging
 import os
