@@ -320,16 +320,26 @@ def _get_field_params(facade, field_parameters, target_ensemble):
 
 def make_update_log_df(update_log: SmootherSnapshot) -> pd.DataFrame:
     """Read update_log file to get active and inactive observations"""
-    update_step = update_log.update_step_snapshots["MINISTEP"]
-    obs_key = [step.obs_name for step in update_step]
-    obs_mean = [step.obs_val for step in update_step]
-    obs_std = [step.obs_std for step in update_step]
-    sim_mean = [step.response_mean for step in update_step]
-    sim_std = [step.response_std for step in update_step]
-    status = [
-        "Active" if step.response_mean_mask and step.response_std_mask else "Inactive"
-        for step in update_step
-    ]
+    obs_key = []
+    obs_mean = []
+    obs_std = []
+    sim_mean = []
+    sim_std = []
+    status = []
+
+    # Loop through each update_step_snapshot once, collecting all necessary information
+    for step in update_log.update_step_snapshots["MINISTEP"]:
+        obs_key.append(step.obs_name)
+        obs_mean.append(step.obs_val)
+        obs_std.append(step.obs_std)
+        sim_mean.append(step.response_mean)
+        sim_std.append(step.response_std)
+        status.append(
+            "Active"
+            if step.response_mean_mask and step.response_std_mask
+            else "Inactive"
+        )
+
     updatelog = pd.DataFrame(
         {
             "obs_key": obs_key,
