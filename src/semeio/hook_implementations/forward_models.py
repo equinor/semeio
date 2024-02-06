@@ -1,28 +1,31 @@
 import importlib
-import os
+from typing import Dict
 
+import importlib_resources
 from ert.shared.plugins.plugin_manager import hook_implementation
 from ert.shared.plugins.plugin_response import plugin_response
-from pkg_resources import resource_filename
 
 
-def _remove_suffix(string, suffix):
+def _remove_suffix(string: str, suffix: str) -> str:
     if not string.endswith(suffix):
         raise ValueError(f"{string} does not end with {suffix}")
     return string[: -len(suffix)]
 
 
-def _get_forward_models_from_directory(directory):
-    resource_directory = resource_filename("semeio", directory)
+def _get_forward_models_from_directory(directory: str) -> Dict[str, str]:
+    resource_directory_ref = importlib_resources.files("semeio") / directory
 
-    all_files = [
-        os.path.join(resource_directory, f)
-        for f in os.listdir(resource_directory)
-        if os.path.isfile(os.path.join(resource_directory, f))
-    ]
+    all_files = []
+    with importlib_resources.as_file(resource_directory_ref) as resource_directory:
+        all_files = [
+            resource_directory / file
+            for file in resource_directory.glob("*")
+            if (resource_directory / file).is_file()
+        ]
+
     # ERT will look for an executable in the same folder as the forward model
     # configuration file is located. If the name of the config is the same as
-    # the name of the executable, libres will be confused. The usual standard in
+    # the name of the executable, ERT will be confused. The usual standard in
     # ERT would be to capitalize the config file. On OSX systems, which are
     # case-insensitive, this isn't viable. The config files are therefore
     # appended with "_CONFIG".  The forward models will be installed as FORWARD_MODEL_NAME,
@@ -30,9 +33,7 @@ def _get_forward_models_from_directory(directory):
     # forward_model_name - which we install with entry-points. The user can use the
     # forward model as normal:
     # FORWARD_MODEL FORWARD_MODEL_NAME()
-    return {
-        _remove_suffix(os.path.basename(path), "_CONFIG"): path for path in all_files
-    }
+    return {_remove_suffix(path.name, "_CONFIG"): str(path) for path in all_files}
 
 
 @hook_implementation
