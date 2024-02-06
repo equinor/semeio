@@ -3,11 +3,11 @@ import logging
 import os
 import sys
 
-from pkg_resources import DistributionNotFound, get_distribution
+import importlib_metadata
 
 try:
-    __version__ = get_distribution(__name__).version
-except DistributionNotFound:
+    __version__ = importlib_metadata.distribution(__name__).version
+except importlib_metadata.PackageNotFoundError:
     # package is not installed
     pass
 

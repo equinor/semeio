@@ -29,6 +29,8 @@ dynamic = ["version"]
 dependencies=[
     "resdata",
     "ert>=8.2.1",
+    "importlib_metadata",
+    "importlib_resources",
     "numpy",
     "pandas>1.3.0",
     "pydantic>2",
