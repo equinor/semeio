@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 import xtgeo
 import yaml
-from ert import LibresFacade
+from ert.libres_facade import LibresFacade
 from ert.storage import open_storage
 from xtgeo.surface.regular_surface import RegularSurface
 
