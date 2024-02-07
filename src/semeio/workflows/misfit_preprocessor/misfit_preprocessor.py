@@ -1,6 +1,6 @@
 import logging
 
-from ert import ErtScript
+from ert.config import ErtScript
 from ert.shared.plugins.plugin_manager import hook_implementation
 
 logger = logging.getLogger(__name__)
