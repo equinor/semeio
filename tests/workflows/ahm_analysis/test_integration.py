@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pandas as pd
 import pytest
-from ert import LibresFacade
+from ert.libres_facade import LibresFacade
 from ert.storage import open_storage
 
 from semeio._exceptions.exceptions import ValidationError
