@@ -21,7 +21,7 @@ def test_semeio_script_integration(tmpdir):
 
     ert_env = {
         env_var: os.environ[env_var]
-        for env_var in ("PATH", "LD_LIBRARY_PATH")
+        for env_var in ("PATH", "LD_LIBRARY_PATH", "TMPDIR")
         if env_var in os.environ
     }
     ert_env["PYTHONPATH"] = os.pathsep.join(map(os.path.realpath, sys.path))
