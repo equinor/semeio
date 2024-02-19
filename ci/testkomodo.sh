@@ -5,7 +5,7 @@ copy_test_files () {
 }
 
 install_test_dependencies () {
-    pip install "semeio[test]"
+    pip install ".[test]"
 }
 
 start_tests () {
