@@ -691,7 +691,7 @@ def test_ert_setup_one_well_two_points_different_time_and_depth(tmpdir):
     # The purpose of the test is to demonstrate and run through the GEN_DATA
     # forward model without errors, but it will fail in the update step as this
     # test is not constructed for that:
-    assert "No active observations" in stdouterr
+    assert "stopping assimilation" in stdouterr
     assert "Experiment failed" in stdouterr
 
     # Asserts on GENDATA_RFT output:
