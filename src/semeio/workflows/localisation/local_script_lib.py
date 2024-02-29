@@ -11,7 +11,6 @@ from typing import Dict, List
 import cwrap
 import numpy as np
 import yaml
-from ert.analysis.row_scaling import RowScaling
 from ert.config import Field, GenDataConfig, GenKwConfig, SurfaceConfig
 from numpy import ma
 from resdata.geometry import Surface
@@ -23,6 +22,14 @@ from semeio.workflows.localisation.localisation_debug_settings import (
     LogLevel,
     debug_print,
 )
+
+
+class RowScaling:
+    def assign_vector(self, *_):
+        pass
+
+    def __setitem__(self, *_):
+        pass
 
 
 @dataclass

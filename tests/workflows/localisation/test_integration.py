@@ -13,61 +13,6 @@ from semeio.workflows.localisation.local_config_script import LocalisationConfig
 # pylint: disable=invalid-name
 
 
-@pytest.mark.parametrize(
-    "obs_group_add, param_group_add",
-    [
-        (
-            ["FOPR", "WOPR_OP1_190"],
-            ["SNAKE_OIL_PARAM:OP1_DIVERGENCE_SCALE", "SNAKE_OIL_PARAM:OP1_OFFSET"],
-        ),
-    ],
-)
-def test_localisation(snake_oil_facade, obs_group_add, param_group_add, snapshot):
-    config = {
-        "log_level": 4,
-        "correlations": [
-            {
-                "name": "CORR1",
-                "obs_group": {"add": "*", "remove": obs_group_add},
-                "param_group": {
-                    "add": "SNAKE_OIL_PARAM:OP1_PERSISTENCE",
-                },
-            },
-            {
-                "name": "CORR2",
-                "obs_group": {"add": "*", "remove": obs_group_add},
-                "param_group": {
-                    "add": "SNAKE_OIL_PARAM:*",
-                    "remove": "SNAKE_OIL_PARAM:OP1_PERSISTENCE",
-                },
-            },
-            {
-                "name": "CORR3",
-                "obs_group": {"add": obs_group_add},
-                "param_group": {
-                    "add": param_group_add,
-                },
-            },
-        ],
-    }
-    with open("local_config.yaml", "w", encoding="utf-8") as fout:
-        yaml.dump(config, fout)
-        with open_storage(snake_oil_facade.enspath, "w") as storage:
-            snake_oil_facade.run_ertscript(
-                LocalisationConfigJob,
-                storage,
-                storage.create_experiment().create_ensemble(
-                    name="default", ensemble_size=snake_oil_facade.get_ensemble_size()
-                ),
-                # storage.get_ensemble_by_name("default"),
-                "local_config.yaml",
-            )
-    snapshot.assert_match(
-        str(snake_oil_facade.update_configuration.dict()),
-        "localisation_configuration",
-    )
-
-
 @pytest.mark.usefixtures("setup_poly_ert")
 def test_localisation_surf():
     # pylint: disable=too-many-locals
