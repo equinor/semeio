@@ -29,7 +29,7 @@ classifiers=[
 dynamic = ["version"]
 dependencies=[
     "resdata",
-    "ert>=8.2.1",
+    "ert>=9.0.0-rc0",
     "importlib_metadata",
     "importlib_resources",
     "numpy",
