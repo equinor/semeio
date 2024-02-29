@@ -1,3 +1,4 @@
+from ert.config import ConfigValidationError
 from ert.shared.plugins.plugin_manager import hook_implementation
 
 import semeio.workflows.localisation.local_script_lib as local
@@ -38,6 +39,12 @@ class LocalisationConfigJob(SemeioScript):
             self.facade.grid,
         )
         ert.update_configuration = update_configuration
+
+    @staticmethod
+    def validate(*_):
+        raise ConfigValidationError(
+            "LOCALISATION_JOB is disabled, please remove from config file"
+        )
 
 
 DESCRIPTION = """

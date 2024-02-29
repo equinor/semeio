@@ -292,13 +292,9 @@ class AhmAnalysisJob(SemeioScript):
 
 def _run_ministep(facade, prior_storage, target_storage, obs_group, data_parameters):
     # pylint: disable=too-many-arguments
-    update_step = {
-        "name": "MINISTEP",
-        "observations": obs_group,
-        "parameters": data_parameters,
-    }
-    facade.update_configuration = [update_step]
-    return facade.smoother_update(prior_storage, target_storage, target_storage.name)
+    return facade.smoother_update(
+        prior_storage, target_storage, target_storage.name, obs_group, data_parameters
+    )
 
 
 def _get_field_params(facade, field_parameters, target_ensemble):
