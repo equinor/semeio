@@ -11,7 +11,7 @@ from typing import Dict, List
 import cwrap
 import numpy as np
 import yaml
-from ert.config import Field, GenDataConfig, GenKwConfig, SurfaceConfig
+from ert.config import FieldConfig, GenDataConfig, GenKwConfig, SurfaceConfig
 from numpy import ma
 from resdata.geometry import Surface
 from resdata.grid.rd_grid import Grid
@@ -769,7 +769,7 @@ def add_ministeps(
                     user_config.log_level,
                 )
                 update_step["parameters"].append([node_name, index_list])
-            elif isinstance(node, Field):
+            elif isinstance(node, FieldConfig):
                 assert grid_for_field is not None
                 _decay_methods_group1 = ["gaussian_decay", "exponential_decay"]
                 _decay_methods_group2 = [
