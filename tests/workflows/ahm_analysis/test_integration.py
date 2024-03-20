@@ -1,3 +1,4 @@
+import logging
 import os
 import shutil
 from pathlib import Path
@@ -59,6 +60,30 @@ def test_ahmanalysis_run(snake_oil_facade):
     for group in group_obs:
         filename = group + ".csv"
         assert (output_dir / filename).is_file()
+
+
+def test_ahmanalysis_run_deactivated_obs(snake_oil_facade, snapshot, caplog):
+    """
+    We simulate a case where some of the observation groups are completely
+    disabled by outlier detection
+    """
+
+    snake_oil_facade.config.analysis_config.observation_settings.alpha = 0.1
+    with open_storage(snake_oil_facade.enspath, "w") as storage, caplog.at_level(
+        logging.WARNING
+    ):
+        snake_oil_facade.run_ertscript(
+            ahmanalysis.AhmAnalysisJob,
+            storage,
+            storage.get_ensemble_by_name("default"),
+            prior_name="default",
+        )
+    assert "Analysis failed for" in caplog.text
+
+    # assert that this returns/generates a KS csv file
+    output_dir = Path("storage/snake_oil/reports/snake_oil/default/AhmAnalysisJob")
+    ks_df = pd.read_csv(output_dir / "ks.csv")
+    snapshot.assert_match(ks_df.iloc[:10].to_csv(), "ks_df")
 
 
 def test_ahmanalysis_run_field(snake_oil_facade):
