@@ -9,6 +9,7 @@ import pandas as pd
 import xtgeo
 from ert.analysis import ErtAnalysisError, SmootherSnapshot
 from ert.shared.plugins.plugin_manager import hook_implementation
+from ert.storage import open_storage
 from scipy.stats import ks_2samp
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
@@ -168,14 +169,23 @@ class AhmAnalysisJob(SemeioScript):
             print("Processing:", group_name)
 
             #  Use localization to evaluate change of parameters for each observation
-            with tempfile.TemporaryDirectory():
+            # The order of the context managers is important, as we want to create a new
+            # storage in a temporary directory.
+            with tempfile.TemporaryDirectory(), open_storage(
+                "tmp_storage", "w"
+            ) as storage:
                 try:
                     prior_ensemble = self.storage.get_ensemble_by_name(prior_name)
-                    target_ensemble = self.storage.create_ensemble(
-                        prior_ensemble.experiment_id,
+                    prev_experiment = prior_ensemble.experiment
+                    experiment = storage.create_experiment(
+                        parameters=prev_experiment.parameter_configuration.values(),
+                        observations=prev_experiment.observations,
+                        responses=prev_experiment.response_configuration.values(),
+                    )
+                    target_ensemble = storage.create_ensemble(
+                        experiment,
                         name=target_name,
                         ensemble_size=prior_ensemble.ensemble_size,
-                        prior_ensemble=prior_ensemble,
                     )
                     update_log = _run_ministep(
                         self.facade,
@@ -197,37 +207,37 @@ class AhmAnalysisJob(SemeioScript):
                             "sim_std",
                         ]
                     )
-            # Get the updated scalar parameter distributions
-            self.reporter.publish_csv(
-                group_name, target_ensemble.load_all_gen_kw_data()
-            )
+                # Get the updated scalar parameter distributions
+                self.reporter.publish_csv(
+                    group_name, target_ensemble.load_all_gen_kw_data()
+                )
 
-            active_obs.at["ratio", group_name] = (
-                str(count_active_observations(df_update_log))
-                + " active/"
-                + str(len(df_update_log.index))
-            )
-            # Get misfit values
-            misfitval[group_name] = [
-                calc_observationsgroup_misfit(
-                    group_name,
-                    df_update_log,
-                    self.facade.load_all_misfit_data(prior_ensemble),
+                active_obs.at["ratio", group_name] = (
+                    str(count_active_observations(df_update_log))
+                    + " active/"
+                    + str(len(df_update_log.index))
                 )
-            ]
-            # Calculate Ks matrix for scalar parameters
-            kolmogorov_smirnov_data[group_name] = kolmogorov_smirnov_data[
-                "Parameters"
-            ].map(
-                calc_kolmogorov_smirnov(
-                    dkeysf,
-                    prior_data,
-                    target_ensemble.load_all_gen_kw_data(),
+                # Get misfit values
+                misfitval[group_name] = [
+                    calc_observationsgroup_misfit(
+                        group_name,
+                        df_update_log,
+                        self.facade.load_all_misfit_data(prior_ensemble),
+                    )
+                ]
+                # Calculate Ks matrix for scalar parameters
+                kolmogorov_smirnov_data[group_name] = kolmogorov_smirnov_data[
+                    "Parameters"
+                ].map(
+                    calc_kolmogorov_smirnov(
+                        dkeysf,
+                        prior_data,
+                        target_ensemble.load_all_gen_kw_data(),
+                    )
                 )
-            )
-            field_output[group_name] = _get_field_params(
-                self.facade, field_parameters, target_ensemble
-            )
+                field_output[group_name] = _get_field_params(
+                    self.facade, field_parameters, target_ensemble
+                )
         kolmogorov_smirnov_data.set_index("Parameters", inplace=True)
 
         # Calculate Ks matrix for Fields parameters
