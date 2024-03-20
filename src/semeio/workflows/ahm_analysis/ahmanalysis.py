@@ -1,7 +1,9 @@
 import collections
 import itertools
+import logging
 import tempfile
 import warnings
+from copy import deepcopy
 from pathlib import Path
 
 import numpy as np
@@ -16,6 +18,10 @@ from sklearn.preprocessing import StandardScaler
 
 from semeio._exceptions.exceptions import ValidationError
 from semeio.communication import SemeioScript
+
+# pylint: disable=logging-fstring-interpolation
+
+logger = logging.getLogger(__name__)
 
 DESCRIPTION = """
 AHM_ANALYSIS will calculate the degree of update (using Kolmogorov Smirnov test)
@@ -165,6 +171,7 @@ class AhmAnalysisJob(SemeioScript):
         # loop over keys and calculate the KS matrix,
         # conditioning one parameter at the time.
         field_output = {}
+        updated_combinations = deepcopy(combinations)
         for group_name, obs_group in combinations.items():
             print("Processing:", group_name)
 
@@ -197,16 +204,9 @@ class AhmAnalysisJob(SemeioScript):
                     # Get the active vs total observation info
                     df_update_log = make_update_log_df(update_log)
                 except ErtAnalysisError:
-                    df_update_log = pd.DataFrame(
-                        columns=[
-                            "obs_key",
-                            "obs_mean",
-                            "obs_std",
-                            "status",
-                            "sim_mean",
-                            "sim_std",
-                        ]
-                    )
+                    logger.error(f"Analysis failed for: {obs_group}")
+                    del updated_combinations[group_name]
+                    continue
                 # Get the updated scalar parameter distributions
                 self.reporter.publish_csv(
                     group_name, target_ensemble.load_all_gen_kw_data()
@@ -264,7 +264,7 @@ class AhmAnalysisJob(SemeioScript):
                 map_calc_properties = (
                     grid_xyzcenter[grid_xyzcenter["KZ"] == 1].copy().reset_index()
                 )
-                for group_name in combinations.keys():
+                for group_name in updated_combinations.keys():
                     map_calc_properties["Mean_D_" + group_name] = calc_mean_delta_grid(
                         field_output[group_name][fieldparam],
                         all_input_prior[fieldparam],
