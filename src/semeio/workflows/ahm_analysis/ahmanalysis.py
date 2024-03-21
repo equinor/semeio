@@ -292,8 +292,14 @@ class AhmAnalysisJob(SemeioScript):
 
 def _run_ministep(facade, prior_storage, target_storage, obs_group, data_parameters):
     # pylint: disable=too-many-arguments
+    rng = np.random.default_rng(seed=facade.config.random_seed)
     return facade.smoother_update(
-        prior_storage, target_storage, target_storage.name, obs_group, data_parameters
+        prior_storage,
+        target_storage,
+        target_storage.name,
+        obs_group,
+        data_parameters,
+        rng=rng,
     )
 
 
