@@ -1,4 +1,7 @@
+# pylint: disable=missing-module-docstring
 import itertools
+import shutil
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -7,10 +10,10 @@ import yaml
 from ert.libres_facade import LibresFacade
 from ert.storage import open_storage
 from xtgeo.surface.regular_surface import RegularSurface
-
+from resdata.geometry import Surface
 from semeio.workflows.localisation.local_config_script import LocalisationConfigJob
 
-# pylint: disable=invalid-name
+# pylint: disable=invalid-name, missing-function-docstring
 
 
 @pytest.mark.usefixtures("setup_poly_ert")
@@ -30,6 +33,7 @@ def test_localisation_surf():
     xori = 0.0
     yori = 0.0
     values = np.zeros(nrow * ncol)
+    print("Write files:")
     for n in range(nreal):
         filename = "surf" + str(n) + ".txt"
         delta = 0.1
@@ -47,10 +51,12 @@ def test_localisation_surf():
             rotation=rotation,
             values=values,
         )
+        print(f" {filename} ")
         surface.to_file(filename, fformat="irap_ascii")
 
     ert = LibresFacade.from_config_file("poly.ert")
     config = {
+        "write_scaling_factors": True,
         "log_level": 3,
         "correlations": [
             {
@@ -63,10 +69,10 @@ def test_localisation_surf():
                 },
                 "surface_scale": {
                     "method": "gaussian_decay",
-                    "main_range": 1700,
-                    "perp_range": 850,
-                    "azimuth": 200,
-                    "ref_point": [250, 250],
+                    "main_range": 500,
+                    "perp_range": 250,
+                    "azimuth": 45,
+                    "ref_point": [225, 225],
                     "surface_file": "surf0.txt",
                 },
             },
@@ -84,6 +90,13 @@ def test_localisation_surf():
             ),
             "local_config.yaml",
         )
+    # Check that QC output for scaling factor is equal to the reference case
+    filename = "CORR1_PARAM_SURF_A_map.irap"
+    reference_filename = "reference_scaling_for_surface.irap"
+    shutil.copy(Path(__file__).parent / reference_filename, reference_filename)
+    qc_object = Surface(filename)
+    qc_reference_object = Surface(reference_filename)
+    assert qc_object == qc_reference_object
 
 
 @pytest.mark.usefixtures("setup_poly_ert")
@@ -124,6 +137,7 @@ def test_localisation_surf_const():
 
     ert = LibresFacade.from_config_file("poly.ert")
     config = {
+        "write_scaling_factors": False,
         "log_level": 3,
         "correlations": [
             {
