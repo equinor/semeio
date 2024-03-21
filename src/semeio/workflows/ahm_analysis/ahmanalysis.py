@@ -4,17 +4,13 @@ import logging
 import tempfile
 import warnings
 from copy import deepcopy
-from pathlib import Path
 
 import numpy as np
 import pandas as pd
-import xtgeo
 from ert.analysis import ErtAnalysisError, SmootherSnapshot
 from ert.shared.plugins.plugin_manager import hook_implementation
 from ert.storage import open_storage
 from scipy.stats import ks_2samp
-from sklearn.decomposition import PCA
-from sklearn.preprocessing import StandardScaler
 
 from semeio._exceptions.exceptions import ValidationError
 from semeio.communication import SemeioScript
@@ -157,6 +153,11 @@ class AhmAnalysisJob(SemeioScript):
         combinations = make_obs_groups(key_map)
 
         field_parameters = sorted(self.facade.get_field_parameters())
+        if field_parameters:
+            logger.warning(
+                f"AHM_ANALYSIS will only evaluate scalar parameters, skipping: {field_parameters}"
+            )
+
         scalar_parameters = sorted(self.facade.get_gen_kw())
         # identify the set of actual parameters that was updated for now just go
         # through scalar parameters but in future if easier access to field parameter
@@ -170,7 +171,6 @@ class AhmAnalysisJob(SemeioScript):
         )
         # loop over keys and calculate the KS matrix,
         # conditioning one parameter at the time.
-        field_output = {}
         updated_combinations = deepcopy(combinations)
         for group_name, obs_group in combinations.items():
             print("Processing:", group_name)
@@ -235,64 +235,8 @@ class AhmAnalysisJob(SemeioScript):
                         target_ensemble.load_all_gen_kw_data(),
                     )
                 )
-                field_output[group_name] = _get_field_params(
-                    self.facade, field_parameters, target_ensemble
-                )
         kolmogorov_smirnov_data.set_index("Parameters", inplace=True)
 
-        # Calculate Ks matrix for Fields parameters
-        if field_parameters:
-            # Get grid characteristics to be able to plot field avg maps
-            grid_xyzcenter = load_grid_to_dataframe(self.facade.grid_file)
-            all_input_prior = _get_field_params(
-                self.facade, field_parameters, prior_ensemble
-            )
-
-            for fieldparam in field_parameters:
-                scaler = StandardScaler()
-                scaler.fit(all_input_prior[fieldparam])
-                pca = PCA(0.98).fit(
-                    pd.DataFrame(scaler.transform(all_input_prior[fieldparam]))
-                )
-                pc_fieldprior_df = pd.DataFrame(
-                    data=pca.transform(scaler.transform(all_input_prior[fieldparam]))
-                )
-                all_kolmogorov_smirnov = pd.DataFrame(
-                    pc_fieldprior_df.columns.tolist(), columns=["PCFieldParameters"]
-                )
-                # Get the posterior Field parameters
-                map_calc_properties = (
-                    grid_xyzcenter[grid_xyzcenter["KZ"] == 1].copy().reset_index()
-                )
-                for group_name in updated_combinations.keys():
-                    map_calc_properties["Mean_D_" + group_name] = calc_mean_delta_grid(
-                        field_output[group_name][fieldparam],
-                        all_input_prior[fieldparam],
-                        grid_xyzcenter,
-                    )
-
-                    pc_fieldpost_df = pd.DataFrame(
-                        data=pca.transform(
-                            scaler.transform(field_output[group_name][fieldparam])
-                        )
-                    )
-                    all_kolmogorov_smirnov[group_name] = all_kolmogorov_smirnov[
-                        "PCFieldParameters"
-                    ].map(
-                        calc_kolmogorov_smirnov(
-                            pc_fieldpost_df,
-                            pc_fieldprior_df,
-                            pc_fieldpost_df,
-                        )
-                    )
-                all_kolmogorov_smirnov.set_index("PCFieldParameters", inplace=True)
-                # add the field max Ks to the scalar Ks matrix
-                kolmogorov_smirnov_data.loc["FIELD_" + fieldparam] = (
-                    all_kolmogorov_smirnov.max()
-                )
-                self.reporter.publish_csv(
-                    "delta_field" + fieldparam, map_calc_properties
-                )
         # save/export the Ks matrix, active_obs, misfitval and prior data
         self.reporter.publish_csv("ks", kolmogorov_smirnov_data)
         self.reporter.publish_csv("active_obs_info", active_obs)
@@ -311,23 +255,6 @@ def _run_ministep(facade, prior_storage, target_storage, obs_group, data_paramet
         data_parameters,
         rng=rng,
     )
-
-
-def _get_field_params(facade, field_parameters, target_ensemble):
-    """
-    Because the FIELD parameters are not exposed in the Python API we have to
-    export them to file and read them back again. When they are exposed in the API
-    this function should be updated.
-    """
-    field_data = {}
-    for field_param in field_parameters:
-        dataset = target_ensemble.load_parameters(
-            field_param, list(range(facade.get_ensemble_size()))
-        )
-        field_data[field_param] = dataset["values"].values.reshape(
-            facade.get_ensemble_size(), len(dataset.x) * len(dataset.y) * len(dataset.z)
-        )
-    return field_data
 
 
 def make_update_log_df(update_log: SmootherSnapshot) -> pd.DataFrame:
@@ -416,27 +343,6 @@ def calc_observationsgroup_misfit(obs_keys, df_update_log, misfit_df):
             / total_obs_nr
         )
     return mean.mean()
-
-
-def load_grid_to_dataframe(grid_path):
-    """Get field grid characteristics/coordinates"""
-    grid_path = Path(grid_path).with_suffix("")
-    try:
-        grid = xtgeo.grid_from_file(grid_path, fformat="eclipserun")
-        return grid.get_dataframe(activeonly=False)
-    except OSError as err:
-        raise OSError("A grid with .EGRID format is expected.") from err
-
-
-def calc_mean_delta_grid(all_input_post, all_input_prior, grid):
-    """calculate mean delta of field grid data"""
-    delta_post_prior = np.subtract(all_input_prior, all_input_post)
-    delta_post_prior = np.absolute(delta_post_prior)
-    # Can we avoid changing in place here?
-    grid["Mean_delta"] = np.mean(delta_post_prior, axis=0)
-    df_mean_delta = grid.groupby(["IX", "JY"])[["Mean_delta"]].mean().reset_index()
-
-    return df_mean_delta["Mean_delta"]
 
 
 def _filter_on_prefix(list_of_strings, prefixes):
