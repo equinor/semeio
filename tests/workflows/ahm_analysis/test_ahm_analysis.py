@@ -1,5 +1,3 @@
-from itertools import product
-from pathlib import Path
 from unittest.mock import MagicMock
 
 import numpy as np
@@ -140,43 +138,6 @@ def test_warning_calc_observationsgroup_misfit(input_obs, expected_msg, update_l
         ahmanalysis.calc_observationsgroup_misfit(input_obs, update_log_df, misfit_df)
 
 
-def test_calc_mean_delta_grid():
-    # pylint: disable=invalid-name
-    """test function creates a dataframe reporting mean
-    delta grids for field parameters"""
-    all_input_post = [
-        [3 + i for i in range(8)]
-        + [10 + i for i in range(8)]
-        + [20 + i for i in range(8)],
-        [5 + i for i in range(8)]
-        + [30 + i for i in range(8)]
-        + [2 + i for i in range(8)],
-    ]
-    all_input_prior = [
-        [(2 + i) * 2 for i in range(8)]
-        + [(3 + i) * 2 for i in range(8)]
-        + [(5 + i) * 2 for i in range(8)],
-        [(6 + i) * 2 for i in range(8)]
-        + [(7 + i) * 2 for i in range(8)]
-        + [(8 + i) * 2 for i in range(8)],
-    ]
-    ix, jy, kz = [], [], []
-    for x, y, z in product(range(3), range(4), range(2)):
-        ix.append(x)
-        jy.append(y)
-        kz.append(z)
-    mygrid_ok = pd.DataFrame({"IX": ix, "JY": jy, "KZ": kz})
-    caseobs = "PORO"
-    mygrid_ok_short = pd.DataFrame({"IX": ix[::2], "JY": jy[::2], "KZ": kz[::2]})
-    mygrid_ok_short["Mean_D_" + caseobs] = ahmanalysis.calc_mean_delta_grid(
-        all_input_post, all_input_prior, mygrid_ok
-    )
-    assert mygrid_ok_short["Mean_D_PORO"].max() == 12
-    assert mygrid_ok_short["Mean_D_PORO"].min() == 4.5
-    assert mygrid_ok_short[mygrid_ok_short["IX"] == 1]["Mean_D_PORO"].mean() == 7.25
-    assert mygrid_ok_short[mygrid_ok_short["JY"] == 1]["Mean_D_PORO"].mean() == 26 / 3
-
-
 def test_calc_kolmogorov_smirnov():
     """test function creates a dataframe reporting
     ks value between 0 and 1 for a prior and posterior distribution"""
@@ -283,22 +244,6 @@ def test_raise_if_empty(misfit_data, prior_data, expected_msg):
 def test_make_obs_groups(input_map, expected_keys):
     result = ahmanalysis.make_obs_groups(input_map)
     assert result == expected_keys
-
-
-@pytest.mark.usefixtures("setup_tmpdir")
-@pytest.mark.parametrize(
-    "file_name",
-    ["SNAKE_OIL_FIELD.EGRID", "SNAKE_OIL_FIELD", "SNAKE_OIL_FIELD.EXT_NOT_IMPORTANT"],
-)
-def test_load_grid_to_dataframe(test_data_root, file_name):
-    """test function creates a dataframe
-    with the grid characteristics and check if fails if wrong format"""
-    grid_path = Path(test_data_root) / "snake_oil" / "grid" / file_name
-    grid = ahmanalysis.load_grid_to_dataframe(grid_path)
-
-    assert grid["IX"].nunique() == 10
-    assert grid["JY"].nunique() == 12
-    assert grid["KZ"].nunique() == 5
 
 
 @pytest.mark.parametrize(

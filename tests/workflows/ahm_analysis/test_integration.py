@@ -86,38 +86,6 @@ def test_ahmanalysis_run_deactivated_obs(snake_oil_facade, snapshot, caplog):
     snapshot.assert_match(ks_df.iloc[:10].to_csv(), "ks_df")
 
 
-def test_ahmanalysis_run_field(snake_oil_facade):
-    """test data_set with scalar and Field parameters"""
-    with open_storage(snake_oil_facade.enspath, "w") as storage:
-        snake_oil_facade.run_ertscript(
-            ahmanalysis.AhmAnalysisJob,
-            storage,
-            storage.get_ensemble_by_name("default"),
-            prior_name="default",
-        )
-    # assert that this returns/generates the delta field parameter
-    obs_keys = ["WPR_DIFF_1", "FOPR", "WOPR:OP1"]
-    output_deltafield = os.path.join(
-        "storage",
-        "snake_oil",
-        "reports",
-        "snake_oil",
-        "default",
-        "AhmAnalysisJob",
-        "delta_fieldPERMX.csv",
-    )
-    assert os.path.isfile(output_deltafield)
-    delta_df = pd.read_csv(output_deltafield, index_col=0)
-    assert len(delta_df.columns) == 8 + (len(obs_keys) * 2) + 1
-    # check field parameter is present and not empty in the final KS matrix
-    output_ks = output_deltafield.replace("delta_fieldPERMX.csv", "ks.csv")
-    ks_df = pd.read_csv(output_ks, index_col=0)
-    assert not ks_df.empty
-    assert "FIELD_PERMX" in ks_df.index.tolist()
-    check_empty = ks_df.loc[["FIELD_PERMX"], :].isnull().all(axis=1)
-    assert not check_empty["FIELD_PERMX"]
-
-
 @pytest.mark.usefixtures("setup_tmpdir")
 def test_that_dataset_with_no_prior_will_fail(test_data_root):
     test_data_dir = os.path.join(test_data_root, "snake_oil")
