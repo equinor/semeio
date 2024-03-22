@@ -294,6 +294,44 @@ def test_existing_parameterstxt(
 
 
 @pytest.mark.usefixtures("input_data")
+def test_logging_order(tmpdir, caplog):
+    """Test that the warnings emitted when parameters.txt is prefilled
+    respects the order from parameters.txt. Pandas 2.2 changed the default
+    sorting behaviour of merge, and this checks that the sorting works as we expect."""
+    tmpdir.chdir()
+
+    params_file = "parameters.txt"
+    data_dict = {}
+    expected_warning = []
+    with open(params_file, "r", encoding="utf-8") as file_h:
+        for line in file_h:
+            key, value = line.strip().split()
+            data_dict[key] = 0
+            expected_warning.append(
+                f"Parameter {key} already exists in parameters.txt "
+                f"with value {float(value)}, design matrix value 0 ignored"
+            )
+    # We reverse the order of the keys to detect if the logging still happens
+    # in the order set by parameters.txt
+    designsheet_df = pd.DataFrame.from_records([data_dict]).iloc[:, ::-1]
+    designsheet_df.insert(0, "REAL", [0])
+
+    write_design_xlsx("design_matrix.xlsx", designdf=designsheet_df)
+
+    design2params.run(
+        0,
+        "design_matrix.xlsx",
+        parametersfilename=params_file,
+        log_level=logging.DEBUG,
+    )
+    actual_warnings = [
+        record.message for record in caplog.records if record.levelname == "WARNING"
+    ]
+
+    assert actual_warnings == expected_warning
+
+
+@pytest.mark.usefixtures("input_data")
 def test_open_excel_file_wrong_defaults():
     with pytest.raises(SystemExit):
         design2params.run(

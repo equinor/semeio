@@ -87,24 +87,35 @@ def _complete_parameters_file(
     """
     # get header / vals for chosen realization
     try:
-        realization_values = pd.DataFrame(design_matrix_sheet.iloc[realization, 1:])
+        realization_values = pd.DataFrame(
+            design_matrix_sheet.iloc[realization, 1:]
+        ).reset_index()
     except IndexError as err:
         raise SystemExit(
             f"Provided realization arg {realization} does not exist in design matrix"
         ) from err
-    realization_values.reset_index(inplace=True)
     realization_values.rename(
         columns={"index": "keys", realization: "realization"}, inplace=True
     )
 
     # merge realization from design-matrix with parameters and defaults to one dataframe
+    # For pandas>=2.2 we need to make sure that merge preserve the original order
+    parameters.reset_index(names="order_param", inplace=True)
+    realization_values.reset_index(names="order_real", inplace=True)
+    default_sheet.reset_index(names="order_default", inplace=True)
     merged = pd.merge(
         parameters,
-        pd.merge(realization_values, default_sheet, on="keys", how="outer"),
+        pd.merge(
+            realization_values,
+            default_sheet,
+            on="keys",
+            how="outer",
+        ),
         on="keys",
         how="outer",
     )
-
+    merged.sort_values(["order_param", "order_real", "order_default"], inplace=True)
+    merged.drop(columns=["order_param", "order_real", "order_default"], inplace=True)
     # add new column with a combined parameters / data
     # from the realization in design matrix
     merged["parameters_realization"] = merged["parameters"].combine_first(
@@ -128,7 +139,7 @@ def _complete_parameters_file(
     defaults = merged[merged["parameters_realization"].isnull()]
     logger.info("\ndefaults used: \n%s", defaults[["keys", "combined"]])
 
-    # warn if keys with different values in parameters.tst and design matrix
+    # warn if keys with different values in parameters.txt and design matrix
     conflicts = merged[
         ~(merged["combined"].astype(str) == merged["realization"].astype(str))
         & (~merged["realization"].isnull())
