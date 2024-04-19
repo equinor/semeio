@@ -79,11 +79,11 @@ def csv_exporter(runpathfile, time_index, outputfile, column_keys=None):
     ensemble_set = ensemble.EnsembleSet(
         name="ERT EnsembleSet for CSV_EXPORT2", runpathfile=runpathfile
     )
-    summary = ensemble_set.load_smry(time_index=time_index, column_keys=column_keys)
-    try:  # try/except is needed for fmu-ensemble<=1.3.0
+    try:
+        summary = ensemble_set.load_smry(time_index=time_index, column_keys=column_keys)
         parameters = ensemble_set.parameters
-    except KeyError:
-        parameters = pd.DataFrame()
+    except KeyError as exc:
+        raise UserWarning("No data found") from exc
 
     if not parameters.empty:
         pd.merge(summary, parameters).to_csv(outputfile, index=False)
