@@ -49,7 +49,6 @@ repository = "https://github.com/equinor/semeio"
 
 [project.entry-points."ert"]
 semeio_forward_models = "semeio.hook_implementations.forward_models"
-MisfitPreprocessor = "semeio.workflows.misfit_preprocessor.misfit_preprocessor"
 CsvExport2Job = "semeio.workflows.csv_export2.csv_export2"
 AhmAnalysisJob = "semeio.workflows.ahm_analysis.ahmanalysis"
 LocalisationConfigJob = "semeio.workflows.localisation.local_config_script"
