@@ -84,13 +84,24 @@ def test_that_iterations_in_runpathfile_cannot_be_defaulted():
         "000 real0 NORNE_0\n001 real1 NORNE_1\n", encoding="utf-8"
     )
 
-    with pytest.raises(KeyError):
+    with pytest.raises(UserWarning):
         csv_export2.csv_exporter(
             runpathfile="runpathfile",
             time_index="yearly",
             outputfile="unsmry--yearly.csv",
             column_keys=["F?PT"],
         )
+
+
+def test_empty_file_yields_user_warning():
+    with open("empty_file", "a", encoding="utf-8") as empty_file:
+        with pytest.raises(UserWarning, match="No data found"):
+            csv_export2.csv_exporter(
+                runpathfile=empty_file.name,
+                time_index="raw",
+                outputfile="unsmry--yearly.csv",
+                column_keys=["*"],
+            )
 
 
 @pytest.mark.parametrize("input_rst", [csv_export2.DESCRIPTION, csv_export2.EXAMPLES])
