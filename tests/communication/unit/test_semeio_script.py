@@ -23,7 +23,7 @@ def _ert_mock(monkeypatch, ensemble_path="storage", user_case_name="case_name"):
 
 def test_semeio_script_publish(monkeypatch, tmpdir):
     tmpdir.chdir()
-    ensemble_path, user_case_name = "storage", "case_name"
+    ensemble_path, user_case_name = "storage", "default"
     _ert_mock(monkeypatch, ensemble_path, user_case_name)
 
     namespace = "arbitrary_data"
@@ -36,7 +36,7 @@ def test_semeio_script_publish(monkeypatch, tmpdir):
 
     ensemble_mock = Mock()
     ensemble_mock.name = user_case_name
-    my_super_script = MySuperScript(None, None, ensemble_mock)
+    my_super_script = MySuperScript()
     my_super_script.run()  # pylint: disable=not-callable
 
     expected_outputfile = os.path.join(
@@ -55,7 +55,7 @@ def test_semeio_script_publish(monkeypatch, tmpdir):
 
 def test_semeio_script_logging(monkeypatch, tmpdir):
     tmpdir.chdir()
-    ensemble_path, user_case_name = "storage", "config_file"
+    ensemble_path, user_case_name = "storage", "default"
     _ert_mock(monkeypatch, ensemble_path, user_case_name)
 
     msg = "My logging msg"
@@ -67,7 +67,7 @@ def test_semeio_script_logging(monkeypatch, tmpdir):
 
     ensemble_mock = Mock()
     ensemble_mock.name = user_case_name
-    my_super_script = MySuperScript(None, None, ensemble_mock)
+    my_super_script = MySuperScript()
     my_super_script.run()  # pylint: disable=not-callable
 
     expected_logfile = os.path.join(
@@ -104,7 +104,7 @@ def assert_log(messages, log_file):
 )
 def test_semeio_script_multiple_logging(monkeypatch, messages, tmpdir):
     tmpdir.chdir()
-    ensemble_path, user_case_name = "storage", "config_file"
+    ensemble_path, user_case_name = "storage", "default"
     _ert_mock(monkeypatch, ensemble_path, user_case_name)
 
     class MySuperScript(SemeioScript):
@@ -127,7 +127,7 @@ def test_semeio_script_multiple_logging(monkeypatch, messages, tmpdir):
 
     ensemble_mock = Mock()
     ensemble_mock.name = user_case_name
-    my_super_script = MySuperScript(None, None, ensemble_mock)
+    my_super_script = MySuperScript()
     my_super_script.run()  # pylint: disable=not-callable
 
     assert_log(messages, expected_logfile)
@@ -135,7 +135,7 @@ def test_semeio_script_multiple_logging(monkeypatch, messages, tmpdir):
 
 def test_semeio_script_post_logging(monkeypatch, tmpdir):
     tmpdir.chdir()
-    ensemble_path, user_case_name = "storage", "config_file"
+    ensemble_path, user_case_name = "storage", "default"
     _ert_mock(monkeypatch, ensemble_path, user_case_name)
 
     class MySuperScript(SemeioScript):
@@ -145,7 +145,7 @@ def test_semeio_script_post_logging(monkeypatch, tmpdir):
 
     ensemble_mock = Mock()
     ensemble_mock.name = user_case_name
-    my_super_script = MySuperScript(None, None, ensemble_mock)
+    my_super_script = MySuperScript()
     my_super_script.run()  # pylint: disable=not-callable
 
     logging.error("A second message - not from MySuperScript")
@@ -166,7 +166,7 @@ def test_semeio_script_post_logging(monkeypatch, tmpdir):
 
 def test_semeio_script_pre_logging(monkeypatch, tmpdir):
     tmpdir.chdir()
-    ensemble_path, user_case_name = "storage", "config_file"
+    ensemble_path, user_case_name = "storage", "default"
     _ert_mock(monkeypatch, ensemble_path, user_case_name)
 
     class MySuperScript(SemeioScript):
@@ -176,7 +176,7 @@ def test_semeio_script_pre_logging(monkeypatch, tmpdir):
 
     ensemble_mock = Mock()
     ensemble_mock.name = user_case_name
-    my_super_script = MySuperScript(None, None, ensemble_mock)
+    my_super_script = MySuperScript()
 
     logging.error("A message - not from MySuperScript")
 
@@ -198,7 +198,7 @@ def test_semeio_script_pre_logging(monkeypatch, tmpdir):
 
 def test_semeio_script_concurrent_logging(monkeypatch, tmpdir):
     tmpdir.chdir()
-    ensemble_path, user_case_name = "storage", "config_file"
+    ensemble_path, user_case_name = "storage", "default"
     _ert_mock(monkeypatch, ensemble_path, user_case_name)
 
     class MySuperScript(SemeioScript):
@@ -211,7 +211,7 @@ def test_semeio_script_concurrent_logging(monkeypatch, tmpdir):
 
     ensemble_mock = Mock()
     ensemble_mock.name = user_case_name
-    MySuperScript(None, None, ensemble_mock).run()  # pylint: disable=not-callable
+    MySuperScript().run()  # pylint: disable=not-callable
 
     expected_logfile = os.path.join(
         "reports",
@@ -229,7 +229,7 @@ def test_semeio_script_concurrent_logging(monkeypatch, tmpdir):
 
 def test_semeio_script_post_logging_exception(monkeypatch, tmpdir):
     tmpdir.chdir()
-    ensemble_path, user_case_name = "storage", "config_file"
+    ensemble_path, user_case_name = "storage", "default"
     _ert_mock(monkeypatch, ensemble_path, user_case_name)
 
     class MySuperScript(SemeioScript):
@@ -240,7 +240,7 @@ def test_semeio_script_post_logging_exception(monkeypatch, tmpdir):
 
     ensemble_mock = Mock()
     ensemble_mock.name = user_case_name
-    my_super_script = MySuperScript(None, None, ensemble_mock)
+    my_super_script = MySuperScript()
     try:  # noqa SIM105
         my_super_script.run()  # pylint: disable=not-callable
     except AssertionError:
@@ -265,7 +265,7 @@ def test_semeio_script_post_logging_exception(monkeypatch, tmpdir):
 def test_semeio_script_keyword_args(monkeypatch, tmpdir):
     # pylint: disable=not-callable
     tmpdir.chdir()
-    ensemble_path, user_case_name = "storage", "config_file"
+    ensemble_path, user_case_name = "storage", "default"
     _ert_mock(monkeypatch, ensemble_path, user_case_name)
 
     class MySuperScript(SemeioScript):
@@ -275,7 +275,7 @@ def test_semeio_script_keyword_args(monkeypatch, tmpdir):
 
     ensemble_mock = Mock()
     ensemble_mock.name = user_case_name
-    my_super_script = MySuperScript(None, None, ensemble_mock)
+    my_super_script = MySuperScript()
     my_super_script.run(param_b="param_b", param_a="param_a")
 
     expected_outputfile = os.path.join(
@@ -294,7 +294,7 @@ def test_semeio_script_keyword_args(monkeypatch, tmpdir):
 
 def test_semeio_script_relative_report_dir(monkeypatch, tmpdir):
     tmpdir.chdir()
-    ensemble_path, user_case_name = "storage", "config_file"
+    ensemble_path, user_case_name = "storage", "default"
     _ert_mock(monkeypatch, ensemble_path, user_case_name)
 
     class MySuperScript(SemeioScript):
@@ -304,7 +304,7 @@ def test_semeio_script_relative_report_dir(monkeypatch, tmpdir):
 
     ensemble_mock = Mock()
     ensemble_mock.name = user_case_name
-    my_super_script = MySuperScript(None, None, ensemble_mock)
+    my_super_script = MySuperScript()
     my_super_script.run(param_a="param_a")  # pylint: disable=not-callable
 
     expected_outputfile = os.path.join(
@@ -317,7 +317,7 @@ def test_semeio_script_relative_report_dir(monkeypatch, tmpdir):
 
 
 def test_semeio_script_absolute_report_dir(monkeypatch, tmpdir):
-    ensemble_path, user_case_name = "storage", "config_file"
+    ensemble_path, user_case_name = "storage", "default"
     _ert_mock(monkeypatch, ensemble_path, user_case_name)
 
     class MySuperScript(SemeioScript):
@@ -327,7 +327,7 @@ def test_semeio_script_absolute_report_dir(monkeypatch, tmpdir):
 
     ensemble_mock = Mock()
     ensemble_mock.name = user_case_name
-    my_super_script = MySuperScript(None, None, ensemble_mock)
+    my_super_script = MySuperScript()
     my_super_script.run(param_a="param_a")  # pylint: disable=not-callable
 
     expected_outputfile = os.path.join(
@@ -340,7 +340,7 @@ def test_semeio_script_absolute_report_dir(monkeypatch, tmpdir):
 
 
 def test_semeio_script_subdirs(monkeypatch, tmpdir):
-    ensemble_path, user_case_name = "storage", "config_file"
+    ensemble_path, user_case_name = "storage", "default"
     _ert_mock(monkeypatch, ensemble_path, user_case_name)
 
     class MySuperScript(SemeioScript):
@@ -350,7 +350,7 @@ def test_semeio_script_subdirs(monkeypatch, tmpdir):
 
     ensemble_mock = Mock()
     ensemble_mock.name = user_case_name
-    my_super_script = MySuperScript(None, None, ensemble_mock)
+    my_super_script = MySuperScript()
     my_super_script.run(param_a="param_a")  # pylint: disable=not-callable
 
     expected_outputfile = os.path.join(
