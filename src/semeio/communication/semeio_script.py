@@ -56,11 +56,11 @@ class SemeioScript(ErtScript):
     it forwards log statements to the reporter as well.
     """
 
-    def __init__(self, ert, storage, ensemble=None):
-        super().__init__(ert, storage, ensemble=ensemble)
-        self.facade = LibresFacade(ert)
-        self._output_dir = self._get_output_dir()
-        self._reporter = FileReporter(self._output_dir)
+    def __init__(self):
+        super().__init__()
+        self.facade = None
+        self._output_dir = None
+        self._reporter = None
         self._wrap_run()
 
     def _wrap_run(self):
@@ -69,8 +69,11 @@ class SemeioScript(ErtScript):
         def run_with_handler(self, *args, **kwargs):
             log = logging.getLogger("")
             thread_id = threading.get_ident()
+            self.facade = LibresFacade(self.ert())
+            self._output_dir = self._get_output_dir()
             report_handler = _ReportHandler(self._output_dir, thread_id)
             with _LogHandlerContext(log, report_handler):
+                self._reporter = FileReporter(self._output_dir)
                 return self._real_run(*args, **kwargs)
 
         self.run = MethodType(run_with_handler, self)
