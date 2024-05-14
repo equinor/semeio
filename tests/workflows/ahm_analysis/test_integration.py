@@ -8,7 +8,6 @@ import pytest
 from ert.libres_facade import LibresFacade
 from ert.storage import open_storage
 
-from semeio._exceptions.exceptions import ValidationError
 from semeio.workflows.ahm_analysis import ahmanalysis
 
 
@@ -19,7 +18,6 @@ def test_ahmanalysis_run(snake_oil_facade):
             ahmanalysis.AhmAnalysisJob,
             storage,
             storage.get_ensemble_by_name("default"),
-            prior_name="default",
         )
 
     # assert that this returns/generates a KS csv file
@@ -76,7 +74,6 @@ def test_ahmanalysis_run_deactivated_obs(snake_oil_facade, snapshot, caplog):
             ahmanalysis.AhmAnalysisJob,
             storage,
             storage.get_ensemble_by_name("default"),
-            prior_name="default",
         )
     assert "Analysis failed for" in caplog.text
 
@@ -87,20 +84,18 @@ def test_ahmanalysis_run_deactivated_obs(snake_oil_facade, snapshot, caplog):
 
 
 @pytest.mark.usefixtures("setup_tmpdir")
-def test_that_dataset_with_no_prior_will_fail(test_data_root):
+def test_that_dataset_with_no_prior_will_fail(test_data_root, capsys):
     test_data_dir = os.path.join(test_data_root, "snake_oil")
     shutil.copytree(test_data_dir, "test_data")
     os.chdir(os.path.join("test_data"))
     ert = LibresFacade.from_config_file("snake_oil.ert")
     expected_msg = "Empty prior ensemble"
-    with pytest.raises(ValidationError, match=expected_msg), open_storage(
-        ert.enspath, "w"
-    ) as storage:
+    with open_storage(ert.enspath, "w") as storage:
         ert.run_ertscript(
             ahmanalysis.AhmAnalysisJob,
             storage,
             storage.create_experiment().create_ensemble(
                 name="default", ensemble_size=ert.get_ensemble_size()
             ),
-            prior_name="default",
         )
+        assert expected_msg in capsys.readouterr().err
