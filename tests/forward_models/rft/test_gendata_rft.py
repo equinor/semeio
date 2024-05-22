@@ -9,8 +9,7 @@ import numpy
 import pandas as pd
 import pytest
 
-import semeio.forward_models
-from semeio.forward_models.scripts.gendata_rft import _build_parser, main_entry_point
+from semeio.forward_models.scripts.gendata_rft import main_entry_point
 from tests.forward_models.rft import conftest
 
 ECL_BASE_NORNE = conftest.get_ecl_base_norne()
@@ -453,39 +452,6 @@ def test_empty_well_and_time(tmpdir, monkeypatch, caplog):
     assert not os.path.exists("notwritten.csv")
     assert not os.path.exists("GENDATA_RFT.OK")
     assert file_count_cwd() == pre_file_count
-
-
-def test_defaults():
-    """Default filename for CSV export and outputdir is/can be handled at multiple
-    layers.  ERT users infer the default from the DESCRIPTION file, while command
-    line users (or Everest/ERT3?) might get the default from the argparse setup.
-
-    To avoid confusion, these should be in sync, enforced by this test"""
-
-    # Navigate to the DESCRIPTION in the source code tree:
-
-    fm_description_file = os.path.join(
-        os.path.dirname(semeio.forward_models.__file__),
-        "config",
-        "GENDATA_RFT_CONFIG",
-    )
-
-    csv_forward_model_default: str = ""
-    directory_forward_model_default: str = ""
-
-    # Crude parsing of the file
-    for line in Path(fm_description_file).read_text(encoding="utf-8").split("\n"):
-        if line.startswith("DEFAULT"):
-            if line.split()[0:2] == ["DEFAULT", "<CSVFILE>"]:
-                csv_forward_model_default = line.split()[2]
-            if line.split()[0:2] == ["DEFAULT", "<OUTPUTDIRECTORY>"]:
-                directory_forward_model_default = line.split()[2]
-
-    # And compare with argparse:
-    assert csv_forward_model_default == _build_parser().get_default("csvfile")
-    assert directory_forward_model_default == _build_parser().get_default(
-        "outputdirectory"
-    )
 
 
 @pytest.mark.ert_integration

@@ -4,6 +4,16 @@ from typing import Dict
 import importlib_resources
 from ert.shared.plugins.plugin_manager import hook_implementation
 from ert.shared.plugins.plugin_response import plugin_response
+from semeio.forward_models import (
+    Design2Params,
+    DesignKW,
+    GenDataRFT,
+    OTS,
+    Pyscal,
+    InsertNoSim,
+    RemoveNoSim,
+    ReplaceStringConfig,
+)
 
 
 def _remove_suffix(string: str, suffix: str) -> str:
@@ -95,3 +105,18 @@ def job_documentation(job_name):
         "examples": examples,
         "category": category,
     }
+
+
+@hook_implementation
+@plugin_response(plugin_name="semeio")
+def installable_forward_model_steps():
+    return [
+        Design2Params,
+        DesignKW,
+        GenDataRFT,
+        OTS,
+        Pyscal,
+        InsertNoSim,
+        RemoveNoSim,
+        ReplaceStringConfig,
+    ]
