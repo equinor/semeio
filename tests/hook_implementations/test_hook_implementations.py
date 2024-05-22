@@ -3,9 +3,33 @@ import os
 from ert.shared.plugins.plugin_manager import ErtPluginManager
 
 import semeio.hook_implementations.forward_models
+from semeio.forward_models import (
+    Design2Params,
+    DesignKW,
+    Pyscal,
+    GenDataRFT,
+    OTS,
+    InsertNoSim,
+    RemoveNoSim,
+    ReplaceStringConfig,
+)
 from semeio.workflows.ahm_analysis import ahmanalysis
 from semeio.workflows.csv_export2 import csv_export2
 from semeio.workflows.localisation import local_config_script
+
+
+def test_that_installable_fm_steps_work_as_plugins():
+    plugin_manager = ErtPluginManager()
+    fms = plugin_manager.forward_model_steps
+
+    assert Design2Params in fms
+    assert DesignKW in fms
+    assert Pyscal in fms
+    assert GenDataRFT in fms
+    assert OTS in fms
+    assert InsertNoSim in fms
+    assert RemoveNoSim in fms
+    assert ReplaceStringConfig in fms
 
 
 def test_hook_implementations():
@@ -33,11 +57,17 @@ def test_hook_implementations():
         ]
     }
     installable_fms = plugin_manager.get_installable_jobs()
-    for fm_name, fm_location in expected_forward_models.items():
-        assert fm_name in installable_fms
-        assert installable_fms[fm_name].endswith(fm_location)
+    installable_fm_step_names = [s().name for s in plugin_manager.forward_model_steps]
 
-    assert set(installable_fms.keys()) == set(expected_forward_models.keys())
+    for fm_name, fm_location in expected_forward_models.items():
+        if fm_name in installable_fms:
+            assert installable_fms[fm_name].endswith(fm_location)
+        else:
+            assert fm_name in installable_fm_step_names
+
+    assert set(installable_fms.keys()).union(set(installable_fm_step_names)) == set(
+        expected_forward_models.keys()
+    )
 
     expected_workflow_jobs = [
         "CSV_EXPORT2",

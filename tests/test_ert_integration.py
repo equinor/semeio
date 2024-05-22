@@ -2,9 +2,11 @@ import subprocess
 
 import ert.shared.hook_implementations
 import pytest
+
 from ert.shared.plugins.plugin_manager import ErtPluginContext
 
 import semeio.hook_implementations.forward_models
+
 
 DEFAULT_CONFIG = """
 JOBNAME TEST
