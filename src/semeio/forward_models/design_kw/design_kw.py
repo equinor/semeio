@@ -4,6 +4,7 @@ import re
 import shlex
 from typing import List
 
+
 _STATUS_FILE_NAME = "DESIGN_KW.OK"
 
 _logger = logging.getLogger(__name__)
