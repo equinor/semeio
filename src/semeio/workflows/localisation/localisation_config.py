@@ -12,7 +12,6 @@ from pydantic import (
     conint,
     conlist,
     field_validator,
-    validator,
 )
 from typing_extensions import Annotated
 
@@ -233,11 +232,12 @@ class ScalingForSegmentsConfig(BaseModel):
         conlist(item_type=conint(ge=0), min_length=2, max_length=2)
     ] = [0, 0]
 
-    @validator("scalingfactors")
-    def check_length_consistency(cls, scalingfactors, values):
+    @field_validator("scalingfactors")
+    @classmethod
+    def check_length_consistency(cls, scalingfactors, info):
         # pylint: disable=no-self-use
         # Ensure that active segment list and scaling factor lists are of equal length.
-        active_segment_list = values.get("active_segments", None)
+        active_segment_list = info.data.get("active_segments", None)
         if not active_segment_list:
             return scalingfactors
         if len(scalingfactors) != len(active_segment_list):
@@ -324,7 +324,7 @@ class CorrelationConfig(BaseModel):
                 raise ValueError("surface_scale must be dict")
 
             # String with relative path to surface files relative to config path
-            if "surface_file" not in surf_scale.keys():
+            if "surface_file" not in surf_scale:
                 raise ValueError(
                     "Missing keyword: 'surface_file' in keyword: 'surface_scale' "
                 )

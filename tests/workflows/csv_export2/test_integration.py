@@ -94,14 +94,15 @@ def test_that_iterations_in_runpathfile_cannot_be_defaulted():
 
 
 def test_empty_file_yields_user_warning():
-    with open("empty_file", "a", encoding="utf-8") as empty_file:
-        with pytest.raises(UserWarning, match="No data found"):
-            csv_export2.csv_exporter(
-                runpathfile=empty_file.name,
-                time_index="raw",
-                outputfile="unsmry--yearly.csv",
-                column_keys=["*"],
-            )
+    with open("empty_file", "a", encoding="utf-8") as empty_file, pytest.raises(
+        UserWarning, match="No data found"
+    ):
+        csv_export2.csv_exporter(
+            runpathfile=empty_file.name,
+            time_index="raw",
+            outputfile="unsmry--yearly.csv",
+            column_keys=["*"],
+        )
 
 
 @pytest.mark.parametrize("input_rst", [csv_export2.DESCRIPTION, csv_export2.EXAMPLES])
@@ -182,17 +183,13 @@ def test_ert_integration():
 
     with open("wf_csvexport", "w", encoding="utf-8") as file_h:
         file_h.write(
-            (
-                # This workflow is representing the example in csv_export2.py:
-                (
-                    "MAKE_DIRECTORY csv_output\n"
-                    "EXPORT_RUNPATH * | *\n"  # (not really relevant in mocked case)
-                    "CSV_EXPORT2 runpathfile csv_output/data.csv monthly FOPT\n"
-                    # Example in documentation uses <RUNPATH_FILE> which is
-                    # linked to the RUNPATH keyword that we don't use in this
-                    # test (mocking data gets more complex if that is to be used)
-                )
-            )
+            # This workflow is representing the example in csv_export2.py:
+            "MAKE_DIRECTORY csv_output\n"
+            "EXPORT_RUNPATH * | *\n"  # (not really relevant in mocked case)
+            "CSV_EXPORT2 runpathfile csv_output/data.csv monthly FOPT\n"
+            # Example in documentation uses <RUNPATH_FILE> which is
+            # linked to the RUNPATH keyword that we don't use in this
+            # test (mocking data gets more complex if that is to be used)
         )
 
     ert_config = [

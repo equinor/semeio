@@ -22,8 +22,8 @@ BoxIncrements = namedtuple("BoxIncrements", ["dx", "dy", "dz"])
 
 
 def create_box_grid(
-    dimensions=BoxDimensions(10, 10, 3),
-    increments=BoxIncrements(50.0, 50.0, 10.0),
+    dimensions=BoxDimensions(10, 10, 3),  # noqa B008
+    increments=BoxIncrements(50.0, 50.0, 10.0),  # noqa B008
     use_actnum=False,
 ):
     actnum = None

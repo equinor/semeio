@@ -4,13 +4,14 @@ from typing import Dict
 import importlib_resources
 from ert.shared.plugins.plugin_manager import hook_implementation
 from ert.shared.plugins.plugin_response import plugin_response
+
 from semeio.forward_models import (
+    OTS,
     Design2Params,
     DesignKW,
     GenDataRFT,
-    OTS,
-    Pyscal,
     InsertNoSim,
+    Pyscal,
     RemoveNoSim,
     ReplaceStringConfig,
 )
@@ -38,7 +39,8 @@ def _get_forward_models_from_directory(directory: str) -> Dict[str, str]:
     # the name of the executable, ERT will be confused. The usual standard in
     # ERT would be to capitalize the config file. On OSX systems, which are
     # case-insensitive, this isn't viable. The config files are therefore
-    # appended with "_CONFIG".  The forward models will be installed as FORWARD_MODEL_NAME,
+    # appended with "_CONFIG".
+    # The forward models will be installed as FORWARD_MODEL_NAME,
     # and the FORWARD_MODEL_NAME_CONFIG will point to an executable named
     # forward_model_name - which we install with entry-points. The user can use the
     # forward model as normal:

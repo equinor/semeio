@@ -4,7 +4,6 @@ import os
 
 import pandas as pd
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -137,10 +136,8 @@ def _populate_trajectory_points(
         rft = ecl_rft.get(well, date)
     except KeyError:
         logger.error(
-            (
-                "Forward model script gendata_rft.py: "
-                f"No RFT data found for well {well} at date {date}"
-            )
+            "Forward model script gendata_rft.py: "
+            f"No RFT data found for well {well} at date {date}"
         )
         return []
 

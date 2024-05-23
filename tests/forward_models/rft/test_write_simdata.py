@@ -20,7 +20,7 @@ def test_write_simdata(tmpdir, dataname, input_data, expected_result):
         dframe = pd.DataFrame(input_data)
         _write_simdata("some_file_name", dataname, dframe)
 
-        with open("some_file_name", "r", encoding="utf8") as fin:
+        with open("some_file_name", encoding="utf8") as fin:
             result = fin.readlines()
         assert result == expected_result
 

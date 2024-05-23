@@ -222,7 +222,7 @@ class Trajectory:
         if components is None:
             components = ["i", "j", "k"]
 
-        non_nulls = ~dframe[tuplecolumn].isnull()
+        non_nulls = ~dframe[tuplecolumn].isna()
         if not non_nulls.any():
             return dframe
         tuplelengths = {len(value) for value in dframe.loc[non_nulls, tuplecolumn]}
@@ -256,10 +256,8 @@ class Trajectory:
         point = line.split()
         if len(point) < 4 or len(point) > 5:
             raise ValueError(
-                (
-                    "Trajectory data file not on correct format: "
-                    "'utm_x utm_y md tvd <zone>' - zone is optional"
-                )
+                "Trajectory data file not on correct format: "
+                "'utm_x utm_y md tvd <zone>' - zone is optional"
             )
 
         try:
@@ -281,9 +279,9 @@ class Trajectory:
 
         filename = os.path.join(filepath)
         if not os.path.isfile(filename):
-            raise IOError(f"Trajectory file {filename} not found!")
+            raise OSError(f"Trajectory file {filename} not found!")
 
-        with open(filename, "r", encoding="utf8") as file_handle:
+        with open(filename, encoding="utf8") as file_handle:
             trajectory_lines = file_handle.readlines()
 
         trajectory_lines = [strip_comments(line) for line in trajectory_lines]

@@ -311,7 +311,7 @@ def make_obs_groups(key_map):
         obs_group = list(
             itertools.chain.from_iterable([key_map[key] for key in subset])
         )
-        missing_obs = [x for x in key_map.keys() if x not in set(subset)]
+        missing_obs = [x for x in key_map if x not in set(subset)]
         assert len(missing_obs) == 1
         name = f"All_obs-{missing_obs[0]}"
         combinations[name.replace(":", "_")] = obs_group
@@ -331,7 +331,9 @@ def calc_observationsgroup_misfit(obs_keys, df_update_log, misfit_df):
     total_obs_nr = len(df_update_log[df_update_log.status.isin(["Active", "Inactive"])])
     if total_obs_nr == 0:
         mean = pd.DataFrame({0: [-999]}).loc[0]
-        warnings.warn("WARNING: no MISFIT value for observation " + obs_keys)
+        warnings.warn(
+            "WARNING: no MISFIT value for observation " + obs_keys, stacklevel=1
+        )
     else:
         df_misfit_calc = pd.DataFrame()
         df_misfit_calc["Misfit_key"] = "MISFIT:" + df_update_log[
@@ -365,7 +367,9 @@ def get_updated_parameters(prior_data, parameters):
     p_keysf = []
     for dkey in parameter_keys:
         if prior_data[dkey].ndim > 1:
-            warnings.warn("WARNING: Parameter " + dkey + " defined several times.")
+            warnings.warn(
+                "WARNING: Parameter " + dkey + " defined several times.", stacklevel=1
+            )
             flatten_arr = np.ravel(prior_data[dkey])
             result = np.all(prior_data[dkey] == flatten_arr[0])
             if not result:

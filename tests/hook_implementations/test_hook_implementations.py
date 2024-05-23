@@ -4,12 +4,12 @@ from ert.shared.plugins.plugin_manager import ErtPluginManager
 
 import semeio.hook_implementations.forward_models
 from semeio.forward_models import (
+    OTS,
     Design2Params,
     DesignKW,
-    Pyscal,
     GenDataRFT,
-    OTS,
     InsertNoSim,
+    Pyscal,
     RemoveNoSim,
     ReplaceStringConfig,
 )
@@ -93,6 +93,6 @@ def test_hook_implementations_forward_model_docs():
 
     assert set(docs.keys()) == set(installable_fms.keys())
 
-    for forward_model_name in installable_fms.keys():
+    for forward_model_name in installable_fms:
         assert docs[forward_model_name]["description"] != ""
         assert docs[forward_model_name]["category"] != "other"

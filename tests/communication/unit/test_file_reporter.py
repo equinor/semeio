@@ -263,7 +263,7 @@ def test_file_reporter_publish_valid_csv(data, tmpdir):
 
     loaded_data = pd.read_csv(namespace + ".csv", index_col=0, header=0)
 
-    assert (loaded_data.values == data.values).all()
+    assert (loaded_data.to_numpy() == data.to_numpy()).all()
 
 
 def test_file_reporter_publish_invalid_csv(tmpdir):
