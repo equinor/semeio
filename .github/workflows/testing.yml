@@ -27,6 +27,10 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Install HDF5 source files
+        if: runner.os == 'macOS'
+        run: brew install hdf5
+
       - uses: actions/setup-python@v5
         with:
           python-version: "${{ matrix.python-version }}"
