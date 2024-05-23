@@ -9,5 +9,5 @@ install_test_dependencies () {
 }
 
 start_tests () {
-    pytest --ert-integration
+    pytest -n auto --ert-integration
 }
