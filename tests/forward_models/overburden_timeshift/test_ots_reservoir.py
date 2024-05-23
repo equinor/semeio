@@ -30,14 +30,14 @@ def test_res_surface(ots_tmpdir_enter):
     assert rec.nx == 46
     assert rec.ny == 112
 
-    assert 453210.38 == pytest.approx(np.min(rec.x))
-    assert 465445.16 == pytest.approx(np.max(rec.x))
+    assert pytest.approx(np.min(rec.x)) == 453210.38
+    assert pytest.approx(np.max(rec.x)) == 465445.16
 
-    assert 7316018.5 == pytest.approx(np.min(rec.y))
-    assert 7330943.5 == pytest.approx(np.max(rec.y))
+    assert pytest.approx(np.min(rec.y)) == 7316018.5
+    assert pytest.approx(np.max(rec.y)) == 7330943.5
 
-    assert 2177.6484 == pytest.approx(np.min(rec.z))
-    assert 3389.567 == pytest.approx(np.max(rec.z))
+    assert pytest.approx(np.min(rec.z)) == 2177.6484
+    assert pytest.approx(np.max(rec.z)) == 3389.567
 
 
 @pytest.mark.usefixtures("tmpdir")

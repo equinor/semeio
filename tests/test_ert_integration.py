@@ -2,11 +2,9 @@ import subprocess
 
 import ert.shared.hook_implementations
 import pytest
-
 from ert.shared.plugins.plugin_manager import ErtPluginContext
 
 import semeio.hook_implementations.forward_models
-
 
 DEFAULT_CONFIG = """
 JOBNAME TEST
@@ -73,14 +71,13 @@ def test_forward_model_error_propagation(forward_model, configuration, expected_
     with pytest.raises(
         subprocess.CalledProcessError,
         match=r"Command.*ert.*returned non-zero exit status",
+    ), ErtPluginContext(
+        plugins=[
+            semeio.hook_implementations.forward_models,
+            ert.shared.hook_implementations,
+        ]
     ):
-        with ErtPluginContext(
-            plugins=[
-                semeio.hook_implementations.forward_models,
-                ert.shared.hook_implementations,
-            ]
-        ):
-            subprocess.run(["ert", "test_run", "config.ert", "--verbose"], check=True)
+        subprocess.run(["ert", "test_run", "config.ert", "--verbose"], check=True)
     with open(
         f"simulations/realization-0/iter-0/{forward_model}.stderr.0", encoding="utf-8"
     ) as fin:

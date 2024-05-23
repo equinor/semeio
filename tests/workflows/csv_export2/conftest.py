@@ -46,9 +46,7 @@ def mock_norne_data(reals, iters, parameters=True):
         for iteration in iters:
             for real in reals:
                 runpath = os.path.join(f"realization-{real}", f"iter-{iteration}")
-                file_h.write(
-                    "{0:03d} {1} NORNE_{0} {2:03d}\n".format(real, runpath, iteration)
-                )
+                file_h.write(f"{real:03d} {runpath} NORNE_{real} {iteration:03d}\n")
 
 
 @pytest.fixture()

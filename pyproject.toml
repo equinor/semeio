@@ -85,26 +85,23 @@ test = [
     "types-PyYAML",
 ]
 
-[tool.black]
-exclude = '''
-
-(
-  /(
-      \.eggs         # exclude a few common directories in the
-    | \.git          # root of the project
-    | \.hg
-    | \.tox
-    | \.venv
-    | _build
-    | build
-    | dist
-  )/
-
-)
-'''
-
 [tool.pytest.ini_options]
 markers = [
     "ert_integration: Involves running the ert application explicitly",
     "equinor_test: Requires presences of test data in specified location"
+]
+
+[tool.ruff]
+src = ["src"]
+line-length = 88
+extend-exclude = ["tests/legacy_test_data"]
+
+[tool.ruff.lint]
+select = [
+  "W",   # pycodestyle
+  "I",   # isort
+  "B",   # flake-8-bugbear
+  "SIM", # flake-8-simplify
+  "F",   # pyflakes
+  "C4",  # flake8-comprehensions
 ]

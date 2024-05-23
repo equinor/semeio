@@ -94,7 +94,9 @@ def load_and_parse_well_time_file(
                 day = int(tokens[1])
                 welldate = datetime.date(year, month, day)
                 warnings.warn(
-                    "Use YYYY-MM-DD as date format for gendata_rft input", FutureWarning
+                    "Use YYYY-MM-DD as date format for gendata_rft input",
+                    FutureWarning,
+                    stacklevel=1,
                 )
 
         except ValueError as err:
@@ -134,14 +136,12 @@ def valid_eclbase(file_path):
 
     try:
         ecl_rft = ResdataRFTFile(rft_filepath)
-    except (IOError, OSError) as err:
+    except OSError as err:
         raise argparse.ArgumentTypeError(
-            (
-                f"Could not load eclipse RFT from file: {rft_filepath}\n"
-                f"With the following error:"
-                f"\n{err}"
-            )
-        )
+            f"Could not load eclipse RFT from file: {rft_filepath}\n"
+            f"With the following error:"
+            f"\n{err}"
+        ) from err
 
     grid_filepath = file_path + ".EGRID"
     if not os.path.isfile(grid_filepath):
@@ -149,13 +149,11 @@ def valid_eclbase(file_path):
 
     try:
         ecl_grid = Grid(grid_filepath)
-    except (IOError, OSError) as err:
+    except OSError as err:
         raise argparse.ArgumentTypeError(
-            (
-                f"Could not load eclipse Grid from file: {grid_filepath}\n"
-                f"With the following error:\n"
-                f"{err}"
-            )
-        )
+            f"Could not load eclipse Grid from file: {grid_filepath}\n"
+            f"With the following error:\n"
+            f"{err}"
+        ) from err
 
     return ecl_grid, ecl_rft

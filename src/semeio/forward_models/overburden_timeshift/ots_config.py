@@ -1,12 +1,10 @@
 from datetime import date
 from pathlib import Path
-from typing import Optional, List, Literal, TYPE_CHECKING
+from typing import TYPE_CHECKING, List, Literal, Optional
 
-from typing_extensions import Annotated, Self
+from pydantic import BaseModel, Field, conlist, field_validator, model_validator
 from resdata.resfile import ResdataFile
-
-from pydantic import BaseModel, conlist, model_validator, field_validator, Field
-
+from typing_extensions import Annotated, Self
 
 if TYPE_CHECKING:
     ConstrainedList = List[date]
@@ -185,7 +183,7 @@ class OTSConfig(BaseModel):
     @model_validator(mode="after")
     def check_date_in_rst(self) -> Self:
         errors = []
-        rst_dates = set(d.date() for d in ResdataFile(f"{self.eclbase}.UNRST").dates)
+        rst_dates = {d.date() for d in ResdataFile(f"{self.eclbase}.UNRST").dates}
 
         for field in self.vintages.model_fields_set:
             vintage = getattr(self.vintages, field)

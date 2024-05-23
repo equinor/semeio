@@ -73,7 +73,7 @@ pip install tox
 tox -e style
 ```
 
-Formatting tests include `black`, `flake8` and `pylint`, See `.pre-commit-config.yaml` for the
+Formatting tests include `ruff` and `pylint`, See `.pre-commit-config.yaml` for the
 complete steps.
 
 [pre-commit](https://pre-commit.com/) can also provide git hooks to run on every commit

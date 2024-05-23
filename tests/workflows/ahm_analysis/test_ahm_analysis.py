@@ -29,8 +29,8 @@ def test_make_update_log_df(snake_oil_facade, snapshot):
             snake_oil_facade,
             prior_ens,
             posterior_ens,
-            sorted(list(prior_ens.experiment.observation_keys)),
-            sorted(list(prior_ens.experiment.parameter_configuration.keys())),
+            sorted(prior_ens.experiment.observation_keys),
+            sorted(prior_ens.experiment.parameter_configuration.keys()),
         )
     snapshot.assert_match(
         ahmanalysis.make_update_log_df(log).round(4).to_csv(),

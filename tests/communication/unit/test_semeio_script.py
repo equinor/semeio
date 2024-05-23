@@ -241,7 +241,7 @@ def test_semeio_script_post_logging_exception(monkeypatch, tmpdir):
     ensemble_mock = Mock()
     ensemble_mock.name = user_case_name
     my_super_script = MySuperScript(None, None, ensemble_mock)
-    try:
+    try:  # noqa SIM105
         my_super_script.run()  # pylint: disable=not-callable
     except AssertionError:
         pass

@@ -2,12 +2,11 @@ import shutil
 from pathlib import Path
 
 import pytest
-from pydantic import ValidationError
 import rstcheck_core.checker
+from pydantic import ValidationError
 
-from semeio.forward_models.overburden_timeshift.ots_config import OTSConfig
 from semeio._docs_utils._json_schema_2_rst import _create_docs
-
+from semeio.forward_models.overburden_timeshift.ots_config import OTSConfig
 
 TEST_NORNE_DIR = Path(__file__).parent / ".." / ".." / "test_data" / "norne"
 

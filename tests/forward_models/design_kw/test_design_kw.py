@@ -148,7 +148,7 @@ def test_genkw_prefix_handling(paramlines, template, result, tmpdir):
     with open("template.tmpl", "w", encoding="utf-8") as file_h:
         file_h.write(template)
     design_kw.run("template.tmpl", "result.txt", logging.DEBUG)
-    with open("result.txt", "r", encoding="utf-8") as file_h:
+    with open("result.txt", encoding="utf-8") as file_h:
         resulttxt = "\n".join(file_h.readlines())
     assert resulttxt == result
 
@@ -240,14 +240,14 @@ def test_run(filenames):
         parameters_file_name=parameter_filename,
     )
 
-    with open(result_filename, "r", encoding="utf-8") as result_file:
+    with open(result_filename, encoding="utf-8") as result_file:
         result = result_file.read()
 
-    with open(reference_filename, "r", encoding="utf-8") as reference_file:
+    with open(reference_filename, encoding="utf-8") as reference_file:
         reference = reference_file.read()
 
     # pylint: disable=protected-access
-    with open(design_kw._STATUS_FILE_NAME, "r", encoding="utf-8") as status_file:
+    with open(design_kw._STATUS_FILE_NAME, encoding="utf-8") as status_file:
         status = status_file.read()
 
     assert result == reference

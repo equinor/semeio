@@ -55,4 +55,4 @@ def test_z3d(setup_spec):
     res_surface = OTSResSurface(grid=grid, above=0)
     ots_s = OTSVelSurface(res_surface, vel)
 
-    assert (4, 2) == ots_s.z3d.shape
+    assert ots_s.z3d.shape == (4, 2)

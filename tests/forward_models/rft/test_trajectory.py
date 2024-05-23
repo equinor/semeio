@@ -74,7 +74,7 @@ def test_is_active(ijk, pressure, validation):
     point.valid_zone = validation
     assert all([ijk, pressure, validation]) == point.is_active()
 
-    assert 1 if all([ijk, pressure, validation]) else -1 == point.get_pressure()
+    assert all([ijk, pressure, validation]) or point.get_pressure() == -1
 
 
 @pytest.fixture()
@@ -197,7 +197,7 @@ def test_tuple_column_splitter(dframe, tuplecolumn, components):
     assert tuplecolumn not in splitdf
     assert len(dframe) == len(splitdf)
     assert {val for tup in dframe[tuplecolumn] for val in tup} == {
-        val for tup in splitdf[components].values for val in tup
+        val for tup in splitdf[components].to_numpy() for val in tup
     }
     for comp in components:
         assert comp in splitdf

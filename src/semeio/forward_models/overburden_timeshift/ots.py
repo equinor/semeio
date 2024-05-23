@@ -25,7 +25,7 @@ from semeio.forward_models.overburden_timeshift import (
 
 def ots_load_params(input_file):
     try:
-        with open(input_file, "r", encoding="utf-8") as fin:
+        with open(input_file, encoding="utf-8") as fin:
             config = OTSConfig(**yaml.safe_load(fin))
     except ValidationError as err:
         raise ConfigurationError(
@@ -304,10 +304,8 @@ class OverburdenTimeshift:
         surf_displacement = {}
         ts_surfaces = []
         for vintage in vintages:
-            logging.info(
-                "{:%x %X} {}: Calculating vintage {:%Y.%m.%d}".format(  # pylint: disable=consider-using-f-string
-                    dt.now(), method_name, vintage.date
-                )
+            logging.info(  # pylint: disable=logging-fstring-interpolation
+                f"{dt.now():%x %X} {method_name}: Calculating vintage {vintage.date:%Y.%m.%d}"
             )
 
             self.add_survey(vintage.name, vintage.date)
@@ -378,9 +376,9 @@ class OverburdenTimeshift:
 
         for base, monitor in vintage_pairs:
             surf_displacement = np.zeros(len(surface))
-            logging.info(
-                "{:%x %X} TS: Calculating vintage"  # pylint: disable=consider-using-f-string
-                " {:%Y.%m.%d} - {:%Y.%m.%d}".format(dt.now(), base, monitor)
+            logging.info(  # pylint: disable=logging-fstring-interpolation
+                f"{dt.now():%x %X} TS: Calculating vintage"
+                f" {base:%Y.%m.%d} - {monitor:%Y.%m.%d}"
             )
 
             # According to the author, base and monitor are
@@ -452,11 +450,9 @@ class OverburdenTimeshift:
             start_date, end_date = base, monitor
         else:
             raise ValueError(f"Convention must be 1 or -1, was {self._convention}")
-        logging.debug(
-            "{:%x %X} {}: Calculating shift"  # pylint: disable=consider-using-f-string
-            " {:%Y.%m.%d}-{:%Y.%m.%d} in {} points".format(
-                dt.now(), func_name, start_date, end_date, num_points_calculated
-            )
+        logging.debug(  # pylint: disable=logging-fstring-interpolation
+            f"{dt.now():%x %X} {func_name}: Calculating shift"
+            f" {start_date:%Y.%m.%d}-{end_date:%Y.%m.%d} in {num_points_calculated} points"
         )
 
     def _get_non_nan_points(self):
@@ -500,9 +496,8 @@ class OverburdenTimeshift:
         pressure_volume = {}
 
         for vintage in vintages:
-            logging.info(
-                "{:%x %X} DPV: Calculating vintage"  # pylint: disable=consider-using-f-string
-                " {:%Y.%m.%d}".format(dt.now(), vintage.date)
+            logging.info(  # pylint: disable=logging-fstring-interpolation
+                f"{dt.now():%x %X} DPV: Calculating vintage {vintage.date:%Y.%m.%d}"
             )
             self.add_survey(vintage.name, vintage.date)
             pressure = Resdata3DKW.cast_from_kw(

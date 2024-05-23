@@ -4,7 +4,6 @@ import re
 import shlex
 from typing import List
 
-
 _STATUS_FILE_NAME = "DESIGN_KW.OK"
 
 _logger = logging.getLogger(__name__)
@@ -32,7 +31,7 @@ def run(
 
     key_vals.update(rm_genkw_prefix(key_vals))
 
-    with open(template_file_name, "r", encoding="utf-8") as template_file:
+    with open(template_file_name, encoding="utf-8") as template_file:
         template = template_file.readlines()
 
     with open(result_file_name, "w", encoding="utf-8") as result_file:
@@ -58,17 +57,13 @@ def all_matched(line, template_file_name, template):
     for unmatched in unmatched_templates(line):
         if is_perl(template_file_name, template):
             _logger.warning(  # pylint: disable=logging-fstring-interpolation
-                (
-                    f"{unmatched} not found in design matrix, "
-                    f"but this is probably a Perl file"
-                )
+                f"{unmatched} not found in design matrix, "
+                f"but this is probably a Perl file"
             )
         elif is_xml(template_file_name, template):
             _logger.warning(  # pylint: disable=logging-fstring-interpolation
-                (
-                    f"{unmatched} not found in design matrix, "
-                    f"but this is probably an xml file"
-                )
+                f"{unmatched} not found in design matrix, "
+                f"but this is probably an xml file"
             )
         else:
             _logger.error(  # pylint: disable=logging-fstring-interpolation

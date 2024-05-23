@@ -91,7 +91,7 @@ if __name__ == "__main__":
         npv += production_value
 
     with open("snake_oil_npv.txt", "w", encoding="utf-8") as output_file:
-        output_file.write("NPV %s\n" % npv)
+        output_file.write(f"NPV {npv !s}\n")
 
         if npv < 80000:
             rating = "POOR"
@@ -102,4 +102,4 @@ if __name__ == "__main__":
         else:
             rating = "EXCELLENT"
 
-        output_file.write("RATING %s\n" % rating)
+        output_file.write(f"RATING {rating !s}\n")

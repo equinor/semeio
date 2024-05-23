@@ -184,7 +184,7 @@ def main_entry_point():
             trajectories[well_name] = Trajectory.load_from_file(
                 filepath=os.path.join(options.trajectory_path, well_name + ".txt")
             )
-        except (IOError, ValueError) as err:
+        except (OSError, ValueError) as err:
             context_errors.append(str(err))
 
     if context_errors:

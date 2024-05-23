@@ -277,7 +277,7 @@ def read_localisation_config(args):
     logging.info(
         "\nDefine localisation setup using config file: %s", specification_file_name
     )
-    with open(specification_file_name, "r", encoding="utf-8") as yml_file:
+    with open(specification_file_name, encoding="utf-8") as yml_file:
         localisation_yml = yaml.safe_load(yml_file)
     return localisation_yml
 
@@ -406,15 +406,12 @@ def apply_decay(
     row_scaling.assign_vector(scaling_vector)
 
     scaling_values = None
-    if calculate_qc_parameter:
-        if isinstance(grid, Grid):
-            nx = grid.get_nx()
-            ny = grid.get_ny()
-            nz = grid.get_nz()
-            scaling_values = np.zeros(nx * ny * nz, dtype=np.float32)
-            for index in range(data_size):
-                global_index = grid.global_index(active_index=index)
-                scaling_values[global_index] = scaling_vector[index]
+    if calculate_qc_parameter and isinstance(grid, Grid):
+        nx, ny, nz = grid.get_nx(), grid.get_ny(), grid.get_nz()
+        scaling_values = np.zeros(nx * ny * nz, dtype=np.float32)
+        for index in range(data_size):
+            global_index = grid.global_index(active_index=index)
+            scaling_values[global_index] = scaling_vector[index]
 
     return scaling_values
 
@@ -443,15 +440,12 @@ def apply_constant(
     row_scaling.assign_vector(scaling_vector)
 
     scaling_values = None
-    if calculate_qc_parameter:
-        if isinstance(grid, Grid):
-            nx = grid.get_nx()
-            ny = grid.get_ny()
-            nz = grid.get_nz()
-            scaling_values = np.zeros(nx * ny * nz, dtype=np.float32)
-            for index in range(data_size):
-                global_index = grid.global_index(active_index=index)
-                scaling_values[global_index] = scaling_vector[index]
+    if calculate_qc_parameter and isinstance(grid, Grid):
+        nx, ny, nz = grid.get_nx(), grid.get_ny(), grid.get_nz()
+        scaling_values = np.zeros(nx * ny * nz, dtype=np.float32)
+        for index in range(data_size):
+            global_index = grid.global_index(active_index=index)
+            scaling_values[global_index] = scaling_vector[index]
 
     return scaling_values
 
@@ -558,9 +552,7 @@ def smooth_parameter(
     then the smoothing will only appear on the border between active regions.
     """
     # pylint: disable=too-many-locals
-    nx = grid.get_nx()
-    ny = grid.get_ny()
-    nz = grid.get_nz()
+    nx, ny, nz = grid.get_nx(), grid.get_ny(), grid.get_nz()
     di = smooth_range_list[0]
     dj = smooth_range_list[1]
     scaling_values_smooth = np.zeros(nx * ny * nz, dtype=np.float32)
@@ -675,52 +667,52 @@ def read_region_files_for_all_correlation_groups(user_config, grid):
 
     region_param_dict = {}
     corr_name_dict = {}
-    nx = grid.get_nx()
-    ny = grid.get_ny()
-    nz = grid.get_nz()
+    nx, ny, nz = grid.get_nx(), grid.get_ny(), grid.get_nz()
     for _, corr_spec in enumerate(user_config.correlations):
         region_param_dict[corr_spec.name] = None
-        if corr_spec.field_scale is not None:
-            if corr_spec.field_scale.method == "segment":
-                filename = corr_spec.field_scale.segment_filename
-                param_name = corr_spec.field_scale.param_name
-                debug_print(
-                    f"Use parameter: {param_name} from file: {filename} "
-                    f"in {corr_spec.name}",
-                    LogLevel.LEVEL2,
-                    user_config.log_level,
-                )
+        if (
+            corr_spec.field_scale is not None
+            and corr_spec.field_scale.method == "segment"
+        ):
+            filename = corr_spec.field_scale.segment_filename
+            param_name = corr_spec.field_scale.param_name
+            debug_print(
+                f"Use parameter: {param_name} from file: {filename} "
+                f"in {corr_spec.name}",
+                LogLevel.LEVEL2,
+                user_config.log_level,
+            )
 
-                if filename not in corr_name_dict:
-                    # Read the file
-                    with cwrap.open(filename, "r") as file:
-                        region_parameter_read = Resdata3DKW.read_grdecl(
-                            grid,
-                            file,
-                            param_name,
-                            strict=True,
-                            rd_type=ResDataType.RD_INT,
-                        )
-                    region_parameter = np.zeros(nx * ny * nz, dtype=np.int32)
-                    not_active = np.zeros(nx * ny * nz, dtype=np.int32)
-                    for k, j, i in itertools.product(range(nz), range(ny), range(nx)):
-                        index = i + j * nx + k * nx * ny
-                        v = region_parameter_read[i, j, k]
-                        region_parameter[index] = v
-                        if grid.get_active_index(ijk=(i, j, k)) == -1:
-                            not_active[index] = 1
-                    region_parameter_masked = ma.masked_array(
-                        region_parameter, mask=not_active
+            if filename not in corr_name_dict:
+                # Read the file
+                with cwrap.open(filename, "r") as file:
+                    region_parameter_read = Resdata3DKW.read_grdecl(
+                        grid,
+                        file,
+                        param_name,
+                        strict=True,
+                        rd_type=ResDataType.RD_INT,
                     )
-                    region_param_dict[corr_spec.name] = region_parameter_masked
-                    corr_name_dict[filename] = corr_spec.name
-                else:
-                    # The region_parameter is already read for a previous
-                    # correlation group. Re-use it instead of re-reading the file
-                    existing_corr_name = corr_name_dict[filename]
-                    region_param_dict[corr_spec.name] = region_param_dict[
-                        existing_corr_name
-                    ]
+                region_parameter = np.zeros(nx * ny * nz, dtype=np.int32)
+                not_active = np.zeros(nx * ny * nz, dtype=np.int32)
+                for k, j, i in itertools.product(range(nz), range(ny), range(nx)):
+                    index = i + j * nx + k * nx * ny
+                    v = region_parameter_read[i, j, k]
+                    region_parameter[index] = v
+                    if grid.get_active_index(ijk=(i, j, k)) == -1:
+                        not_active[index] = 1
+                region_parameter_masked = ma.masked_array(
+                    region_parameter, mask=not_active
+                )
+                region_param_dict[corr_spec.name] = region_parameter_masked
+                corr_name_dict[filename] = corr_spec.name
+            else:
+                # The region_parameter is already read for a previous
+                # correlation group. Re-use it instead of re-reading the file
+                existing_corr_name = corr_name_dict[filename]
+                region_param_dict[corr_spec.name] = region_param_dict[
+                    existing_corr_name
+                ]
     return region_param_dict
 
 

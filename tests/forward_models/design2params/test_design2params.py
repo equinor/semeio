@@ -303,7 +303,7 @@ def test_logging_order(tmpdir, caplog):
     params_file = "parameters.txt"
     data_dict = {}
     expected_warning = []
-    with open(params_file, "r", encoding="utf-8") as file_h:
+    with open(params_file, encoding="utf-8") as file_h:
         for line in file_h:
             key, value = line.strip().split()
             data_dict[key] = 0
