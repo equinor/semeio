@@ -3,10 +3,9 @@ import logging
 import sys
 
 from semeio import valid_file
-from semeio._exceptions.exceptions import ConfigurationError
-from semeio.forward_models.overburden_timeshift import ots_run, OTSConfig
-
 from semeio._docs_utils._json_schema_2_rst import _create_docs
+from semeio._exceptions.exceptions import ConfigurationError
+from semeio.forward_models.overburden_timeshift import OTSConfig, ots_run
 
 logger = logging.getLogger(__name__)
 

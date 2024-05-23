@@ -88,15 +88,15 @@ def test_gendata_rft_csv_reek(tmpdir, monkeypatch):
     dframe = pd.read_csv(csv_filename)
     assert not dframe.empty
     assert {"pressure", "swat", "sgas"}.issubset(set(dframe.columns))
-    assert numpy.isclose(dframe["pressure"].values[0], 304.37)
-    assert numpy.isclose(dframe["swat"].values[0], 0.151044)
-    assert numpy.isclose(dframe["soil"].values[0], 1 - 0.151044)
-    assert numpy.isclose(dframe["sgas"].values[0], 0.0)
+    assert numpy.isclose(dframe["pressure"].to_numpy()[0], 304.37)
+    assert numpy.isclose(dframe["swat"].to_numpy()[0], 0.151044)
+    assert numpy.isclose(dframe["soil"].to_numpy()[0], 1 - 0.151044)
+    assert numpy.isclose(dframe["sgas"].to_numpy()[0], 0.0)
 
     # This requires 1-indexed ijk in the dataframe:
-    assert dframe["i"].values[0] == 29
-    assert dframe["j"].values[0] == 28
-    assert dframe["k"].values[0] == 8
+    assert dframe["i"].to_numpy()[0] == 29
+    assert dframe["j"].to_numpy()[0] == 28
+    assert dframe["k"].to_numpy()[0] == 8
 
 
 @pytest.mark.usefixtures("norne_data")
@@ -203,9 +203,9 @@ def test_multiple_report_steps(tmpdir, monkeypatch):
     monkeypatch.setattr(sys, "argv", arguments)
     main_entry_point()
     csvdata = pd.read_csv("gendata_rft.csv")
-    assert (csvdata["report_step"].values == [0, 1]).all()
-    assert (csvdata["time"].values == ["2000-02-01", "2001-01-01"]).all()
-    assert numpy.isclose(csvdata["pressure"].values, [304.370087, 249.214965]).all()
+    assert (csvdata["report_step"].to_numpy() == [0, 1]).all()
+    assert (csvdata["time"].to_numpy() == ["2000-02-01", "2001-01-01"]).all()
+    assert numpy.isclose(csvdata["pressure"].to_numpy(), [304.370087, 249.214965]).all()
 
     # Testing only the data for report step 1:
     assert numpy.isclose(

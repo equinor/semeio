@@ -56,7 +56,7 @@ def run(
 
     try:
         parameters = pd.read_csv(parametersfilename, delimiter=" ", header=None)
-    except IOError:
+    except OSError:
         logger.info(f"No {parametersfilename} exists, creating a new, empty one.")
         parameters = pd.DataFrame(columns=[0, 1])
     except pd.errors.EmptyDataError:
@@ -129,20 +129,20 @@ def _complete_parameters_file(
 
     # keys in the design matrix not present in parameters
     design_parameters = merged[
-        merged["parameters"].isnull() & merged["realization"].notnull()
+        merged["parameters"].isna() & merged["realization"].notna()
     ]
     logger.info(
         "\ndesign parameters used: \n%s", design_parameters[["keys", "combined"]]
     )
 
     # keys without value in parameters and design matrix
-    defaults = merged[merged["parameters_realization"].isnull()]
+    defaults = merged[merged["parameters_realization"].isna()]
     logger.info("\ndefaults used: \n%s", defaults[["keys", "combined"]])
 
     # warn if keys with different values in parameters.txt and design matrix
     conflicts = merged[
         ~(merged["combined"].astype(str) == merged["realization"].astype(str))
-        & (~merged["realization"].isnull())
+        & (~merged["realization"].isna())
     ]
     if not conflicts.empty:
         for _, row in conflicts.iterrows():
@@ -164,7 +164,7 @@ def _complete_parameters_file(
     )
 
     # keys not present in parameters
-    combined_parameters = merged[merged["parameters"].isnull()]
+    combined_parameters = merged[merged["parameters"].isna()]
 
     # append new keys to parameters.txt
     combined_parameters.to_csv(
@@ -202,20 +202,20 @@ def _read_excel(file_name, sheet_name, header=0, usecols=None, engine=None):
             usecols=usecols,
             engine=engine,
         )
-    except IOError as err:
+    except OSError as err:
         raise SystemExit(f"File {file_name} not found") from err
     except Exception as err:
         raise SystemExit(
-            (
-                f"File {file_name} is probably not of correct type. "
-                f"Failed with exception '{err}'"
-            )
+            f"File {file_name} is probably not of correct type. "
+            f"Failed with exception '{err}'"
         ) from err
 
     file_path = Path(file_name)
     if file_path.suffix == ".xls":
         warnings.warn(
-            "Support for XLS files is deprecated. Use XLSX", DeprecationWarning
+            "Support for XLS files is deprecated. Use XLSX",
+            DeprecationWarning,
+            stacklevel=1,
         )
 
     return dframe.dropna(axis=1, how="all")
@@ -236,7 +236,7 @@ def _validate_design_matrix_header(design_matrix):
         raise ValueError(
             f"Invalid value in design matrix header, error: {str(err)}"
         ) from err
-    column_indexes = [int(x.split(":")[1]) for x in unnamed.columns.values]
+    column_indexes = [int(x.split(":")[1]) for x in unnamed.columns.to_numpy()]
     if len(column_indexes) > 0:
         raise ValueError(f"Column headers not present in column {column_indexes}")
 
@@ -254,11 +254,11 @@ def _invalid_design_realizations(design_matrix):
     :raises: SystemExit if some parameter names are not allowed
     """
 
-    empty_cell_coords = list(zip(*np.where(pd.isnull(design_matrix))))
+    empty_cell_coords = list(zip(*np.where(pd.isna(design_matrix))))
 
     empties = [
         f"Realization {i}, column {design_matrix.columns[j]}"
-        for i, j in zip(*np.where(pd.isnull(design_matrix)))
+        for i, j in zip(*np.where(pd.isna(design_matrix)))
     ]
     if len(empties) > 0:
         logger.warning(f"Design matrix contains empty cells {empties}")
@@ -318,10 +318,8 @@ def _read_defaultssheet(xlsfilename, defaultssheetname):
         for paramname in default_df.loc[:, 0]:
             if paramname != paramname.strip():
                 raise SystemExit(
-                    (
-                        f'Parameter name "{paramname}" in default values contains '
-                        "initial or trailing whitespace."
-                    )
+                    f'Parameter name "{paramname}" in default values contains '
+                    "initial or trailing whitespace."
                 )
 
         denied_params = set(default_df.loc[:, 0]).intersection(set(DENYLIST_DEFAULTS))

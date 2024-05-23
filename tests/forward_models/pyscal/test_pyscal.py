@@ -54,10 +54,7 @@ def test_fm_pyscal(dframe, runargs, tmpdir):
     dframe.to_csv("relperm-input.csv", index=False)
 
     # Insert a genkw-prefix in some parameters.txt files:
-    if random.randint(0, 1):
-        genkw_prefix = "FOO:"
-    else:
-        genkw_prefix = ""
+    genkw_prefix = "FOO:" if random.randint(0, 1) else ""
 
     if "CASE" in dframe:
         Path("parameters.txt").write_text(

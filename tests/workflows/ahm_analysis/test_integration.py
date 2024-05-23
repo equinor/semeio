@@ -93,13 +93,14 @@ def test_that_dataset_with_no_prior_will_fail(test_data_root):
     os.chdir(os.path.join("test_data"))
     ert = LibresFacade.from_config_file("snake_oil.ert")
     expected_msg = "Empty prior ensemble"
-    with pytest.raises(ValidationError, match=expected_msg):
-        with open_storage(ert.enspath, "w") as storage:
-            ert.run_ertscript(
-                ahmanalysis.AhmAnalysisJob,
-                storage,
-                storage.create_experiment().create_ensemble(
-                    name="default", ensemble_size=ert.get_ensemble_size()
-                ),
-                prior_name="default",
-            )
+    with pytest.raises(ValidationError, match=expected_msg), open_storage(
+        ert.enspath, "w"
+    ) as storage:
+        ert.run_ertscript(
+            ahmanalysis.AhmAnalysisJob,
+            storage,
+            storage.create_experiment().create_ensemble(
+                name="default", ensemble_size=ert.get_ensemble_size()
+            ),
+            prior_name="default",
+        )

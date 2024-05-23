@@ -44,7 +44,7 @@ class ZoneMap:
 
         zones_at_k_value = {}
 
-        with open(filename, "r", encoding="utf-8") as file_handle:
+        with open(filename, encoding="utf-8") as file_handle:
             zonemap_lines = file_handle.readlines()
 
         zonemap_lines = [
