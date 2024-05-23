@@ -470,6 +470,9 @@ def test_defaults():
         "GENDATA_RFT_CONFIG",
     )
 
+    csv_forward_model_default: str = ""
+    directory_forward_model_default: str = ""
+
     # Crude parsing of the file
     for line in Path(fm_description_file).read_text(encoding="utf-8").split("\n"):
         if line.startswith("DEFAULT"):
