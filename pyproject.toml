@@ -5,13 +5,13 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "semeio"
 authors = [
-  {name = "Equinor ASA", email = "fg_sib-scout@equinor.com"},
+    { name = "Equinor ASA", email = "fg_sib-scout@equinor.com" },
 ]
-description="Forward models and workflows for Ert."
+description = "Forward models and workflows for Ert."
 requires-python = ">=3.8"
 readme = "README.md"
-license = {text = "GPL-3.0"}
-classifiers=[
+license = { text = "GPL-3.0" }
+classifiers = [
     "Environment :: Plugins",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
@@ -27,9 +27,9 @@ classifiers=[
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dynamic = ["version"]
-dependencies=[
+dependencies = [
     "resdata",
-    "ert>=10.2.0b2",
+    "ert>=10.2.0b3",
     "importlib_metadata",
     "importlib_resources",
     "numpy",
@@ -70,19 +70,19 @@ where = ["src"]
 
 [project.optional-dependencies]
 test = [
-"hypothesis",
-"odfpy",
-"oil_reservoir_synthesizer",
-"openpyxl",
-"pytest",
-"pytest-console-scripts",
-"pytest-snapshot",
-"rstcheck-core",
-"xlwt",
-"mypy",
-"pandas-stubs",
-"types-setuptools",
-"types-PyYAML",
+    "hypothesis",
+    "odfpy",
+    "oil_reservoir_synthesizer",
+    "openpyxl",
+    "pytest",
+    "pytest-console-scripts",
+    "pytest-snapshot",
+    "rstcheck-core",
+    "xlwt",
+    "mypy",
+    "pandas-stubs",
+    "types-setuptools",
+    "types-PyYAML",
 ]
 
 [tool.black]
@@ -105,6 +105,6 @@ exclude = '''
 
 [tool.pytest.ini_options]
 markers = [
-  "ert_integration: Involves running the ert application explicitly",
-  "equinor_test: Requires presences of test data in specified location"
+    "ert_integration: Involves running the ert application explicitly",
+    "equinor_test: Requires presences of test data in specified location"
 ]
