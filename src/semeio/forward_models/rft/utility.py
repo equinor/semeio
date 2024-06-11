@@ -35,7 +35,6 @@ def load_and_parse_well_time_file(
     Returns:
         well, datetime and reportstep in a list of tuples
     """
-    # pylint: disable=too-many-locals
 
     if not Path(filename).exists():
         raise argparse.ArgumentTypeError(f"The path {filename} does not exist")
@@ -58,7 +57,7 @@ def load_and_parse_well_time_file(
         if not tokens:
             continue
 
-        if len(tokens) not in (3, 5):
+        if len(tokens) not in {3, 5}:
             err_msg = (
                 base_error_msg
                 + "Unexpected number of tokens: "

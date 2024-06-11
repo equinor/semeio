@@ -1,4 +1,3 @@
-# pylint: disable=invalid-name
 import numpy as np
 
 
@@ -55,10 +54,7 @@ class OTSResSurface:
     def _calculate_surface(self, grid, above):
         # calculate average from top face vecrtices
         # from unstructured grid as an interface between active and inactive cells
-        # pylint: disable=too-many-locals
-        nx = grid.getNX()
-        ny = grid.getNY()
-        nz = grid.getNZ()
+        nx, ny, nz = grid.getNX(), grid.getNY(), grid.getNZ()
 
         x = np.empty(shape=(nx * ny), dtype=np.float32)
         y = np.empty(shape=(nx * ny), dtype=np.float32)

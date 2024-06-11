@@ -43,7 +43,7 @@ pip install ".[style]"
 pre-commit run --all-files
 ```
 
-Formatting include `ruff` and `pylint`, See `.pre-commit-config.yaml` for the
+Formatting use `ruff`, See `.pre-commit-config.yaml` for the
 complete steps.
 
 [pre-commit](https://pre-commit.com/) can also provide git hooks to run on every commit

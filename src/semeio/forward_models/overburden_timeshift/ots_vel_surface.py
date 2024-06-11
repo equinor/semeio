@@ -1,4 +1,3 @@
-# pylint: disable=invalid-name
 import numpy as np
 import segyio
 from scipy.interpolate import CloughTocher2DInterpolator
@@ -31,7 +30,6 @@ class OTSVelSurface:
 
     @property
     def y(self):
-        # pylint: disable=invalid-name
         return self._y
 
     @property
@@ -143,7 +141,6 @@ class OTSVelSurface:
 
     def _upscale_velocity(self, res_corners, x_vel, y_vel, traces, nt, dt):
         """resample to a new grid size based on the grid size"""
-        # pylint: disable=too-many-arguments,too-many-locals
 
         nxx, upsx = self._upscaling_size_stepping(res_corners[:, :, 0], 0, x_vel)
 
@@ -154,7 +151,7 @@ class OTSVelSurface:
         if upst == 0:
             upst = 1
             ntt = nt
-        dt = dt * upst
+        dt *= upst
         # skip positions if needed
         x = x_vel[0 : (nxx - 1) * upsx + 1 : upsx, 0 : (nyy - 1) * upsy + 1 : upsy]
         y = y_vel[0 : (nxx - 1) * upsx + 1 : upsx, 0 : (nyy - 1) * upsy + 1 : upsy]

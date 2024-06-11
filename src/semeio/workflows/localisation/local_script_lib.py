@@ -1,6 +1,3 @@
-# pylint: disable=attribute-defined-outside-init,invalid-name
-# pxylint: disable=attribute-defined-outside-init
-# pylint: disable=too-many-lines
 import itertools
 import logging
 import math
@@ -116,7 +113,6 @@ class Decay:
             x, y, _ = self.grid.get_xyz(active_index=data_index)
         except AttributeError:
             # Assume the grid is a 2D Surface grid
-            # pylint: disable=no-member
             x, y = self.grid.getXY(data_index)
         x_unrotated = x - self.obs_pos[0]
         y_unrotated = y - self.obs_pos[1]
@@ -223,7 +219,6 @@ class ScalingValues:
         param_for_field,
         log_level=LogLevel.OFF,
     ):
-        # pylint: disable=too-many-arguments
         if param_for_field is None or field_scale is None:
             return
 
@@ -253,7 +248,7 @@ class ScalingValues:
             with cwrap.open(filename, "w") as file:
                 grid.write_grdecl(scaling_kw, file)
             # Increase parameter number to define unique parameter name
-            cls.scaling_param_number = cls.scaling_param_number + 1
+            cls.scaling_param_number += 1
 
 
 def get_param_from_ert(ens_config):
@@ -318,7 +313,6 @@ def build_decay_object(
     use_cutoff,
     tapering_range=None,
 ):
-    # pylint: disable=too-many-arguments
     if method == "gaussian_decay":
         decay_obj = GaussianDecay(
             ref_pos,
@@ -383,7 +377,6 @@ def apply_decay(
     tapering_range=None,
     calculate_qc_parameter=False,
 ):
-    # pylint: disable=too-many-arguments,too-many-locals
     """
     Calculates the scaling factor, assign it to ERT instance by row_scaling
     and returns a full sized grid parameter with scaling factors for active
@@ -424,7 +417,6 @@ def apply_constant(
     log_level,
     calculate_qc_parameter=False,
 ):
-    # pylint: disable=too-many-arguments,too-many-locals
     """
     Assign constant value to the scaling factor,
     assign it to ERT instance by row_scaling
@@ -451,7 +443,6 @@ def apply_constant(
 
 
 def apply_from_file(row_scaling, data_size, grid, filename, param_name, log_level):
-    # pylint: disable=too-many-arguments
     debug_print(
         f"Read scaling factors as parameter {param_name}", LogLevel.LEVEL3, log_level
     )
@@ -500,7 +491,6 @@ def define_look_up_index(user_defined_active_region_list, max_region_number):
 def calculate_scaling_factors_in_regions(
     grid, region_parameter, active_segment_list, scaling_value_list, smooth_range_list
 ):
-    # pylint: disable=unused-argument,too-many-locals
     # ('grid' and 'smooth-range-list' are not currently used)
 
     min_region_number = region_parameter.min()
@@ -551,7 +541,6 @@ def smooth_parameter(
     active region and e.g 0 for all inactive regions and for inactive grid cells,
     then the smoothing will only appear on the border between active regions.
     """
-    # pylint: disable=too-many-locals
     nx, ny, nz = grid.get_nx(), grid.get_ny(), grid.get_nz()
     di = smooth_range_list[0]
     dj = smooth_range_list[1]
@@ -590,7 +579,6 @@ def apply_segment(
     corr_name,
     log_level=LogLevel.OFF,
 ):
-    # pylint: disable=too-many-arguments,too-many-locals
     """
     Purpose: Use region numbers and list of scaling factors per region to
                    create scaling factors per active .
@@ -660,7 +648,6 @@ def apply_segment(
 
 
 def read_region_files_for_all_correlation_groups(user_config, grid):
-    # pylint: disable=too-many-nested-blocks,too-many-locals,invalid-name
     if grid is None:
         # No grid is defined. Not relevant to look for region files to read.
         return None
@@ -722,9 +709,6 @@ def add_ministeps(
     ert_ensemble_config,
     grid_for_field,
 ):
-    # pylint: disable=too-many-branches,too-many-statements
-    # pylint: disable=too-many-nested-blocks,too-many-locals
-
     debug_print("Add all ministeps:", LogLevel.LEVEL1, user_config.log_level)
     ScalingValues.initialize()
     # Read all region files used in correlation groups,
