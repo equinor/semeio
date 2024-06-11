@@ -31,7 +31,7 @@ class Vintages(BaseModel):
             )
         ),
     ] = []
-    ts: Annotated[  # pylint: disable=invalid-name
+    ts: Annotated[
         List[ConstrainedList],
         Field(
             description="TimeShift geertsma algorithm, which uses velocity, very slow"

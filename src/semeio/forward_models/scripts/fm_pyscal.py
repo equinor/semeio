@@ -166,7 +166,6 @@ def run(
     family,  # int: 1 or 2, default 1
     parameters_file_name="parameters.txt",
 ):
-    # pylint: disable=too-many-arguments
     """This function is a wrapper around the Pyscal command
     line tool. The command line tool is designed around argparse
     and this function wraps around that design.
@@ -179,7 +178,7 @@ def run(
         sys.exit(1)
 
     # Determine which interpolation scenario the user has requested:
-    if MAGIC_NONE not in (int_param_wo_name, int_param_go_name):
+    if MAGIC_NONE not in {int_param_wo_name, int_param_go_name}:
         # Separate interpolation parameter for WaterOil and GasOil
         do_interpolation = True
     elif int_param_wo_name != MAGIC_NONE and int_param_go_name == MAGIC_NONE:
@@ -195,11 +194,11 @@ def run(
         sys.exit(1)
 
     slgof = slgof.lower()
-    if slgof not in ["sgof", "slgof"]:
+    if slgof not in {"sgof", "slgof"}:
         _logger.error("Only supports sgof or slgof")
         sys.exit(1)
 
-    if family not in [1, 2]:
+    if family not in {1, 2}:
         _logger.error("Family must be either 1 or 2")
         sys.exit(1)
 
@@ -215,7 +214,7 @@ def run(
         int_param_wo = None
         int_param_go = None
 
-    if sheet_name in ["", "0", MAGIC_NONE]:
+    if sheet_name in {"", "0", MAGIC_NONE}:
         # Limitation: If the user names an xls sheet with the string "0"
         # and it is not the first sheet, it will not be accessible with this
         # forward model

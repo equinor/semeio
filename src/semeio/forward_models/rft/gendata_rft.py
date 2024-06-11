@@ -1,4 +1,3 @@
-# pylint: disable=logging-fstring-interpolation
 import logging
 import os
 
@@ -8,7 +7,6 @@ logger = logging.getLogger(__name__)
 
 
 def _write_gen_data_files(trajectory_df, directory, well, report_step):
-    # pylint: disable=line-too-long
     """Generate three files with the information GEN_DATA needs
     from the trajectory dataframe.
 
@@ -112,7 +110,6 @@ def _write_inactive_info(fname, trajectory_df):
 def _populate_trajectory_points(
     well, date, trajectory_points, ecl_grid, ecl_rft, zonemap=None
 ):
-    # pylint: disable=too-many-arguments
     """
     Populate a list of trajectory points, that only contain UTM coordinates
     for a well-path, with (i,j,k) indices corresponding to a given Eclipse grid,
@@ -163,7 +160,6 @@ def run(
     csvfile=None,
     outputdirectory=".",
 ):
-    # pylint: disable=too-many-arguments
     dframes = []
 
     if not well_times:

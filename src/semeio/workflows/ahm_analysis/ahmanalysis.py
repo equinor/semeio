@@ -15,8 +15,6 @@ from scipy.stats import ks_2samp
 from semeio._exceptions.exceptions import ValidationError
 from semeio.communication import SemeioScript
 
-# pylint: disable=logging-fstring-interpolation
-
 logger = logging.getLogger(__name__)
 
 DESCRIPTION = """
@@ -112,10 +110,7 @@ class AhmAnalysisJob(SemeioScript):
         group_by="data_key",
         output_dir=None,
     ):
-        # pylint: disable=method-hidden, too-many-statements, arguments-differ
         # (SemeioScript wraps this run method)
-
-        # pylint: disable=too-many-locals
 
         """Perform analysis of parameters change per obs group
         prior to posterior of ahm"""
@@ -245,7 +240,6 @@ class AhmAnalysisJob(SemeioScript):
 
 
 def _run_ministep(facade, prior_storage, target_storage, obs_group, data_parameters):
-    # pylint: disable=too-many-arguments
     rng = np.random.default_rng(seed=facade.config.random_seed)
     return facade.smoother_update(
         prior_storage,

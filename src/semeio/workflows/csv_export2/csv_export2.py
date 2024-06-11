@@ -93,7 +93,6 @@ def csv_exporter(runpathfile, time_index, outputfile, column_keys=None):
 
 class CsvExport2Job(ErtScript):
     def run(self, *args, **_):
-        # pylint: disable=no-self-use
         main(args)
 
 

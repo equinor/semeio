@@ -1,4 +1,3 @@
-# pylint: disable=logging-fstring-interpolation
 import logging
 import re
 import shlex
@@ -56,19 +55,17 @@ def all_matched(line, template_file_name, template):
     valid = True
     for unmatched in unmatched_templates(line):
         if is_perl(template_file_name, template):
-            _logger.warning(  # pylint: disable=logging-fstring-interpolation
+            _logger.warning(
                 f"{unmatched} not found in design matrix, "
                 f"but this is probably a Perl file"
             )
         elif is_xml(template_file_name, template):
-            _logger.warning(  # pylint: disable=logging-fstring-interpolation
+            _logger.warning(
                 f"{unmatched} not found in design matrix, "
                 f"but this is probably an xml file"
             )
         else:
-            _logger.error(  # pylint: disable=logging-fstring-interpolation
-                f"{unmatched} not found in design matrix"
-            )
+            _logger.error(f"{unmatched} not found in design matrix")
             valid = False
     return valid
 

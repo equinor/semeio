@@ -56,8 +56,6 @@ class SemeioScript(ErtScript):
     it forwards log statements to the reporter as well.
     """
 
-    # pylint: disable=abstract-method
-
     def __init__(self, ert, storage, ensemble=None):
         super().__init__(ert, storage, ensemble=ensemble)
         self.facade = LibresFacade(ert)
@@ -66,7 +64,6 @@ class SemeioScript(ErtScript):
         self._wrap_run()
 
     def _wrap_run(self):
-        # pylint: disable=access-member-before-definition
         self._real_run = self.run
 
         def run_with_handler(self, *args, **kwargs):
@@ -98,12 +95,10 @@ class SemeioScript(ErtScript):
 
     @property
     def _reports_dir(self):
-        # pylint: disable=protected-access
         return self.reporter._output_dir
 
     @_reports_dir.setter
     def _reports_dir(self, output_dir):
-        # pylint: disable=protected-access
         output_dir = Path(output_dir)
         if not output_dir.is_absolute():
             base_dir = Path(self.facade.enspath).parent.absolute()

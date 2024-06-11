@@ -1,4 +1,3 @@
-# pylint: disable=invalid-name
 import logging
 import os.path
 from collections import namedtuple
@@ -49,7 +48,6 @@ def write_surface(vintage_pairs, ts, output_dir, type_str, file_format="irap_bin
 
 
 def ots_run(parameter_file):
-    # pylint: disable=too-many-locals
     parms = ots_load_params(parameter_file)
     vintage_pairs = parms.vintages
 
@@ -142,7 +140,6 @@ def ots_run(parameter_file):
 
 
 class OverburdenTimeshift:
-    # pylint: disable=too-many-instance-attributes
     def __init__(
         self,
         eclbase,
@@ -155,7 +152,6 @@ class OverburdenTimeshift:
         above,
         velocity_model,
     ):
-        # pylint: disable=too-many-arguments
         """
         The OTS class manages the information required to calculate
         overburden timeshift.
@@ -194,11 +190,8 @@ class OverburdenTimeshift:
 
         :param z: replace z values of surface
         """
-        # pylint: disable=too-many-locals
-        nx = self._surface.nx
-        ny = self._surface.ny
-        x = self._surface.x
-        y = self._surface.y
+        nx, ny = self._surface.nx, self._surface.ny
+        x, y = self._surface.x, self._surface.y
         if z is None:
             z = self._surface.z
 
@@ -294,7 +287,6 @@ class OverburdenTimeshift:
         :param subsidence_func: specify subsidence method to be used
         :param method_name: string represeting the subsudence func name
         """
-        # pylint: disable=too-many-locals
         if len(vintage_pairs) < 1:
             return 0, []
 
@@ -304,7 +296,7 @@ class OverburdenTimeshift:
         surf_displacement = {}
         ts_surfaces = []
         for vintage in vintages:
-            logging.info(  # pylint: disable=logging-fstring-interpolation
+            logging.info(
                 f"{dt.now():%x %X} {method_name}: Calculating vintage {vintage.date:%Y.%m.%d}"
             )
 
@@ -351,7 +343,7 @@ class OverburdenTimeshift:
             # Approximatelly R_comp = R_stretch / 5 was chosen
             self._divide_negative_shift(ts, div_val=5.0)
 
-            ts = ts * self._convention
+            ts *= self._convention
 
             ts_surfaces.append(self._create_surface(ts))
 
@@ -363,7 +355,6 @@ class OverburdenTimeshift:
 
         :param vintage_pairs:
         """
-        # pylint: disable=too-many-locals
 
         if len(vintage_pairs) < 1:
             return 0, []
@@ -376,7 +367,7 @@ class OverburdenTimeshift:
 
         for base, monitor in vintage_pairs:
             surf_displacement = np.zeros(len(surface))
-            logging.info(  # pylint: disable=logging-fstring-interpolation
+            logging.info(
                 f"{dt.now():%x %X} TS: Calculating vintage"
                 f" {base:%Y.%m.%d} - {monitor:%Y.%m.%d}"
             )
@@ -423,7 +414,7 @@ class OverburdenTimeshift:
             ts = -self._r_factor * surf_displacement * surface.dt * 1000
             self._divide_negative_shift(ts)
 
-            ts = ts * self._convention
+            ts *= self._convention
 
             ts_surfaces.append(self._create_surface(ts))
 
@@ -450,7 +441,7 @@ class OverburdenTimeshift:
             start_date, end_date = base, monitor
         else:
             raise ValueError(f"Convention must be 1 or -1, was {self._convention}")
-        logging.debug(  # pylint: disable=logging-fstring-interpolation
+        logging.debug(
             f"{dt.now():%x %X} {func_name}: Calculating shift"
             f" {start_date:%Y.%m.%d}-{end_date:%Y.%m.%d} in {num_points_calculated} points"
         )
@@ -482,7 +473,6 @@ class OverburdenTimeshift:
         :param vintage_pairs: list of pairs of vintages
         :return:
         """
-        # pylint: disable=too-many-locals
 
         if len(vintage_pairs) < 1:
             return 0, []
@@ -496,7 +486,7 @@ class OverburdenTimeshift:
         pressure_volume = {}
 
         for vintage in vintages:
-            logging.info(  # pylint: disable=logging-fstring-interpolation
+            logging.info(
                 f"{dt.now():%x %X} DPV: Calculating vintage {vintage.date:%Y.%m.%d}"
             )
             self.add_survey(vintage.name, vintage.date)

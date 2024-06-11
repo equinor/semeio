@@ -26,9 +26,7 @@ class TrajectoryPoint:
         zone (str)
     """
 
-    # pylint: disable=too-many-instance-attributes
     def __init__(self, utm_x, utm_y, measured_depth, true_vertical_depth, zone=None):
-        # pylint: disable=too-many-arguments
         self.utm_x = utm_x
         self.utm_y = utm_y
         self.measured_depth = measured_depth

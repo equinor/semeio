@@ -1,4 +1,3 @@
-# pylint: disable=no-self-argument
 import itertools
 import pathlib
 from typing import List, Literal, Optional, Union
@@ -235,7 +234,6 @@ class ScalingForSegmentsConfig(BaseModel):
     @field_validator("scalingfactors")
     @classmethod
     def check_length_consistency(cls, scalingfactors, info):
-        # pylint: disable=no-self-use
         # Ensure that active segment list and scaling factor lists are of equal length.
         active_segment_list = info.data.get("active_segments", None)
         if not active_segment_list:
@@ -409,7 +407,6 @@ class LocalisationConfig(BaseModel):
     @field_validator("correlations", mode="after")
     @classmethod
     def validate_correlations(cls, correlations):
-        # pylint: disable=no-self-use
         duplicates = check_for_duplicated_correlation_specifications(correlations)
         if len(duplicates) > 0:
             error_msgs = "\n".join(duplicates)
