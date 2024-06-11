@@ -94,5 +94,5 @@ def test_hook_implementations_forward_model_docs():
     assert set(docs.keys()) == set(installable_fms.keys())
 
     for forward_model_name in installable_fms:
-        assert docs[forward_model_name]["description"] != ""
+        assert not docs[forward_model_name]["description"]
         assert docs[forward_model_name]["category"] != "other"

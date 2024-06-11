@@ -1,4 +1,3 @@
-# pylint: disable=logging-fstring-interpolation
 import logging
 import warnings
 from pathlib import Path
@@ -32,7 +31,6 @@ def run(
     parametersfilename="parameters.txt",
     log_level=None,
 ):
-    # pylint: disable=too-many-arguments
     """
     Reads out all file content from different files and create dataframes
     """
@@ -147,7 +145,7 @@ def _complete_parameters_file(
     if not conflicts.empty:
         for _, row in conflicts.iterrows():
             msg = (
-                "Parameter {} already exists in {} with value {}, "  # pylint: disable=consider-using-f-string
+                "Parameter {} already exists in {} with value {}, "
                 "design matrix value {} ignored"
             ).format(
                 row["keys"], parametersfilename, row["parameters"], row["realization"]

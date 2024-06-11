@@ -212,7 +212,7 @@ def test_multiple_report_steps(tmpdir, monkeypatch):
         float(Path("RFT_OP_1_1").read_text(encoding="utf8")), 249.214965
     )
     assert Path("RFT_OP_1_1_active").read_text(encoding="utf8") == "1"
-    assert Path("RFT_OP_1_1_inactive_info").read_text(encoding="utf8") == ""
+    assert not Path("RFT_OP_1_1_inactive_info").read_text(encoding="utf8")
     assert numpy.isclose(float(Path("RFT_SGAS_OP_1_1").read_text(encoding="utf8")), 0.0)
     assert numpy.isclose(
         float(Path("RFT_SOIL_OP_1_1").read_text(encoding="utf8")), 0.6119158
@@ -262,7 +262,7 @@ def test_gendata_inactive_info_zone_mismatch(tmpdir, monkeypatch):
         lines = file.readlines()
 
     line = lines[-1].rsplit(" ", 1)[0]
-    line = line + " last_zone"
+    line += " last_zone"
 
     with open("B-1AH.txt", "w+", encoding="utf-8") as file:
         file.write(line)
@@ -594,7 +594,8 @@ def test_ert_setup_one_well_two_points_different_time_and_depth(tmpdir):
         "GENERAL_OBSERVATION OP_1_OBS1 "
         "{DATA=OP_1_RFT_SIM1; RESTART=1; OBS_FILE=observations/OP_1_1.obs; };\n"
         "GENERAL_OBSERVATION OP_1_OBS2 "
-        "{DATA=OP_1_RFT_SIM2; RESTART=2; OBS_FILE=observations/OP_1_2.obs; };\n"
+        "{DATA=OP_1_RFT_SIM2; RESTART=2; OBS_FILE=observations/OP_1_2.obs; };\n",
+        encoding="utf-8",
     )
 
     # Chosen filename syntax for obs file: <wellname>_<report_step>.obs

@@ -84,7 +84,6 @@ test = [
 
 style = [
     "pre-commit",
-    "pylint",
 ]
 
 types = [
