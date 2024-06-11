@@ -4,7 +4,7 @@ on: [pull_request]
 
 jobs:
   lint:
-    name: Linting through tox
+    name: Linting through pre-commit
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -12,7 +12,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install tox
-        run: pip install tox
-      - name: Run style
-        run: tox -e style
+      - name: Install semeio with style deps
+        run: pip install ".[style]"
+      - name: Run pre-commit
+        run: pre-commit run --all-files --show-diff-on-failure
