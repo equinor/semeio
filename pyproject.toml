@@ -80,6 +80,14 @@ test = [
     "pytest-xdist",
     "rstcheck-core",
     "xlwt",
+]
+
+style = [
+    "pre-commit",
+    "pylint",
+]
+
+types = [
     "mypy",
     "pandas-stubs",
     "types-setuptools",
@@ -87,6 +95,7 @@ test = [
 ]
 
 [tool.pytest.ini_options]
+addopts = "-ra --strict-markers"
 markers = [
     "ert_integration: Involves running the ert application explicitly",
     "equinor_test: Requires presences of test data in specified location"
@@ -105,4 +114,15 @@ select = [
   "SIM", # flake-8-simplify
   "F",   # pyflakes
   "C4",  # flake8-comprehensions
+  "PL",
 ]
+ignore = ["PLW2901", # redefined-loop-name
+          "PLR2004", # magic-value-comparison
+          "PLR0915", # too-many-statements
+          "PLR0912", # too-many-branches
+          "PLR5501", # collapsible-else-if
+          "PLR0911",  # too-many-return-statements
+]
+
+[tool.ruff.lint.pylint]
+max-args = 20

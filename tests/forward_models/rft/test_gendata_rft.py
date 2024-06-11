@@ -525,6 +525,7 @@ GEN_DATA OP_1_RFT_SIM1 INPUT_FORMAT:ASCII REPORT_STEPS:1 RESULT_FILE:RFT_OP_1_%d
         ["ert", "ensemble_smoother", "--target-case", "default_1", "config.ert"],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
+        check=False,
     )
     stdouterr = result.stdout.decode() + result.stderr.decode()
 
@@ -639,6 +640,7 @@ def test_ert_setup_one_well_two_points_different_time_and_depth(tmpdir):
         ["ert", "ensemble_smoother", "--target-case", "default_1", "config.ert"],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
+        check=False,
     )
     stdouterr = result.stdout.decode() + result.stderr.decode()
 

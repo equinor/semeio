@@ -26,7 +26,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install semeio and dependencies
       run: |
-        pip install ".[test]"
+        pip install ".[types]"
     - name: Run mypy
       run: |
         mypy src/semeio
