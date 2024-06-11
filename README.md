@@ -1,7 +1,6 @@
 [![PyPI version](https://badge.fury.io/py/semeio.svg)](https://badge.fury.io/py/semeio)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/semeio)](https://img.shields.io/pypi/pyversions/semeio)
 [![Actions Status](https://github.com/equinor/semeio/workflows/CI/badge.svg)](https://github.com/equinor/semeio/actions?query=workflow=CI)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 # semeio #
@@ -29,51 +28,22 @@ how to run workflows and forward models, and build the [ERT](https://github.com/
 documentation for the workflows and forward models.
 
 ## Run tests
-[tox](https://tox.readthedocs.io/en/latest/) is used as the test facilitator,
-to run the full test suite:
+To run the full test suite, do:
 
 ```sh
-pip install tox
-tox
-```
-
-or to run it for a particular Python version (in this case Python 3.10):
-
-```sh
-pip install tox
-tox -e py310
-```
-
-or to run it for a the current Python version:
-
-```sh
-pip install tox
-tox -e py
-```
-
-[pytest](https://docs.pytest.org/en/latest/) is used as the test runner, so for quicker
-iteration it is possible to run:
-
-```sh
-pytest
-```
-
-this requires that test-dependencies are installed:
-
-```sh
-# Install test requirements
-pip install "semeio[test]"
+pip install ".[test]"
+pytest tests
 ```
 
 [pre-commit](https://pre-commit.com/) is used to comply with the formatting standards.
 The complete formatting tests can be run with:
 
 ```sh
-pip install tox
-tox -e style
+pip install ".[style]"
+pre-commit run --all-files
 ```
 
-Formatting tests include `ruff` and `pylint`, See `.pre-commit-config.yaml` for the
+Formatting include `ruff` and `pylint`, See `.pre-commit-config.yaml` for the
 complete steps.
 
 [pre-commit](https://pre-commit.com/) can also provide git hooks to run on every commit
@@ -81,7 +51,7 @@ to avoid commiting with formatting errors. This will only run on the diff so is 
 To configure this, run:
 
 ```sh
-pip install "semeio[test]"
+pip install ".[style]"
 pip install pre-commit
 pre-commit install
 ```

@@ -4,7 +4,7 @@ The following is a set of guidelines for contributing to semeio.
 
 ## Ground Rules
 
-1. We use Black code formatting
+1. We use ruff code formatting
 1. We do our best to stick to pylint and flake8 code standards
 1. All code must be testable and unit tested
 1. Commit messages should follow the format as described here https://chris.beams.io/posts/git-commit/
