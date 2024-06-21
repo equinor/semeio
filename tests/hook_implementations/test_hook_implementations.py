@@ -11,7 +11,7 @@ from semeio.forward_models import (
     InsertNoSim,
     Pyscal,
     RemoveNoSim,
-    ReplaceStringConfig,
+    ReplaceString,
 )
 from semeio.workflows.ahm_analysis import ahmanalysis
 from semeio.workflows.csv_export2 import csv_export2
@@ -29,7 +29,7 @@ def test_that_installable_fm_steps_work_as_plugins():
     assert OTS in fms
     assert InsertNoSim in fms
     assert RemoveNoSim in fms
-    assert ReplaceStringConfig in fms
+    assert ReplaceString in fms
 
 
 def test_hook_implementations():

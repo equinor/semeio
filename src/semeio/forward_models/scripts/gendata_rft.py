@@ -46,43 +46,6 @@ from fmu.tools can be used, called from within RMS. See
 https://equinor.github.io/fmu-tools/create_rft_ertobs.html
 """
 
-examples = """
-Setup a file with well-names and associated date of RFT data in a file called
-e.g. ``well_date_rft.txt``::
-
-    -- well YYYY-MM-DD report_step
-    A-1     2000-02-01 0
-
-A directory with trajectory files must be prepared, which must contain one
-file for each well mentioned in the file above. A file in this directory
-could look like::
-
-    -- utmx    utmy      depth_MD depth_TVD  zone
-    462608.57 5934210.96 1674.44  1624.38    Upper -- cell 29 28 2
-
-(add more lines for more points).
-
-A zonemap-file is a text-file with k-index and zone-name pr line, e.g a file
-named ``layer_zone_table.txt``::
-
-    1 Upper
-    2 Upper
-    3 Lower
-    4 Lower
-
-In the ert config, after running the Eclipse (or similiar) forward model, add::
-
-    DEFINE RFT_INPUT <CONFIG_PATH>/../input/observations/rft
-    FORWARD_MODEL MAKE_DIRECTORY(<DIRECTORY>=gendata_rft)
-    FORWARD_MODEL GENDATA_RFT(<PATH_TO_TRAJECTORY_FILES>=<RFT_INPUT>/rft/, <WELL_AND_TIME_FILE>=<RFT_INPUT>/well_date_rft.txt, <ZONEMAP>=<RFT_INPUT>/layer_zone_table.txt, <OUTPUTDIRECTORY>=gendata_rft)
-
-For assisted history matching, add ``GEN_DATA`` statements to the ert config::
-
-    GEN_DATA A-1 RESULT_FILE:gendata_rft/RFT_A-1_%d INPUT_FORMAT:ASCII REPORT_STEPS:0
-
-"""  # noqa
-category = "utility.transformation"
-
 
 def _build_parser():
     parser = argparse.ArgumentParser(description=description)
