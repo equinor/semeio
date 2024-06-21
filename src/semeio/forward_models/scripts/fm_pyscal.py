@@ -78,20 +78,6 @@ client upfront:
 Run ``pyscal --help`` for syntax.
 """
 
-examples = """
-
-.. code-block:: none
-
-  FORWARD_MODEL PYSCAL(<PARAMETER_FILE>=scalinput.xlsx, <RESULT_FILE>=eclipse/include/props/relperm.inc, <SHEETNAME>=alternativerecommendation)
-  FORWARD_MODEL PYSCAL(<PARAMETER_FILE>=scalinput.xlsx, <RESULT_FILE>=eclipse/include/props/relperm.inc, <INT_PARAM_WO_NAME>=RELPERM_INTERP)
-  FORWARD_MODEL PYSCAL(<PARAMETER_FILE>=scalinput.xlsx, <RESULT_FILE>=eclipse/include/props/relperm.inc, <INT_PARAM_WO_NAME>=RELPERM_INTERP_WO, <INT_PARAM_GO_NAME>=RELPERM_INTERP_GO)
-  FORWARD_MODEL PYSCAL(<PARAMETER_FILE>=scalinput.xlsx, <RESULT_FILE>=eclipse/include/props/relperm.inc, <FAMILY>=2) -- for Eclipse family 2 output
-
-"""  # noqa
-
-
-category = "modelling.reservoir"
-
 
 def _get_args_parser():
     """Construct an argparse parser for fm_pyscal"""

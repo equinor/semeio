@@ -21,8 +21,6 @@ by this script.  You must run this script as a FORWARD_MODEL from your ERT confi
 before you run DESIGN_KW.
 """
 
-category = "utility.templating"
-
 
 def create_parser():
     parser = argparse.ArgumentParser(description=description)
