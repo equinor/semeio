@@ -19,8 +19,6 @@ To escape whitespace use ""
 
 """
 
-category = "utility.templating"
-
 
 def _get_args_parser():
     parser = argparse.ArgumentParser(description=description)

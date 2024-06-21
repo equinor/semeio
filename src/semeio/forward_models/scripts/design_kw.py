@@ -22,8 +22,6 @@ of the templates ``<MULTFLT:FLT_A10_B18>`` and ``<FLT_A10_B18>`` will expand to
 ``0.001``.
 """
 
-category = "utility.templating"
-
 
 def create_parser():
     parser = argparse.ArgumentParser(description=description)

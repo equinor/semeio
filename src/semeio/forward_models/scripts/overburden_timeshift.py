@@ -26,7 +26,6 @@ description = (
     + 2 * "\n"
     + _create_docs(OTSConfig.model_json_schema(by_alias=False, ref_template="{model}"))
 )
-category = "modelling.surface"
 
 
 def _get_args_parser():
