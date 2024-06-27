@@ -2,7 +2,7 @@ import os
 import shutil
 
 import pytest
-from ert.libres_facade import LibresFacade
+from ert import LibresFacade
 
 
 @pytest.fixture()

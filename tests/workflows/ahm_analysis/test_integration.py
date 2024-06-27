@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pandas as pd
 import pytest
-from ert.libres_facade import LibresFacade
+from ert import LibresFacade
 from ert.storage import open_storage
 
 from semeio.workflows.ahm_analysis import ahmanalysis
