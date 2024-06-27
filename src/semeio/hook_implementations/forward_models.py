@@ -2,8 +2,7 @@ import importlib
 from typing import Dict
 
 import importlib_resources
-from ert.shared.plugins.plugin_manager import hook_implementation
-from ert.shared.plugins.plugin_response import plugin_response
+from ert import hook_implementation, plugin_response
 
 from semeio.forward_models import (
     OTS,
