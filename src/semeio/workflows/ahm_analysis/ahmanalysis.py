@@ -7,8 +7,8 @@ from copy import deepcopy
 
 import numpy as np
 import pandas as pd
+from ert import hook_implementation
 from ert.analysis import ErtAnalysisError, SmootherSnapshot
-from ert.shared.plugins.plugin_manager import hook_implementation
 from ert.storage import open_storage
 from scipy.stats import ks_2samp
 

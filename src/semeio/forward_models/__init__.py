@@ -1,7 +1,10 @@
 from typing import Optional
 
-from ert import ForwardModelStepJSON, ForwardModelStepPlugin
-from ert.config.forward_model_step import ForwardModelStepDocumentation
+from ert import (
+    ForwardModelStepDocumentation,
+    ForwardModelStepJSON,
+    ForwardModelStepPlugin,
+)
 
 from .scripts.design2params import description as design2params_description
 from .scripts.design_kw import description as design_kw_description

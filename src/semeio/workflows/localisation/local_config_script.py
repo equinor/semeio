@@ -1,5 +1,5 @@
+from ert import hook_implementation
 from ert.config import ConfigValidationError
-from ert.shared.plugins.plugin_manager import hook_implementation
 from resdata.grid import Grid
 
 import semeio.workflows.localisation.local_script_lib as local

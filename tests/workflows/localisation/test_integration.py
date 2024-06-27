@@ -4,9 +4,9 @@ import numpy as np
 import pytest
 import xtgeo
 import yaml
-from ert.libres_facade import LibresFacade
+from ert import LibresFacade
 from ert.storage import open_storage
-from xtgeo.surface.regular_surface import RegularSurface
+from xtgeo import RegularSurface
 
 from semeio.workflows.localisation.local_config_script import LocalisationConfigJob
 
