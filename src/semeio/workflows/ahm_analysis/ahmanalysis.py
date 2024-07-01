@@ -368,9 +368,8 @@ def get_updated_parameters(prior_data, parameters):
             result = np.all(prior_data[dkey] == flatten_arr[0])
             if not result:
                 p_keysf.append(dkey)
-        else:
-            if not all(x == prior_data[dkey][0] for x in prior_data[dkey]):
-                p_keysf.append(dkey)
+        elif not all(x == prior_data[dkey][0] for x in prior_data[dkey]):
+            p_keysf.append(dkey)
     return p_keysf
 
 
