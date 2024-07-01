@@ -144,17 +144,17 @@ def test_calc_kolmogorov_smirnov():
     ks_matrix = pd.DataFrame()
     dkeys = ["param1", "param2"]
     ks_matrix = pd.DataFrame(sorted(dkeys), columns=["Parameters"])
-    np.random.seed(12345678)
+    rng = np.random.default_rng(12345678)
     prior_data = pd.DataFrame(
         {
-            "param1": stats.norm.rvs(size=100, loc=0, scale=1),
-            "param2": stats.norm.rvs(size=100, loc=0.01, scale=1),
+            "param1": stats.norm.rvs(size=100, loc=0, scale=1, random_state=rng),
+            "param2": stats.norm.rvs(size=100, loc=0.01, scale=1, random_state=rng),
         }
     )
     target_data = pd.DataFrame(
         {
-            "param1": stats.norm.rvs(size=200, loc=0.5, scale=1.5),
-            "param2": stats.norm.rvs(size=200, loc=0.1, scale=1),
+            "param1": stats.norm.rvs(size=200, loc=0.5, scale=1.5, random_state=rng),
+            "param2": stats.norm.rvs(size=200, loc=0.1, scale=1, random_state=rng),
         }
     )
     ks_matrix["WOPT:W1"] = ks_matrix["Parameters"].map(
@@ -162,7 +162,7 @@ def test_calc_kolmogorov_smirnov():
     )
     ks_matrix.set_index("Parameters", inplace=True)
     assert "param2" in ks_matrix.index
-    assert ks_matrix.loc["param1", "WOPT:W1"] == 0.18
+    assert ks_matrix.loc["param1", "WOPT:W1"] == 0.275
     assert ks_matrix["WOPT:W1"].max() <= 1
     assert ks_matrix["WOPT:W1"].min() >= 0
 
