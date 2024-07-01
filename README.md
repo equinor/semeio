@@ -10,7 +10,7 @@ exposing end points which is considered the API of semeio. If there are submodul
 more generally, or have use outside these forward models and workflows, please create an issue and it can be exposed in
 the API.
 
-# Installation and usage
+# Installation
 
 Semeio is available on [pypi](https://pypi.org/project/semeio/) and can be installed using `pip install semeio`.
 
@@ -19,7 +19,7 @@ Semeio is available on [pypi](https://pypi.org/project/semeio/) and can be insta
 pip install semeio
 ```
 
-## Usage
+# Usage
 
 Once installed semeio will automatically register its workflows and forward models with
 [ERT](https://github.com/equinor/ert). Through the plugin hooks it will also add its own documentation to the [ERT](https://github.com/equinor/ert)
@@ -27,7 +27,7 @@ documentation. See the [ERT](https://github.com/equinor/ert) documentation for e
 how to run workflows and forward models, and build the [ERT](https://github.com/equinor/ert) documentation to get
 documentation for the workflows and forward models.
 
-## Run tests
+# Run tests
 To run the full test suite, do:
 
 ```sh
