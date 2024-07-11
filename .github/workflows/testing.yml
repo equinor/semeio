@@ -37,7 +37,9 @@ jobs:
           python-version: "${{ matrix.python-version }}"
 
       - name: Install test dependencies
-        run: pip install ".[test]"
+        run: |
+          pip install ".[test]"
+          pip list
 
       - name: "Run tests"
         run: pytest tests -n logical --durations 5 --ert-integration
