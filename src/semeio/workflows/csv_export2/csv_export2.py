@@ -2,7 +2,7 @@ import argparse
 import sys
 
 import pandas as pd
-from ert import ErtScript, hook_implementation
+from ert import ErtScript, plugin
 from fmu import ensemble
 
 DESCRIPTION = """
@@ -141,7 +141,7 @@ def csv_export_parser():
     return parser
 
 
-@hook_implementation
+@plugin(name="semeio")
 def legacy_ertscript_workflow(config):
     workflow = config.add_workflow(CsvExport2Job, "CSV_EXPORT2")
     workflow.parser = csv_export_parser

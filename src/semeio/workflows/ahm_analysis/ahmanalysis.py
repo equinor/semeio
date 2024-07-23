@@ -5,9 +5,9 @@ import tempfile
 import warnings
 from copy import deepcopy
 
+import ert
 import numpy as np
 import pandas as pd
-from ert import hook_implementation
 from ert.analysis import ErtAnalysisError, SmootherSnapshot
 from ert.storage import open_storage
 from scipy.stats import ks_2samp
@@ -410,7 +410,7 @@ def _group_observations(facade, obs_keys, group_by):
     return key_map
 
 
-@hook_implementation
+@ert.plugin(name="semeio")
 def legacy_ertscript_workflow(config):
     workflow = config.add_workflow(AhmAnalysisJob, "AHM_ANALYSIS")
     workflow.description = DESCRIPTION
