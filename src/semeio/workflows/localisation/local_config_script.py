@@ -1,4 +1,4 @@
-from ert import hook_implementation
+import ert
 from ert.config import ConfigValidationError
 from resdata.grid import Grid
 
@@ -473,7 +473,7 @@ Keywords
 """
 
 
-@hook_implementation
+@ert.plugin(name="semeio")
 def legacy_ertscript_workflow(config):
     workflow = config.add_workflow(LocalisationConfigJob, "LOCALISATION_JOB")
     workflow.description = DESCRIPTION

@@ -1,8 +1,8 @@
 import importlib
 from typing import Dict
 
+import ert
 import importlib_resources
-from ert import hook_implementation, plugin_response
 
 from semeio.forward_models import (
     OTS,
@@ -47,8 +47,7 @@ def _get_forward_models_from_directory(directory: str) -> Dict[str, str]:
     return {_remove_suffix(path.name, "_CONFIG"): str(path) for path in all_files}
 
 
-@hook_implementation
-@plugin_response(plugin_name="semeio")
+@ert.plugin(name="semeio")
 def installable_jobs():
     return _get_forward_models_from_directory("forward_models/config")
 
@@ -62,8 +61,7 @@ def _get_module_variable_if_exists(module_name, variable_name, default=""):
     return getattr(script_module, variable_name, default)
 
 
-@hook_implementation
-@plugin_response(plugin_name="semeio")
+@ert.plugin(name="semeio")
 def job_documentation(job_name):
     forward_model_name = job_name
     semeio_forward_models = set(installable_jobs().data.keys())
@@ -108,8 +106,7 @@ def job_documentation(job_name):
     }
 
 
-@hook_implementation
-@plugin_response(plugin_name="semeio")
+@ert.plugin(name="semeio")
 def installable_forward_model_steps():
     return [
         Design2Params,
