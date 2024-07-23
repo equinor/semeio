@@ -3,11 +3,7 @@ import shutil
 import subprocess
 import sys
 
-import ert.shared.hook_implementations
 import pytest
-from ert.shared.plugins.plugin_manager import ErtPluginContext
-
-import semeio.hook_implementations.forward_models
 
 
 @pytest.mark.skipif(
@@ -71,14 +67,8 @@ def test_nosim(nosim_command, data_input, data_expected):
     with open("TEST.DATA", "w", encoding="utf-8") as file:
         file.write(data_input)
 
-    with ErtPluginContext(
-        plugins=[
-            semeio.hook_implementations.forward_models,
-            ert.shared.hook_implementations,
-        ]
-    ):
-        subprocess.check_call(
-            ["ert", "test_run", "nosim.ert", "--verbose"],
-        )
+    subprocess.check_call(
+        ["ert", "test_run", "nosim.ert", "--verbose"],
+    )
     with open("nosim/realization-0/iter-0/TEST.DATA", encoding="utf-8") as file:
         assert file.read() == data_expected
