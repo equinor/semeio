@@ -75,7 +75,7 @@ class ObsConfig(BaseModel):
     add: Union[str, List[str]]
     remove: Optional[Union[str, List[str]]] = None
 
-    @computed_field  # type: ignore[misc]
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def result_items(self) -> List[str]:
         res = _check_specification(self.add, self.remove, self.context)
