@@ -9,6 +9,7 @@ on:
 
 env:
   ERT_SHOW_BACKTRACE: 1
+  UV_SYSTEM_PYTHON: 1
 
 jobs:
   tests:
@@ -33,8 +34,15 @@ jobs:
           python-version: "${{ matrix.python-version }}"
           cache: "pip"
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          cache-dependency-glob: pyproject.toml
+
       - name: Install test dependencies
-        run: pip install ".[test]"
+        run: |
+          uv pip install ".[test]"
 
       - name: "Run tests"
         run: pytest tests -n logical --durations 5 --ert-integration
