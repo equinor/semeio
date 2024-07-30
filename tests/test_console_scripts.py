@@ -5,7 +5,6 @@ import pytest
 @pytest.mark.parametrize(
     "entry_point",
     [
-        "csv_export2",
         "overburden_timeshift",
         "design2params",
         "gendata_rft",
