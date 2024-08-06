@@ -21,7 +21,7 @@ jobs:
         os: [ ubuntu-latest ]
         include:
           - python-version: "3.12"
-            os: macos-12
+            os: macos-latest
 
     steps:
       - uses: actions/checkout@v4
@@ -37,7 +37,9 @@ jobs:
           python-version: "${{ matrix.python-version }}"
 
       - name: Install test dependencies
-        run: pip install ".[test]"
+        run: |
+          pip install ".[test]"
+          pip list
 
       - name: "Run tests"
         run: pytest tests -n logical --durations 5 --ert-integration
