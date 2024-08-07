@@ -464,11 +464,20 @@ def test_ert_setup_one_well_one_rft_point(tmpdir):
     ERT update step.
     """
     tmpdir.chdir()
-    Path("realization-0/iter-0").mkdir(parents=True)
-    Path("realization-0/iter-1").mkdir(parents=True)
-    for filename in Path(ECL_BASE_REEK).parent.glob("2_R001_REEK-0.*"):
-        shutil.copy(filename, Path("realization-0/iter-0") / filename.name)
-        shutil.copy(filename, Path("realization-0/iter-1") / filename.name)
+    for real_id in [0, 1]:
+        Path(f"realization-{real_id}/iter-0").mkdir(parents=True)
+        Path(f"realization-{real_id}/iter-1").mkdir(parents=True)
+        for filename in Path(ECL_BASE_REEK).parent.glob("2_R001_REEK-0.*"):
+            shutil.copy(
+                filename,
+                Path(f"realization-{real_id}/iter-0")
+                / filename.name.replace("REEK-0", f"REEK-{real_id}"),
+            )
+            shutil.copy(
+                filename,
+                Path(f"realization-{real_id}/iter-1")
+                / filename.name.replace("REEK-0", f"REEK-{real_id}"),
+            )
 
     Path("rft_input").mkdir()
 
@@ -509,7 +518,7 @@ RUNPATH realization-<IENS>/iter-<ITER>
 ECLBASE 2_R001_REEK-%d
 TIME_MAP time_map.txt
 QUEUE_SYSTEM LOCAL
-NUM_REALIZATIONS 1
+NUM_REALIZATIONS 2
 OBS_CONFIG observations.txt
 
 FORWARD_MODEL GENDATA_RFT(<PATH_TO_TRAJECTORY_FILES>=../../rft_input, <WELL_AND_TIME_FILE>=../../rft_input/well_time.txt)
@@ -551,9 +560,10 @@ GEN_DATA OP_1_RFT_SIM1 INPUT_FORMAT:ASCII REPORT_STEPS:1 RESULT_FILE:RFT_OP_1_%d
     assert "Experiment failed" in stdouterr
 
     # Asserts on GENDATA_RFT output:
-    assert Path("realization-0/iter-0/RFT_OP_1_1").is_file()
+    for real_id in [0, 1]:
+        assert Path(f"realization-{real_id}/iter-0/RFT_OP_1_1").is_file()
 
-    assert Path("realization-0/iter-0/OK").is_file()
+        assert Path(f"realization-{real_id}/iter-0/OK").is_file()
 
 
 @pytest.mark.ert_integration
@@ -568,11 +578,20 @@ def test_ert_setup_one_well_two_points_different_time_and_depth(tmpdir):
     Also using a dedicated directory for RUNPATH output of rft data.
     """
     tmpdir.chdir()
-    Path("realization-0/iter-0").mkdir(parents=True)
-    Path("realization-0/iter-1").mkdir(parents=True)
-    for filename in Path(ECL_BASE_REEK).parent.glob("2_R001_REEK-0.*"):
-        shutil.copy(filename, Path("realization-0/iter-0") / filename.name)
-        shutil.copy(filename, Path("realization-0/iter-1") / filename.name)
+    for real_id in [0, 1]:
+        Path(f"realization-{real_id}/iter-0").mkdir(parents=True)
+        Path(f"realization-{real_id}/iter-1").mkdir(parents=True)
+        for filename in Path(ECL_BASE_REEK).parent.glob("2_R001_REEK-0.*"):
+            shutil.copy(
+                filename,
+                Path(f"realization-{real_id}/iter-0")
+                / filename.name.replace("REEK-0", f"REEK-{real_id}"),
+            )
+            shutil.copy(
+                filename,
+                Path(f"realization-{real_id}/iter-1")
+                / filename.name.replace("REEK-0", f"REEK-{real_id}"),
+            )
 
     Path("rft_input").mkdir()
 
@@ -621,7 +640,7 @@ def test_ert_setup_one_well_two_points_different_time_and_depth(tmpdir):
     ECLBASE 2_R001_REEK-%d
     TIME_MAP time_map.txt
     QUEUE_SYSTEM LOCAL
-    NUM_REALIZATIONS 1
+    NUM_REALIZATIONS 2
     OBS_CONFIG observations.txt
 
     FORWARD_MODEL MAKE_DIRECTORY(<DIRECTORY>=gendata_rft)
@@ -667,9 +686,10 @@ def test_ert_setup_one_well_two_points_different_time_and_depth(tmpdir):
     assert "Experiment failed" in stdouterr
 
     # Asserts on GENDATA_RFT output:
-    assert Path("realization-0/iter-0/gendata_rft/RFT_OP_1_1").is_file()
+    for real_id in [0, 1]:
+        assert Path(f"realization-{real_id}/iter-0/gendata_rft/RFT_OP_1_1").is_file()
 
-    assert Path("realization-0/iter-0/OK").is_file()
+        assert Path(f"realization-{real_id}/iter-0/OK").is_file()
 
 
 def _assert_almost_equal_line_by_line(file1, file2):
