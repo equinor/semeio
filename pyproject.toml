@@ -39,6 +39,7 @@ dependencies = [
     "scipy",
     "xlrd",
     "pyscal>=0.4.0",
+    "fmu-ensemble>1.6.5",
     "segyio",
     "xtgeo>=2.15",
 ]
@@ -48,10 +49,12 @@ repository = "https://github.com/equinor/semeio"
 
 [project.entry-points."ert"]
 semeio_forward_models = "semeio.hook_implementations.forward_models"
+CsvExport2Job = "semeio.workflows.csv_export2.csv_export2"
 AhmAnalysisJob = "semeio.workflows.ahm_analysis.ahmanalysis"
 LocalisationConfigJob = "semeio.workflows.localisation.local_config_script"
 
 [project.entry-points."console_scripts"]
+csv_export2 = "semeio.workflows.csv_export2.csv_export2:cli"
 overburden_timeshift = "semeio.forward_models.scripts.overburden_timeshift:main_entry_point"
 design2params = "semeio.forward_models.scripts.design2params:main_entry_point"
 gendata_rft = "semeio.forward_models.scripts.gendata_rft:main_entry_point"
