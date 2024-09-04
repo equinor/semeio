@@ -4,15 +4,11 @@ import shutil
 import subprocess
 import sys
 
-import pytest
-
 from semeio.communication import SEMEIOSCRIPT_LOG_FILE
 
 TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), "test-data")
-ERT_INSTALLED = shutil.which("ert") is not None
 
 
-@pytest.mark.skipif(not ERT_INSTALLED, reason="ERT is not installed")
 def test_semeio_script_integration(tmpdir):
     tmpdir.chdir()
 
