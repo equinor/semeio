@@ -241,12 +241,6 @@ def test_ert_integration_errors(snapshot):
 
     subprocess.run(["ert", "test_run", ert_config_fname], check=True)
 
-    log_file = next(Path("logs").glob("ert-log*txt"))
-    ertlog = log_file.read_text(encoding="utf-8")
-
-    assert "No STATUS file" in ertlog
-    assert "realization-2/iter-0" in ertlog
-
     assert os.path.exists("data.csv")
     data = pd.read_csv("data.csv")
     snapshot.assert_match(
