@@ -17,7 +17,8 @@ def test_make_update_log_df(snake_oil_facade, snapshot):
     snapshots are correct, they are just documenting the current behavior.
     """
     with open_storage(snake_oil_facade.enspath, "w") as storage:
-        prior_ens = storage.get_ensemble_by_name("default")
+        experiment = storage.get_experiment_by_name("ensemble-experiment")
+        prior_ens = experiment.get_ensemble_by_name("default")
         posterior_ens = storage.create_ensemble(
             prior_ens.experiment_id,
             ensemble_size=prior_ens.ensemble_size,

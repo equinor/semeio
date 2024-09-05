@@ -14,10 +14,11 @@ from semeio.workflows.ahm_analysis import ahmanalysis
 def test_ahmanalysis_run(snake_oil_facade):
     """test data_set with only scalar parameters"""
     with open_storage(snake_oil_facade.enspath, "w") as storage:
+        experiment = storage.get_experiment_by_name("ensemble-experiment")
         snake_oil_facade.run_ertscript(
             ahmanalysis.AhmAnalysisJob,
             storage,
-            storage.get_ensemble_by_name("default"),
+            experiment.get_ensemble_by_name("default"),
         )
 
     # assert that this returns/generates a KS csv file
@@ -70,10 +71,11 @@ def test_ahmanalysis_run_deactivated_obs(snake_oil_facade, snapshot, caplog):
     with open_storage(snake_oil_facade.enspath, "w") as storage, caplog.at_level(
         logging.WARNING
     ):
+        experiment = storage.get_experiment_by_name("ensemble-experiment")
         snake_oil_facade.run_ertscript(
             ahmanalysis.AhmAnalysisJob,
             storage,
-            storage.get_ensemble_by_name("default"),
+            experiment.get_ensemble_by_name("default"),
         )
     assert "Analysis failed for" in caplog.text
 

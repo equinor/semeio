@@ -125,16 +125,24 @@ class AhmAnalysisJob(SemeioScript):
             prior_name,
             target_name,
         )
+
+        prior_ensemble = None
         # Get the prior scalar parameter distributions
-        ensemble = self.storage.get_ensemble_by_name(prior_name)
-        prior_data = ensemble.load_all_gen_kw_data()
+        for experiment in self.storage.experiments:
+            try:
+                prior_ensemble = experiment.get_ensemble_by_name(prior_name)
+                break
+            except KeyError:
+                pass
+
+        if prior_ensemble is None:
+            raise KeyError(f"No ensembles named {prior_name} found in storage.")
+        prior_data = prior_ensemble.load_all_gen_kw_data()
         try:
             raise_if_empty(
                 dataframes=[
                     prior_data,
-                    self.facade.load_all_misfit_data(
-                        self.storage.get_ensemble_by_name(prior_name)
-                    ),
+                    self.facade.load_all_misfit_data(prior_ensemble),
                 ],
                 messages=[
                     "Empty prior ensemble",
@@ -177,7 +185,6 @@ class AhmAnalysisJob(SemeioScript):
                 "tmp_storage", "w"
             ) as storage:
                 try:
-                    prior_ensemble = self.storage.get_ensemble_by_name(prior_name)
                     prev_experiment = prior_ensemble.experiment
                     experiment = storage.create_experiment(
                         parameters=prev_experiment.parameter_configuration.values(),
