@@ -125,75 +125,82 @@
 
   **must be**:
 
-      **ts_simple**:
-        Simple TimeShift geertsma algorithm. It assumes a constant velocity and is fast
+    **ts_simple**:
+
+      Simple TimeShift geertsma algorithm. It assumes a constant velocity and is fast
+
+      **items**:
 
         **items**:
 
-          **items**:
+          **format**: date
 
-            **format**: date
-
-            **type**: string
-
-          **type**: array
-
-          **minimum length**: 2
-
-          **maximum length**: 2
+          **type**: string
 
         **type**: array
-      **ts**:
-        TimeShift geertsma algorithm, which uses velocity, very slow
+
+        **minimum length**: 2
+
+        **maximum length**: 2
+
+      **type**: array
+
+    **ts**:
+
+      TimeShift geertsma algorithm, which uses velocity, very slow
+
+      **items**:
 
         **items**:
 
-          **items**:
+          **format**: date
 
-            **format**: date
-
-            **type**: string
-
-          **type**: array
-
-          **minimum length**: 2
-
-          **maximum length**: 2
+          **type**: string
 
         **type**: array
-      **ts_rporv**:
-        Delta pressure multiplied by cell volume, relatively fast
+
+        **minimum length**: 2
+
+        **maximum length**: 2
+
+      **type**: array
+
+    **ts_rporv**:
+
+      Delta pressure multiplied by cell volume, relatively fast
+
+      **items**:
 
         **items**:
 
-          **items**:
+          **format**: date
 
-            **format**: date
-
-            **type**: string
-
-          **type**: array
-
-          **minimum length**: 2
-
-          **maximum length**: 2
+          **type**: string
 
         **type**: array
-      **dpv**:
-        Calculates timeshift without using velocity. The velocity is only used to get the surface on the velocity grid. It uses a change in porevolume from Eclipse (RPORV in .UNRST) as input to Geertsma model.
+
+        **minimum length**: 2
+
+        **maximum length**: 2
+
+      **type**: array
+
+    **dpv**:
+
+      Calculates timeshift without using velocity. The velocity is only used to get the surface on the velocity grid. It uses a change in porevolume from Eclipse (RPORV in .UNRST) as input to Geertsma model.
+
+      **items**:
 
         **items**:
 
-          **items**:
+          **format**: date
 
-            **format**: date
-
-            **type**: string
-
-          **type**: array
-
-          **minimum length**: 2
-
-          **maximum length**: 2
+          **type**: string
 
         **type**: array
+
+        **minimum length**: 2
+
+        **maximum length**: 2
+
+      **type**: array
