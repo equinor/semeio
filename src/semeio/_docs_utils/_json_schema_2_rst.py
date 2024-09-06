@@ -2,16 +2,21 @@ from copy import deepcopy
 from typing import List, Optional, Union
 
 
-def _insert_ref(schema: dict, defs: dict) -> None:
-    for value in schema.values():
+def _insert_ref(schema: dict, defs: dict) -> dict:
+    schema_copy = schema.copy()
+    for index, value in schema_copy.items():
         if isinstance(value, dict):
-            _insert_ref(value, defs)
+            schema[index] = _insert_ref(value, defs)
         elif isinstance(value, list):
             for index, val in enumerate(value.copy()):
                 if isinstance(val, int):
                     val = str(val)
                 if "$ref" in val:
                     value[index] = defs[val["$ref"]].pop("properties")
+        elif index == "$ref":
+            del schema["$ref"]
+            schema["must be"] = defs[value].pop("properties")
+    return schema
 
 
 def _remove_key(schema: dict, del_key: str) -> None:
