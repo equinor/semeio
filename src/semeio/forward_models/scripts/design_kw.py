@@ -20,6 +20,8 @@ and not ``DESIGN2PARAMS``, is optional in the template files.
 Example: If ``parameters.txt`` has the line ``MULTFLT:FLT_A10_B18 0.001``, both
 of the templates ``<MULTFLT:FLT_A10_B18>`` and ``<FLT_A10_B18>`` will expand to
 ``0.001``.
+
+Configuration validation pre experiment can be disabled by explicitly setting ``<VALIDATION>=false``
 """
 
 
@@ -44,7 +46,7 @@ def create_parser():
         default="WARNING",
         type=logging.getLevelName,
     )
-
+    parser.add_argument("--validate", required=False, type=bool, default=False)
     return parser
 
 

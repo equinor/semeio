@@ -1,8 +1,12 @@
 import logging
 import os
 import shutil
+from pathlib import Path
 
+import hypothesis.strategies as st
 import pytest
+from ert import ForwardModelStepWarning
+from hypothesis import given
 
 from semeio.forward_models.design_kw import design_kw
 
@@ -283,3 +287,89 @@ def test_run_duplicate_keys():
 
     # pylint: disable=protected-access
     assert not os.path.isfile(design_kw._STATUS_FILE_NAME)
+
+
+@pytest.mark.parametrize(
+    "parameter_file_content, template_file_content, expected_warning",
+    [
+        pytest.param(
+            "FOO '12",
+            "global:\n\tBAR: <FOO>",
+            "Line 'FOO '12' failed with 'No closing quotation'",
+            id="Missing quotation in parameter value",
+        ),
+        pytest.param(
+            "FOO 1\nBAR",
+            "global:\n\tBAR:<FOO>",
+            "No value found in line BAR",
+            id="Missing parameter value",
+        ),
+        pytest.param(
+            "FOO 1 2 3",
+            "global:\n\tBAR: <FOO>",
+            "Too many values found in line FOO 1 2 3",
+            id="Too many values in parameter",
+        ),
+        pytest.param(
+            "FOO 1\nFOO 2",
+            "global:\n\tBAR: <FOO>",
+            "FOO is defined multiple times",
+            id="Duplicate key definitions in parameters",
+        ),
+        pytest.param(
+            "FOO 1 2\nBAR 1 2",
+            "global:\n\tBAR: <FOO>",
+            "Too many values found in line FOO 1 2\n\nToo many values found in line BAR 1 2",
+            id="Multiple errors",
+        ),
+        pytest.param(
+            "FOO 1",
+            "global:\n\t<BAR>",
+            "<BAR> not found in design matrix",
+            id="Key in template not found in parameters",
+        ),
+    ],
+)
+def test_validate_configuration(
+    parameter_file_content, template_file_content, expected_warning, tmp_path
+):
+    template_filename = "template.yml.tmpl"
+    Path(template_filename).write_text(template_file_content)
+    parameters_filename = "parameters.txt"
+    Path(parameters_filename).write_text(parameter_file_content)
+    with pytest.warns(ForwardModelStepWarning, match=expected_warning):
+        design_kw.validate_configuration(template_filename, parameters_filename)
+
+
+def test_validate_gives_warning_when_template_file_is_directory(tmp_path):
+    template_file = tmp_path / "template.yml.tmpl"
+    template_file.mkdir()
+    parameters_file = tmp_path / "parameters.txt"
+    parameters_file.write_text("FOO 1\n")
+    with pytest.warns(ForwardModelStepWarning, match="Is a directory"):
+        design_kw.validate_configuration(str(template_file), str(parameters_file))
+
+
+def test_validate_gives_warning_when_parameters_file_is_directory(tmp_path):
+    template_file = tmp_path / "template.yml.tmpl"
+    template_file.write_text("global: \n\t <BAR>\n")
+    parameters_file = tmp_path / "parameters.txt"
+    parameters_file.mkdir()
+    with pytest.warns(ForwardModelStepWarning, match="Is a directory"):
+        design_kw.validate_configuration(str(template_file), str(parameters_file))
+
+
+@pytest.fixture
+def use_tmpdir(tmpdir, monkeypatch):
+    monkeypatch.chdir(tmpdir)
+
+
+@pytest.mark.filterwarnings("ignore")
+@pytest.mark.usefixtures("use_tmpdir")
+@given(st.binary(), st.binary())
+def test_validate_configuration_does_not_raise(data1, data2):
+    template_file = Path("template.yml.tmpl")
+    template_file.write_bytes(data1)
+    parameters_file = Path("parameters.txt")
+    parameters_file.write_bytes(data2)
+    design_kw.validate_configuration(str(template_file), str(parameters_file))

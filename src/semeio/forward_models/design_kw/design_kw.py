@@ -1,11 +1,17 @@
 import logging
 import re
 import shlex
-from typing import List
+from typing import Dict, List, Mapping
+
+from ert import ForwardModelStepWarning
 
 _STATUS_FILE_NAME = "DESIGN_KW.OK"
 
 _logger = logging.getLogger(__name__)
+
+
+class ParameterSyntaxError(ValueError):
+    pass
 
 
 def run(
@@ -39,7 +45,7 @@ def run(
                 for key, value in key_vals.items():
                     line = line.replace(f"<{key}>", str(value))
 
-                if not all_matched(line, template_file_name, template):
+                if find_matching_errors(line, template_file_name, template):
                     valid = False
 
             result_file.write(line)
@@ -51,8 +57,10 @@ def run(
     return valid
 
 
-def all_matched(line, template_file_name, template):
-    valid = True
+def find_matching_errors(
+    line: str, template_file_name: str, template: List[str]
+) -> List[str]:
+    errors = []
     for unmatched in unmatched_templates(line):
         if is_perl(template_file_name, template):
             _logger.warning(
@@ -65,9 +73,10 @@ def all_matched(line, template_file_name, template):
                 f"but this is probably an xml file"
             )
         else:
-            _logger.error(f"{unmatched} not found in design matrix")
-            valid = False
-    return valid
+            error_msg = f"{unmatched} not found in design matrix"
+            _logger.error(error_msg)
+            errors.append(error_msg)
+    return errors
 
 
 def is_perl(file_name, template):
@@ -91,7 +100,7 @@ def is_comment(line):
     return ecl_comment_pattern.search(line) or std_comment_pattern.search(line)
 
 
-def extract_key_value(parameters):
+def extract_key_value(parameters: List[str]) -> Dict[str, str]:
     """Parses a list of strings, looking for key-value pairs pr. line
     separated by whitespace, into a dictionary.
 
@@ -110,7 +119,11 @@ def extract_key_value(parameters):
     res = {}
     errors = []
     for line in parameters:
-        line_parts = shlex.split(line)
+        try:
+            line_parts = shlex.split(line)
+        except ValueError as e:
+            errors.append(f"Line '{line}' failed with '{str(e)}'")
+            continue
         if not line_parts:
             continue
         if len(line_parts) == 1:
@@ -125,7 +138,7 @@ def extract_key_value(parameters):
             continue
         res[key] = value
     if errors:
-        raise ValueError("\n".join(errors))
+        raise ParameterSyntaxError("\n".join(errors))
     return res
 
 
@@ -178,3 +191,45 @@ def rm_genkw_prefix(paramsdict, ignoreprefixes="LOG10_"):
         for keyvalue in keyvalues
         if keys.count(keyvalue[0]) == 1
     }
+
+
+def validate_template_keys(
+    key_vals: Mapping[str, str], template_file_name: str
+) -> None:
+    try:
+        with open(template_file_name, encoding="utf-8") as template_file:
+            template = template_file.readlines()
+    except (OSError, UnicodeDecodeError) as err:
+        ForwardModelStepWarning.warn(
+            f"Could not read template file {template_file_name}: {err}"
+        )
+        return
+
+    for line in template:
+        if is_comment(line):
+            continue
+        for key, value in key_vals.items():
+            line = line.replace(f"<{key}>", str(value))
+            for error in find_matching_errors(line, template_file_name, template):
+                ForwardModelStepWarning.warn(error)
+
+
+def validate_configuration(
+    template_file_name: str, parameters_file_name: str = "parameters.txt"
+) -> None:
+    try:
+        with open(parameters_file_name, encoding="utf-8") as parameters_file:
+            parameters = parameters_file.readlines()
+    except (OSError, UnicodeDecodeError) as err:
+        ForwardModelStepWarning.warn(
+            f"Could not read parameters file {parameters_file_name}: {err}"
+        )
+        return
+    try:
+        key_vals = extract_key_value(parameters)
+    except ParameterSyntaxError as err:
+        ForwardModelStepWarning.warn(str(err))
+        return
+    key_vals.update(rm_genkw_prefix(key_vals))
+
+    validate_template_keys(key_vals, template_file_name)
