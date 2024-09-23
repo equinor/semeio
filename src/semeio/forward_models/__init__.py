@@ -4,10 +4,12 @@ from ert import (
     ForwardModelStepDocumentation,
     ForwardModelStepJSON,
     ForwardModelStepPlugin,
+    ForwardModelStepValidationError,
 )
 
 from .scripts.design2params import description as design2params_description
 from .scripts.design_kw import description as design_kw_description
+from .scripts.design_kw import design_kw as DesignKWScript
 
 
 class Design2Params(ForwardModelStepPlugin):
@@ -45,7 +47,8 @@ class DesignKW(ForwardModelStepPlugin):
     def __init__(self):
         super().__init__(
             name="DESIGN_KW",
-            command=["design_kw", "<template_file>", "<result_file>"],
+            command=["design_kw", "<template_file>", "<result_file>", "<VALIDATE>"],
+            default_mapping={"<VALIDATE>": "false"},
         )
 
     def validate_pre_realization_run(
@@ -54,7 +57,15 @@ class DesignKW(ForwardModelStepPlugin):
         return fm_step_json
 
     def validate_pre_experiment(self, fm_step_json: ForwardModelStepJSON) -> None:
-        pass
+        if self.private_args.get("<VALIDATE>", "").lower() == "true":
+            try:
+                template_file_name = self.private_args["<template_file>"]
+            except KeyError:
+                raise ForwardModelStepValidationError(
+                    "Argument list is missing <template_file>"
+                ) from None
+            DesignKWScript.validate_configuration(template_file_name=template_file_name)
+        return fm_step_json
 
     @staticmethod
     def documentation() -> Optional[ForwardModelStepDocumentation]:
