@@ -39,6 +39,7 @@ def test_console_scripts_exit_code(script_runner, entry_point, options):
     assert script_runner.run(entry_point, options).returncode != 0
 
 
+@pytest.mark.ert_integration
 @pytest.mark.parametrize(
     "forward_model, configuration, expected_error",
     [
