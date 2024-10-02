@@ -11,6 +11,7 @@ from ert.storage import open_storage
 from semeio.workflows.ahm_analysis import ahmanalysis
 
 
+@pytest.mark.integration_test
 def test_ahmanalysis_run(snake_oil_facade):
     """test data_set with only scalar parameters"""
     with open_storage(snake_oil_facade.enspath, "w") as storage:
@@ -61,6 +62,7 @@ def test_ahmanalysis_run(snake_oil_facade):
         assert (output_dir / filename).is_file()
 
 
+@pytest.mark.integration_test
 def test_ahmanalysis_run_deactivated_obs(snake_oil_facade, snapshot, caplog):
     """
     We simulate a case where some of the observation groups are completely

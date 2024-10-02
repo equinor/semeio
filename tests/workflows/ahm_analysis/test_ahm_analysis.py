@@ -11,6 +11,7 @@ from semeio.workflows.ahm_analysis import ahmanalysis
 from semeio.workflows.ahm_analysis.ahmanalysis import _run_ministep
 
 
+@pytest.mark.integration_test
 def test_make_update_log_df(snake_oil_facade, snapshot):
     """
     Note that this is now a snapshot test, so there is no guarantee that the

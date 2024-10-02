@@ -97,7 +97,8 @@ types = [
 addopts = "-ra --strict-markers"
 markers = [
     "ert_integration: Involves running the ert application explicitly",
-    "equinor_test: Requires presences of test data in specified location"
+    "equinor_test: Requires presences of test data in specified location",
+    "integration_test: Not a unit test",
 ]
 
 [tool.ruff]
