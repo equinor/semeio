@@ -54,7 +54,7 @@ def pytest_collection_modifyitems(config, items):
         reason="need --ert-integration option to run"
     )
     for item in items:
-        if "ert-integration" in item.keywords:
+        if "ert_integration" in item.keywords:
             item.add_marker(skip_ert_integration)
 
 
