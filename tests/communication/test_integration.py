@@ -2,7 +2,6 @@ import json
 import os
 import shutil
 import subprocess
-import sys
 
 from semeio.communication import SEMEIOSCRIPT_LOG_FILE
 
@@ -15,17 +14,7 @@ def test_semeio_script_integration(tmpdir):
     shutil.copytree(TEST_DATA_DIR, "test_data")
     os.chdir(os.path.join("test_data"))
 
-    ert_env = {
-        env_var: os.environ[env_var]
-        for env_var in ("PATH", "LD_LIBRARY_PATH", "TMPDIR")
-        if env_var in os.environ
-    }
-    ert_env["PYTHONPATH"] = os.pathsep.join(map(os.path.realpath, sys.path))
-
-    subprocess.check_call(
-        ("ert", "workflow", "TEST_WORKFLOW", "config.ert"),
-        env=ert_env,
-    )
+    subprocess.check_call(("ert", "workflow", "TEST_WORKFLOW", "config.ert"))
 
     # Assert that data was published correctly
     with open(
