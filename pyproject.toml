@@ -52,7 +52,6 @@ repository = "https://github.com/equinor/semeio"
 semeio_forward_models = "semeio.hook_implementations.forward_models"
 CsvExport2Job = "semeio.workflows.csv_export2.csv_export2"
 AhmAnalysisJob = "semeio.workflows.ahm_analysis.ahmanalysis"
-LocalisationConfigJob = "semeio.workflows.localisation.local_config_script"
 
 [project.entry-points."console_scripts"]
 csv_export2 = "semeio.workflows.csv_export2.csv_export2:cli"
