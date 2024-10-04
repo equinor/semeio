@@ -31,7 +31,7 @@ def test_make_update_log_df(snake_oil_facade, snapshot):
             snake_oil_facade,
             prior_ens,
             posterior_ens,
-            sorted(prior_ens.experiment.observations.keys()),
+            sorted(prior_ens.experiment.observation_keys),
             sorted(prior_ens.experiment.parameter_configuration.keys()),
         )
     snapshot.assert_match(
