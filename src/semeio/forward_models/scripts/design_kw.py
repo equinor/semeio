@@ -46,7 +46,7 @@ def create_parser():
         default="WARNING",
         type=logging.getLevelName,
     )
-    parser.add_argument("--validate", required=False, type=bool, default=False)
+    parser.add_argument("--validate", required=False, type=str, default="false")
     return parser
 
 
