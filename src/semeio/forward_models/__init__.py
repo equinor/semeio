@@ -47,7 +47,12 @@ class DesignKW(ForwardModelStepPlugin):
     def __init__(self):
         super().__init__(
             name="DESIGN_KW",
-            command=["design_kw", "<template_file>", "<result_file>", "<VALIDATE>"],
+            command=[
+                "design_kw",
+                "<template_file>",
+                "<result_file>",
+                "--validate=<VALIDATE>",
+            ],
             default_mapping={"<VALIDATE>": "false"},
         )
 
