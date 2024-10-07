@@ -5,11 +5,22 @@ import subprocess
 
 import cwrap
 import pytest
+from hypothesis import HealthCheck, settings
 from resdata import ResDataType
 from resdata.grid import GridGenerator
 from resdata.resfile import ResdataKW
 
 from tests import legacy_test_data
+
+# Timeout settings are unreliable both on CI and
+# when running pytest with xdist so we disable it
+settings.register_profile(
+    "no_timeouts",
+    deadline=None,
+    suppress_health_check=[HealthCheck.too_slow],
+    print_blob=True,
+)
+settings.load_profile("no_timeouts")
 
 
 @pytest.fixture(name="test_data_root")
