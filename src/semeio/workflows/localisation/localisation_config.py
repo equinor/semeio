@@ -88,7 +88,7 @@ class ObsConfig(BaseModel):
         if isinstance(add, str):
             add = data["add"] = [add]
 
-        remove = data.get("remove", None)
+        remove = data.get("remove")
         if isinstance(remove, str):
             remove = data["remove"] = [remove]
 
