@@ -26,12 +26,6 @@ EXAMPLE_WATEROIL = pd.DataFrame(columns=["SATNUM", "Nw", "NOW"], data=[[1, 2, 2]
     [
         (EXAMPLE_STATIC_DFRAME, ["__NONE__", "__NONE__", "__NONE__", "sgof", 1]),
         (EXAMPLE_STATIC_DFRAME, ["__NONE__", "__NONE__", "__NONE__", "slgof", 1]),
-        pytest.param(
-            EXAMPLE_STATIC_DFRAME,
-            ["__NONE__", "__NONE__", "__NONE__", "slgof", 2],
-            marks=pytest.mark.xfail(raises=SystemExit),
-            id="SLGOF_family_2_not_meaningful",
-        ),
         (EXAMPLE_STATIC_DFRAME, ["__NONE__", "__NONE__", "__NONE__", "sgof", 2]),
         (EXAMPLE_WATEROIL, ["__NONE__", "__NONE__", "__NONE__", "sgof", 1]),
         (EXAMPLE_SCAL, ["__NONE__", "INTERPOLATE_WO", "INTERPOLATE_GO", "sgof", 1]),
@@ -64,6 +58,21 @@ def test_fm_pyscal(dframe, runargs, tmpdir):
     run(*(["relperm-input.csv", "relperm.inc"] + runargs))
     assert os.path.exists("relperm.inc")
     assert len(Path("relperm.inc").read_text(encoding="utf-8")) > 20
+
+
+def test_fm_pyscal_errors_on_slgof_family_2(tmpdir):
+    tmpdir.chdir()
+    EXAMPLE_STATIC_DFRAME.to_csv("relperm-input.csv", index=False)
+    with pytest.raises(SystemExit):
+        run(
+            "relperm-input.csv",
+            "relperm.inc",
+            "__NONE__",
+            "__NONE__",
+            "__NONE__",
+            "slgof",
+            2,
+        )
 
 
 def test_fm_pysal_static_xlsx(tmpdir):
