@@ -28,19 +28,20 @@ classifiers = [
 ]
 dynamic = ["version"]
 dependencies = [
-    "resdata",
     "ert>=11.1.0-b3",
+    "fmu-ensemble>1.6.5",
     "importlib_metadata",
     "importlib_resources",
     "numpy",
     "pandas>1.3.0",
+    "polars<1.10.0",  # Transitive requirement through Ert
     "pydantic>=2.9",
+    "pyscal>=0.4.0",
+    "resdata",
     "scikit-learn",
     "scipy",
-    "xlrd",
-    "pyscal>=0.4.0",
-    "fmu-ensemble>1.6.5",
     "segyio",
+    "xlrd",
     "xtgeo>=2.15",
 ]
 
