@@ -75,7 +75,7 @@ def test_fm_pyscal_errors_on_slgof_family_2(tmpdir):
         )
 
 
-def test_fm_pysal_static_xlsx(tmpdir):
+def test_fm_pyscal_static_xlsx(tmpdir):
     """Test fm_pyscal on a static xlsx file"""
     tmpdir.chdir()
     EXAMPLE_STATIC_DFRAME.to_excel("relperm-input.xlsx")
