@@ -5,13 +5,12 @@ import shutil
 from datetime import datetime
 from pathlib import Path
 
+import fmu.tools
 import numpy as np
 import pandas as pd
 import pytest
+from fmudesign import DesignMatrix, excel2dict_design
 from scipy import stats
-
-import fmu.tools
-from fmu.tools.sensitivities import DesignMatrix, excel2dict_design
 
 TESTDATA = Path(__file__).parent / "data"
 

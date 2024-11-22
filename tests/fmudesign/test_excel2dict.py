@@ -5,10 +5,8 @@ import os
 import numpy as np
 import pandas as pd
 import pytest
-
-from fmu.tools._common import preserve_cwd
-from fmu.tools.sensitivities import excel2dict_design, inputdict_to_yaml
-from fmu.tools.sensitivities._excel2dict import _has_value
+from fmudesign import excel2dict_design, inputdict_to_yaml
+from fmudesign._excel2dict import _has_value
 
 MOCK_GENERAL_INPUT = pd.DataFrame(
     data=[
@@ -25,10 +23,9 @@ MOCK_DESIGNINPUT = pd.DataFrame(
 )
 
 
-@preserve_cwd
-def test_excel2dict_design(tmpdir):
+def test_excel2dict_design(tmpdir, monkeypatch):
     """Test that we can convert an Excelfile to a dictionary"""
-    tmpdir.chdir()
+    monkeypatch.chdir(tmpdir)
     defaultvalues = pd.DataFrame()
     # pylint: disable=abstract-class-instantiated
     writer = pd.ExcelWriter("designinput.xlsx", engine="openpyxl")
@@ -81,8 +78,7 @@ def test_excel2dict_design(tmpdir):
         assert "RMS_SEED" in inputfile.read()
 
 
-@preserve_cwd
-def test_duplicate_sensname_exception(tmpdir):
+def test_duplicate_sensname_exception(tmpdir, monkeypatch):
     """Test that exceptions are raised for erroneous sensnames"""
     # pylint: disable=abstract-class-instantiated
     mock_erroneous_designinput = pd.DataFrame(
@@ -92,7 +88,7 @@ def test_duplicate_sensname_exception(tmpdir):
             ["rms_seed", "", "seed"],
         ]
     )
-    tmpdir.chdir()
+    monkeypatch.chdir(tmpdir)
     defaultvalues = pd.DataFrame()
 
     writer = pd.ExcelWriter("designinput3.xlsx", engine="openpyxl")
@@ -111,8 +107,7 @@ def test_duplicate_sensname_exception(tmpdir):
         excel2dict_design("designinput3.xlsx")
 
 
-@preserve_cwd
-def test_strip_spaces(tmpdir):
+def test_strip_spaces(tmpdir, monkeypatch):
     """Spaces before and after parameter names are probabaly
     invisible user errors in Excel sheets. Remove them."""
     # pylint: disable=abstract-class-instantiated
@@ -129,7 +124,7 @@ def test_strip_spaces(tmpdir):
             ["spacious2  ", 3.3],
         ]
     )
-    tmpdir.chdir()
+    monkeypatch.chdir(tmpdir)
     writer = pd.ExcelWriter("designinput_spaces.xlsx", engine="openpyxl")
     MOCK_GENERAL_INPUT.to_excel(
         writer, sheet_name="general_input", index=False, header=None
@@ -150,8 +145,7 @@ def test_strip_spaces(tmpdir):
     assert [par.strip() for par in def_params] == def_params
 
 
-@preserve_cwd
-def test_mixed_senstype_exception(tmpdir):
+def test_mixed_senstype_exception(tmpdir, monkeypatch):
     """Test that exceptions are raised for mixups in user input on types"""
     # pylint: disable=abstract-class-instantiated
     mock_erroneous_designinput = pd.DataFrame(
@@ -161,7 +155,7 @@ def test_mixed_senstype_exception(tmpdir):
             ["", "", "dist"],
         ]
     )
-    tmpdir.chdir()
+    monkeypatch.chdir(tmpdir)
     defaultvalues = pd.DataFrame()
 
     writer = pd.ExcelWriter("designinput4.xlsx", engine="openpyxl")
@@ -187,10 +181,9 @@ def test_has_value():
     assert _has_value(None)
 
 
-@preserve_cwd
-def test_background_sheet(tmpdir):
+def test_background_sheet(tmpdir, monkeypatch):
     """Test loading background values from a sheet"""
-    tmpdir.chdir()
+    monkeypatch.chdir(tmpdir)
     general_input = pd.DataFrame(
         data=[
             ["designtype", "onebyone"],

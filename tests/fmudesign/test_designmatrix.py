@@ -6,8 +6,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from fmu.tools._common import preserve_cwd
-from fmu.tools.sensitivities import DesignMatrix
+from semeio.fmudesign import DesignMatrix
 
 TESTDATA = Path(__file__).parent / "data"
 
@@ -48,8 +47,7 @@ def test_designmatrix():
     assert isinstance(design.defaultvalues, dict)
 
 
-@preserve_cwd
-def test_endpoint(tmpdir):
+def test_endpoint(tmpdir, monkeypatch):
     """Test the installed endpoint
 
     Will write generated design matrices to the pytest tmpdir directory,
@@ -64,7 +62,7 @@ def test_endpoint(tmpdir):
         .to_dict()["background"]
     )
 
-    tmpdir.chdir()
+    monkeypatch.chdir(tmpdir)
     # Copy over input files:
     shutil.copy(str(designfile), ".")
     shutil.copy(Path(designfile).parent / dependency, ".")

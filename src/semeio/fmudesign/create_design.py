@@ -6,10 +6,11 @@ from collections import OrderedDict
 from datetime import datetime
 from pathlib import Path
 
-import fmu.tools
 import numpy as np
 import pandas as pd
-from fmu.tools.sensitivities import design_distributions as design_dist
+
+import semeio.fmudesign
+from semeio.fmudesign import design_distributions as design_dist
 
 
 class DesignMatrix:
@@ -201,7 +202,7 @@ class DesignMatrix:
             {
                 "Description": ["Created using fmu-tools version:", "Created on:"],
                 "Value": [
-                    fmu.tools.__version__,
+                    semeio.fmudesign.__version__,
                     datetime.now().isoformat(sep=" ", timespec="seconds"),
                 ],
             }

@@ -33,7 +33,7 @@ def summarize_design(filename, sheetname="DesignSheet01"):
         'casename2', 'startreal2', 'endreal2']
 
     Example::
-        >>> from fmu.tools.sensitivities import summarize_design
+        >>> from fmudesign import summarize_design
         >>> designname = 'design_filename.xlsx'
         >>> designsheet = 'DesignSheet01'
         >>> designtable = summarize_design(designname, designsheet)

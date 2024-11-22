@@ -108,7 +108,7 @@ def calc_tornadoinput(
 
     Example::
         >>> import pandas as pd
-        >>> from fmu.tools.sensitivities import calc_tornadoplot
+        >>> from fmudesign import calc_tornadoplot
         >>> designtable = pd.read_csv('designsummary.csv')
         >>> results = pd.read_csv('resultfile.csv')
         >>> response = 'STOIIP_OIL'

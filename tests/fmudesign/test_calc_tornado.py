@@ -1,8 +1,7 @@
 from pathlib import Path
 
 import pandas as pd
-
-from fmu.tools.sensitivities import calc_tornadoinput, summarize_design
+from fmudesign import calc_tornadoinput, summarize_design
 
 TESTDATA = Path(__file__).parent / "data"
 

@@ -1,13 +1,10 @@
 """Example use cases for fmudesign"""
 
 import pandas as pd
-
-from fmu.tools._common import preserve_cwd
-from fmu.tools.sensitivities import DesignMatrix, excel2dict_design
+from fmudesign import DesignMatrix, excel2dict_design
 
 
-@preserve_cwd
-def test_prediction_rejection_sampled_ensemble(tmpdir):
+def test_prediction_rejection_sampled_ensemble(tmpdir, monkeypatch):
     """Test making a design matrix for prediction realizations based on an
     ensemble made with manual history matching (rejection sampling).
 
@@ -16,7 +13,7 @@ def test_prediction_rejection_sampled_ensemble(tmpdir):
     Eclipse run on disk which contains the history, identified by the
     realization index ("HMREAL") in the history match run.
     """
-    tmpdir.chdir()
+    monkeypatch.chdir(tmpdir)
     general_input = pd.DataFrame(
         data=[
             ["designtype", "onebyone"],

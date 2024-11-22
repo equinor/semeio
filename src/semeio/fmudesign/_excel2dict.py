@@ -1,6 +1,6 @@
 """Module for reading excel file with input for generation of
 a design matrix and converting to an OrderedDict that can be
-read by fmu.tools.DesignMatrix.generate
+read by fmudesign.DesignMatrix.generate
 """
 
 from collections import OrderedDict
