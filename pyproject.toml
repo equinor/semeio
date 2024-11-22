@@ -61,6 +61,7 @@ gendata_rft = "semeio.forward_models.scripts.gendata_rft:main_entry_point"
 design_kw = "semeio.forward_models.scripts.design_kw:main_entry_point"
 fm_pyscal = "semeio.forward_models.scripts.fm_pyscal:main_entry_point"
 replace_string = "semeio.forward_models.scripts.replace_string:main_entry_point"
+fmudesign = "semeio.fmudesign.fmudesignrunner:main"
 
 [tool.setuptools_scm]
 write_to = "src/semeio/version.py"
