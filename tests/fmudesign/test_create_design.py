@@ -5,12 +5,13 @@ import shutil
 from datetime import datetime
 from pathlib import Path
 
-import fmu.tools
 import numpy as np
 import pandas as pd
 import pytest
-from fmudesign import DesignMatrix, excel2dict_design
 from scipy import stats
+
+import semeio.fmudesign
+from semeio.fmudesign import DesignMatrix, excel2dict_design
 
 TESTDATA = Path(__file__).parent / "data"
 
@@ -172,7 +173,7 @@ def test_generate_onebyone(tmpdir):
 
     assert (diskmetadata.columns == ["Description", "Value"]).all()
     assert diskmetadata["Description"].iloc[0] == "Created using fmu-tools version:"
-    assert diskmetadata["Value"].iloc[0] == fmu.tools.__version__
+    assert diskmetadata["Value"].iloc[0] == semeio.fmudesign.__version__
     assert diskmetadata["Description"].iloc[1] == "Created on:"
 
     # For the timestamp, we can't check the exact value since it will differ

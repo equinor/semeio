@@ -1,7 +1,8 @@
 """Example use cases for fmudesign"""
 
 import pandas as pd
-from fmudesign import DesignMatrix, excel2dict_design
+
+from semeio.fmudesign import DesignMatrix, excel2dict_design
 
 
 def test_prediction_rejection_sampled_ensemble(tmpdir, monkeypatch):
