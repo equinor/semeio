@@ -9,6 +9,7 @@ from hypothesis import HealthCheck, settings
 from resdata import ResDataType
 from resdata.grid import GridGenerator
 from resdata.resfile import ResdataKW
+
 from tests import legacy_test_data
 
 # Timeout settings are unreliable both on CI and
