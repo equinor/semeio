@@ -239,7 +239,9 @@ class DesignMatrix:
                 "had been specified as {} .".format(seeds)
             )
 
-    def add_background(self, back_dict, max_values, rng: np.random.RandomState):
+    def add_background(
+        self, back_dict: OrderedDict, max_values: int, rng: np.random.RandomState
+    ) -> None:
         """Adding background as specified in dictionary.
         Either from external file or from distributions in background
         dictionary
@@ -350,7 +352,9 @@ class DesignMatrix:
                             "should be specified as strings.".format(param)
                         )
 
-    def _add_dist_background(self, back_dict, numreal, rng: np.random.RandomState):
+    def _add_dist_background(
+        self, back_dict: OrderedDict, numreal: int, rng: np.random.RandomState
+    ) -> None:
         """Drawing background values from distributions
         specified in dictionary
 

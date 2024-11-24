@@ -1,7 +1,7 @@
 """Module for calculating values for a tornadoplot"""
 
 import pandas as pd
-from deprecation import deprecated
+from deprecation import deprecated  # type: ignore
 
 
 def real_mask(dfr, start, end):

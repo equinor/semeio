@@ -90,6 +90,7 @@ style = [
 types = [
     "mypy",
     "pandas-stubs",
+    "types-openpyxl",
     "types-setuptools",
     "types-PyYAML",
 ]
