@@ -200,7 +200,7 @@ class DesignMatrix:
 
         version_info = pd.DataFrame(
             {
-                "Description": ["Created using fmu-tools version:", "Created on:"],
+                "Description": ["Created using semeio version:", "Created on:"],
                 "Value": [
                     semeio.__version__,
                     datetime.now().isoformat(sep=" ", timespec="seconds"),
