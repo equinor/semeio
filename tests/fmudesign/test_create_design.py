@@ -172,8 +172,8 @@ def test_generate_onebyone(tmpdir):
     )
 
     assert (diskmetadata.columns == ["Description", "Value"]).all()
-    assert diskmetadata["Description"].iloc[0] == "Created using fmu-tools version:"
-    assert diskmetadata["Value"].iloc[0] == semeio.fmudesign.__version__
+    assert diskmetadata["Description"].iloc[0] == "Created using semeio version:"
+    assert diskmetadata["Value"].iloc[0] == semeio.__version__
     assert diskmetadata["Description"].iloc[1] == "Created on:"
 
     # For the timestamp, we can't check the exact value since it will differ

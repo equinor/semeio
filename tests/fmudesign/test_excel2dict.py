@@ -5,8 +5,9 @@ import os
 import numpy as np
 import pandas as pd
 import pytest
-from fmudesign import excel2dict_design, inputdict_to_yaml
-from fmudesign._excel2dict import _has_value
+
+from semeio.fmudesign import excel2dict_design, inputdict_to_yaml
+from semeio.fmudesign._excel2dict import _has_value
 
 MOCK_GENERAL_INPUT = pd.DataFrame(
     data=[

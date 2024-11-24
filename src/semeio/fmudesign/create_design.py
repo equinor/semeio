@@ -202,7 +202,7 @@ class DesignMatrix:
             {
                 "Description": ["Created using fmu-tools version:", "Created on:"],
                 "Value": [
-                    semeio.fmudesign.__version__,
+                    semeio.__version__,
                     datetime.now().isoformat(sep=" ", timespec="seconds"),
                 ],
             }
