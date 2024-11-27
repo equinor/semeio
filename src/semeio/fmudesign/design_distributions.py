@@ -3,12 +3,11 @@ distributions. For use in generation of design matrices
 """
 
 import re
-from math import exp
 
 import numpy as np
-import numpy.linalg as la
 import pandas as pd
 import scipy.stats
+from scipy.stats import qmc
 
 
 def _check_dist_params_normal(dist_params):
@@ -147,17 +146,33 @@ def _check_dist_params_logunif(dist_params):
     return status, msg
 
 
-def draw_values_normal(dist_parameters, numreals, rng, normalscoresamples=None):
-    """Draws values from normal or truncated normal.
-    Args:
-        dist_parameters(list): [mean, std dev, min, max],
-        min/max defining truncated normal
-        numreals(int): number of realisations to draw
-        rng: numpy.random.RandomState instance
-        normalscoresamples(list): samples for correlated parameters
+def generate_stratified_samples(numreals, rng):
+    """Generate stratified samples in [0,1] by dividing the interval
+    into equal-probability strata.
+
+    This is equivalent to one-dimensional Latin Hypercube Sampling
+    where the [0,1] interval is divided into numreals equal segments,
+    and one random sample is drawn from each segment.
+
+    Parameters:
+        numreals: int, number of samples to generate
+        rng: numpy.random.RandomState, random number generator instance
+
     Returns:
-        list of values
+        numpy.ndarray: Array of stratified samples in [0,1]
     """
+    if numreals < 0:
+        raise ValueError("numreal must be a positive integer")
+
+    if numreals == 0:
+        return np.array([])
+
+    sampler = qmc.LatinHypercube(d=1, seed=rng)
+    samples = sampler.random(n=numreals)
+    return samples.flatten()
+
+
+def draw_values_normal(dist_parameters, numreals, rng, normalscoresamples=None):
     status, msg = _check_dist_params_normal(dist_parameters)
 
     if not status:
@@ -166,33 +181,34 @@ def draw_values_normal(dist_parameters, numreals, rng, normalscoresamples=None):
     mean = float(dist_parameters[0])
     stddev = float(dist_parameters[1])
 
-    if len(dist_parameters) == 2:
+    if len(dist_parameters) == 2:  # normal
         if normalscoresamples is not None:
-            return scipy.stats.norm.ppf(
+            values = mean + normalscoresamples * stddev
+        else:
+            uniform_samples = generate_stratified_samples(numreals, rng)
+            values = scipy.stats.norm.ppf(uniform_samples, loc=mean, scale=stddev)
+
+    else:  # truncated normal
+        clip1 = float(dist_parameters[2])
+        clip2 = float(dist_parameters[3])
+        low = (clip1 - mean) / stddev
+        high = (clip2 - mean) / stddev
+
+        if normalscoresamples is not None:
+            values = scipy.stats.truncnorm.ppf(
                 scipy.stats.norm.cdf(normalscoresamples),
+                low,
+                high,
                 loc=mean,
                 scale=stddev,
             )
-        distribution = scipy.stats.norm(mean, stddev)
-        return distribution.rvs(size=numreals, random_state=rng)
+        else:
+            uniform_samples = generate_stratified_samples(numreals, rng)
+            values = scipy.stats.truncnorm.ppf(
+                uniform_samples.flatten(), low, high, loc=mean, scale=stddev
+            )
 
-    # Handle truncated normal case
-    clip1 = float(dist_parameters[2])
-    clip2 = float(dist_parameters[3])
-    low = (clip1 - mean) / stddev
-    high = (clip2 - mean) / stddev
-
-    if normalscoresamples is not None:
-        return scipy.stats.truncnorm.ppf(
-            scipy.stats.norm.cdf(normalscoresamples),
-            low,
-            high,
-            loc=mean,
-            scale=stddev,
-        )
-
-    distribution = scipy.stats.truncnorm(low, high, loc=mean, scale=stddev)
-    return distribution.rvs(size=numreals, random_state=rng)
+    return values
 
 
 def draw_values_lognormal(dist_parameters, numreals, rng, normalscoresamples=None):
@@ -206,7 +222,6 @@ def draw_values_lognormal(dist_parameters, numreals, rng, normalscoresamples=Non
         list of values
     """
     status, msg = _check_dist_params_lognormal(dist_parameters)
-
     if not status:
         raise ValueError(msg)
 
@@ -217,11 +232,13 @@ def draw_values_lognormal(dist_parameters, numreals, rng, normalscoresamples=Non
             scipy.stats.norm.cdf(normalscoresamples),
             s=sigma,
             loc=0,
-            scale=exp(mean),
+            scale=np.exp(mean),
         )
     else:
-        distribution = scipy.stats.lognorm(s=sigma, scale=exp(mean))
-        values = distribution.rvs(size=numreals, random_state=rng)
+        uniform_samples = generate_stratified_samples(numreals, rng)
+        values = scipy.stats.lognorm.ppf(
+            uniform_samples, s=sigma, loc=0, scale=np.exp(mean)
+        )
 
     return values
 
@@ -238,18 +255,25 @@ def draw_values_uniform(dist_parameters, numreals, rng, normalscoresamples=None)
     """
     if numreals < 0:
         raise ValueError("numreal must be a positive integer")
+
+    if numreals == 0:
+        return np.array([])
+
     status, msg = _check_dist_params_uniform(dist_parameters)
     if not status:
         raise ValueError(msg)
+
     low = float(dist_parameters[0])
     high = float(dist_parameters[1])
     uscale = high - low
+
     if normalscoresamples is not None:
         return scipy.stats.uniform.ppf(
             scipy.stats.norm.cdf(normalscoresamples), loc=low, scale=uscale
         )
-    distribution = scipy.stats.uniform(loc=low, scale=uscale)
-    return distribution.rvs(size=numreals, random_state=rng)
+
+    uniform_samples = generate_stratified_samples(numreals, rng)
+    return scipy.stats.uniform.ppf(uniform_samples, loc=low, scale=uscale)
 
 
 def draw_values_triangular(dist_parameters, numreals, rng, normalscoresamples=None):
@@ -263,49 +287,48 @@ def draw_values_triangular(dist_parameters, numreals, rng, normalscoresamples=No
         list of values
     """
     status, msg = _check_dist_params_triang(dist_parameters)
-    if status:
-        low = float(dist_parameters[0])
-        mode = float(dist_parameters[1])
-        high = float(dist_parameters[2])
-        if normalscoresamples is not None:
-            if high == low:  # collapsed distribution
-                print(
-                    "Low and high parameters for triangular distribution"
-                    " are equal. Using constant {}".format(low)
-                )
-                values = scipy.stats.uniform.ppf(
-                    scipy.stats.norm.cdf(normalscoresamples), loc=low, scale=0
-                )
-            else:
-                dist_scale = high - low
-                shape = (mode - low) / dist_scale
-                values = scipy.stats.triang.ppf(
-                    scipy.stats.norm.cdf(normalscoresamples),
-                    shape,
-                    loc=low,
-                    scale=dist_scale,
-                )
-        elif high == low:  # collapsed distribution
-            print(
-                "Low and high parameters for triangular distribution"
-                " are equal. Using constant {}".format(low)
-            )
-            distribution = scipy.stats.uniform(loc=low, scale=0)
-            values = distribution.rvs(size=numreals, random_state=rng)
-        else:
-            dist_scale = high - low
-            shape = (mode - low) / dist_scale
-            distribution = scipy.stats.triang(shape, loc=low, scale=dist_scale)
-            values = distribution.rvs(size=numreals, random_state=rng)
-    else:
+    if not status:
         raise ValueError(msg)
+
+    low = float(dist_parameters[0])
+    mode = float(dist_parameters[1])
+    high = float(dist_parameters[2])
+
+    if high == low:  # collapsed distribution
+        print(
+            "Low and high parameters for triangular distribution"
+            " are equal. Using constant {}".format(low)
+        )
+        if normalscoresamples is not None:
+            values = scipy.stats.uniform.ppf(
+                scipy.stats.norm.cdf(normalscoresamples), loc=low, scale=0
+            )
+        else:
+            values = np.full(numreals, low)
+    else:
+        dist_scale = high - low
+        shape = (mode - low) / dist_scale
+
+        if normalscoresamples is not None:
+            values = scipy.stats.triang.ppf(
+                scipy.stats.norm.cdf(normalscoresamples),
+                shape,
+                loc=low,
+                scale=dist_scale,
+            )
+        else:
+            uniform_samples = generate_stratified_samples(numreals, rng)
+            values = scipy.stats.triang.ppf(
+                uniform_samples, shape, loc=low, scale=dist_scale
+            )
+
     return values
 
 
 def draw_values_pert(dist_parameters, numreals, rng, normalscoresamples=None):
     """Draws values from pert distribution.
     Args:
-        dist_parameters(list): [min, mode,  max, scale]
+        dist_parameters(list): [min, mode, max, scale]
         where scale is only specified
         for a 4 parameter pert distribution
         numreals(int): number of realisations to draw
@@ -315,58 +338,47 @@ def draw_values_pert(dist_parameters, numreals, rng, normalscoresamples=None):
         list of values
     """
     status, msg = _check_dist_params_pert(dist_parameters)
-    if status:
-        low = float(dist_parameters[0])
-        mode = float(dist_parameters[1])
-        high = float(dist_parameters[2])
-        scale = (
-            float(dist_parameters[3])
-            if len(dist_parameters) == 4
-            else 4  # pert 3 parameter distribution
+    if not status:
+        raise ValueError(msg)
+
+    low = float(dist_parameters[0])
+    mode = float(dist_parameters[1])
+    high = float(dist_parameters[2])
+    scale = (
+        float(dist_parameters[3])
+        if len(dist_parameters) == 4
+        else 4  # pert 3 parameter distribution
+    )
+
+    if high == low:  # collapsed distribution
+        print(
+            "Low and high parameters for pert distribution"
+            " are equal. Using constant {}".format(low)
         )
         if normalscoresamples is not None:
-            if high == low:  # collapsed distribution
-                print(
-                    "Low and high parameters for pert distribution"
-                    " are equal. Using constant {}".format(low)
-                )
-                values = scipy.stats.uniform.ppf(
-                    scipy.stats.norm.cdf(normalscoresamples), loc=low, scale=0
-                )
-            else:
-                muval = (low + high + scale * mode) / (scale + 2)
-                if np.isclose(muval, mode):
-                    alpha1 = (scale / 2) + 1
-                else:
-                    alpha1 = ((muval - low) * (2 * mode - low - high)) / (
-                        (mode - muval) * (high - low)
-                    )
-                alpha2 = alpha1 * (high - muval) / (muval - low)
-                values = scipy.stats.beta.ppf(
-                    scipy.stats.norm.cdf(normalscoresamples), alpha1, alpha2
-                )
+            values = scipy.stats.uniform.ppf(
+                scipy.stats.norm.cdf(normalscoresamples), loc=low, scale=0
+            )
         else:
-            if high == low:  # collapsed distribution
-                print(
-                    "Low and high parameters for pert distribution"
-                    " are equal. Using constant {}".format(low)
-                )
-                distribution = scipy.stats.uniform(loc=low, scale=0)
-            else:
-                muval = (low + high + scale * mode) / (scale + 2)
-                if np.isclose(muval, mode):
-                    alpha1 = (scale / 2) + 1
-                else:
-                    alpha1 = ((muval - low) * (2 * mode - low - high)) / (
-                        (mode - muval) * (high - low)
-                    )
-                alpha2 = alpha1 * (high - muval) / (muval - low)
-                distribution = scipy.stats.beta(alpha1, alpha2)
-            values = distribution.rvs(size=numreals, random_state=rng)
+            values = np.full(numreals, low)
     else:
-        raise ValueError(msg)
-    # For pert distribution scale afterwards:
-    return values * (dist_parameters[2] - dist_parameters[0]) + dist_parameters[0]
+        muval = (low + high + scale * mode) / (scale + 2)
+        if np.isclose(muval, mode):
+            alpha1 = (scale / 2) + 1
+        else:
+            alpha1 = ((muval - low) * (2 * mode - low - high)) / (
+                (mode - muval) * (high - low)
+            )
+        alpha2 = alpha1 * (high - muval) / (muval - low)
+
+        if normalscoresamples is not None:
+            uniform_samples = scipy.stats.norm.cdf(normalscoresamples)
+        else:
+            uniform_samples = generate_stratified_samples(numreals, rng)
+        values = scipy.stats.beta.ppf(uniform_samples, alpha1, alpha2)
+
+    # Scale the beta distribution to the desired range
+    return values * (high - low) + low
 
 
 def draw_values_loguniform(dist_parameters, numreals, rng, normalscoresamples=None):
@@ -380,18 +392,20 @@ def draw_values_loguniform(dist_parameters, numreals, rng, normalscoresamples=No
         list of values
     """
     status, msg = _check_dist_params_logunif(dist_parameters)
-    if status:
-        low = float(dist_parameters[0])
-        high = float(dist_parameters[1])
-        if normalscoresamples is not None:
-            values = scipy.stats.reciprocal.ppf(
-                scipy.stats.norm.cdf(normalscoresamples), low, high
-            )
-        else:
-            distribution = scipy.stats.reciprocal(low, high)
-            values = distribution.rvs(size=numreals, random_state=rng)
-    else:
+    if not status:
         raise ValueError(msg)
+
+    low = float(dist_parameters[0])
+    high = float(dist_parameters[1])
+
+    if normalscoresamples is not None:
+        values = scipy.stats.reciprocal.ppf(
+            scipy.stats.norm.cdf(normalscoresamples), low, high
+        )
+    else:
+        uniform_samples = generate_stratified_samples(numreals, rng)
+        values = scipy.stats.reciprocal.ppf(uniform_samples, low, high)
+
     return values
 
 
@@ -436,14 +450,9 @@ def draw_values(distname, dist_parameters, numreals, rng, normalscoresamples=Non
             )
         values = [dist_parameters[0]] * numreals
     elif distname[0:4].lower() == "disc":
-        if normalscoresamples is not None:
-            raise ValueError(
-                "Parameter with discrete distribution "
-                "was defined in correlation matrix, "
-                "but discrete distribution cannot "
-                "be used with correlation. "
-            )
-        status, result = sample_discrete(dist_parameters, numreals, rng)
+        status, result = sample_discrete(
+            dist_parameters, numreals, rng, normalscoresamples
+        )
         if status:
             values = result
         else:
@@ -453,22 +462,15 @@ def draw_values(distname, dist_parameters, numreals, rng, normalscoresamples=Non
     return values
 
 
-def sample_discrete(dist_params, numreals, rng):
-    """Sample from discrete distribution
-    Args:
-        dist_params(list): parameters for distribution
-        dist_params[0] is possible outcomes separated
-        by comma
-        dist_params[1] is probabilities for each outcome,
-        separated by comma
-        numreals (int): number of realisations to draw
-        rng: numpy.random.RandomState instance
-    Returns:
-        np.ndarray: values drawn from distribution
-    """
+def sample_discrete(dist_params, numreals, rng, normalscoresamples=None):
     status = True
     outcomes = re.split(",", dist_params[0])
     outcomes = [item.strip() for item in outcomes]
+    if numreals == 0:
+        return status, np.array([])
+    if numreals < 0:
+        raise ValueError("numreal must be a positive integer")
+    # Handle probability weights
     if len(dist_params) == 2:  # non uniform
         weights = re.split(",", dist_params[1])
         if len(outcomes) != len(weights):
@@ -476,14 +478,30 @@ def sample_discrete(dist_params, numreals, rng):
                 "Number of weights for discrete distribution "
                 "is not the same as number of values."
             )
-        weightnmbr = [float(weight) for weight in weights]
-        fractions = [weight / sum(weightnmbr) for weight in weightnmbr]
-        values = rng.choice(outcomes, numreals, p=fractions)
+        try:
+            probabilities = [float(weight) for weight in weights]
+        except ValueError as e:
+            raise ValueError(
+                "All weights must be valid floating point numbers. "
+                f"Got weights: {weights}"
+            ) from e
+        # Just validate they're not negative
+        if any(p < 0 for p in probabilities):
+            raise ValueError("Weights cannot be negative")
+        fractions = probabilities / np.sum(probabilities)
     elif len(dist_params) == 1:  # uniform
-        values = rng.choice(outcomes, numreals)
+        fractions = [1.0 / len(outcomes)] * len(outcomes)
     else:
         status = False
         values = "Wrong input for discrete distribution"
+        return status, values
+    # Handle correlation through normalscoresamples
+    if normalscoresamples is not None:
+        uniform_samples = scipy.stats.norm.cdf(normalscoresamples)
+    else:
+        uniform_samples = generate_stratified_samples(numreals, rng)
+    cum_prob = np.cumsum(fractions)
+    values = np.array([outcomes[np.searchsorted(cum_prob, s)] for s in uniform_samples])
     return status, values
 
 
@@ -529,94 +547,3 @@ def read_correlations(corr_dict, corrsheet):
         )
 
     return correlations
-
-
-def make_covariance_matrix(df_correlations, stddevs=None):
-    """Read a Pandas DataFrame defining correlation coefficients for
-    a set of multivariate normally distributed parameters, and build
-    covariance matrix.
-
-    The diagonal of the correlation coefficients matrix should be all
-    ones. Variances are combined with the correlation coefficients to
-    compute the covariance matrix.
-
-    If the correlation matrix is not symmetric positive definite (SDP),
-    the matrix is projected onto the SDP manifold and returned (together
-    with a warning). The algorithm is according to Higham (2000)
-
-    Args:
-        df_correlations (pd.DataFrame): correlation coefficients where
-            columns and index are both parameter names. All parameter
-            names in keys muvalst also exist in index and vice versa.
-
-    Returns:
-        covariance matrix
-    """
-
-    corr_matrix = np.array(df_correlations.values)
-
-    # Assume upper triangular is empty, fill it:
-    i_upper = np.triu_indices(len(df_correlations.columns), 1)
-    corr_matrix[i_upper] = corr_matrix.T[i_upper]
-
-    # Project to nearest symmetric positive definite matrix
-    if not _is_positive_definite(corr_matrix):
-        input_corr_matrix = corr_matrix.copy()
-        corr_matrix = _nearest_positive_definite(corr_matrix)
-        print("Input correlation matrix: ")
-        with np.printoptions(precision=3, suppress=True):
-            print(input_corr_matrix)
-        print("Used closest positive semi-definite correlation matrix:")
-        with np.printoptions(precision=3, suppress=True):
-            print(corr_matrix)
-    # Previously negative eigenvalues are now close to zero,
-    # but might still be negative, that can be ignored
-
-    # Support unity standard devistions
-    if not stddevs:
-        stddevs = len(corr_matrix) * [1]
-
-    # Now generate the covariance matrix
-    dim = len(stddevs)
-    diag = np.identity(dim)
-    diag[range(dim), range(dim)] = stddevs
-    cov_matrix = np.dot(diag, corr_matrix)
-    return np.dot(cov_matrix, diag)
-
-
-def _nearest_positive_definite(a_mat):
-    """Implementation taken from:
-    https://stackoverflow.com/questions/43238173/
-    python-convert-matrix-to-positive-semi-definite/43244194#43244194
-    """
-
-    b_mat = (a_mat + a_mat.T) / 2
-    _, s_mat, v_mat = la.svd(b_mat)
-
-    h_mat = np.dot(v_mat.T, np.dot(np.diag(s_mat), v_mat))
-
-    a2_mat = (b_mat + h_mat) / 2
-
-    a3_mat = (a2_mat + a2_mat.T) / 2
-
-    if _is_positive_definite(a3_mat):
-        return a3_mat
-
-    spacing = np.spacing(la.norm(a_mat))
-    identity = np.eye(a_mat.shape[0])
-    kiter = 1
-    while not _is_positive_definite(a3_mat):
-        mineig = np.min(np.real(la.eigvals(a3_mat)))
-        a3_mat += identity * (-mineig * kiter**2 + spacing)
-        kiter += 1
-
-    return a3_mat
-
-
-def _is_positive_definite(b_mat):
-    """Returns true when input is positive-definite, via Cholesky"""
-    try:
-        _ = la.cholesky(b_mat)
-        return True
-    except la.LinAlgError:
-        return False
