@@ -285,19 +285,18 @@ def draw_values_triangular(dist_parameters, numreals, rng, normalscoresamples=No
                     loc=low,
                     scale=dist_scale,
                 )
+        elif high == low:  # collapsed distribution
+            print(
+                "Low and high parameters for triangular distribution"
+                " are equal. Using constant {}".format(low)
+            )
+            distribution = scipy.stats.uniform(loc=low, scale=0)
+            values = distribution.rvs(size=numreals, random_state=rng)
         else:
-            if high == low:  # collapsed distribution
-                print(
-                    "Low and high parameters for triangular distribution"
-                    " are equal. Using constant {}".format(low)
-                )
-                distribution = scipy.stats.uniform(loc=low, scale=0)
-                values = distribution.rvs(size=numreals, random_state=rng)
-            else:
-                dist_scale = high - low
-                shape = (mode - low) / dist_scale
-                distribution = scipy.stats.triang(shape, loc=low, scale=dist_scale)
-                values = distribution.rvs(size=numreals, random_state=rng)
+            dist_scale = high - low
+            shape = (mode - low) / dist_scale
+            distribution = scipy.stats.triang(shape, loc=low, scale=dist_scale)
+            values = distribution.rvs(size=numreals, random_state=rng)
     else:
         raise ValueError(msg)
     return values

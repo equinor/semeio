@@ -302,17 +302,16 @@ class DesignMatrix:
                                     len(self.backgroundvalues), sensname
                                 )
                             )
-                    else:
-                        if len(temp_df) > len(self.backgroundvalues):
-                            print(
-                                "Provided number of background values "
-                                "({}) is smaller than number"
-                                " of realisations for sensitivity {}"
-                                " and parameter {}. "
-                                "Will be filled with default values.".format(
-                                    len(self.backgroundvalues), sensname, key
-                                )
+                    elif len(temp_df) > len(self.backgroundvalues):
+                        print(
+                            "Provided number of background values "
+                            "({}) is smaller than number"
+                            " of realisations for sensitivity {}"
+                            " and parameter {}. "
+                            "Will be filled with default values.".format(
+                                len(self.backgroundvalues), sensname, key
                             )
+                        )
                 existing_values = result_values.copy()
                 result_values = pd.concat([existing_values, temp_df])
 
@@ -585,11 +584,10 @@ class ScenarioSensitivity:
                 self.sensvalues = pd.concat(
                     [self.sensvalues, senscase.casevalues], sort=True
                 )
-        else:  # This is the first case
-            if "REAL" in senscase.casevalues and "SENSCASE" in senscase.casevalues:
-                self.case1 = senscase
-                self.sensvalues = senscase.casevalues.copy()
-                self.sensvalues["SENSNAME"] = self.sensname
+        elif "REAL" in senscase.casevalues and "SENSCASE" in senscase.casevalues:
+            self.case1 = senscase
+            self.sensvalues = senscase.casevalues.copy()
+            self.sensvalues["SENSNAME"] = self.sensname
 
 
 class ScenarioSensitivityCase:
