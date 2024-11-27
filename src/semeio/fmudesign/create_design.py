@@ -7,10 +7,134 @@ from datetime import datetime
 from pathlib import Path
 
 import numpy as np
+import numpy.linalg as la
 import pandas as pd
+import scipy
+from scipy.stats import norm, qmc, rankdata
 
 import semeio.fmudesign
 from semeio.fmudesign import design_distributions as design_dist
+
+
+def _is_positive_definite(b_mat):
+    """Returns true when input is positive-definite, via Cholesky"""
+    try:
+        _ = la.cholesky(b_mat)
+        return True
+    except la.LinAlgError:
+        return False
+
+
+def generate_van_der_waerden_scores(X):
+    """Generate van der Waerden scores based on ranks of input data.
+    Follow https://blogs.sas.com/content/iml/2021/06/14/simulate-iman-conover-transformation.html
+    which provides an implementation that does not require rng.
+
+    Parameters
+    ----------
+    X : ndarray
+        Input matrix of shape (N,K)
+
+    Returns
+    -------
+    ndarray
+        Matrix of shape (N,K) containing van der Waerden scores
+        derived from ranks of input data
+
+    Notes
+    -----
+    For each column in X, converts ranks to van der Waerden scores
+    using Φ^(-1)(rank/(N+1)) where Φ^(-1) is the inverse normal CDF.
+    Handles ties using average ranks.
+    """
+    N, K = X.shape
+    S = np.zeros((N, K))
+    for i in range(K):
+        ranks = rankdata(X[:, i], method="average")  # ranktie with "mean"
+        S[:, i] = norm.ppf(ranks / (N + 1))  # quantile("Normal")
+    return S
+
+
+def iman_conover(X, C, variance_reduction=True):
+    """Implementation of the Iman-Conover method for inducing rank correlations.
+
+    Parameters
+    ----------
+    X : ndarray
+        Input matrix of shape (N,K) with independent columns
+    C : ndarray
+        Target correlation matrix of shape (K,K)
+    variance_reduction : bool, optional
+        Whether to use variance reduction technique (default True)
+
+    Returns
+    -------
+    ndarray
+        Transformed matrix with same marginals as X but correlation structure C
+
+    Notes
+    -----
+    Implementation follows the original paper:
+    Iman, R. L., & Conover, W. J. (1982). A distribution-free approach to
+    inducing rank correlation among input variables. Communications in
+    Statistics - Simulation and Computation, 11(3), 311-334.
+
+    When variance_reduction=True, uses additional technique mentioned in paper
+    that reduces variance of achieved correlations by factor of 12-15.
+    """
+    R = generate_van_der_waerden_scores(X)
+
+    if variance_reduction:
+        # Calculate sample correlation matrix of R
+        I = np.corrcoef(R, rowvar=False)  # noqa
+        # Cholesky decompositions
+        Q = np.linalg.cholesky(I)  # QQ' = I
+        P = np.linalg.cholesky(C)  # PP' = C
+        # Variance reduction transformation
+        S = P @ np.linalg.inv(Q)  # S = PQ^(-1)
+        R_star = R @ S.T
+    else:
+        # Basic method without variance reduction
+        P = np.linalg.cholesky(C)
+        R_star = R @ P.T
+
+    # Reorder X columns to match R_star ranks
+    K = X.shape[1]
+    result = np.zeros_like(X)
+    for k in range(K):
+        ranks = rankdata(R_star[:, k]).astype(int) - 1
+        result[:, k] = np.sort(X[:, k])[ranks]
+
+    return result
+
+
+def _nearest_positive_definite(a_mat):
+    """Implementation taken from:
+    https://stackoverflow.com/questions/43238173/
+    python-convert-matrix-to-positive-semi-definite/43244194#43244194
+    """
+
+    b_mat = (a_mat + a_mat.T) / 2
+    _, s_mat, v_mat = la.svd(b_mat)
+
+    h_mat = np.dot(v_mat.T, np.dot(np.diag(s_mat), v_mat))
+
+    a2_mat = (b_mat + h_mat) / 2
+
+    a3_mat = (a2_mat + a2_mat.T) / 2
+
+    if _is_positive_definite(a3_mat):
+        return a3_mat
+
+    spacing = np.spacing(la.norm(a_mat))
+    identity = np.eye(a_mat.shape[0])
+    kiter = 1
+    while not _is_positive_definite(a3_mat):
+        mineig = np.min(np.real(la.eigvals(a3_mat)))
+        a3_mat += identity * (-mineig * kiter**2 + spacing)
+        kiter += 1
+
+    return a3_mat
 
 
 class DesignMatrix:
@@ -711,25 +835,36 @@ class MonteCarloSensitivity:
                         _printwarning(correl)
                     df_correlations = design_dist.read_correlations(corrdict, correl)
                     multivariate_parameters = df_correlations.index.values
-                    cov_matrix = design_dist.make_covariance_matrix(df_correlations)
-                    normalscoremeans = len(multivariate_parameters) * [0]
-                    normalscoresamples = rng.multivariate_normal(
-                        normalscoremeans, cov_matrix, size=numreals
+                    correlations = df_correlations.values
+
+                    # Make correlation matrix symmetric by copying lower triangular part
+                    correlations = np.triu(correlations.T, k=1) + np.tril(correlations)
+
+                    correlations = _nearest_positive_definite(correlations)
+
+                    sampler = qmc.LatinHypercube(
+                        d=len(multivariate_parameters), seed=rng
                     )
-                    normalscoresamples_df = pd.DataFrame(
-                        data=normalscoresamples, columns=multivariate_parameters
-                    )
-                    for key in param_dict:
+                    lhs_samples = sampler.random(n=numreals)
+
+                    correlated_samples = iman_conover(X=lhs_samples, C=correlations)
+
+                    # Transform uniform correlated samples to normal scores
+                    # This step maintains rank correlations while providing
+                    # normal scores needed by the draw_values() function
+                    normalscoresamples = scipy.stats.norm.ppf(correlated_samples)
+
+                    for idx, key in enumerate(param_dict):
                         dist_name = param_dict[key][0].lower()
-                        dist_parameters = param_dict[key][1]
+                        dist_params = param_dict[key][1]
                         if key in multivariate_parameters:
                             try:
                                 self.sensvalues[key] = design_dist.draw_values(
                                     dist_name,
-                                    dist_parameters,
+                                    dist_params,
                                     numreals,
                                     rng,
-                                    normalscoresamples_df[key],
+                                    normalscoresamples[:, idx],
                                 )
                             except ValueError as error:
                                 raise ValueError(
@@ -748,10 +883,10 @@ class MonteCarloSensitivity:
                 else:  # group nocorr where correlation matrix is not defined
                     for key in param_dict:
                         dist_name = param_dict[key][0].lower()
-                        dist_parameters = param_dict[key][1]
+                        dist_params = param_dict[key][1]
                         try:
                             self.sensvalues[key] = design_dist.draw_values(
-                                dist_name, dist_parameters, numreals, rng
+                                dist_name, dist_params, numreals, rng
                             )
                         except ValueError as error:
                             raise ValueError(
