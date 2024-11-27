@@ -34,7 +34,6 @@ dependencies = [
     "importlib_resources",
     "numpy",
     "pandas>1.3.0",
-    "polars<1.10.0",  # Transitive requirement through Ert
     "pydantic>=2.9",
     "pyscal>=0.4.0",
     "resdata",
