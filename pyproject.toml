@@ -92,6 +92,7 @@ types = [
     "pandas-stubs",
     "types-setuptools",
     "types-PyYAML",
+    "types-openpyxl",
 ]
 
 [tool.pytest.ini_options]
