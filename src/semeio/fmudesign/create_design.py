@@ -9,8 +9,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-import fmu.tools
-from fmu.tools.sensitivities import design_distributions as design_dist
+import semeio.fmudesign
+from semeio.fmudesign import design_distributions as design_dist
 
 
 class DesignMatrix:
@@ -202,7 +202,7 @@ class DesignMatrix:
             {
                 "Description": ["Created using fmu-tools version:", "Created on:"],
                 "Value": [
-                    fmu.tools.__version__,
+                    semeio.__version__,
                     datetime.now().isoformat(sep=" ", timespec="seconds"),
                 ],
             }
@@ -891,7 +891,7 @@ def _find_max_realisations(inputdict):
 def _printwarning(corrgroup):
     print(
         "#######################################################\n"
-        "fmudesign Warning:                                     \n"
+        "semeio.fmudesign Warning:                                     \n"
         "Using designinput sheets where "
         "corr_sheet is only specified for one parameter "
         "will cause non-correlated parameters .\n"
@@ -906,7 +906,7 @@ def _printwarning(corrgroup):
         "have to be included in correlation matrix. \n "
         "See documentation: \n"
         "https://equinor.github.io/fmu-tools/"
-        "fmudesign.html#create-design-matrix-for-"
+        "semeio.fmudesign.html#create-design-matrix-for-"
         "one-by-one-sensitivities\n"
         "\n"
         "####################################################\n"

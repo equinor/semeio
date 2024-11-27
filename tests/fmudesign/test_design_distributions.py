@@ -5,7 +5,7 @@ import numbers
 import numpy as np
 import pytest
 
-from fmu.tools.sensitivities import design_distributions as dists
+from semeio.fmudesign import design_distributions as dists
 
 # pylint: disable=protected-access
 

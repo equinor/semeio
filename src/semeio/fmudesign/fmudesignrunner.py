@@ -3,7 +3,7 @@
 import argparse
 from pathlib import Path
 
-from fmu.tools.sensitivities import DesignMatrix, excel2dict_design
+from semeio.fmudesign import DesignMatrix, excel2dict_design
 
 
 def get_parser():
@@ -45,9 +45,9 @@ def get_parser():
 
 
 def main():
-    """fmudesign is a command line utility for generating design matrices
+    """semeio.fmudesign is a command line utility for generating design matrices
 
-    Wrapper for the the fmu.tools.sensitivities module"""
+    Wrapper for the the semeio.fmudesign module"""
 
     parser = get_parser()
     args = parser.parse_args()

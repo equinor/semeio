@@ -5,10 +5,10 @@ post processing of results to create input for a tornado plot.
 Output of this module can be used in custom standalone applications.
 """
 
-from fmu.tools.sensitivities._designsummary import summarize_design
-from fmu.tools.sensitivities._excel2dict import excel2dict_design, inputdict_to_yaml
-from fmu.tools.sensitivities._tornado_onebyone import calc_tornadoinput
-from fmu.tools.sensitivities.create_design import DesignMatrix
+from semeio.fmudesign._designsummary import summarize_design
+from semeio.fmudesign._excel2dict import excel2dict_design, inputdict_to_yaml
+from semeio.fmudesign._tornado_onebyone import calc_tornadoinput
+from semeio.fmudesign.create_design import DesignMatrix
 
 __all__ = [
     "summarize_design",
