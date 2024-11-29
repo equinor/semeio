@@ -285,7 +285,7 @@ class OverburdenTimeshift:
 
         :param vintage_pairs:
         :param subsidence_func: specify subsidence method to be used
-        :param method_name: string represeting the subsudence func name
+        :param method_name: string representing the subsudence func name
         """
         if len(vintage_pairs) < 1:
             return 0, []
@@ -463,7 +463,7 @@ class OverburdenTimeshift:
 
     def dpv(self, vintage_pairs):
         """
-        Calulates change in pressure multiplied by cell volume
+        Calculates change in pressure multiplied by cell volume
         and sum for all cells in column
 
         dPV must have equal sign as TS, but opposite from mathematics

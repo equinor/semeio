@@ -7,7 +7,7 @@ from semeio.forward_models.rft.utility import strip_comments
 class ZoneMap:
     """A zonemap is a map from simulation grid
     k layers to a list of strings representing the
-    possible zones (in a stratigraphical hiearchy of zones)
+    possible zones (in a stratigraphical hierarchy of zones)
     that the k-layers belongs to.
 
 

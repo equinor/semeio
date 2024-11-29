@@ -71,7 +71,7 @@ def _complete_parameters_file(
     realization, parameters, parametersfilename, design_matrix_sheet, default_sheet
 ):
     """
-    Pick key / values from choosen realization in design matrix
+    Pick key / values from chosen realization in design matrix
     Append those key / values if not present into parameters.txt
     Create file adding those key / values to designparameters.txt
     if default-sheet contains key / values not existing in

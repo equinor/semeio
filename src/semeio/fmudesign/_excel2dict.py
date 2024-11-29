@@ -197,7 +197,7 @@ def _check_for_mixed_sensitivities(sens_name, sens_group):
 
 
 def _excel2dict_onebyone(input_filename, sheetnames=None):
-    """Reads spesification for onebyone design
+    """Reads specification for onebyone design
 
     Args:
         input_filename(path): path to excel workbook

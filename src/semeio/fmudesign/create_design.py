@@ -326,7 +326,7 @@ class DesignMatrix:
 
     def _fill_with_background_values(self):
         """Substituting NaNs with background values if existing.
-        background values not in design are added as separate colums
+        background values not in design are added as separate columns
         """
         if self.backgroundvalues is not None:
             grouped = self.designvalues.groupby(["SENSNAME", "SENSCASE"], sort=False)
@@ -536,7 +536,7 @@ class SingleRealisationReference:
         """Generates realisation number only
 
         Args:
-            realnums (list): list of intergers with realization numbers
+            realnums (list): list of integers with realization numbers
         """
         self.sensvalues = pd.DataFrame(index=realnums)
         self.sensvalues["REAL"] = realnums
@@ -561,7 +561,7 @@ class BackgroundSensitivity:
 
     # pylint: disable=too-few-public-methods
     def __init__(self, sensname):
-        """Inititate
+        """Initiate
 
         Args:
             sensname (str): Name of sensitivity. Defines SENSNAME in design matrix.
@@ -573,7 +573,7 @@ class BackgroundSensitivity:
         """Generates realisation number only
 
         Args:
-            realnums (list): list of intergers with realization numbers
+            realnums (list): list of integers with realization numbers
         """
         self.sensvalues = pd.DataFrame(index=realnums)
         self.sensvalues["REAL"] = realnums
@@ -845,7 +845,7 @@ class ExternSensitivity:
         from file
 
         Args:
-            realnums (list): list of intergers with realization numbers
+            realnums (list): list of integers with realization numbers
             filename (str): path where to read values from
             parameters (list): list with parameter names
             seeds (str): default or None
