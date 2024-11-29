@@ -203,8 +203,9 @@ def test_draw_values_triangular():
     assert all(10 <= value <= 1000 for value in values)
 
 
-def test_draw_values_pert():
-    rng = np.random.RandomState()
+@pytest.mark.parametrize("seed", range(100))
+def test_draw_values_pert(seed):
+    rng = np.random.default_rng(seed)
 
     assert not dists.draw_values_pert([10, 50, 100], 0, rng).size
 
@@ -212,6 +213,13 @@ def test_draw_values_pert():
     assert len(values) == 20
     assert all(isinstance(value, numbers.Number) for value in values)
     assert all(10 <= value <= 100 for value in values)
+
+    # For symmetric PERT, verify both mode and mean are at 5
+    values = dists.draw_values_pert([0, 5, 10, 4], 5000, rng)
+    hist, bins = np.histogram(values, bins=100)
+    empirical_mode = bins[np.argmax(hist)]
+    assert np.isclose(empirical_mode, 5, atol=0.55)
+    assert np.isclose(values.mean(), 5, atol=0.55)
 
 
 def test_draw_values_loguniform():
