@@ -10,10 +10,11 @@ import numpy as np
 import numpy.linalg as la
 import pandas as pd
 import scipy
-from scipy.stats import norm, qmc, rankdata
+from scipy.stats import qmc
 
 import semeio.fmudesign
 from semeio.fmudesign import design_distributions as design_dist
+from semeio.fmudesign.iman_conover import ImanConover
 
 
 def _is_positive_definite(b_mat):
@@ -23,89 +24,6 @@ def _is_positive_definite(b_mat):
         return True
     except la.LinAlgError:
         return False
-
-
-def generate_van_der_waerden_scores(X):
-    """Generate van der Waerden scores based on ranks of input data.
-    Follow https://blogs.sas.com/content/iml/2021/06/14/simulate-iman-conover-transformation.html
-    which provides an implementation that does not require rng.
-
-    Parameters
-    ----------
-    X : ndarray
-        Input matrix of shape (N,K)
-
-    Returns
-    -------
-    ndarray
-        Matrix of shape (N,K) containing van der Waerden scores
-        derived from ranks of input data
-
-    Notes
-    -----
-    For each column in X, converts ranks to van der Waerden scores
-    using Φ^(-1)(rank/(N+1)) where Φ^(-1) is the inverse normal CDF.
-    Handles ties using average ranks.
-    """
-    N, K = X.shape
-    S = np.zeros((N, K))
-    for i in range(K):
-        ranks = rankdata(X[:, i], method="average")  # ranktie with "mean"
-        S[:, i] = norm.ppf(ranks / (N + 1))  # quantile("Normal")
-    return S
-
-
-def iman_conover(X, C, variance_reduction=True):
-    """Implementation of the Iman-Conover method for inducing rank correlations.
-
-    Parameters
-    ----------
-    X : ndarray
-        Input matrix of shape (N,K) with independent columns
-    C : ndarray
-        Target correlation matrix of shape (K,K)
-    variance_reduction : bool, optional
-        Whether to use variance reduction technique (default True)
-
-    Returns
-    -------
-    ndarray
-        Transformed matrix with same marginals as X but correlation structure C
-
-    Notes
-    -----
-    Implementation follows the original paper:
-    Iman, R. L., & Conover, W. J. (1982). A distribution-free approach to
-    inducing rank correlation among input variables. Communications in
-    Statistics - Simulation and Computation, 11(3), 311-334.
-
-    When variance_reduction=True, uses additional technique mentioned in paper
-    that reduces variance of achieved correlations by factor of 12-15.
-    """
-    R = generate_van_der_waerden_scores(X)
-
-    if variance_reduction:
-        # Calculate sample correlation matrix of R
-        I = np.corrcoef(R, rowvar=False)  # noqa
-        # Cholesky decompositions
-        Q = np.linalg.cholesky(I)  # QQ' = I
-        P = np.linalg.cholesky(C)  # PP' = C
-        # Variance reduction transformation
-        S = P @ np.linalg.inv(Q)  # S = PQ^(-1)
-        R_star = R @ S.T
-    else:
-        # Basic method without variance reduction
-        P = np.linalg.cholesky(C)
-        R_star = R @ P.T
-
-    # Reorder X columns to match R_star ranks
-    K = X.shape[1]
-    result = np.zeros_like(X)
-    for k in range(K):
-        ranks = rankdata(R_star[:, k]).astype(int) - 1
-        result[:, k] = np.sort(X[:, k])[ranks]
-
-    return result
 
 
 def _nearest_positive_definite(a_mat):
@@ -847,7 +765,8 @@ class MonteCarloSensitivity:
                     )
                     lhs_samples = sampler.random(n=numreals)
 
-                    correlated_samples = iman_conover(X=lhs_samples, C=correlations)
+                    iman_conover = ImanConover(correlation_matrix=correlations)
+                    correlated_samples = iman_conover(lhs_samples)
 
                     # Transform uniform correlated samples to normal scores
                     # This step maintains rank correlations while providing
