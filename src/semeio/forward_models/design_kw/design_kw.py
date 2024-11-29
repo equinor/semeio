@@ -114,7 +114,7 @@ def extract_key_value(parameters: List[str]) -> Dict[str, str]:
         dict, with the keys and values parsed.
 
     Raises:
-        ValueError, with error messages and all unparseable lines.
+        ValueError, with error messages and all unparsable lines.
     """
     res = {}
     errors = []

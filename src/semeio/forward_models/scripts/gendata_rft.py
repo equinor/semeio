@@ -92,7 +92,7 @@ trajectory point.
         type=ZoneMap.load_and_parse_zonemap_file,
         help="""
 Path to a file with zonemap information. This file must include every k-value that
-any RFT value is located within, irregardless if the trajectory point contains a
+any RFT value is located within, regardless if the trajectory point contains a
 zone definition. If a k value does not exist the program will stop. The zone
 mapping will be validated and if it is invalid, the pressure is set to -1 and the
 inactive value to 0

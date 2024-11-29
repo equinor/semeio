@@ -141,7 +141,7 @@ named ``layer_zone_table.txt``::
     3 Lower
     4 Lower
 
-In the ert config, after running the Eclipse (or similiar) forward model, add::
+In the ert config, after running the Eclipse (or similar) forward model, add::
 
     DEFINE RFT_INPUT <CONFIG_PATH>/../input/observations/rft
     FORWARD_MODEL MAKE_DIRECTORY(<DIRECTORY>=gendata_rft)

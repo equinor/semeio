@@ -169,7 +169,7 @@ class OTSVelSurface:
         """
         Interpolates reservoir top surface to velocity grid
         """
-        # downsample segy if segy resultion of CDP and
+        # downsample segy if segy resolution of CDP and
         # sample rate is higher than of the Eclgrid
         x, y, traces, _, self._dt = self._read_velocity(vcube, res_surface.cell_corners)
         # this is some clever integration of traces using

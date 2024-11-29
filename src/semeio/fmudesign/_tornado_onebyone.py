@@ -16,7 +16,7 @@ def check_selector(resultfile, selector):
 
 
 def check_selection(resultfile, selector, selection):
-    """Checks whether selction is in resultfile values
+    """Checks whether selection is in resultfile values
     in the column selector"""
     for sel in selection:
         if sel not in resultfile[selector].values:
@@ -29,7 +29,7 @@ def check_selection(resultfile, selector, selection):
 
 
 def check_response(resultfile, response):
-    """Checks whether respones in in resultfile"""
+    """Checks whether responses in in resultfile"""
     if response not in resultfile.columns:
         raise ValueError("Did not find ", response, " as column in", "resultfile")
 
