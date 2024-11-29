@@ -106,19 +106,19 @@ def calc_tornadoinput(
             * (int): Average response value for realizations in
                      reference sensitivity.
 
-    Example::
-        >>> import pandas as pd
-        >>> from semeio.fmudesign import calc_tornadoplot
-        >>> designtable = pd.read_csv('designsummary.csv')
-        >>> results = pd.read_csv('resultfile.csv')
-        >>> response = 'STOIIP_OIL'
-        >>> selectors = ['ZONE', 'REGION']
-        >>> selection = [['Nansen','Larsson'], ['SegmentA']]
-        >>> reference = 'rms_seed'
-        >>> scale = 'percentage'
-        >>> cutbyref = True
-        >>> sortsens = False
-        >>> (tornadotable, ref_value) = calc_tornadoinput(
+    Example:
+        >> import pandas as pd
+        >> from semeio.fmudesign import calc_tornadoplot
+        >> designtable = pd.read_csv('designsummary.csv')
+        >> results = pd.read_csv('resultfile.csv')
+        >> response = 'STOIIP_OIL'
+        >> selectors = ['ZONE', 'REGION']
+        >> selection = [['Nansen','Larsson'], ['SegmentA']]
+        >> reference = 'rms_seed'
+        >> scale = 'percentage'
+        >> cutbyref = True
+        >> sortsens = False
+        >> (tornadotable, ref_value) = calc_tornadoinput(
             designtable, results, response, selectors,
             selection, reference, scale, cutbyref, sortsens)
 

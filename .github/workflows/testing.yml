@@ -38,3 +38,6 @@ jobs:
 
       - name: "Run tests"
         run: pytest tests -n logical --durations 5 --ert-integration
+
+      - name: "Run doctests on fmudesign"
+        run: pytest ./src/semeio/fmudesign/ --doctest-modules -v

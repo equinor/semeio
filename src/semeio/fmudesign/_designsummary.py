@@ -32,11 +32,11 @@ def summarize_design(filename, sheetname="DesignSheet01"):
         'senstype', 'casename1', 'startreal1', 'endreal1',
         'casename2', 'startreal2', 'endreal2']
 
-    Example::
-        >>> from semeio.fmudesign import summarize_design
-        >>> designname = 'design_filename.xlsx'
-        >>> designsheet = 'DesignSheet01'
-        >>> designtable = summarize_design(designname, designsheet)
+    Example:
+        >> from semeio.fmudesign import summarize_design
+        >> designname = 'design_filename.xlsx'
+        >> designsheet = 'DesignSheet01'
+        >> designtable = summarize_design(designname, designsheet)
 
     """
 
