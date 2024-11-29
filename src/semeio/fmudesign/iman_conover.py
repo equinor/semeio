@@ -18,12 +18,12 @@ Map to distributions
 Induce correlations
 
 >>> sp.stats.pearsonr(*X.T).statistic
-0.06589800321227991
+0.065898...
 >>> correlation_matrix = np.array([[1, 0.3], [0.3, 1]])
 >>> transform = ImanConover(correlation_matrix)
 >>> X_transformed = transform(X)
 >>> sp.stats.pearsonr(*X_transformed.T).statistic
-0.27965286549530805
+0.279652...
 """
 
 import numpy as np
@@ -89,7 +89,7 @@ class ImanConover:
         >>> sp.stats.pearsonr(*X.T).statistic
         0.0
         >>> sp.stats.pearsonr(*X_transformed.T).statistic
-        0.8164965809277261
+        0.816496...
 
         Achieving the exact correlation structure might be impossible. For the
         input matrix above, there is no permutation of the columns that yields
@@ -102,7 +102,7 @@ class ImanConover:
         >>> X = rng.normal(size=(1000, 2))
         >>> X_transformed = transform(X)
         >>> sp.stats.pearsonr(*X_transformed.T).statistic
-        0.697701261152449
+        0.697701...
 
         But if the data are far from normal (here:lognormal), the results are
         not as good. This is because correlation is induced in a normal space
@@ -112,7 +112,7 @@ class ImanConover:
         >>> X = rng.lognormal(size=(1000, 2))
         >>> X_transformed = transform(X)
         >>> sp.stats.pearsonr(*X_transformed.T).statistic
-        0.5925413169604046
+        0.592541...
         """
         if not isinstance(correlation_matrix, np.ndarray):
             raise TypeError("Input argument `correlation_matrix` must be NumPy array.")
