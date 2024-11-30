@@ -184,19 +184,23 @@ class DesignMatrix:
 
         self.designvalues["SENSNAME"] = None
         self.designvalues["SENSCASE"] = None
-        counter = 0
+        current_real_index = 0
         for key in inputdict["sensitivities"]:
             sens = inputdict["sensitivities"][key]
             numreal = sens["numreal"] if "numreal" in sens else inputdict["repeats"]
             if sens["senstype"] == "ref":
                 sensitivity = SingleRealisationReference(key)
-                sensitivity.generate(range(counter, counter + numreal))
-                counter += numreal
+                sensitivity.generate(
+                    range(current_real_index, current_real_index + numreal)
+                )
+                current_real_index += numreal
                 self._add_sensitivity(sensitivity)
             elif sens["senstype"] == "background":
                 sensitivity = BackgroundSensitivity(key)
-                sensitivity.generate(range(counter, counter + numreal))
-                counter += numreal
+                sensitivity.generate(
+                    range(current_real_index, current_real_index + numreal)
+                )
+                current_real_index += numreal
                 self._add_sensitivity(sensitivity)
             elif sens["senstype"] == "seed":
                 if self.seedvalues is None:
@@ -205,12 +209,12 @@ class DesignMatrix:
                     )
                 sensitivity = SeedSensitivity(key)
                 sensitivity.generate(
-                    range(counter, counter + numreal),
+                    range(current_real_index, current_real_index + numreal),
                     sens["seedname"],
                     self.seedvalues,
                     sens["parameters"],
                 )
-                counter += numreal
+                current_real_index += numreal
                 self._add_sensitivity(sensitivity)
             elif sens["senstype"] == "scenario":
                 sensitivity = ScenarioSensitivity(key)
@@ -218,31 +222,33 @@ class DesignMatrix:
                     case = sens["cases"][casekey]
                     temp_case = ScenarioSensitivityCase(casekey)
                     temp_case.generate(
-                        range(counter, counter + numreal), case, self.seedvalues
+                        range(current_real_index, current_real_index + numreal),
+                        case,
+                        self.seedvalues,
                     )
                     sensitivity.add_case(temp_case)
-                    counter += numreal
+                    current_real_index += numreal
                 self._add_sensitivity(sensitivity)
             elif sens["senstype"] == "dist":
                 sensitivity = MonteCarloSensitivity(key)
                 sensitivity.generate(
-                    range(counter, counter + numreal),
+                    range(current_real_index, current_real_index + numreal),
                     sens["parameters"],
                     self.seedvalues,
                     sens["correlations"],
                     rng=rng,
                 )
-                counter += numreal
+                current_real_index += numreal
                 self._add_sensitivity(sensitivity)
             elif sens["senstype"] == "extern":
                 sensitivity = ExternSensitivity(key)
                 sensitivity.generate(
-                    range(counter, counter + numreal),
+                    range(current_real_index, current_real_index + numreal),
                     sens["extern_file"],
                     sens["parameters"],
                     self.seedvalues,
                 )
-                counter += numreal
+                current_real_index += numreal
                 self._add_sensitivity(sensitivity)
             print("Added sensitivity :", sensitivity.sensname)
         if "background" in inputdict:
