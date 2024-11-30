@@ -513,12 +513,13 @@ def is_number(teststring):
         return False
 
 
-def read_correlations(corr_dict, corrsheet):
+def read_correlations(corr_dict, corr_sheet: str):
     """Reading correlation info for a
     monte carlo sensitivity
 
     Args:
         corr_dict (OrderedDict): correlation info
+        corr_sheet (str): name of sheet containing correlation matrix
 
     Returns:
         pd.DataFrame: Dataframe with correlations, parameter names
@@ -526,10 +527,10 @@ def read_correlations(corr_dict, corrsheet):
     """
     correlations = None
     filename = corr_dict["inputfile"]
-    if corrsheet in corr_dict["sheetnames"]:
+    if corr_sheet in corr_dict["sheetnames"]:
         if str(filename).endswith(".xlsx"):
             correlations = pd.read_excel(
-                filename, corrsheet, index_col=0, engine="openpyxl"
+                filename, corr_sheet, index_col=0, engine="openpyxl"
             )
             correlations.dropna(axis=0, how="all", inplace=True)
             correlations = correlations.loc[
@@ -543,7 +544,7 @@ def read_correlations(corr_dict, corrsheet):
     else:
         raise ValueError(
             "Corr_sheet {} specified but cannot be "
-            "found in list of sheetnames".format(corrsheet)
+            "found in list of sheetnames".format(corr_sheet)
         )
 
     return correlations
