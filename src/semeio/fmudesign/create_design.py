@@ -758,34 +758,36 @@ class MonteCarloSensitivity:
         self.sensname = sensname
         self.sensvalues = None
 
+    def _draw_uncorrelated_values(
+        self, param_name, dist_name, dist_params, numreals, rng
+    ):
+        try:
+            return design_dist.draw_values(
+                dist_name.lower(), dist_params, numreals, rng
+            )
+        except ValueError as error:
+            raise ValueError(
+                f"Problem in sensitivity with sensname {self.sensname} "
+                f"for parameter {param_name}: {error.args[0]}"
+            ) from error
+
     def generate(self, realnums, parameters, seedvalues, corrdict, rng):
-        """Generates parameter values by drawing from
-        defined distributions.
+        """Generates parameter values by drawing from defined distributions.
 
         Args:
             realnums (list): list of integers with realization numbers
-            parameters (OrderedDict):
-                dictionary of parameters and distributions
+            parameters (OrderedDict): dictionary of parameters and distributions
             seeds (str): default or None
             corrdict(OrderedDict): correlation info
         """
         self.sensvalues = pd.DataFrame(columns=parameters.keys(), index=realnums)
         numreals = len(realnums)
+
         if corrdict is None:
             for key in parameters:
-                dist_name = parameters[key][0].lower()
-                dist_params = parameters[key][1]
-                try:
-                    self.sensvalues[key] = design_dist.draw_values(
-                        dist_name, dist_params, numreals, rng
-                    )
-                except ValueError as error:
-                    raise ValueError(
-                        "Problem with parameter {} in sensitivity "
-                        "with sensname {}: {}.".format(
-                            key, self.sensname, error.args[0]
-                        )
-                    ) from error
+                self.sensvalues[key] = self._draw_uncorrelated_values(
+                    key, parameters[key][0], parameters[key][1], numreals, rng
+                )
         else:  # Some or all parameters are correlated
             df_params = pd.DataFrame.from_dict(
                 parameters,
@@ -823,55 +825,35 @@ class MonteCarloSensitivity:
                     correlated_samples = iman_conover(lhs_samples)
 
                     # Transform uniform correlated samples to normal scores
-                    # This step maintains rank correlations while providing
-                    # normal scores needed by the draw_values() function
                     normalscoresamples = scipy.stats.norm.ppf(correlated_samples)
 
                     for idx, row in corr_group.reset_index(drop=True).iterrows():
                         if row["param_name"] in multivariate_parameters:
-                            try:
-                                self.sensvalues[row["param_name"]] = (
-                                    design_dist.draw_values(
-                                        row["dist_name"].lower(),
-                                        row["dist_params"],
-                                        numreals,
-                                        rng,
-                                        normalscoresamples[:, idx],
-                                    )
-                                )
-                            except ValueError as error:
-                                raise ValueError(
-                                    "Problem in sensitivity "
-                                    "with sensname {} for "
-                                    "parameter {}: {}.".format(
-                                        self.sensname, row["param_name"], error.args[0]
-                                    )
-                                ) from error
-                        else:
-                            raise ValueError(
-                                "Parameter {} specified with correlation "
-                                "matrix {} but is not listed in "
-                                "that sheet".format(row["param_name"], corr_group_name)
-                            )
-                else:  # group nocorr where correlation matrix is not defined
-                    for _, row in corr_group.iterrows():
-                        try:
                             self.sensvalues[row["param_name"]] = (
                                 design_dist.draw_values(
                                     row["dist_name"].lower(),
                                     row["dist_params"],
                                     numreals,
                                     rng,
+                                    normalscoresamples[:, idx],
                                 )
                             )
-                        except ValueError as error:
+                        else:
                             raise ValueError(
-                                "Problem in sensitivity "
-                                "with sensname {} for parameter "
-                                "{}: {}.".format(
-                                    self.sensname, row["param_name"], error.args[0]
-                                )
-                            ) from error
+                                f"Parameter {row['param_name']} specified with correlation "
+                                f"matrix {corr_group_name} but is not listed in that sheet"
+                            )
+                else:  # group nocorr where correlation matrix is not defined
+                    for _, row in corr_group.iterrows():
+                        self.sensvalues[row["param_name"]] = (
+                            self._draw_uncorrelated_values(
+                                row["param_name"],
+                                row["dist_name"],
+                                row["dist_params"],
+                                numreals,
+                                rng,
+                            )
+                        )
 
         if self.sensname != "background":
             self.sensvalues["REAL"] = realnums
