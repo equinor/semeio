@@ -814,7 +814,7 @@ class MonteCarloSensitivity:
                     if len(corr_group) == 1:
                         _printwarning(corr_group_name)
                     df_correlations = design_dist.read_correlations(
-                        corrdict, corr_group_name
+                        corrdict["inputfile"], corr_group_name
                     )
                     multivariate_parameters = df_correlations.index.values
                     correlations = df_correlations.values
