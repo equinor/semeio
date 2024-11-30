@@ -798,12 +798,6 @@ class MonteCarloSensitivity:
             corr_groups = df_params.groupby("corr_sheet")
 
             for corr_group_name, corr_group in corr_groups:
-                param_dict = OrderedDict()
-                for _, row in corr_group.iterrows():
-                    param_dict[row["param_name"]] = [
-                        row["dist_name"],
-                        row["dist_params"],
-                    ]
                 if corr_group_name != "nocorr":
                     if len(corr_group) == 1:
                         _printwarning(corr_group_name)
@@ -833,45 +827,50 @@ class MonteCarloSensitivity:
                     # normal scores needed by the draw_values() function
                     normalscoresamples = scipy.stats.norm.ppf(correlated_samples)
 
-                    for idx, key in enumerate(param_dict):
-                        dist_name = param_dict[key][0].lower()
-                        dist_params = param_dict[key][1]
-                        if key in multivariate_parameters:
+                    for idx, row in corr_group.reset_index(drop=True).iterrows():
+                        if row["param_name"] in multivariate_parameters:
                             try:
-                                self.sensvalues[key] = design_dist.draw_values(
-                                    dist_name,
-                                    dist_params,
-                                    numreals,
-                                    rng,
-                                    normalscoresamples[:, idx],
+                                self.sensvalues[row["param_name"]] = (
+                                    design_dist.draw_values(
+                                        row["dist_name"].lower(),
+                                        row["dist_params"],
+                                        numreals,
+                                        rng,
+                                        normalscoresamples[:, idx],
+                                    )
                                 )
                             except ValueError as error:
                                 raise ValueError(
                                     "Problem in sensitivity "
                                     "with sensname {} for "
                                     "parameter {}: {}.".format(
-                                        self.sensname, key, error.args[0]
+                                        self.sensname, row["param_name"], error.args[0]
                                     )
                                 ) from error
                         else:
                             raise ValueError(
-                                "Parameter{} specified with correlation "
+                                "Parameter {} specified with correlation "
                                 "matrix {} but is not listed in "
-                                "that sheet".format(key, corr_group_name)
+                                "that sheet".format(row["param_name"], corr_group_name)
                             )
                 else:  # group nocorr where correlation matrix is not defined
-                    for key in param_dict:
-                        dist_name = param_dict[key][0].lower()
-                        dist_params = param_dict[key][1]
+                    for _, row in corr_group.iterrows():
                         try:
-                            self.sensvalues[key] = design_dist.draw_values(
-                                dist_name, dist_params, numreals, rng
+                            self.sensvalues[row["param_name"]] = (
+                                design_dist.draw_values(
+                                    row["dist_name"].lower(),
+                                    row["dist_params"],
+                                    numreals,
+                                    rng,
+                                )
                             )
                         except ValueError as error:
                             raise ValueError(
                                 "Problem in sensitivity "
                                 "with sensname {} for parameter "
-                                "{}: {}.".format(self.sensname, key, error.args[0])
+                                "{}: {}.".format(
+                                    self.sensname, row["param_name"], error.args[0]
+                                )
                             ) from error
 
         if self.sensname != "background":
