@@ -1006,7 +1006,7 @@ def _printwarning(corr_group_name):
         "have to be included in correlation matrix. \n "
         "See documentation: \n"
         "https://equinor.github.io/fmu-tools/"
-        "semeio.fmudesign.html#create-design-matrix-for-"
+        "fmudesign.html#create-design-matrix-for-"
         "one-by-one-sensitivities\n"
         "\n"
         "####################################################\n"
