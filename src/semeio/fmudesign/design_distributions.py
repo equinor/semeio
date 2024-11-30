@@ -527,24 +527,19 @@ def read_correlations(corr_dict, corr_sheet: str):
     """
     correlations = None
     filename = corr_dict["inputfile"]
-    if corr_sheet in corr_dict["sheetnames"]:
-        if str(filename).endswith(".xlsx"):
-            correlations = pd.read_excel(
-                filename, corr_sheet, index_col=0, engine="openpyxl"
-            )
-            correlations.dropna(axis=0, how="all", inplace=True)
-            correlations = correlations.loc[
-                :, ~correlations.columns.str.contains("^Unnamed")
-            ]
-        else:
-            raise ValueError(
-                "Correlation matrix filename should be on "
-                "Excel format and end with .xlsx "
-            )
-    else:
+
+    if not str(filename).endswith(".xlsx"):
         raise ValueError(
-            "Corr_sheet {} specified but cannot be "
-            "found in list of sheetnames".format(corr_sheet)
+            "Correlation matrix filename should be on Excel format and end with .xlsx"
         )
+
+    if corr_sheet not in corr_dict["sheetnames"]:
+        raise ValueError(
+            f"Corr_sheet {corr_sheet} specified but cannot be found in list of sheetnames"
+        )
+
+    correlations = pd.read_excel(filename, corr_sheet, index_col=0, engine="openpyxl")
+    correlations.dropna(axis=0, how="all", inplace=True)
+    correlations = correlations.loc[:, ~correlations.columns.str.contains("^Unnamed")]
 
     return correlations
