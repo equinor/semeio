@@ -778,7 +778,10 @@ class MonteCarloSensitivity:
             realnums (list): list of integers with realization numbers
             parameters (OrderedDict): dictionary of parameters and distributions
             seeds (str): default or None
-            corrdict(OrderedDict): correlation info
+            corrdict (OrderedDict): Configuration for correlated parameters. Contains:
+                - 'inputfile': Path to Excel file with correlation matrices
+                - 'sheetnames': List of sheet names, where each sheet contains a correlation matrix
+                If None, parameters are treated as uncorrelated.
         """
         self.sensvalues = pd.DataFrame(columns=parameters.keys(), index=realnums)
         numreals = len(realnums)
