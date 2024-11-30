@@ -540,6 +540,7 @@ def read_correlations(corr_dict, corr_sheet: str):
 
     correlations = pd.read_excel(filename, corr_sheet, index_col=0, engine="openpyxl")
     correlations.dropna(axis=0, how="all", inplace=True)
+    # Remove any 'Unnamed' columns that Excel/pandas may have automatically added.
     correlations = correlations.loc[:, ~correlations.columns.str.contains("^Unnamed")]
 
     return correlations
