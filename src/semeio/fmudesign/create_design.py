@@ -775,7 +775,7 @@ class MonteCarloSensitivity:
         """Generates parameter values by drawing from defined distributions.
 
         Args:
-            realnums (list): list of integers with realization numbers
+            realnums (range): range object containing realization numbers
             parameters (OrderedDict): dictionary of parameters and distributions
             seeds (str): default or None
             corrdict (OrderedDict): Configuration for correlated parameters. Contains:
