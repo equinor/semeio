@@ -154,6 +154,15 @@ class DesignMatrix:
         Args:
             inputdict (OrderedDict): input parameters for design
         """
+
+        if inputdict["designtype"] != "onebyone":
+            raise ValueError(
+                "Generation of DesignMatrix only "
+                "implemented for type onebyone. "
+                "In general_input designtype is "
+                "set to {}".format(inputdict["designtype"])
+            )
+
         self.reset()  # Emptying if regenerating matrix
 
         if "distribution_seed" in inputdict and inputdict["distribution_seed"]:
@@ -173,92 +182,84 @@ class DesignMatrix:
         if "background" in inputdict:
             self.add_background(inputdict["background"], max_reals, rng)
 
-        if inputdict["designtype"] == "onebyone":
-            self.designvalues["SENSNAME"] = None
-            self.designvalues["SENSCASE"] = None
-            counter = 0
-            for key in inputdict["sensitivities"]:
-                sens = inputdict["sensitivities"][key]
-                numreal = sens["numreal"] if "numreal" in sens else inputdict["repeats"]
-                if sens["senstype"] == "ref":
-                    sensitivity = SingleRealisationReference(key)
-                    sensitivity.generate(range(counter, counter + numreal))
-                    counter += numreal
-                    self._add_sensitivity(sensitivity)
-                elif sens["senstype"] == "background":
-                    sensitivity = BackgroundSensitivity(key)
-                    sensitivity.generate(range(counter, counter + numreal))
-                    counter += numreal
-                    self._add_sensitivity(sensitivity)
-                elif sens["senstype"] == "seed":
-                    if self.seedvalues is None:
-                        raise ValueError(
-                            "No seed values available to use for seed sensitivity"
-                        )
-                    sensitivity = SeedSensitivity(key)
-                    sensitivity.generate(
-                        range(counter, counter + numreal),
-                        sens["seedname"],
-                        self.seedvalues,
-                        sens["parameters"],
+        self.designvalues["SENSNAME"] = None
+        self.designvalues["SENSCASE"] = None
+        counter = 0
+        for key in inputdict["sensitivities"]:
+            sens = inputdict["sensitivities"][key]
+            numreal = sens["numreal"] if "numreal" in sens else inputdict["repeats"]
+            if sens["senstype"] == "ref":
+                sensitivity = SingleRealisationReference(key)
+                sensitivity.generate(range(counter, counter + numreal))
+                counter += numreal
+                self._add_sensitivity(sensitivity)
+            elif sens["senstype"] == "background":
+                sensitivity = BackgroundSensitivity(key)
+                sensitivity.generate(range(counter, counter + numreal))
+                counter += numreal
+                self._add_sensitivity(sensitivity)
+            elif sens["senstype"] == "seed":
+                if self.seedvalues is None:
+                    raise ValueError(
+                        "No seed values available to use for seed sensitivity"
                     )
-                    counter += numreal
-                    self._add_sensitivity(sensitivity)
-                elif sens["senstype"] == "scenario":
-                    sensitivity = ScenarioSensitivity(key)
-                    for casekey in sens["cases"]:
-                        case = sens["cases"][casekey]
-                        temp_case = ScenarioSensitivityCase(casekey)
-                        temp_case.generate(
-                            range(counter, counter + numreal), case, self.seedvalues
-                        )
-                        sensitivity.add_case(temp_case)
-                        counter += numreal
-                    self._add_sensitivity(sensitivity)
-                elif sens["senstype"] == "dist":
-                    sensitivity = MonteCarloSensitivity(key)
-                    sensitivity.generate(
-                        range(counter, counter + numreal),
-                        sens["parameters"],
-                        self.seedvalues,
-                        sens["correlations"],
-                        rng=rng,
+                sensitivity = SeedSensitivity(key)
+                sensitivity.generate(
+                    range(counter, counter + numreal),
+                    sens["seedname"],
+                    self.seedvalues,
+                    sens["parameters"],
+                )
+                counter += numreal
+                self._add_sensitivity(sensitivity)
+            elif sens["senstype"] == "scenario":
+                sensitivity = ScenarioSensitivity(key)
+                for casekey in sens["cases"]:
+                    case = sens["cases"][casekey]
+                    temp_case = ScenarioSensitivityCase(casekey)
+                    temp_case.generate(
+                        range(counter, counter + numreal), case, self.seedvalues
                     )
+                    sensitivity.add_case(temp_case)
                     counter += numreal
-                    self._add_sensitivity(sensitivity)
-                elif sens["senstype"] == "extern":
-                    sensitivity = ExternSensitivity(key)
-                    sensitivity.generate(
-                        range(counter, counter + numreal),
-                        sens["extern_file"],
-                        sens["parameters"],
-                        self.seedvalues,
-                    )
-                    counter += numreal
-                    self._add_sensitivity(sensitivity)
-                print("Added sensitivity :", sensitivity.sensname)
-            if "background" in inputdict:
-                self._fill_with_background_values()
-            self._fill_with_defaultvalues()
+                self._add_sensitivity(sensitivity)
+            elif sens["senstype"] == "dist":
+                sensitivity = MonteCarloSensitivity(key)
+                sensitivity.generate(
+                    range(counter, counter + numreal),
+                    sens["parameters"],
+                    self.seedvalues,
+                    sens["correlations"],
+                    rng=rng,
+                )
+                counter += numreal
+                self._add_sensitivity(sensitivity)
+            elif sens["senstype"] == "extern":
+                sensitivity = ExternSensitivity(key)
+                sensitivity.generate(
+                    range(counter, counter + numreal),
+                    sens["extern_file"],
+                    sens["parameters"],
+                    self.seedvalues,
+                )
+                counter += numreal
+                self._add_sensitivity(sensitivity)
+            print("Added sensitivity :", sensitivity.sensname)
+        if "background" in inputdict:
+            self._fill_with_background_values()
+        self._fill_with_defaultvalues()
 
-            if "dependencies" in inputdict:
-                self._fill_derived_params(inputdict["dependencies"])
+        if "dependencies" in inputdict:
+            self._fill_derived_params(inputdict["dependencies"])
 
-            if "decimals" in inputdict:
-                self._set_decimals(inputdict["decimals"])
-            # Re-order columns
-            start_cols = ["REAL", "SENSNAME", "SENSCASE", "RMS_SEED"]
-            self.designvalues = self.designvalues[
-                [col for col in start_cols if col in self.designvalues]
-                + [col for col in self.designvalues if col not in start_cols]
-            ]
-        else:
-            raise ValueError(
-                "Generation of DesignMatrix only"
-                "implemented for type onebyone"
-                "In general_input designtype is"
-                "set to {}".format(inputdict["designtype"])
-            )
+        if "decimals" in inputdict:
+            self._set_decimals(inputdict["decimals"])
+        # Re-order columns
+        start_cols = ["REAL", "SENSNAME", "SENSCASE", "RMS_SEED"]
+        self.designvalues = self.designvalues[
+            [col for col in start_cols if col in self.designvalues]
+            + [col for col in self.designvalues if col not in start_cols]
+        ]
 
     def to_xlsx(
         self, filename, designsheet="DesignSheet01", defaultsheet="DefaultValues"
