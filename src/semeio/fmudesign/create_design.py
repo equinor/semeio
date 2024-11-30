@@ -797,17 +797,19 @@ class MonteCarloSensitivity:
             df_params.rename(columns={"index": "param_name"}, inplace=True)
             param_groups = df_params.groupby("corr_sheet")
 
-            for correl, group in param_groups:
+            for corr_group_name, group in param_groups:
                 param_dict = OrderedDict()
                 for _, row in group.iterrows():
                     param_dict[row["param_name"]] = [
                         row["dist_name"],
                         row["dist_params"],
                     ]
-                if correl != "nocorr":
+                if corr_group_name != "nocorr":
                     if len(group) == 1:
-                        _printwarning(correl)
-                    df_correlations = design_dist.read_correlations(corrdict, correl)
+                        _printwarning(corr_group_name)
+                    df_correlations = design_dist.read_correlations(
+                        corrdict, corr_group_name
+                    )
                     multivariate_parameters = df_correlations.index.values
                     correlations = df_correlations.values
 
@@ -855,7 +857,7 @@ class MonteCarloSensitivity:
                             raise ValueError(
                                 "Parameter{} specified with correlation "
                                 "matrix {} but is not listed in "
-                                "that sheet".format(key, correl)
+                                "that sheet".format(key, corr_group_name)
                             )
                 else:  # group nocorr where correlation matrix is not defined
                     for key in param_dict:
@@ -1002,7 +1004,7 @@ def _find_max_realisations(inputdict):
     return max_reals
 
 
-def _printwarning(corrgroup):
+def _printwarning(corr_group_name):
     print(
         "#######################################################\n"
         "semeio.fmudesign Warning:                                     \n"
@@ -1024,5 +1026,5 @@ def _printwarning(corrgroup):
         "one-by-one-sensitivities\n"
         "\n"
         "####################################################\n"
-        "".format(corrgroup)
+        "".format(corr_group_name)
     )
