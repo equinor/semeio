@@ -795,17 +795,17 @@ class MonteCarloSensitivity:
             df_params["corr_sheet"] = df_params["corr_sheet"].fillna("nocorr")
             df_params.reset_index(inplace=True)
             df_params.rename(columns={"index": "param_name"}, inplace=True)
-            param_groups = df_params.groupby("corr_sheet")
+            corr_groups = df_params.groupby("corr_sheet")
 
-            for corr_group_name, group in param_groups:
+            for corr_group_name, corr_group in corr_groups:
                 param_dict = OrderedDict()
-                for _, row in group.iterrows():
+                for _, row in corr_group.iterrows():
                     param_dict[row["param_name"]] = [
                         row["dist_name"],
                         row["dist_params"],
                     ]
                 if corr_group_name != "nocorr":
-                    if len(group) == 1:
+                    if len(corr_group) == 1:
                         _printwarning(corr_group_name)
                     df_correlations = design_dist.read_correlations(
                         corrdict, corr_group_name
