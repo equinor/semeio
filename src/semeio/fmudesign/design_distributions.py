@@ -3,6 +3,7 @@ distributions. For use in generation of design matrices
 """
 
 import re
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -513,32 +514,26 @@ def is_number(teststring):
         return False
 
 
-def read_correlations(corr_dict, corr_sheet: str):
+def read_correlations(excel_filename: Path, corr_sheet: str):
     """Reading correlation info for a
     monte carlo sensitivity
 
     Args:
-        corr_dict (OrderedDict): correlation info
+        excel_filename (Path): Path to Excel file containing correlation matrix
         corr_sheet (str): name of sheet containing correlation matrix
 
     Returns:
         pd.DataFrame: Dataframe with correlations, parameter names
             as column and index
     """
-    correlations = None
-    filename = corr_dict["inputfile"]
-
-    if not str(filename).endswith(".xlsx"):
+    if not str(excel_filename).endswith(".xlsx"):
         raise ValueError(
             "Correlation matrix filename should be on Excel format and end with .xlsx"
         )
 
-    if corr_sheet not in corr_dict["sheetnames"]:
-        raise ValueError(
-            f"Corr_sheet {corr_sheet} specified but cannot be found in list of sheetnames"
-        )
-
-    correlations = pd.read_excel(filename, corr_sheet, index_col=0, engine="openpyxl")
+    correlations = pd.read_excel(
+        excel_filename, corr_sheet, index_col=0, engine="openpyxl"
+    )
     correlations.dropna(axis=0, how="all", inplace=True)
     # Remove any 'Unnamed' columns that Excel/pandas may have automatically added.
     correlations = correlations.loc[:, ~correlations.columns.str.contains("^Unnamed")]
