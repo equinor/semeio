@@ -514,7 +514,7 @@ def is_number(teststring):
         return False
 
 
-def read_correlations(excel_filename: Path, corr_sheet: str):
+def read_correlations(excel_filename: Path, corr_sheet: str) -> pd.DataFrame:
     """Reading correlation info for a
     monte carlo sensitivity
 
