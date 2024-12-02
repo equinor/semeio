@@ -120,8 +120,8 @@ class ImanConover:
             raise ValueError("Correlation matrix must be square.")
         if not correlation_matrix.shape[0] == correlation_matrix.shape[1]:
             raise ValueError("Correlation matrix must be square.")
-        # if not np.allclose(np.diag(correlation_matrix), 1.0):
-        #     raise ValueError("Correlation matrix must have 1.0 on diagonal.")
+        if not np.allclose(np.diag(correlation_matrix), 1.0):
+            raise ValueError("Correlation matrix must have 1.0 on diagonal.")
         if not np.allclose(correlation_matrix.T, correlation_matrix):
             raise ValueError("Correlation matrix must be symmetric.")
         if not _is_positive_definite(correlation_matrix):
