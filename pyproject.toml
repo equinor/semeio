@@ -42,6 +42,7 @@ dependencies = [
     "segyio",
     "xlrd",
     "xtgeo>=2.15",
+    "cvxpy",
 ]
 
 [project.urls]
