@@ -173,7 +173,7 @@ def test_generate_onebyone(tmpdir):
     )
 
     assert (diskmetadata.columns == ["Description", "Value"]).all()
-    assert diskmetadata["Description"].iloc[0] == "Created using fmu-tools version:"
+    assert diskmetadata["Description"].iloc[0] == "Created using semeio version:"
     assert diskmetadata["Value"].iloc[0] == semeio.__version__
     assert diskmetadata["Description"].iloc[1] == "Created on:"
 
