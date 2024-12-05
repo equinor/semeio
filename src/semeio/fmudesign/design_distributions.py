@@ -4,6 +4,7 @@ distributions. For use in generation of design matrices
 
 import re
 from pathlib import Path
+from typing import Union
 
 import numpy as np
 import pandas as pd
@@ -514,7 +515,9 @@ def is_number(teststring):
         return False
 
 
-def read_correlations(excel_filename: Path, corr_sheet: str) -> pd.DataFrame:
+def read_correlations(
+    excel_filename: Union[str, Path], corr_sheet: str
+) -> pd.DataFrame:
     """Reading correlation info for a
     monte carlo sensitivity
 
