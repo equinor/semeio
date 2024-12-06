@@ -17,6 +17,37 @@ from semeio.fmudesign import design_distributions as design_dist
 from semeio.fmudesign.iman_conover import ImanConover
 
 
+def is_consistent_correlation_matrix(matrix):
+    """
+    Check if a matrix is a consistent correlation matrix.
+
+    A correlation matrix is consistent if it has:
+    1. All diagonal elements equal to 1
+    2. Is positive semidefinite (all eigenvalues ≥ 0)
+
+    Args:
+        matrix: numpy array representing the correlation matrix
+
+    Returns:
+        bool: True if matrix is a consistent correlation matrix, False otherwise
+    """
+    # Check if diagonal elements are 1
+    if not np.allclose(np.diagonal(matrix), 1):
+        return False
+
+    # Check positive semidefiniteness using eigenvalues
+    try:
+        eigenvals = np.linalg.eigvals(matrix)
+        # Matrix is positive semidefinite if all eigenvalues are non-negative
+        # Using small tolerance to account for numerical errors
+        if not np.all(eigenvals > -1e-8):
+            return False
+    except np.linalg.LinAlgError:
+        return False
+
+    return True
+
+
 def nearest_correlation_matrix(matrix, *, weights=None, eps=1e-6, verbose=False):
     """Returns the correlation matrix nearest to `matrix`, weighted elementwise
     by `weights`.
@@ -822,9 +853,29 @@ class MonteCarloSensitivity:
                     # Make correlation matrix symmetric by copying lower triangular part
                     correlations = np.triu(correlations.T, k=1) + np.tril(correlations)
 
-                    correlations = nearest_correlation_matrix(
-                        correlations, weights=None, eps=1e-6, verbose=False
-                    )
+                    if not is_consistent_correlation_matrix(correlations):
+                        print("\nWarning: Correlation matrix is not consistent")
+                        print("Requirements:")
+                        print("  - Ones on the diagonal")
+                        print("  - Positive semi-definite matrix")
+                        print("\nInput correlation matrix:")
+                        with np.printoptions(
+                            precision=2,
+                            suppress=True,
+                            formatter={"float": lambda x: f"{x:.2f}"},
+                        ):
+                            print(correlations)
+                        correlations = nearest_correlation_matrix(
+                            correlations, weights=None, eps=1e-6, verbose=False
+                        )
+                        print("\nAdjusted to nearest consistent correlation matrix:")
+                        with np.printoptions(
+                            precision=2,
+                            suppress=True,
+                            formatter={"float": lambda x: f"{x:.2f}"},
+                        ):
+                            print(correlations)
+                        print()
 
                     sampler = qmc.LatinHypercube(
                         d=len(multivariate_parameters), seed=rng
