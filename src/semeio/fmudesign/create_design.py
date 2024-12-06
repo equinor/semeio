@@ -2,11 +2,22 @@
 and DESIGN_KW in FMU/ERT.
 """
 
+import contextlib
+import os
 from collections import OrderedDict
 from datetime import datetime
 from pathlib import Path
 
-import cvxpy as cp
+# CVXPY prints error messages about incompatible ortools version during import.
+# Since we use the SCS solver and not GLOP/PDLP (which need ortools), these errors
+# are irrelevant and would only confuse users. We suppress them by redirecting
+# stdout/stderr during import.
+# https://github.com/cvxpy/cvxpy/issues/2470
+with open(os.devnull, "w") as devnull, contextlib.redirect_stdout(
+    devnull
+), contextlib.redirect_stderr(devnull):
+    import cvxpy as cp
+
 import numpy as np
 import pandas as pd
 import scipy
