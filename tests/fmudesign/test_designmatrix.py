@@ -68,8 +68,44 @@ def test_endpoint(tmpdir, monkeypatch):
     shutil.copy(str(designfile), ".")
     shutil.copy(Path(designfile).parent / dependency, ".")
 
-    subprocess.run(["fmudesign", str(designfile)], check=True)
+    result = subprocess.run(
+        ["fmudesign", str(designfile)], check=True, capture_output=True, text=True
+    )
 
+    expected_output = """Added sensitivity : seed
+    Added sensitivity : faults
+    Added sensitivity : velmodel
+    Added sensitivity : contacts
+    Added sensitivity : multz
+    Added sensitivity : sens6
+
+    Warning: Correlation matrix is not consistent
+    Requirements:
+    - Ones on the diagonal
+    - Positive semi-definite matrix
+
+    Input correlation matrix:
+    [[1.00 0.90 0.00 0.00]
+    [0.90 1.00 0.90 0.00]
+    [0.00 0.90 1.00 0.00]
+    [0.00 0.00 0.00 1.00]]
+
+    Adjusted to nearest consistent correlation matrix:
+    [[1.00 0.74 0.11 0.00]
+    [0.74 1.00 0.74 0.00]
+    [0.11 0.74 1.00 0.00]
+    [0.00 0.00 0.00 1.00]]
+
+    Added sensitivity : sens7
+    Added sensitivity : sens8
+    Provided number of background values (11) is smaller than number of realisations for sensitivity ('sens7', 'p10_p90') and parameter PARAM13. Will be filled with default values.
+    Provided number of background values (11) is smaller than number of realisations for sensitivity ('sens7', 'p10_p90') and parameter PARAM14. Will be filled with default values.
+    Provided number of background values (11) is smaller than number of realisations for sensitivity ('sens7', 'p10_p90') and parameter PARAM15. Will be filled with default values.
+    Provided number of background values (11) is smaller than number of realisations for sensitivity ('sens7', 'p10_p90') and parameter PARAM16. Will be filled with default values.
+    A total of 91 realizations were generated
+    Designmatrix written to generateddesignmatrix.xlsx"""
+
+    assert result.stdout.split() == expected_output.split()
     assert Path("generateddesignmatrix.xlsx").exists  # Default output file
     valid_designmatrix(pd.read_excel("generateddesignmatrix.xlsx", engine="openpyxl"))
 
