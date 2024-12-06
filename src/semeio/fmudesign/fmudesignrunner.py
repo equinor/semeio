@@ -1,6 +1,7 @@
 """Script for generating a design matrix from config input"""
 
 import argparse
+import warnings
 from pathlib import Path
 
 from semeio.fmudesign import DesignMatrix, excel2dict_design
@@ -48,6 +49,8 @@ def main():
     """semeio.fmudesign is a command line utility for generating design matrices
 
     Wrapper for the the semeio.fmudesign module"""
+    warnings.filterwarnings("ignore", category=DeprecationWarning)
+    warnings.filterwarnings("ignore", category=FutureWarning)
 
     parser = get_parser()
     args = parser.parse_args()
