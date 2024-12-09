@@ -6,7 +6,7 @@
 
 ### Major Improvements in fmudesign's Sampling Engine
 
-The next version of `fmudesign` introduces major improvements to its sampling engine:
+This version of `fmudesign` introduces major improvements to its sampling engine:
 
 #### Executive Summary
 
