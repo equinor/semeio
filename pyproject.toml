@@ -25,7 +25,8 @@ classifiers = [
 ]
 dynamic = ["version"]
 dependencies = [
-    "ert>=11.1.0-b3",
+    "cvxpy",
+    "ert>=12.0.0rc0",
     "fmu-ensemble>1.6.5",
     "importlib_metadata",
     "importlib_resources",
@@ -39,26 +40,25 @@ dependencies = [
     "segyio",
     "xlrd",
     "xtgeo>=2.15",
-    "cvxpy",
 ]
 
 [project.urls]
 repository = "https://github.com/equinor/semeio"
 
 [project.entry-points."ert"]
-semeio_forward_models = "semeio.hook_implementations.forward_models"
-CsvExport2Job = "semeio.workflows.csv_export2.csv_export2"
 AhmAnalysisJob = "semeio.workflows.ahm_analysis.ahmanalysis"
+CsvExport2Job = "semeio.workflows.csv_export2.csv_export2"
+semeio_forward_models = "semeio.hook_implementations.forward_models"
 
 [project.entry-points."console_scripts"]
 csv_export2 = "semeio.workflows.csv_export2.csv_export2:cli"
-overburden_timeshift = "semeio.forward_models.scripts.overburden_timeshift:main_entry_point"
 design2params = "semeio.forward_models.scripts.design2params:main_entry_point"
-gendata_rft = "semeio.forward_models.scripts.gendata_rft:main_entry_point"
 design_kw = "semeio.forward_models.scripts.design_kw:main_entry_point"
 fm_pyscal = "semeio.forward_models.scripts.fm_pyscal:main_entry_point"
-replace_string = "semeio.forward_models.scripts.replace_string:main_entry_point"
 fmudesign = "semeio.fmudesign.fmudesignrunner:main"
+gendata_rft = "semeio.forward_models.scripts.gendata_rft:main_entry_point"
+overburden_timeshift = "semeio.forward_models.scripts.overburden_timeshift:main_entry_point"
+replace_string = "semeio.forward_models.scripts.replace_string:main_entry_point"
 
 [tool.setuptools_scm]
 write_to = "src/semeio/version.py"
@@ -87,16 +87,16 @@ style = [
 types = [
     "mypy",
     "pandas-stubs",
-    "types-setuptools",
     "types-PyYAML",
     "types-openpyxl",
+    "types-setuptools",
 ]
 
 [tool.pytest.ini_options]
 addopts = "-ra --strict-markers"
 markers = [
-    "ert_integration: Involves running the ert application explicitly",
     "equinor_test: Requires presences of test data in specified location",
+    "ert_integration: Involves running the ert application explicitly",
     "integration_test: Not a unit test",
 ]
 
@@ -107,20 +107,21 @@ extend-exclude = ["tests/legacy_test_data"]
 
 [tool.ruff.lint]
 select = [
-  "W",   # pycodestyle
-  "I",   # isort
   "B",   # flake-8-bugbear
-  "SIM", # flake-8-simplify
-  "F",   # pyflakes
   "C4",  # flake8-comprehensions
-  "PL",  # pylint
+  "F",   # pyflakes
+  "I",   # isort
   "NPY", # numpy specific rules
+  "PL",  # pylint
+  "SIM", # flake-8-simplify
+  "W",   # pycodestyle
 ]
-ignore = ["PLW2901", # redefined-loop-name
-          "PLR2004", # magic-value-comparison
-          "PLR0915", # too-many-statements
-          "PLR0912", # too-many-branches
-          "PLR0911",  # too-many-return-statements
+ignore = [
+  "PLR0911", # too-many-return-statements
+  "PLR0912", # too-many-branches
+  "PLR0915", # too-many-statements
+  "PLR2004", # magic-value-comparison
+  "PLW2901", # redefined-loop-name
 ]
 
 [tool.ruff.lint.pylint]
