@@ -83,9 +83,7 @@ def _find_geninput_sheetname(input_filename):
 
     if len(general_input_sheet) > 1:
         raise ValueError(
-            "More than one sheet with general input. Sheetnames are {} ".format(
-                general_input_sheet
-            )
+            f"More than one sheet with general input. Sheetnames are {general_input_sheet} "
         )
 
     if not general_input_sheet:
@@ -120,9 +118,7 @@ def _find_onebyone_defaults_sheet(input_filename):
             default_values_sheet.append(sheet)
     if len(default_values_sheet) > 1:
         raise ValueError(
-            "More than one sheet with default values. Sheetnames are {} ".format(
-                default_values_sheet
-            )
+            f"More than one sheet with default values. Sheetnames are {default_values_sheet} "
         )
 
     if len(default_values_sheet) == []:
@@ -175,9 +171,9 @@ def _check_designinput(dsgn_input):
         if _has_value(row.sensname):
             if row.sensname in sensitivity_names:
                 raise ValueError(
-                    "sensname '{}' was found on more than one row in designinput "
+                    f"sensname '{row.sensname}' was found on more than one row in designinput "
                     "sheet. Two sensitivities can not share the same sensname. "
-                    "Please correct this and rerun".format(row.sensname)
+                    "Please correct this and rerun"
                 )
             sensitivity_names.append(row.sensname)
 
@@ -189,10 +185,10 @@ def _check_for_mixed_sensitivities(sens_name, sens_group):
     types = sens_group.groupby("type", sort=False)
     if len(types) > 1:
         raise ValueError(
-            "The sensitivity with sensname '{}' in designinput sheet contains more "
+            f"The sensitivity with sensname '{sens_name}' in designinput sheet contains more "
             "than one sensitivity type. For each sensname all parameters must be "
             "specified using the same type (seed, scenario, dist, ref, background, "
-            "extern)".format(sens_name)
+            "extern)"
         )
 
 
@@ -393,11 +389,9 @@ def _read_defaultvalues(filename, sheetname):
     for row in default_df.itertuples():
         if str(row[0]) in default_dict:
             print(
-                "WARNING: The default value '{}' "
-                "is listed twice in the sheet '{}'. "
-                "Only the first entry will be used in output file".format(
-                    row[0], sheetname
-                )
+                f"WARNING: The default value '{row[0]}' "
+                f"is listed twice in the sheet '{sheetname}'. "
+                "Only the first entry will be used in output file"
             )
         else:
             default_dict[str(row[0])] = row[1]
@@ -432,9 +426,9 @@ def _read_dependencies(filename, sheetname, from_parameter):
                 depend_dict["to_params"][key] = depend_df[key].tolist()
     else:
         raise ValueError(
-            "Parameter {} specified to have derived parameters, "
-            "but the sheet specifying the dependencies {} does "
-            "not contain the input parameter. ".format(from_parameter, sheetname)
+            f"Parameter {from_parameter} specified to have derived parameters, "
+            f"but the sheet specifying the dependencies {sheetname} does "
+            "not contain the input parameter. "
         )
     return depend_dict
 
@@ -479,25 +473,25 @@ def _read_background(inp_filename, bck_sheet):
             )
         if not _has_value(row.dist_param1):
             raise ValueError(
-                "Parameter {} has been input "
+                f"Parameter {row.param_name} has been input "
                 "in background sheet but with empty "
-                "first distribution parameter ".format(row.param_name)
+                "first distribution parameter "
             )
         if not _has_value(row.dist_param2) and _has_value(row.dist_param3):
             raise ValueError(
-                "Parameter {} has been input in "
+                f"Parameter {row.param_name} has been input in "
                 "background sheet with "
                 'value for "dist_param3" while '
                 '"dist_param2" is empty. This is not '
-                "allowed".format(row.param_name)
+                "allowed"
             )
         if not _has_value(row.dist_param3) and _has_value(row.dist_param4):
             raise ValueError(
-                "Parameter {} has been input in "
+                f"Parameter {row.param_name} has been input in "
                 "background sheet with "
                 'value for "dist_param4" while '
                 '"dist_param3" is empty. This is not '
-                "allowed".format(row.param_name)
+                "allowed"
             )
         distparams = [
             item
@@ -545,15 +539,15 @@ def _read_scenario_sensitivity(sensgroup):
     for row in sensgroup.itertuples():
         if not _has_value(row.param_name):
             raise ValueError(
-                "Scenario sensitivity {} specified "
+                f"Scenario sensitivity {row.sensname} specified "
                 "where one line has empty parameter "
-                "name ".format(row.sensname)
+                "name "
             )
         if not _has_value(row.value1):
             raise ValueError(
-                "Parameter {} har been input "
+                f"Parameter {row.param_name} har been input "
                 'as type "scenario" but with empty '
-                "value in value1 column ".format(row.param_name)
+                "value in value1 column "
             )
         casedict1[str(row.param_name)] = row.value1
 
@@ -596,9 +590,9 @@ def _read_constants(sensgroup):
     for row in sensgroup.itertuples():
         if not _has_value(row.dist_param1):
             raise ValueError(
-                "Parameter name {} has been input "
+                f"Parameter name {row.param_name} has been input "
                 'in a sensitivity of type "seed". \n'
-                "If {} was meant to be the name of "
+                f"If {row.param_name} was meant to be the name of "
                 "the seed parameter, this is "
                 "unfortunately not allowed. "
                 "The seed parameter name is standardised "
@@ -606,9 +600,7 @@ def _read_constants(sensgroup):
                 "If you instead meant to specify a constant "
                 "value for another parameter in the seed "
                 'sensitivity, please remember "const" in '
-                'dist_name and a value in "dist_param1". '.format(
-                    row.param_name, row.param_name
-                )
+                'dist_name and a value in "dist_param1". '
             )
         distparams = row.dist_param1
         paramdict[str(row.param_name)] = [str(row.dist_name), distparams]
@@ -631,29 +623,29 @@ def _read_dist_sensitivity(sensgroup):
     for row in sensgroup.itertuples():
         if not _has_value(row.param_name):
             raise ValueError(
-                "Dist sensitivity {} specified "
+                f"Dist sensitivity {row.sensname} specified "
                 "where one line has empty parameter "
-                "name ".format(row.sensname)
+                "name "
             )
         if not _has_value(row.dist_param1):
             raise ValueError(
-                "Parameter {} has been input "
+                f"Parameter {row.param_name} has been input "
                 'as type "dist" but with empty '
-                "first distribution parameter ".format(row.param_name)
+                "first distribution parameter "
             )
         if not _has_value(row.dist_param2) and _has_value(row.dist_param3):
             raise ValueError(
-                "Parameter {} has been input with "
+                f"Parameter {row.param_name} has been input with "
                 'value for "dist_param3" while '
                 '"dist_param2" is empty. This is not '
-                "allowed".format(row.param_name)
+                "allowed"
             )
         if not _has_value(row.dist_param3) and _has_value(row.dist_param4):
             raise ValueError(
-                "Parameter {} has been input with "
+                f"Parameter {row.param_name} has been input with "
                 'value for "dist_param4" while '
                 '"dist_param3" is empty. This is not '
-                "allowed".format(row.param_name)
+                "allowed"
             )
         distparams = [
             item

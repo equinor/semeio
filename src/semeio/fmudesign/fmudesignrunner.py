@@ -78,14 +78,14 @@ def main():
 
     if isinstance(args.config, str):
         if not Path(args.config).is_file():
-            raise IOError(f"Input file {args.config} does not exist")
+            raise OSError(f"Input file {args.config} does not exist")
         input_dict = excel2dict_design(args.config, sheetnames)
 
     if args.config == args.destination:
-        raise IOError(
-            'Identical name "{}" have been provided for the input'
+        raise OSError(
+            f'Identical name "{args.config}" have been provided for the input'
             "file and the output file. "
-            " Exiting.....".format(args.config)
+            " Exiting....."
         )
 
     design = DesignMatrix()

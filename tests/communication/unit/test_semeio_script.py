@@ -90,7 +90,7 @@ def assert_log(messages, log_file):
         log_data = file.readlines()
 
     assert len(messages) == len(log_data)
-    for msg, log_entry in zip(messages, log_data):
+    for msg, log_entry in zip(messages, log_data, strict=False):
         assert msg in log_entry
 
 

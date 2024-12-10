@@ -1,13 +1,12 @@
 from datetime import date
 from pathlib import Path
-from typing import TYPE_CHECKING, List, Literal, Optional
+from typing import TYPE_CHECKING, Annotated, Literal, Self
 
 from pydantic import BaseModel, Field, conlist, field_validator, model_validator
 from resdata.resfile import ResdataFile
-from typing_extensions import Annotated, Self
 
 if TYPE_CHECKING:
-    ConstrainedList = List[date]
+    ConstrainedList = list[date]
 else:
     ConstrainedList = conlist(date, min_length=2, max_length=2)
 
@@ -23,7 +22,7 @@ class Vintages(BaseModel):
     """
 
     ts_simple: Annotated[
-        List[ConstrainedList],
+        list[ConstrainedList],
         Field(
             description=(
                 "Simple TimeShift geertsma algorithm. "
@@ -32,17 +31,17 @@ class Vintages(BaseModel):
         ),
     ] = []
     ts: Annotated[
-        List[ConstrainedList],
+        list[ConstrainedList],
         Field(
             description="TimeShift geertsma algorithm, which uses velocity, very slow"
         ),
     ] = []
     ts_rporv: Annotated[
-        List[ConstrainedList],
+        list[ConstrainedList],
         Field(description="Delta pressure multiplied by cell volume, relatively fast"),
     ] = []
     dpv: Annotated[
-        List[ConstrainedList],
+        list[ConstrainedList],
         Field(
             description=(
                 "Calculates timeshift without using velocity. The velocity is only "
@@ -127,7 +126,7 @@ class OTSConfig(BaseModel):
         ),
     ]
     horizon: Annotated[
-        Optional[str],
+        str | None,
         Field(
             None,
             description=(
@@ -138,7 +137,7 @@ class OTSConfig(BaseModel):
     ]
     eclbase: Annotated[str, Field(description="Path to the Eclipse case")]
     vintages_export_file: Annotated[
-        Optional[str],
+        str | None,
         Field(
             None,
             description="Path to resulting text file, which contains all computed "
@@ -146,7 +145,7 @@ class OTSConfig(BaseModel):
         ),
     ]
     velocity_model: Annotated[
-        Optional[str],
+        str | None,
         Field(None, description="Path to segy file containing the velocity field"),
     ]
     mapaxes: Annotated[

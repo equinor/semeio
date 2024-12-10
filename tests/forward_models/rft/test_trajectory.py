@@ -100,7 +100,7 @@ def test_load(fname):
     trajectory = Trajectory.load_from_file(fname)
 
     for expected_utmx, trajectorypoint in zip(
-        expected_utmxs, trajectory.trajectory_points
+        expected_utmxs, trajectory.trajectory_points, strict=False
     ):
         assert trajectorypoint.utm_x == expected_utmx
 

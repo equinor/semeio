@@ -1,5 +1,4 @@
 from copy import deepcopy
-from typing import List, Optional, Union
 
 
 def _insert_ref(schema: dict, defs: dict) -> dict:
@@ -66,8 +65,8 @@ def _create_docs(schema: dict) -> str:
 
 
 def _make_documentation(
-    schema: Union[list, dict, str],
-    required: Optional[List[str]] = None,
+    schema: list | dict | str,
+    required: list[str] | None = None,
     level: int = 0,
     preface: str = "",
     element_seperator: str = "\n\n",

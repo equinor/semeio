@@ -75,7 +75,7 @@ def test_excel2dict_design(tmpdir, monkeypatch):
     # Dump to yaml:
     inputdict_to_yaml(dict_design, "dictdesign.yaml")
     assert os.path.exists("dictdesign.yaml")
-    with open("dictdesign.yaml", "r", encoding="utf-8") as inputfile:
+    with open("dictdesign.yaml", encoding="utf-8") as inputfile:
         assert "RMS_SEED" in inputfile.read()
 
 
