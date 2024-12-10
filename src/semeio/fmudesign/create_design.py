@@ -13,9 +13,11 @@ from pathlib import Path
 # are irrelevant and would only confuse users. We suppress them by redirecting
 # stdout/stderr during import.
 # https://github.com/cvxpy/cvxpy/issues/2470
-with open(os.devnull, "w") as devnull, contextlib.redirect_stdout(
-    devnull
-), contextlib.redirect_stderr(devnull):
+with (
+    open(os.devnull, "w") as devnull,
+    contextlib.redirect_stdout(devnull),
+    contextlib.redirect_stderr(devnull),
+):
     import cvxpy as cp
 
 import numpy as np
@@ -330,7 +332,7 @@ class DesignMatrix:
             print(
                 "Warning: Output filename did not have extension .xlsx "
                 "but the export format is Excel .xlsx .  "
-                "Changing outputname to {}".format(filename)
+                f"Changing outputname to {filename}"
             )
 
         xlsxwriter = pd.ExcelWriter(filename, engine="openpyxl")
@@ -383,7 +385,7 @@ class DesignMatrix:
                 "Valid choices for seeds are None, "
                 '"default" or an existing filename. '
                 "Neither was found in this case. seeds "
-                "had been specified as {} .".format(seeds)
+                f"had been specified as {seeds} ."
             )
 
     def add_background(
@@ -446,20 +448,16 @@ class DesignMatrix:
                         if len(temp_df) > len(self.backgroundvalues):
                             raise ValueError(
                                 "Provided number of background values "
-                                "{} is smaller than number"
-                                " of realisations for sensitivity {}".format(
-                                    len(self.backgroundvalues), sensname
-                                )
+                                f"{len(self.backgroundvalues)} is smaller than number"
+                                f" of realisations for sensitivity {sensname}"
                             )
                     elif len(temp_df) > len(self.backgroundvalues):
                         print(
                             "Provided number of background values "
-                            "({}) is smaller than number"
-                            " of realisations for sensitivity {}"
-                            " and parameter {}. "
-                            "Will be filled with default values.".format(
-                                len(self.backgroundvalues), sensname, key
-                            )
+                            f"({len(self.backgroundvalues)}) is smaller than number"
+                            f" of realisations for sensitivity {sensname}"
+                            f" and parameter {key}. "
+                            "Will be filled with default values."
                         )
                 existing_values = result_values.copy()
                 result_values = pd.concat([existing_values, temp_df])
@@ -490,13 +488,13 @@ class DesignMatrix:
                         )
                     if self.designvalues[param].isnull().any():
                         raise ValueError(
-                            "Column for derived parameter {} "
+                            f"Column for derived parameter {param} "
                             "contains NaN. Check input "
                             "defining dependencies. "
                             "Could be Wrong values or that "
                             "values for input variable  in "
                             "dependencies sheet "
-                            "should be specified as strings.".format(param)
+                            "should be specified as strings."
                         )
 
     def _add_dist_background(
@@ -603,7 +601,7 @@ class SeedSensitivity:
                     raise ValueError(
                         'A sensitivity of type "seed" can only have '
                         "additional parameters where dist_name is "
-                        '"const". Check sensitivity {}"'.format(self.sensname)
+                        f'"const". Check sensitivity {self.sensname}"'
                     )
                 self.sensvalues[key] = constant
 
@@ -967,9 +965,9 @@ class ExternSensitivity:
         extern_values = _parameters_from_extern(filename)
         if len(realnums) > len(extern_values):
             raise ValueError(
-                "Number of realisations {} specified for "
-                "sensitivity {} is larger than rows in "
-                "file {}".format(len(realnums), self.sensname, filename)
+                f"Number of realisations {len(realnums)} specified for "
+                f"sensitivity {self.sensname} is larger than rows in "
+                f"file {filename}"
             )
         for param in parameters:
             if param in extern_values:
@@ -1064,7 +1062,7 @@ def _printwarning(corr_group_name):
         "Using designinput sheets where "
         "corr_sheet is only specified for one parameter "
         "will cause non-correlated parameters .\n"
-        "ONLY ONE PARAMETER WAS SPECIFIED TO USE CORR_SHEET {}\n"
+        f"ONLY ONE PARAMETER WAS SPECIFIED TO USE CORR_SHEET {corr_group_name}\n"
         "\n"
         "Note change in how correlated parameters are specified \n"
         "from fmudeisgn version 1.0.1 in August 2019 :\n"
@@ -1079,5 +1077,4 @@ def _printwarning(corr_group_name):
         "one-by-one-sensitivities\n"
         "\n"
         "####################################################\n"
-        "".format(corr_group_name)
     )

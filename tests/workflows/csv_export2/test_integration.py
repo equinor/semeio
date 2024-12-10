@@ -94,8 +94,9 @@ def test_that_iterations_in_runpathfile_cannot_be_defaulted():
 
 
 def test_empty_file_yields_user_warning():
-    with open("empty_file", "a", encoding="utf-8") as empty_file, pytest.raises(
-        UserWarning, match="No data found"
+    with (
+        open("empty_file", "a", encoding="utf-8") as empty_file,
+        pytest.raises(UserWarning, match="No data found"),
     ):
         csv_export2.csv_exporter(
             runpathfile=empty_file.name,

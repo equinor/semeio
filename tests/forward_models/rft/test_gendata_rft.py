@@ -532,8 +532,7 @@ GEN_DATA OP_1_RFT_SIM1 INPUT_FORMAT:ASCII REPORT_STEPS:1 RESULT_FILE:RFT_OP_1_%d
     # (assert on the return code further down)
     result = subprocess.run(
         ["ert", "ensemble_smoother", "--target-case", "default_%d", "config.ert"],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        capture_output=True,
         check=False,
     )
     stdouterr = result.stdout.decode() + result.stderr.decode()
@@ -658,8 +657,7 @@ def test_ert_setup_one_well_two_points_different_time_and_depth(tmpdir):
     # (assert on the return code further down)
     result = subprocess.run(
         ["ert", "ensemble_smoother", "--target-case", "default_%d", "config.ert"],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        capture_output=True,
         check=False,
     )
     stdouterr = result.stdout.decode() + result.stderr.decode()
@@ -701,7 +699,7 @@ def _assert_almost_equal_line_by_line(file1, file2):
 
     assert len(file1_content) == len(file2_content)
 
-    for line1, line2 in zip(file1_content, file2_content):
+    for line1, line2 in zip(file1_content, file2_content, strict=False):
         try:
             line1, line2 = float(line1), float(line2)
         except ValueError:

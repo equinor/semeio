@@ -181,9 +181,10 @@ class AhmAnalysisJob(SemeioScript):
             #  Use localization to evaluate change of parameters for each observation
             # The order of the context managers is important, as we want to create a new
             # storage in a temporary directory.
-            with tempfile.TemporaryDirectory(), open_storage(
-                "tmp_storage", "w"
-            ) as storage:
+            with (
+                tempfile.TemporaryDirectory(),
+                open_storage("tmp_storage", "w") as storage,
+            ):
                 try:
                     prev_experiment = prior_ensemble.experiment
                     experiment = storage.create_experiment(

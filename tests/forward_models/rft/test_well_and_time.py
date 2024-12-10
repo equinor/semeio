@@ -58,7 +58,7 @@ def test_load():
         well_times = load_and_parse_well_time_file(fname)
 
         for (exp_wname, exp_wtime, exp_report), (wname, wtime, report) in zip(
-            expected_results, well_times
+            expected_results, well_times, strict=False
         ):
             assert wname == exp_wname
             assert wtime == exp_wtime
@@ -89,7 +89,7 @@ def test_invalid_load():
         "non_existing",
     ]
 
-    for fname, error in zip(fnames, errors):
+    for fname, error in zip(fnames, errors, strict=False):
         with pytest.raises(argparse.ArgumentTypeError) as msgcontext:
             load_and_parse_well_time_file(fname)
         assert error in msgcontext.value.args[0]

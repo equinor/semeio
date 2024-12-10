@@ -1,7 +1,7 @@
 import logging
 import re
 import shlex
-from typing import Dict, List, Mapping
+from collections.abc import Mapping
 
 from ert import ForwardModelStepWarning
 
@@ -58,8 +58,8 @@ def run(
 
 
 def find_matching_errors(
-    line: str, template_file_name: str, template: List[str]
-) -> List[str]:
+    line: str, template_file_name: str, template: list[str]
+) -> list[str]:
     errors = []
     for unmatched in unmatched_templates(line):
         if is_perl(template_file_name, template):
@@ -83,7 +83,7 @@ def is_perl(file_name, template):
     return file_name.endswith(".pl") or template[0].find("perl") != -1
 
 
-def is_xml(file_name: str, template: List[str]) -> bool:
+def is_xml(file_name: str, template: list[str]) -> bool:
     return file_name.endswith(".xml") or template[0].find("?xml") != -1
 
 
@@ -100,7 +100,7 @@ def is_comment(line):
     return ecl_comment_pattern.search(line) or std_comment_pattern.search(line)
 
 
-def extract_key_value(parameters: List[str]) -> Dict[str, str]:
+def extract_key_value(parameters: list[str]) -> dict[str, str]:
     """Parses a list of strings, looking for key-value pairs pr. line
     separated by whitespace, into a dictionary.
 

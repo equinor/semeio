@@ -70,8 +70,9 @@ def test_ahmanalysis_run_deactivated_obs(snake_oil_facade, snapshot, caplog):
     """
 
     snake_oil_facade.config.analysis_config.observation_settings.alpha = 0.1
-    with open_storage(snake_oil_facade.enspath, "w") as storage, caplog.at_level(
-        logging.WARNING
+    with (
+        open_storage(snake_oil_facade.enspath, "w") as storage,
+        caplog.at_level(logging.WARNING),
     ):
         experiment = storage.get_experiment_by_name("ensemble-experiment")
         snake_oil_facade.run_ertscript(

@@ -1,5 +1,3 @@
-from typing import Optional
-
 from ert import (
     ForwardModelStepDocumentation,
     ForwardModelStepJSON,
@@ -34,7 +32,7 @@ class Design2Params(ForwardModelStepPlugin):
         return fm_step_json
 
     @staticmethod
-    def documentation() -> Optional[ForwardModelStepDocumentation]:
+    def documentation() -> ForwardModelStepDocumentation | None:
         return ForwardModelStepDocumentation(
             category="utility.templating",
             source_package="semeio",
@@ -73,7 +71,7 @@ class DesignKW(ForwardModelStepPlugin):
         return fm_step_json
 
     @staticmethod
-    def documentation() -> Optional[ForwardModelStepDocumentation]:
+    def documentation() -> ForwardModelStepDocumentation | None:
         return ForwardModelStepDocumentation(
             category="utility.templating",
             source_package="semeio",
@@ -112,7 +110,7 @@ class GenDataRFT(ForwardModelStepPlugin):
         )
 
     @staticmethod
-    def documentation() -> Optional[ForwardModelStepDocumentation]:
+    def documentation() -> ForwardModelStepDocumentation | None:
         return ForwardModelStepDocumentation(
             category="utility.transformation",
             source_package="semeio",
@@ -167,7 +165,7 @@ class OTS(ForwardModelStepPlugin):
         )
 
     @staticmethod
-    def documentation() -> Optional[ForwardModelStepDocumentation]:
+    def documentation() -> ForwardModelStepDocumentation | None:
         return ForwardModelStepDocumentation(
             category="modelling.surface",
             source_package="semeio",
@@ -204,7 +202,7 @@ class Pyscal(ForwardModelStepPlugin):
         )
 
     @staticmethod
-    def documentation() -> Optional[ForwardModelStepDocumentation]:
+    def documentation() -> ForwardModelStepDocumentation | None:
         return ForwardModelStepDocumentation(
             category="modelling.reservoir",
             source_package="semeio",
@@ -235,7 +233,7 @@ class InsertNoSim(ForwardModelStepPlugin):
         )
 
     @staticmethod
-    def documentation() -> Optional[ForwardModelStepDocumentation]:
+    def documentation() -> ForwardModelStepDocumentation | None:
         return ForwardModelStepDocumentation(
             category="utility.file_system",
             source_package="semeio",
@@ -254,7 +252,7 @@ class RemoveNoSim(ForwardModelStepPlugin):
         )
 
     @staticmethod
-    def documentation() -> Optional[ForwardModelStepDocumentation]:
+    def documentation() -> ForwardModelStepDocumentation | None:
         return ForwardModelStepDocumentation(
             category="utility.file_system",
             source_package="semeio",
@@ -274,7 +272,7 @@ class ReplaceString(ForwardModelStepPlugin):
         )
 
     @staticmethod
-    def documentation() -> Optional[ForwardModelStepDocumentation]:
+    def documentation() -> ForwardModelStepDocumentation | None:
         return ForwardModelStepDocumentation(
             category="utility.file_system",
             source_package="semeio",
