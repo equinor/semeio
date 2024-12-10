@@ -252,11 +252,11 @@ def _invalid_design_realizations(design_matrix):
     :raises: SystemExit if some parameter names are not allowed
     """
 
-    empty_cell_coords = list(zip(*np.where(pd.isna(design_matrix))))
+    empty_cell_coords = list(zip(*np.where(pd.isna(design_matrix)), strict=False))
 
     empties = [
         f"Realization {i}, column {design_matrix.columns[j]}"
-        for i, j in zip(*np.where(pd.isna(design_matrix)))
+        for i, j in zip(*np.where(pd.isna(design_matrix)), strict=False)
     ]
     if len(empties) > 0:
         logger.warning(f"Design matrix contains empty cells {empties}")

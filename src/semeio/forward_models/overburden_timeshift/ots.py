@@ -432,7 +432,10 @@ class OverburdenTimeshift:
             vintages_name.append(f"S{i}")
 
         Vintage = namedtuple("Vintages", "name date")
-        return [Vintage(name, date) for name, date in zip(vintages_name, vintages_date)]
+        return [
+            Vintage(name, date)
+            for name, date in zip(vintages_name, vintages_date, strict=False)
+        ]
 
     def _report(self, func_name, base, monitor, num_points_calculated):
         if self._convention == 1:

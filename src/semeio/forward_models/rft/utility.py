@@ -3,7 +3,6 @@ import datetime
 import os
 import warnings
 from pathlib import Path
-from typing import List, Tuple
 
 from resdata.grid import Grid
 from resdata.rft import ResdataRFTFile
@@ -23,7 +22,7 @@ def existing_directory(path):
 
 def load_and_parse_well_time_file(
     filename: str,
-) -> List[Tuple[str, datetime.date, int]]:
+) -> list[tuple[str, datetime.date, int]]:
     """
     Reads and parses a file from disk, supporting 2 formats:
 

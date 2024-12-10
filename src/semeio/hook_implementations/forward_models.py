@@ -1,5 +1,4 @@
 import importlib
-from typing import Dict
 
 import ert
 import importlib_resources
@@ -22,7 +21,7 @@ def _remove_suffix(string: str, suffix: str) -> str:
     return string[: -len(suffix)]
 
 
-def _get_forward_models_from_directory(directory: str) -> Dict[str, str]:
+def _get_forward_models_from_directory(directory: str) -> dict[str, str]:
     resource_directory_ref = importlib_resources.files("semeio") / directory
 
     all_files = []

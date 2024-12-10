@@ -4,7 +4,6 @@ distributions. For use in generation of design matrices
 
 import re
 from pathlib import Path
-from typing import Union
 
 import numpy as np
 import pandas as pd
@@ -299,7 +298,7 @@ def draw_values_triangular(dist_parameters, numreals, rng, normalscoresamples=No
     if high == low:  # collapsed distribution
         print(
             "Low and high parameters for triangular distribution"
-            " are equal. Using constant {}".format(low)
+            f" are equal. Using constant {low}"
         )
         if normalscoresamples is not None:
             values = scipy.stats.uniform.ppf(
@@ -355,7 +354,7 @@ def draw_values_pert(dist_parameters, numreals, rng, normalscoresamples=None):
     if high == low:  # collapsed distribution
         print(
             "Low and high parameters for pert distribution"
-            " are equal. Using constant {}".format(low)
+            f" are equal. Using constant {low}"
         )
         if normalscoresamples is not None:
             values = scipy.stats.uniform.ppf(
@@ -515,9 +514,7 @@ def is_number(teststring):
         return False
 
 
-def read_correlations(
-    excel_filename: Union[str, Path], corr_sheet: str
-) -> pd.DataFrame:
+def read_correlations(excel_filename: str | Path, corr_sheet: str) -> pd.DataFrame:
     """Reading correlation info for a
     monte carlo sensitivity
 

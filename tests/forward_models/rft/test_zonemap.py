@@ -88,7 +88,7 @@ def test_invalid_load():
         "non_existing",
     ]
 
-    for fname, error in zip(fnames, errors):
+    for fname, error in zip(fnames, errors, strict=False):
         with pytest.raises(argparse.ArgumentTypeError) as msgcontext:
             ZoneMap.load_and_parse_zonemap_file(fname)
         assert error in msgcontext.value.args[0]

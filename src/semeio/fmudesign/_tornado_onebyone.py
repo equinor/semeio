@@ -188,7 +188,7 @@ def calc_tornadoinput(
             avg1 = 0
             print(
                 "Warning: Number of ok realizations is 0 in"
-                "sensitivity {} case1".format(sensname)
+                f"sensitivity {sensname} case1"
             )
 
         if designsummary.loc[sensno]["senstype"] == "mc":
@@ -227,7 +227,7 @@ def calc_tornadoinput(
                     avg2 = 0
                     print(
                         "Warning: Number of ok realizations is 0 in"
-                        "sensitivity {} case2".format(sensname)
+                        f"sensitivity {sensname} case2"
                     )
                 subset2name = designsummary.loc[sensno]["casename2"]
             else:
