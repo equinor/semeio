@@ -239,7 +239,65 @@ def decorrelate(X, remove_variance=True):
     return mean + X
 
 
-if __name__ == "__main__":
-    import doctest
+def anneal(X, C):
+    def error(X, C):
+        corr = np.corrcoef(X, rowvar=False)
+        e = np.linalg.norm(corr - C, ord="fro")
+        return e
 
-    doctest.testmod()
+    rng = np.random.default_rng(42)
+
+    X_current = X.copy()
+    for _ in range(999):
+        var_i = rng.integers(0, C.shape[1])
+        i, j = rng.integers(0, X.shape[0], size=2)
+        if i == j:
+            continue
+
+        X_proposed = X_current.copy()
+        X_proposed[i, var_i], X_proposed[j, var_i] = (
+            X_proposed[j, var_i],
+            X_proposed[i, var_i],
+        )
+
+        if error(X_proposed, C) < error(X_current, C):
+            print("Accept")
+            X_current = X_proposed
+
+    return X_current
+
+
+if __name__ == "__main__":
+    # pytest.main([__file__, "--doctest-modules"])
+
+    import scipy as sp
+
+    sampler = sp.stats.qmc.LatinHypercube(d=2, seed=42, scramble=True)
+    samples = sampler.random(n=100)
+
+    X = np.vstack(
+        (
+            sp.stats.triang(0.5).ppf(samples[:, 0]),
+            sp.stats.gamma.ppf(samples[:, 1], a=1),
+        )
+    ).T
+
+    correlation_matrix = np.array([[1, 0.5], [0.5, 1]])
+
+    transform = ImanConover(correlation_matrix)
+    X_transformed = transform(X)
+    IC_corr = sp.stats.pearsonr(*X_transformed.T).statistic
+    print("IC", sp.stats.pearsonr(*X_transformed.T).statistic)
+
+    import matplotlib.pyplot as plt
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(6, 3))
+    ax1.set_title(f"IC with correlation: {IC_corr:.2f}")
+    ax1.scatter(*X_transformed.T, s=1)
+
+    X_trans = anneal(X, C=correlation_matrix)
+    anneal_corr = sp.stats.pearsonr(*X_trans.T).statistic
+    print("anneal", anneal_corr)
+
+    ax2.set_title(f"Annealing with correlation: {anneal_corr:.2f}")
+    ax2.scatter(*X_trans.T, s=1)
