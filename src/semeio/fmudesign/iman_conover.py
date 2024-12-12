@@ -260,7 +260,9 @@ class PermutationCorrelator:
         Parameters
         ----------
         correlation_matrix : 2d numpy array
-            A target correlation matrix.
+            A target correlation matrix. We only check that this matrix is
+            square and symmetric, since even a non-valid correlation matrix
+            will work with this algorithm.
         weights : 2d numpy array or None, optional
             Elementwise weights for the target correlation matrix.
             The default is None, which corresponds to uniform weights.
