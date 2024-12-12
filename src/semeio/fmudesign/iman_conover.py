@@ -254,8 +254,8 @@ class PermutationCorrelator:
         seed=None,
         verbose=False,
     ):
-        """
-
+        """Create a PermutationCorrelator instance, which induces correlations
+        between variables in X by randomly shuffling rows in a given column.
 
         Parameters
         ----------
@@ -277,6 +277,15 @@ class PermutationCorrelator:
             A seed for the random number generator. The default is None.
         verbose : bool, optional
             Whether or not to print information. The default is False.
+
+        Notes
+        -----
+        The paper "Correlation control in small-sample Monte Carlo type
+        simulations I: A simulated annealing approach" by Vořechovský et al.
+        proposes using simulated annealing. We implement a simple randomized
+        hill climbing procedure instead, because it is good enough.
+          - https://www.sciencedirect.com/science/article/pii/S0266892009000113
+          - https://en.wikipedia.org/wiki/Hill_climbing
 
         Examples
         --------
@@ -372,6 +381,13 @@ class PermutationCorrelator:
     def _pearson(self, X):
         """Given a matrix X of shape (m, n), return a matrix of shape (n, n)
         with Pearson correlation coefficients."""
+        # The majority of runtime is spent computing correlation coefficients.
+        # Any attempt to speed up this code should focus on that.
+        # It's possible to compute the difference is the objective function
+        # without explicitly computing the empirical correlation afresh in
+        # every iteration. If X has shape (m, n), then this can take the
+        # runtime from O(m*n*n) to O(n), but it requires Python-loops and
+        # bookkeeping.
         return np.corrcoef(X, rowvar=False)
 
     def _spearman(self, X):
@@ -396,10 +412,28 @@ class PermutationCorrelator:
         return np.sqrt(np.sum(weighted_residuals_sq))
 
     def hill_climb(self, X):
-        """Hill climbing swaps two random rows (observations). If the result
-        leads to a smaller error, then it is kept. If not we try again."""
+        """Hill climbing cycles through columns (variables), and for each
+        column it swaps two random rows (observations). If the result
+        leads to a smaller error (correlation closer to target), then it is
+        kept. If not we try again.
 
+        Parameters
+        ----------
+        X : np.ndarray
+            A matrix with shape (observations, variables).
+
+        Returns
+        -------
+        A copy of X where rows within each column are shuffled.
+        """
         num_obs, num_vars = X.shape
+        if not (isinstance(X, np.ndarray) and X.ndim == 2):
+            raise ValueError("`X` must be a 2D numpy array.")
+        if not num_vars == self.C.shape[0]:
+            raise ValueError(
+                "Number of variables in `X` does not match `correlation_matrix`."
+            )
+
         if self.verbose:
             print(f"Running permutation correlator for {self.iters} iterations.")
 
