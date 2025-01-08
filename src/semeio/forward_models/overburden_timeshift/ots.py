@@ -201,8 +201,8 @@ class OverburdenTimeshift:
         if nx < 2 or ny < 2:
             raise RuntimeError("Cannot create IRAP surface if nx or ny is <2")
 
-        xinc = (np.max(x) - xstart) / (nx - 1)
-        yinc = (np.max(y) - ystart) / (ny - 1)
+        xinc = float((np.max(x) - xstart) / (nx - 1))  # Casting to float for xtgeo
+        yinc = float((np.max(y) - ystart) / (ny - 1))  # Casting to float for xtgeo
 
         surf_geo = xtgeo.RegularSurface(
             ncol=nx,
