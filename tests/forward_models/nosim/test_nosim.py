@@ -1,14 +1,10 @@
 import os
 import shutil
 import subprocess
-import sys
 
 import pytest
 
 
-@pytest.mark.skipif(
-    sys.platform == "darwin", reason="Skip test for Mac OS - invalid use of sed"
-)
 # The GNU extension for the sed command on osx behaves slightly different.
 # The result when running the forward model is as follow:
 # cat insert_nosim.stderr.1
