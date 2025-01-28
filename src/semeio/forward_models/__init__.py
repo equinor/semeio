@@ -1,3 +1,5 @@
+import sys
+
 from ert import (
     ForwardModelStepDocumentation,
     ForwardModelStepJSON,
@@ -227,6 +229,14 @@ class InsertNoSim(ForwardModelStepPlugin):
             command=[
                 "sed",
                 "-i",
+                "",
+                "s/^RUNSPEC.*/RUNSPEC\\\\nNOSIM/",
+                "<ECLBASE>.DATA",
+            ]
+            if sys.platform == "darwin"
+            else [
+                "sed",
+                "-i",
                 "s/^RUNSPEC.*/RUNSPEC\\\\nNOSIM/",
                 "<ECLBASE>.DATA",
             ],
@@ -248,7 +258,9 @@ class RemoveNoSim(ForwardModelStepPlugin):
     def __init__(self):
         super().__init__(
             name="REMOVE_NOSIM",
-            command=["sed", "-i", "/^NOSIM/d", "<ECLBASE>.DATA"],
+            command=["sed", "-i", "", "/^NOSIM/d", "<ECLBASE>.DATA"]
+            if sys.platform == "darwin"
+            else ["sed", "-i", "/^NOSIM/d", "<ECLBASE>.DATA"],
         )
 
     @staticmethod
