@@ -6,7 +6,7 @@ from logging.handlers import BufferingHandler
 from pathlib import Path
 from types import MethodType
 
-from ert import ErtScript, LibresFacade
+from ert import ErtScript
 
 from semeio.communication.reporter import FileReporter
 
@@ -57,7 +57,6 @@ class SemeioScript(ErtScript):
 
     def __init__(self):
         super().__init__()
-        self.facade = None
         self._output_dir = None
         self._reporter = None
         self._wrap_run()
@@ -68,7 +67,6 @@ class SemeioScript(ErtScript):
         def run_with_handler(self, *args, **kwargs):
             log = logging.getLogger("")
             thread_id = threading.get_ident()
-            self.facade = LibresFacade(self.ert())
             self._output_dir = self._get_output_dir()
             report_handler = _ReportHandler(self._output_dir, thread_id)
             with _LogHandlerContext(log, report_handler):
@@ -78,7 +76,8 @@ class SemeioScript(ErtScript):
         self.run = MethodType(run_with_handler, self)
 
     def _get_output_dir(self):
-        base_dir = Path(self.facade.enspath).parent.absolute()
+        # A bit hacky, should we maybe pass enspath / runpath to workflows anyway?
+        base_dir = Path(self.ensemble.experiment._storage.path).parent.absolute()
         try:
             sub_dir = self.ensemble.name
         except AttributeError:
@@ -86,7 +85,8 @@ class SemeioScript(ErtScript):
         return os.path.join(
             base_dir,
             "reports",
-            Path(self.facade.user_config_file).stem,
+            # Name of the ert config file
+            # used to be here
             sub_dir,
             type(self).__name__,
         )
@@ -103,7 +103,7 @@ class SemeioScript(ErtScript):
     def _reports_dir(self, output_dir):
         output_dir = Path(output_dir)
         if not output_dir.is_absolute():
-            base_dir = Path(self.facade.enspath).parent.absolute()
+            base_dir = Path(self.ensemble.experiment._storage.path).parent.absolute()
             self.reporter._output_dir = base_dir / output_dir
         else:
             self.reporter._output_dir = output_dir

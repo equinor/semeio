@@ -10,21 +10,9 @@ from semeio.communication import SEMEIOSCRIPT_LOG_FILE, SemeioScript, semeio_scr
 
 # pylint: disable=method-hidden,no-self-use, arguments-differ
 
-
-def _ert_mock(monkeypatch, ensemble_path="storage", user_case_name="case_name"):
-    facade = Mock()
-    facade.enspath = ensemble_path
-    facade.user_config_file = "config_name.ert"
-    facade.get_current_case_name.return_value = user_case_name
-    facade_mock = Mock()
-    facade_mock.return_value = facade
-    monkeypatch.setattr(semeio_script, "LibresFacade", facade_mock)
-
-
 def test_semeio_script_publish(monkeypatch, tmpdir):
     tmpdir.chdir()
     ensemble_path, user_case_name = "storage", "default"
-    _ert_mock(monkeypatch, ensemble_path, user_case_name)
 
     namespace = "arbitrary_data"
     data = [1, 2, 3, 4, "This is a very important string"]
@@ -56,7 +44,6 @@ def test_semeio_script_publish(monkeypatch, tmpdir):
 def test_semeio_script_logging(monkeypatch, tmpdir):
     tmpdir.chdir()
     ensemble_path, user_case_name = "storage", "default"
-    _ert_mock(monkeypatch, ensemble_path, user_case_name)
 
     msg = "My logging msg"
 
@@ -105,7 +92,6 @@ def assert_log(messages, log_file):
 def test_semeio_script_multiple_logging(monkeypatch, messages, tmpdir):
     tmpdir.chdir()
     ensemble_path, user_case_name = "storage", "default"
-    _ert_mock(monkeypatch, ensemble_path, user_case_name)
 
     class MySuperScript(SemeioScript):
         def run(self, *args):
@@ -136,7 +122,6 @@ def test_semeio_script_multiple_logging(monkeypatch, messages, tmpdir):
 def test_semeio_script_post_logging(monkeypatch, tmpdir):
     tmpdir.chdir()
     ensemble_path, user_case_name = "storage", "default"
-    _ert_mock(monkeypatch, ensemble_path, user_case_name)
 
     class MySuperScript(SemeioScript):
         def run(self, *args):
@@ -167,7 +152,6 @@ def test_semeio_script_post_logging(monkeypatch, tmpdir):
 def test_semeio_script_pre_logging(monkeypatch, tmpdir):
     tmpdir.chdir()
     ensemble_path, user_case_name = "storage", "default"
-    _ert_mock(monkeypatch, ensemble_path, user_case_name)
 
     class MySuperScript(SemeioScript):
         def run(self, *args):
@@ -199,7 +183,6 @@ def test_semeio_script_pre_logging(monkeypatch, tmpdir):
 def test_semeio_script_concurrent_logging(monkeypatch, tmpdir):
     tmpdir.chdir()
     ensemble_path, user_case_name = "storage", "default"
-    _ert_mock(monkeypatch, ensemble_path, user_case_name)
 
     class MySuperScript(SemeioScript):
         def run(self, *args):
@@ -230,7 +213,6 @@ def test_semeio_script_concurrent_logging(monkeypatch, tmpdir):
 def test_semeio_script_post_logging_exception(monkeypatch, tmpdir):
     tmpdir.chdir()
     ensemble_path, user_case_name = "storage", "default"
-    _ert_mock(monkeypatch, ensemble_path, user_case_name)
 
     class MySuperScript(SemeioScript):
         def run(self, *args):
@@ -266,7 +248,6 @@ def test_semeio_script_keyword_args(monkeypatch, tmpdir):
     # pylint: disable=not-callable
     tmpdir.chdir()
     ensemble_path, user_case_name = "storage", "default"
-    _ert_mock(monkeypatch, ensemble_path, user_case_name)
 
     class MySuperScript(SemeioScript):
         def run(self, param_a, param_b):
@@ -295,7 +276,6 @@ def test_semeio_script_keyword_args(monkeypatch, tmpdir):
 def test_semeio_script_relative_report_dir(monkeypatch, tmpdir):
     tmpdir.chdir()
     ensemble_path, user_case_name = "storage", "default"
-    _ert_mock(monkeypatch, ensemble_path, user_case_name)
 
     class MySuperScript(SemeioScript):
         def run(self, param_a):
@@ -318,7 +298,6 @@ def test_semeio_script_relative_report_dir(monkeypatch, tmpdir):
 
 def test_semeio_script_absolute_report_dir(monkeypatch, tmpdir):
     ensemble_path, user_case_name = "storage", "default"
-    _ert_mock(monkeypatch, ensemble_path, user_case_name)
 
     class MySuperScript(SemeioScript):
         def run(self, param_a):
@@ -341,7 +320,6 @@ def test_semeio_script_absolute_report_dir(monkeypatch, tmpdir):
 
 def test_semeio_script_subdirs(monkeypatch, tmpdir):
     ensemble_path, user_case_name = "storage", "default"
-    _ert_mock(monkeypatch, ensemble_path, user_case_name)
 
     class MySuperScript(SemeioScript):
         def run(self, param_a):

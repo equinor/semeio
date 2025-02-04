@@ -28,7 +28,6 @@ def test_make_update_log_df(snake_oil_facade, snapshot):
             prior_ensemble=prior_ens,
         )
         log = _run_ministep(
-            snake_oil_facade,
             prior_ens,
             posterior_ens,
             sorted(prior_ens.experiment.observation_keys),
