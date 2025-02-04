@@ -8,7 +8,11 @@ from copy import deepcopy
 import ert
 import numpy as np
 import pandas as pd
-from ert.analysis import ErtAnalysisError, SmootherSnapshot
+import polars
+import polars as pl
+from ert import LibresFacade
+from ert.analysis import ErtAnalysisError, SmootherSnapshot, smoother_update
+from ert.config import ESSettings, Field, GenKwConfig, UpdateSettings
 from ert.storage import open_storage
 from scipy.stats import ks_2samp
 
@@ -105,20 +109,43 @@ class AhmAnalysisJob(SemeioScript):
 
     def run(
         self,
+        alpha: str | None = None,
         target_name="analysis_case",
         prior_name=None,
         group_by="data_key",
         output_dir=None,
     ):
-        # (SemeioScript wraps this run method)
-
         """Perform analysis of parameters change per obs group
         prior to posterior of ahm"""
+
+        if isinstance(alpha, str):
+            alpha = float(alpha)
+
         if output_dir is not None:
             self._reports_dir = output_dir
 
-        obs_keys = list(self.facade.get_observations().obs_vectors.keys())
-        key_map = _group_observations(self.facade, obs_keys, group_by)
+        experiment = self.ensemble.experiment
+
+        observations_and_responses_mapping = (
+            pl.concat(
+                df["observation_key", "response_key"]
+                for df in experiment.observations.values()
+            )
+            if len(experiment.observations) > 0
+            else polars.DataFrame({"observation_key": [], "response_key": []})
+        )
+
+        response_2_obs_df = observations_and_responses_mapping.group_by(
+            "response_key"
+        ).agg(pl.col("observation_key").unique())
+
+        def _replace(s: str) -> str:
+            return s.replace(":", "_")
+
+        key_map = {
+            _replace(l["response_key"]): sorted(map(_replace, l["observation_key"]))
+            for l in response_2_obs_df.sort(by="response_key").to_dicts()
+        }
 
         prior_name, target_name = check_names(
             self.ensemble.name,
@@ -142,7 +169,7 @@ class AhmAnalysisJob(SemeioScript):
             raise_if_empty(
                 dataframes=[
                     prior_data,
-                    self.facade.load_all_misfit_data(prior_ensemble),
+                    LibresFacade.load_all_misfit_data(prior_ensemble),
                 ],
                 messages=[
                     "Empty prior ensemble",
@@ -155,13 +182,22 @@ class AhmAnalysisJob(SemeioScript):
         # create dataframe with observations vectors (1 by 1 obs and also all_obs)
         combinations = make_obs_groups(key_map)
 
-        field_parameters = sorted(self.facade.get_field_parameters())
+        field_parameters = [
+            p.name
+            for p in experiment.parameter_configuration.values()
+            if isinstance(p, Field)
+        ]
+        gen_kws = [
+            p.name
+            for p in experiment.parameter_configuration.values()
+            if isinstance(p, GenKwConfig)
+        ]
         if field_parameters:
             logger.warning(
                 f"AHM_ANALYSIS will only evaluate scalar parameters, skipping: {field_parameters}"
             )
 
-        scalar_parameters = sorted(self.facade.get_gen_kw())
+        scalar_parameters = sorted(gen_kws)
         # identify the set of actual parameters that was updated for now just go
         # through scalar parameters but in future if easier access to field parameter
         # updates should also include field parameters
@@ -183,26 +219,26 @@ class AhmAnalysisJob(SemeioScript):
             # storage in a temporary directory.
             with (
                 tempfile.TemporaryDirectory(),
-                open_storage("tmp_storage", "w") as storage,
+                open_storage("tmp_storage", "w") as tmp_storage,
             ):
                 try:
                     prev_experiment = prior_ensemble.experiment
-                    experiment = storage.create_experiment(
+                    experiment = tmp_storage.create_experiment(
                         parameters=prev_experiment.parameter_configuration.values(),
                         observations=prev_experiment.observations,
                         responses=prev_experiment.response_configuration.values(),
                     )
-                    target_ensemble = storage.create_ensemble(
+                    target_ensemble = tmp_storage.create_ensemble(
                         experiment,
                         name=target_name,
                         ensemble_size=prior_ensemble.ensemble_size,
                     )
                     update_log = _run_ministep(
-                        self.facade,
                         prior_ensemble,
                         target_ensemble,
                         obs_group,
                         field_parameters + scalar_parameters,
+                        alpha,
                     )
                     # Get the active vs total observation info
                     df_update_log = make_update_log_df(update_log)
@@ -225,7 +261,7 @@ class AhmAnalysisJob(SemeioScript):
                     calc_observationsgroup_misfit(
                         group_name,
                         df_update_log,
-                        self.facade.load_all_misfit_data(prior_ensemble),
+                        LibresFacade.load_all_misfit_data(prior_ensemble),
                     )
                 ]
                 # Calculate Ks matrix for scalar parameters
@@ -247,14 +283,27 @@ class AhmAnalysisJob(SemeioScript):
         self.reporter.publish_csv("prior", prior_data)
 
 
-def _run_ministep(facade, prior_storage, target_storage, obs_group, data_parameters):
-    rng = np.random.default_rng(seed=facade.config.random_seed)
-    return facade.smoother_update(
-        prior_storage,
-        target_storage,
-        target_storage.name,
-        obs_group,
-        data_parameters,
+def _run_ministep(
+    prior_storage,
+    target_storage,
+    obs_group,
+    data_parameters,
+    alpha: float | None = None,
+):
+    es_settings = ESSettings()
+    obs_settings = (
+        UpdateSettings(alpha=alpha) if alpha is not None else UpdateSettings()
+    )
+
+    rng = np.random.default_rng()
+
+    return smoother_update(
+        prior_storage=prior_storage,
+        posterior_storage=target_storage,
+        observations=obs_group,
+        parameters=data_parameters,
+        update_settings=obs_settings,
+        es_settings=es_settings,
         rng=rng,
     )
 

@@ -51,7 +51,7 @@ def test_ahmanalysis_run(snake_oil_facade):
     ks_df = pd.read_csv(output_dir / "ks.csv")
     for keys in ks_df["Parameters"].tolist():
         assert keys in parameters
-    assert ks_df.columns[1:].tolist() == group_obs
+    assert set(ks_df.columns[1:].tolist()) == set(group_obs)
     assert ks_df["WOPR_OP1"].max() <= 1
     assert ks_df["WOPR_OP1"].min() >= 0
     assert (output_dir / "active_obs_info.csv").is_file()
@@ -68,8 +68,7 @@ def test_ahmanalysis_run_deactivated_obs(snake_oil_facade, snapshot, caplog):
     We simulate a case where some of the observation groups are completely
     disabled by outlier detection
     """
-
-    snake_oil_facade.config.analysis_config.observation_settings.alpha = 0.1
+    # Note: Unattainable run unless we can pass alpha to the workflow somehow
     with (
         open_storage(snake_oil_facade.enspath, "w") as storage,
         caplog.at_level(logging.WARNING),
@@ -79,6 +78,7 @@ def test_ahmanalysis_run_deactivated_obs(snake_oil_facade, snapshot, caplog):
             ahmanalysis.AhmAnalysisJob,
             storage,
             experiment.get_ensemble_by_name("default"),
+            0.1,
         )
     assert "Analysis failed for" in caplog.text
 
