@@ -64,6 +64,70 @@ def test_ahmanalysis_run(snake_oil_facade):
 
 
 @pytest.mark.integration_test
+def test_ahmanalysis_run_group_by_obs(snake_oil_facade):
+    """test data_set with only scalar parameters"""
+    with open_storage(snake_oil_facade.enspath, "w") as storage:
+        experiment = storage.get_experiment_by_name("ensemble-experiment")
+        snake_oil_facade.run_ertscript(
+            ahmanalysis.AhmAnalysisJob,
+            storage,
+            experiment.get_ensemble_by_name("default"),
+            "analysis_case",
+            "default",
+            "obs_key",  # if it is not "data_key" it defaults to obs key
+        )
+
+    # assert that this returns/generates a KS csv file
+    output_dir = Path("log/update/ensemble-experiment/AhmAnalysisJob")
+    group_obs = [
+        "All_obs",
+        "All_obs-FOPR",
+        "All_obs-WOPR_OP1_108",
+        "All_obs-WOPR_OP1_144",
+        "All_obs-WOPR_OP1_190",
+        "All_obs-WOPR_OP1_36",
+        "All_obs-WOPR_OP1_72",
+        "All_obs-WOPR_OP1_9",
+        "All_obs-WPR_DIFF_1",
+        "FOPR",
+        "WOPR_OP1_108",
+        "WOPR_OP1_144",
+        "WOPR_OP1_190",
+        "WOPR_OP1_36",
+        "WOPR_OP1_72",
+        "WOPR_OP1_9",
+        "WPR_DIFF_1",
+    ]
+    parameters = [
+        "SNAKE_OIL_PARAM:OP1_PERSISTENCE",
+        "SNAKE_OIL_PARAM:OP1_OCTAVES",
+        "SNAKE_OIL_PARAM:OP1_DIVERGENCE_SCALE",
+        "SNAKE_OIL_PARAM:OP1_OFFSET",
+        "SNAKE_OIL_PARAM:OP2_PERSISTENCE",
+        "SNAKE_OIL_PARAM:OP2_OCTAVES",
+        "SNAKE_OIL_PARAM:OP2_DIVERGENCE_SCALE",
+        "SNAKE_OIL_PARAM:OP2_OFFSET",
+        "SNAKE_OIL_PARAM:BPR_555_PERSISTENCE",
+        "SNAKE_OIL_PARAM:BPR_138_PERSISTENCE",
+        "FIELD_PERMX",
+        "FIELD_PORO",
+    ]
+    assert (output_dir / "ks.csv").is_file()
+    ks_df = pd.read_csv(output_dir / "ks.csv")
+    for keys in ks_df["Parameters"].tolist():
+        assert keys in parameters
+    assert sorted(ks_df.columns[1:].tolist()) == sorted(group_obs)
+    wopr_op1_df = ks_df[[c for c in ks_df.columns if c.startswith("WOPR_OP1")]]
+    assert wopr_op1_df.max().max() <= 1
+    assert wopr_op1_df.min().min() >= 0
+    assert (output_dir / "active_obs_info.csv").is_file()
+    assert (output_dir / "misfit_obs_info.csv").is_file()
+    assert (output_dir / "prior.csv").is_file()
+    for group in group_obs:
+        filename = group + ".csv"
+        assert (output_dir / filename).is_file()
+
+
 @pytest.mark.integration_test
 def test_ahmanalysis_run_deactivated_obs(copy_snake_oil_case_storage, snapshot, caplog):
     """
