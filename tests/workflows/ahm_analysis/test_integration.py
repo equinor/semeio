@@ -177,3 +177,66 @@ def test_that_dataset_with_no_prior_will_fail(test_data_root, capsys):
             ),
         )
         assert expected_msg in capsys.readouterr().err
+
+
+def test_ahmanalysis_run_cli(snake_oil_facade):
+    # Make workflow invoking ahmanalysis workflow job with args
+    # add it to ert config
+    # then run it
+
+    with open("ahmanalysis_wf", "w", encoding="utf-8") as wf_file:
+        wf_file.write("AHM_ANALYSIS analysis_case default")
+
+    with open("snake_oil.ert", mode="a", encoding="utf-8") as f:
+        f.write("LOAD_WORKFLOW ahmanalysis_wf")
+
+    subprocess.run(
+        [
+            "ert",
+            "workflow",
+            "ahmanalysis_wf",
+            "snake_oil.ert",
+            "--ensemble",
+            "default",
+        ],
+        check=False,
+    )
+
+    # assert that this returns/generates a KS csv file
+    output_dir = Path("log/update/AhmAnalysisJob").resolve()
+    group_obs = [
+        "FOPR",
+        "WOPR_OP1",
+        "SNAKE_OIL_WPR_DIFF",
+        "All_obs",
+        "All_obs-SNAKE_OIL_WPR_DIFF",
+        "All_obs-WOPR_OP1",
+        "All_obs-FOPR",
+    ]
+    parameters = [
+        "SNAKE_OIL_PARAM:OP1_PERSISTENCE",
+        "SNAKE_OIL_PARAM:OP1_OCTAVES",
+        "SNAKE_OIL_PARAM:OP1_DIVERGENCE_SCALE",
+        "SNAKE_OIL_PARAM:OP1_OFFSET",
+        "SNAKE_OIL_PARAM:OP2_PERSISTENCE",
+        "SNAKE_OIL_PARAM:OP2_OCTAVES",
+        "SNAKE_OIL_PARAM:OP2_DIVERGENCE_SCALE",
+        "SNAKE_OIL_PARAM:OP2_OFFSET",
+        "SNAKE_OIL_PARAM:BPR_555_PERSISTENCE",
+        "SNAKE_OIL_PARAM:BPR_138_PERSISTENCE",
+        "FIELD_PERMX",
+        "FIELD_PORO",
+    ]
+    assert (output_dir / "ks.csv").is_file()
+    ks_df = pd.read_csv(output_dir / "ks.csv")
+    for keys in ks_df["Parameters"].tolist():
+        assert keys in parameters
+    assert sorted(ks_df.columns[1:].tolist()) == sorted(group_obs)
+    assert ks_df["WOPR_OP1"].max() <= 1
+    assert ks_df["WOPR_OP1"].min() >= 0
+    assert (output_dir / "active_obs_info.csv").is_file()
+    assert (output_dir / "misfit_obs_info.csv").is_file()
+    assert (output_dir / "prior.csv").is_file()
+    for group in group_obs:
+        filename = group + ".csv"
+        assert (output_dir / filename).is_file()
