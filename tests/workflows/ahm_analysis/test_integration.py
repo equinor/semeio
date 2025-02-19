@@ -1,6 +1,7 @@
 import logging
 import os
 import shutil
+import subprocess
 from pathlib import Path
 
 import pandas as pd
@@ -23,14 +24,14 @@ def test_ahmanalysis_run(snake_oil_facade):
         )
 
     # assert that this returns/generates a KS csv file
-    output_dir = Path("storage/snake_oil/reports/snake_oil/default/AhmAnalysisJob")
+    output_dir = Path("log/update/ensemble-experiment/AhmAnalysisJob")
     group_obs = [
         "FOPR",
-        "WOPR_OP1",
         "SNAKE_OIL_WPR_DIFF",
+        "WOPR_OP1",
         "All_obs",
-        "All_obs-SNAKE_OIL_WPR_DIFF",
         "All_obs-WOPR_OP1",
+        "All_obs-SNAKE_OIL_WPR_DIFF",
         "All_obs-FOPR",
     ]
     parameters = [
@@ -51,7 +52,7 @@ def test_ahmanalysis_run(snake_oil_facade):
     ks_df = pd.read_csv(output_dir / "ks.csv")
     for keys in ks_df["Parameters"].tolist():
         assert keys in parameters
-    assert set(ks_df.columns[1:].tolist()) == set(group_obs)
+    assert sorted(ks_df.columns[1:].tolist()) == sorted(group_obs)
     assert ks_df["WOPR_OP1"].max() <= 1
     assert ks_df["WOPR_OP1"].min() >= 0
     assert (output_dir / "active_obs_info.csv").is_file()
@@ -63,12 +64,18 @@ def test_ahmanalysis_run(snake_oil_facade):
 
 
 @pytest.mark.integration_test
-def test_ahmanalysis_run_deactivated_obs(snake_oil_facade, snapshot, caplog):
+@pytest.mark.integration_test
+def test_ahmanalysis_run_deactivated_obs(copy_snake_oil_case_storage, snapshot, caplog):
     """
     We simulate a case where some of the observation groups are completely
     disabled by outlier detection
     """
-    # Note: Unattainable run unless we can pass alpha to the workflow somehow
+
+    with Path("snake_oil.ert").open(mode="a", encoding="utf-8") as f:
+        f.write("ENKF_ALPHA 0.1")
+
+    snake_oil_facade = LibresFacade.from_config_file("snake_oil.ert")
+
     with (
         open_storage(snake_oil_facade.enspath, "w") as storage,
         caplog.at_level(logging.WARNING),
@@ -78,12 +85,14 @@ def test_ahmanalysis_run_deactivated_obs(snake_oil_facade, snapshot, caplog):
             ahmanalysis.AhmAnalysisJob,
             storage,
             experiment.get_ensemble_by_name("default"),
-            0.1,
+            None,
+            None,
+            "data_key",
         )
     assert "Analysis failed for" in caplog.text
 
     # assert that this returns/generates a KS csv file
-    output_dir = Path("storage/snake_oil/reports/snake_oil/default/AhmAnalysisJob")
+    output_dir = Path("log/update/ensemble-experiment/AhmAnalysisJob")
     ks_df = pd.read_csv(output_dir / "ks.csv")
     snapshot.assert_match(ks_df.iloc[:10].to_csv(), "ks_df")
 

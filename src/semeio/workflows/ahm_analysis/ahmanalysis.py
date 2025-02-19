@@ -1,23 +1,27 @@
-import collections
+import contextlib
 import itertools
 import logging
+import os
 import tempfile
 import warnings
+from collections.abc import Iterable
 from copy import deepcopy
+from dataclasses import asdict
+from pathlib import Path
+from typing import Any
 
 import ert
 import numpy as np
 import pandas as pd
 import polars
 import polars as pl
-from ert import LibresFacade
+from ert import ErtScript, LibresFacade
 from ert.analysis import ErtAnalysisError, SmootherSnapshot, smoother_update
 from ert.config import ESSettings, Field, GenKwConfig, UpdateSettings
-from ert.storage import open_storage
+from ert.storage import Ensemble, Storage, open_storage
 from scipy.stats import ks_2samp
 
 from semeio._exceptions.exceptions import ValidationError
-from semeio.communication import SemeioScript
 
 logger = logging.getLogger(__name__)
 
@@ -102,68 +106,77 @@ execution through Run Workflow button on ERT GUI
 """
 
 
-class AhmAnalysisJob(SemeioScript):
+class AhmAnalysisJob(ErtScript):
     """Define ERT workflow to evaluate change of parameters for eac
     observation during history matching
     """
 
     def run(
         self,
-        alpha: str | None = None,
-        target_name="analysis_case",
-        prior_name=None,
-        group_by="data_key",
-        output_dir=None,
-    ):
+        workflow_args: list[str],
+        storage: Storage,
+        es_settings: ESSettings,
+        observation_settings: UpdateSettings,
+        random_seed: int,
+        reports_dir: str,
+        ensemble: Ensemble | None,
+    ) -> Any:
         """Perform analysis of parameters change per obs group
         prior to posterior of ahm"""
 
-        if isinstance(alpha, str):
-            alpha = float(alpha)
+        target_name = workflow_args[0] if len(workflow_args) > 0 else "analysis_case"
+        prior_name = workflow_args[1] if len(workflow_args) > 1 else None
+        group_by = workflow_args[2] if len(workflow_args) > 2 else "data_key"
 
-        if output_dir is not None:
-            self._reports_dir = output_dir
+        prior_ensemble = None
+        if ensemble is None:
+            with contextlib.suppress(KeyError):
+                for _experiment in storage.experiments:
+                    ensemble = _experiment.get_ensemble_by_name(prior_name)
 
-        experiment = self.ensemble.experiment
+        prior_ensemble = ensemble
 
+        if prior_ensemble is None:
+            all_ensemble_names = [e.name for e in storage.ensembles]
+            raise ValueError(
+                f"Prior ensemble with name: {prior_name} "
+                f"not found in any experiments. "
+                f"Available ensemble names: {', '.join(all_ensemble_names)}"
+            )
+
+        assert prior_ensemble is not None
+
+        prior_experiment = prior_ensemble.experiment
         observations_and_responses_mapping = (
             pl.concat(
                 df["observation_key", "response_key"]
-                for df in experiment.observations.values()
+                for df in prior_experiment.observations.values()
             )
-            if len(experiment.observations) > 0
+            if len(prior_experiment.observations) > 0
             else polars.DataFrame({"observation_key": [], "response_key": []})
         )
-
-        response_2_obs_df = observations_and_responses_mapping.group_by(
-            "response_key"
-        ).agg(pl.col("observation_key").unique())
 
         def _replace(s: str) -> str:
             return s.replace(":", "_")
 
-        key_map = {
-            _replace(l["response_key"]): sorted(map(_replace, l["observation_key"]))
-            for l in response_2_obs_df.sort(by="response_key").to_dicts()
-        }
+        if group_by != "data_key":
+            key_map = {
+                _replace(k): [k]
+                for k in observations_and_responses_mapping["observation_key"].unique()
+            }
+        else:
+            key_2_obs_key_df = observations_and_responses_mapping.group_by(
+                "response_key"
+            ).agg(pl.col("observation_key").unique())
 
-        prior_name, target_name = check_names(
-            self.ensemble.name,
-            prior_name,
-            target_name,
-        )
+            key_map = {
+                _replace(l["response_key"]): sorted(map(_replace, l["observation_key"]))
+                for l in key_2_obs_key_df.sort(by="response_key").to_dicts()
+            }
 
-        prior_ensemble = None
-        # Get the prior scalar parameter distributions
-        for experiment in self.storage.experiments:
-            try:
-                prior_ensemble = experiment.get_ensemble_by_name(prior_name)
-                break
-            except KeyError:
-                pass
+        if target_name == "<ANALYSIS_CASE_NAME>":
+            target_name = "analysis_case"
 
-        if prior_ensemble is None:
-            raise KeyError(f"No ensembles named {prior_name} found in storage.")
         prior_data = prior_ensemble.load_all_gen_kw_data()
         try:
             raise_if_empty(
@@ -179,17 +192,20 @@ class AhmAnalysisJob(SemeioScript):
         except KeyError as err:
             raise ValidationError(f"Empty prior ensemble: {err}") from err
 
+        ahmanalysis_reports_dir = Path(reports_dir) / "AhmAnalysisJob"
+        os.makedirs(ahmanalysis_reports_dir, exist_ok=True)
+
         # create dataframe with observations vectors (1 by 1 obs and also all_obs)
         combinations = make_obs_groups(key_map)
 
         field_parameters = [
             p.name
-            for p in experiment.parameter_configuration.values()
+            for p in prior_experiment.parameter_configuration.values()
             if isinstance(p, Field)
         ]
         gen_kws = [
             p.name
-            for p in experiment.parameter_configuration.values()
+            for p in prior_experiment.parameter_configuration.values()
             if isinstance(p, GenKwConfig)
         ]
         if field_parameters:
@@ -222,23 +238,24 @@ class AhmAnalysisJob(SemeioScript):
                 open_storage("tmp_storage", "w") as tmp_storage,
             ):
                 try:
-                    prev_experiment = prior_ensemble.experiment
-                    experiment = tmp_storage.create_experiment(
-                        parameters=prev_experiment.parameter_configuration.values(),
-                        observations=prev_experiment.observations,
-                        responses=prev_experiment.response_configuration.values(),
+                    target_experiment = tmp_storage.create_experiment(
+                        parameters=prior_experiment.parameter_configuration.values(),
+                        observations=prior_experiment.observations,
+                        responses=prior_experiment.response_configuration.values(),
                     )
                     target_ensemble = tmp_storage.create_ensemble(
-                        experiment,
+                        target_experiment,
                         name=target_name,
                         ensemble_size=prior_ensemble.ensemble_size,
                     )
                     update_log = _run_ministep(
-                        prior_ensemble,
-                        target_ensemble,
-                        obs_group,
-                        field_parameters + scalar_parameters,
-                        alpha,
+                        prior_storage=prior_ensemble,
+                        target_storage=target_ensemble,
+                        obs_group=obs_group,
+                        data_parameters=field_parameters + scalar_parameters,
+                        observation_settings=observation_settings,
+                        es_settings=es_settings,
+                        random_seed=random_seed,
                     )
                     # Get the active vs total observation info
                     df_update_log = make_update_log_df(update_log)
@@ -247,8 +264,8 @@ class AhmAnalysisJob(SemeioScript):
                     del updated_combinations[group_name]
                     continue
                 # Get the updated scalar parameter distributions
-                self.reporter.publish_csv(
-                    group_name, target_ensemble.load_all_gen_kw_data()
+                target_ensemble.load_all_gen_kw_data().to_csv(
+                    ahmanalysis_reports_dir / f"{group_name}.csv"
                 )
 
                 active_obs.at["ratio", group_name] = (
@@ -277,35 +294,11 @@ class AhmAnalysisJob(SemeioScript):
         kolmogorov_smirnov_data.set_index("Parameters", inplace=True)
 
         # save/export the Ks matrix, active_obs, misfitval and prior data
-        self.reporter.publish_csv("ks", kolmogorov_smirnov_data)
-        self.reporter.publish_csv("active_obs_info", active_obs)
-        self.reporter.publish_csv("misfit_obs_info", misfitval)
-        self.reporter.publish_csv("prior", prior_data)
 
-
-def _run_ministep(
-    prior_storage,
-    target_storage,
-    obs_group,
-    data_parameters,
-    alpha: float | None = None,
-):
-    es_settings = ESSettings()
-    obs_settings = (
-        UpdateSettings(alpha=alpha) if alpha is not None else UpdateSettings()
-    )
-
-    rng = np.random.default_rng()
-
-    return smoother_update(
-        prior_storage=prior_storage,
-        posterior_storage=target_storage,
-        observations=obs_group,
-        parameters=data_parameters,
-        update_settings=obs_settings,
-        es_settings=es_settings,
-        rng=rng,
-    )
+        kolmogorov_smirnov_data.to_csv(ahmanalysis_reports_dir / "ks.csv")
+        active_obs.to_csv(ahmanalysis_reports_dir / "active_obs_info.csv")
+        misfitval.to_csv(ahmanalysis_reports_dir / "misfit_obs_info.csv")
+        prior_data.to_csv(ahmanalysis_reports_dir / "prior.csv")
 
 
 def make_update_log_df(update_log: SmootherSnapshot) -> pd.DataFrame:
@@ -342,6 +335,30 @@ def make_update_log_df(update_log: SmootherSnapshot) -> pd.DataFrame:
     )
 
     return updatelog
+
+
+def _run_ministep(
+    prior_storage: Ensemble,
+    target_storage: Ensemble,
+    obs_group: Iterable[str],
+    data_parameters: Iterable[str],
+    observation_settings: UpdateSettings,
+    es_settings: ESSettings,
+    random_seed: int,
+) -> SmootherSnapshot:
+    rng = np.random.default_rng(random_seed)
+
+    observation_settings = UpdateSettings(**{**asdict(observation_settings)})
+
+    return smoother_update(
+        prior_storage=prior_storage,
+        posterior_storage=target_storage,
+        observations=obs_group,
+        parameters=data_parameters,
+        update_settings=observation_settings,
+        es_settings=es_settings,
+        rng=rng,
+    )
 
 
 def make_obs_groups(key_map):
@@ -439,32 +456,12 @@ def calc_kolmogorov_smirnov(columns, prior_data, target_data):
     return ks_param
 
 
-def check_names(ert_currentname, prior_name, target_name):
-    """Check input names given"""
-    if prior_name is None:
-        prior_name = ert_currentname
-    if target_name == "<ANALYSIS_CASE_NAME>":
-        target_name = "analysis_case"
-    return prior_name, target_name
-
-
 def raise_if_empty(dataframes, messages):
     """Check input ensemble prior is not empty
     and if ensemble contains parameters for hm"""
     for dframe in dataframes:
         if dframe.empty:
             raise ValidationError(f"{messages}")
-
-
-def _group_observations(facade, obs_keys, group_by):
-    key_map = collections.defaultdict(list)
-    for obs_key in obs_keys:
-        if group_by == "data_key":
-            key = facade.get_data_key_for_obs_key(obs_key)
-        else:
-            key = obs_key
-        key_map[key.replace(":", "_")].append(obs_key.replace(":", "_"))
-    return key_map
 
 
 @ert.plugin(name="semeio")

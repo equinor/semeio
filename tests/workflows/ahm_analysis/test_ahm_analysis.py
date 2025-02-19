@@ -28,10 +28,13 @@ def test_make_update_log_df(snake_oil_facade, snapshot):
             prior_ensemble=prior_ens,
         )
         log = _run_ministep(
-            prior_ens,
-            posterior_ens,
-            sorted(prior_ens.experiment.observation_keys),
-            sorted(prior_ens.experiment.parameter_configuration.keys()),
+            prior_storage=prior_ens,
+            target_storage=posterior_ens,
+            obs_group=sorted(prior_ens.experiment.observation_keys),
+            data_parameters=sorted(prior_ens.experiment.parameter_configuration.keys()),
+            observation_settings=snake_oil_facade.config.analysis_config.observation_settings,
+            es_settings=snake_oil_facade.config.analysis_config.es_module,
+            random_seed=snake_oil_facade.config.random_seed,
         )
     snapshot.assert_match(
         ahmanalysis.make_update_log_df(log).round(4).to_csv(),
@@ -166,16 +169,6 @@ def test_calc_kolmogorov_smirnov():
     assert ks_matrix.loc["param1", "WOPT:W1"] == 0.275
     assert ks_matrix["WOPT:W1"].max() <= 1
     assert ks_matrix["WOPT:W1"].min() >= 0
-
-
-def test_check_names():
-    """test function check names to be used for prior and update case"""
-    ert_currentname = "default"
-    prior_name = None
-    target_name = "<ANALYSIS_CASE_NAME>"
-    p_name, tname = ahmanalysis.check_names(ert_currentname, prior_name, target_name)
-    assert p_name == ert_currentname
-    assert tname != "<ANALYSIS_CASE_NAME>"
 
 
 @pytest.mark.parametrize(
@@ -319,60 +312,3 @@ def create_facade(keys):
     facade = MagicMock()
     facade.get_data_key_for_obs_key.side_effect = side_effect
     return facade
-
-
-@pytest.mark.parametrize(
-    "keys, expected_result",
-    [
-        pytest.param(
-            {"obs_key": "data_key"},
-            {"data_key": ["obs_key"]},
-            id="One data key and one obs key",
-        ),
-        pytest.param(
-            {"obs_key_1": "data_key", "obs_key_2": "data_key"},
-            {"data_key": ["obs_key_1", "obs_key_2"]},
-            id="Multiple obs per data key",
-        ),
-        pytest.param(
-            {"obs:key_1": "data_key_1", "obs_key_2": "data_key_2"},
-            {"data_key_1": ["obs_key_1"], "data_key_2": ["obs_key_2"]},
-            id="Single obs for multiple data key",
-        ),
-        pytest.param(
-            {
-                "obs_key_1": "data_key_1",
-                "obs_key_2": "data_key_2",
-                "obs_key_3": "data_key_2",
-            },
-            {"data_key_1": ["obs_key_1"], "data_key_2": ["obs_key_2", "obs_key_3"]},
-            id="Multiple obs for multiple data keys",
-        ),
-    ],
-)
-def test_group_obs_data_key(keys, expected_result):
-    facade = create_facade(keys)
-    # pylint: disable=protected-access
-    result = ahmanalysis._group_observations(facade, keys.keys(), group_by="data_key")
-    assert result == expected_result
-
-
-@pytest.mark.parametrize(
-    "obs_keys, expected_result",
-    [
-        pytest.param(
-            ["obs_key"],
-            {"obs_key": ["obs_key"]},
-        ),
-        pytest.param(
-            ["obs_key_1", "obs_key_2"],
-            {"obs_key_1": ["obs_key_1"], "obs_key_2": ["obs_key_2"]},
-        ),
-    ],
-)
-def test_group_obs_obs_key(obs_keys, expected_result):
-    facade = MagicMock()
-    # pylint: disable=protected-access
-    result = ahmanalysis._group_observations(facade, obs_keys, group_by="obs_key")
-    assert result == expected_result
-    facade.assert_not_called()
