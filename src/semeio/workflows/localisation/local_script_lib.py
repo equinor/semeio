@@ -852,8 +852,7 @@ def add_ministeps(
                     )
             elif isinstance(node, GenDataConfig):
                 debug_print(
-                    f"Parameter {node_name} of type: {impl_type} "
-                    f"in {ministep_name}",
+                    f"Parameter {node_name} of type: {impl_type} in {ministep_name}",
                     LogLevel.LEVEL3,
                     user_config.log_level,
                 )

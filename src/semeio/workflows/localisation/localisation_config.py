@@ -241,7 +241,7 @@ class ScalingForSegmentsConfig(BaseModel):
         if len(scalingfactors) != len(active_segment_list):
             raise ValueError(
                 "The specified length of 'active_segments' list"
-                f"{active_segment_list }\n"
+                f"{active_segment_list}\n"
                 f"  and 'scalingfactors' list {scalingfactors} are different."
             )
         return scalingfactors
