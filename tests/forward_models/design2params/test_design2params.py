@@ -1,3 +1,4 @@
+import contextlib
 import filecmp
 import logging
 import os
@@ -325,7 +326,10 @@ def test_logging_order(tmpdir, caplog):
         log_level=logging.DEBUG,
     )
     actual_warnings = [
-        record.message for record in caplog.records if record.levelname == "WARNING"
+        record.message
+        for record in caplog.records
+        if record.levelname == "WARNING"
+        and "Ert DESIGN_MATRIX keyword" not in record.message
     ]
 
     assert actual_warnings == expected_warning
@@ -619,3 +623,24 @@ def write_design_xlsx(
             pd.DataFrame().to_excel(
                 writer, sheet_name=defaultssheetname, index=False, header=None
             )
+
+
+def test_design2params_validates_for_ert_design_matrix(tmpdir, caplog):
+    tmpdir.chdir()
+    params_file = "parameters.txt"
+    with open(params_file, "w", encoding="utf-8") as file_h:
+        file_h.write("BAR 3")
+
+    write_design_xlsx(
+        "design_matrix.xlsx",
+        designdf=pd.DataFrame(columns=["REAL", "REAL", ""], data=[[1, 1, 1]]),
+    )
+    with contextlib.suppress(Exception, SystemExit):
+        design2params.run(
+            0,
+            "design_matrix.xlsx",
+            parametersfilename=params_file,
+            log_level=logging.DEBUG,
+        )
+
+    assert "Ert DESIGN_MATRIX keyword would have failed" in caplog.text

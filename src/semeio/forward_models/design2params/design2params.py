@@ -4,6 +4,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from ert.config.design_matrix import DesignMatrix as ErtDesignMatrix
 
 from semeio._exceptions.exceptions import ValidationError
 
@@ -23,6 +24,21 @@ DENYLIST_DEFAULTS = DENYLIST + ["REAL"]
 logger = logging.getLogger(__name__)
 
 
+def validate_ert_design_matrix(xlsfilename, designsheetname, defaultssheetname):
+    try:
+        ert_design_matrix = ErtDesignMatrix(
+            xlsfilename, designsheetname, defaultssheetname
+        )
+        if ert_design_matrix_error := ert_design_matrix._validate_design_matrix(
+            ert_design_matrix
+        ):
+            raise Exception("\n".join(ert_design_matrix_error))
+    except Exception as err:
+        logger.warning(
+            f"DESIGN_MATRIX validation of DESIGN2PARAMS would have failed with: {str(err)}"
+        )
+
+
 def run(
     realization,
     xlsfilename,
@@ -36,8 +52,8 @@ def run(
     """
     if log_level is not None:
         logger.setLevel(log_level)
-
-    design_matrix_sheet = _read_excel(xlsfilename, designsheetname)
+    validate_ert_design_matrix(xlsfilename, designsheetname, defaultssheetname)
+    design_matrix_sheet: pd.DataFrame = _read_excel(xlsfilename, designsheetname)
 
     try:
         _validate_design_matrix_header(design_matrix_sheet)
