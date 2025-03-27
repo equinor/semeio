@@ -560,7 +560,7 @@ def test_duplicated_designcolumns(paramset, tmpdir, caplog):
     write_design_xlsx(
         "design_matrix.xlsx",
         designdf=pd.DataFrame(
-            columns=["REAL"] + paramset, data=[[0] + ["foo"] * len(paramset)]
+            columns=["REAL", *paramset], data=[[0] + ["foo"] * len(paramset)]
         ),
     )
 

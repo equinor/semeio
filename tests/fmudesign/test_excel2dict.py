@@ -139,7 +139,7 @@ def test_strip_spaces(tmpdir, monkeypatch):
     writer.close()
 
     dict_design = excel2dict_design("designinput_spaces.xlsx")
-    assert list(dict_design["sensitivities"].keys())[0] == "rms_seed"
+    assert next(iter(dict_design["sensitivities"].keys())) == "rms_seed"
 
     # Check default values parameter names:
     def_params = list(dict_design["defaultvalues"].keys())

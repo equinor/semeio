@@ -122,7 +122,7 @@ def extract_key_value(parameters: list[str]) -> dict[str, str]:
         try:
             line_parts = shlex.split(line)
         except ValueError as e:
-            errors.append(f"Line '{line}' failed with '{str(e)}'")
+            errors.append(f"Line '{line}' failed with '{e!s}'")
             continue
         if not line_parts:
             continue

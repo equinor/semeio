@@ -36,7 +36,7 @@ def _write_gen_data_files(trajectory_df, directory, well, report_step):
         directory (str): Directory name, for where to dump files.
         well (str): Name of well, to be used to construct filenames.
         report_step (int): The RFT report step, used to construct filenames
-    """  # noqa
+    """
     data2fname = {"pressure": "", "swat": "SWAT_", "sgas": "SGAS_", "soil": "SOIL_"}
     for dataname in {"pressure"}.union(set(trajectory_df).intersection(data2fname)):
         _write_simdata(

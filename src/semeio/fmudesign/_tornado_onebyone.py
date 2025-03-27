@@ -137,7 +137,7 @@ def calc_tornadoinput(
             resultfile = resultfile[(resultfile[header].isin(sel))]
 
     # summing over chosen selections for each realisation
-    headers = ["REAL"] + selectors
+    headers = ["REAL", *selectors]
     resultcopy = resultfile.copy()
     resultcopy.set_index(headers, inplace=True)
     resultcopy.sort_index(inplace=True)
