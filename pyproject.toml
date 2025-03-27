@@ -113,6 +113,7 @@ select = [
   "I",   # isort
   "ICN", # flake8-import-conventions
   "NPY", # numpy specific rules
+  "PIE", # flake8-pie
   "PL",  # pylint
   "SIM", # flake-8-simplify
   "UP",  # pyupgrade

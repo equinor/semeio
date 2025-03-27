@@ -68,7 +68,7 @@ class OTSResSurface:
                         break
                 ijk = (i, j, _k)
 
-                top = [grid.getCellCorner(c, ijk=ijk) for c in range(0, 4)]
+                top = [grid.getCellCorner(c, ijk=ijk) for c in range(4)]
                 pos = i * ny + j
                 x[pos] = sum(val[0] for val in top) / 4.0
                 y[pos] = sum(val[1] for val in top) / 4.0
