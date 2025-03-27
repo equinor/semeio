@@ -228,7 +228,7 @@ def test_open_excel_file_value_missing(caplog):
     (all realizations see warnings for empty cells in other realizations)
     """
     reals_with_missing_values = [7, 11]
-    for real in range(0, 25):
+    for real in range(25):
         if real in reals_with_missing_values:
             with pytest.raises(SystemExit):
                 design2params.run(

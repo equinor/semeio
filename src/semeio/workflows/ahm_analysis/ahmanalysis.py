@@ -347,7 +347,7 @@ def _run_ministep(
 ) -> SmootherSnapshot:
     rng = np.random.default_rng(random_seed)
 
-    observation_settings = UpdateSettings(**{**asdict(observation_settings)})
+    observation_settings = UpdateSettings(**asdict(observation_settings))
 
     return smoother_update(
         prior_storage=prior_storage,
