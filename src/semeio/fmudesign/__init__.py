@@ -12,10 +12,10 @@ from semeio.fmudesign.create_design import DesignMatrix
 from semeio.fmudesign.iman_conover import ImanConover
 
 __all__ = [
-    "summarize_design",
-    "calc_tornadoinput",
     "DesignMatrix",
     "ImanConover",
+    "calc_tornadoinput",
     "excel2dict_design",
     "inputdict_to_yaml",
+    "summarize_design",
 ]

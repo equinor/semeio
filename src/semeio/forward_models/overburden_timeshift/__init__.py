@@ -5,8 +5,8 @@ from .ots import ots_run
 
 
 __all__ = [
-    "ots_run",
     "OTSConfig",
-    "OTSVelSurface",
     "OTSResSurface",
+    "OTSVelSurface",
+    "ots_run",
 ]

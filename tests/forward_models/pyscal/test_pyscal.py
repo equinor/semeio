@@ -55,7 +55,7 @@ def test_fm_pyscal(dframe, runargs, tmpdir):
             f"INTERPOLATE_WO 0.1\n{genkw_prefix}INTERPOLATE_GO 0.5", encoding="utf-8"
         )
 
-    run(*(["relperm-input.csv", "relperm.inc"] + runargs))
+    run(*(["relperm-input.csv", "relperm.inc", *runargs]))
     assert os.path.exists("relperm.inc")
     assert len(Path("relperm.inc").read_text(encoding="utf-8")) > 20
 

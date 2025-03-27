@@ -18,7 +18,7 @@ _PARAMETERS_TXT = "parameters.txt"
 # These parameter names are reserved and cannot
 # be used in design matrices.
 DENYLIST = ["ENSEMBLE", "DATE"]
-DENYLIST_DEFAULTS = DENYLIST + ["REAL"]
+DENYLIST_DEFAULTS = [*DENYLIST, "REAL"]
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +42,7 @@ def run(
     try:
         _validate_design_matrix_header(design_matrix_sheet)
     except ValueError as err:
-        raise ValidationError(f"Design matrix not valid, error: {str(err)}") from err
+        raise ValidationError(f"Design matrix not valid, error: {err!s}") from err
 
     if realization in _invalid_design_realizations(design_matrix_sheet):
         raise SystemExit("Design parameters invalid for current realization")
@@ -232,7 +232,7 @@ def _validate_design_matrix_header(design_matrix):
         # We catch because int/floats as column headers
         # in xlsx gets read as int/float and is not valid to index by.
         raise ValueError(
-            f"Invalid value in design matrix header, error: {str(err)}"
+            f"Invalid value in design matrix header, error: {err!s}"
         ) from err
     column_indexes = [int(x.split(":")[1]) for x in unnamed.columns.to_numpy()]
     if len(column_indexes) > 0:

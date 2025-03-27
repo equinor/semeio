@@ -23,7 +23,7 @@ def test_that_a_not_found_realization_is_skipped():
     )
     verify_exported_file(
         "unsmry--yearly.csv",
-        ["ENSEMBLE", "REAL", "DATE"] + NORNE_VECS + ["FOO"],
+        ["ENSEMBLE", "REAL", "DATE", *NORNE_VECS, "FOO"],
         {
             ("iter-0", 0),
             ("iter-0", 1),
@@ -43,7 +43,7 @@ def test_that_a_failed_realization_is_skipped():
     )
     verify_exported_file(
         "unsmry--yearly.csv",
-        ["ENSEMBLE", "REAL", "DATE"] + NORNE_VECS + ["FOO"],
+        ["ENSEMBLE", "REAL", "DATE", *NORNE_VECS, "FOO"],
         {
             ("iter-0", 0),
             ("iter-0", 1),
@@ -66,7 +66,7 @@ def test_that_a_missing_realization_index_is_ok():
     )
     verify_exported_file(
         "unsmry--yearly.csv",
-        ["ENSEMBLE", "REAL", "DATE"] + NORNE_VECS + ["FOO"],
+        ["ENSEMBLE", "REAL", "DATE", *NORNE_VECS, "FOO"],
         {
             ("iter-0", 1),
             ("iter-1", 1),
@@ -125,7 +125,7 @@ def test_norne_ensemble():
     )
     verify_exported_file(
         "unsmry--yearly.csv",
-        ["ENSEMBLE", "REAL", "DATE"] + NORNE_VECS + ["FOO"],
+        ["ENSEMBLE", "REAL", "DATE", *NORNE_VECS, "FOO"],
         {
             ("iter-0", 0),
             ("iter-0", 1),

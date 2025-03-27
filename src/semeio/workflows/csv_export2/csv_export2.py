@@ -41,7 +41,7 @@ combination of wildcards used in this workflow and the actual vectors that are
 requested in the Eclipse DATA file. A wildcard like ``W*`` can in certain cases
 (e.g. Eclipse simulations with 100+ wells) produce thousands of vectors, and can
 then be replaced by something more explicit like ``WOPT* WGPT* WWPT*``.
-"""  # noqa
+"""
 
 EXAMPLES = """
 Example
@@ -67,7 +67,7 @@ runs::
   LOAD_WORKFLOW ../bin/workflows/QC_CSVEXPORT2
   HOOK_WORKFLOW QC_CSVEXPORT2 POST_SIMULATION
 
-"""  # noqa
+"""
 
 
 def csv_exporter(runpathfile, time_index, outputfile, column_keys=None):

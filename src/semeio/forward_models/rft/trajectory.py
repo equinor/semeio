@@ -84,15 +84,15 @@ class TrajectoryPoint:
             str
         """
         if self.grid_ijk is None:
-            return f"TRAJECTORY_POINT_NOT_IN_GRID {str(self)}"
+            return f"TRAJECTORY_POINT_NOT_IN_GRID {self!s}"
         if self.pressure is None:
-            return f"TRAJECTORY_POINT_NOT_IN_RFT {str(self)}"
+            return f"TRAJECTORY_POINT_NOT_IN_RFT {self!s}"
         if not self.valid_zone and zonemap is not None:
             if self.grid_ijk[2] not in zonemap:
-                return f"ZONEMAP_MISSING_VALUE {str(self)} {self.grid_ijk[2]} {None}"
+                return f"ZONEMAP_MISSING_VALUE {self!s} {self.grid_ijk[2]} {None}"
 
             return (
-                f"ZONE_MISMATCH {str(self)} "
+                f"ZONE_MISMATCH {self!s} "
                 f"{self.grid_ijk[2]} "
                 f"{zonemap[self.grid_ijk[2]]}"
             )
@@ -228,7 +228,7 @@ class Trajectory:
             raise ValueError(
                 f"Uneven tuple lengths {tuplelengths} in non-null dataframe data"
             )
-        if list(tuplelengths)[0] != len(components):
+        if next(iter(tuplelengths)) != len(components):
             raise ValueError("Mismatch between tuple length and given column names")
 
         ijk_df = pd.DataFrame(
@@ -268,7 +268,7 @@ class Trajectory:
             ) from err
 
         zone = point[4].strip() if len(point) == 5 else None
-        return floats + [zone]
+        return [*floats, zone]
 
     @classmethod
     def load_from_file(cls, filepath):

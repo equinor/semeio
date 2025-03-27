@@ -122,7 +122,7 @@ def test_gendata_rft_directory(tmpdir, monkeypatch):
     main_entry_point()
     well_count = 6
     files_pr_well = 3
-    assert len(list(os.walk(outputdirectory))[0][2]) == well_count * files_pr_well
+    assert len(next(iter(os.walk(outputdirectory)))[2]) == well_count * files_pr_well
     assert os.path.exists("csvfile.csv")  # Should be independent of --outputdirectory
 
 
@@ -419,7 +419,7 @@ def test_one_wrong_date(tmpdir, monkeypatch, caplog):
 @pytest.mark.usefixtures("norne_data")
 def test_empty_well_and_time(tmpdir, monkeypatch, caplog):
     def file_count_cwd():
-        return len(list(os.walk("."))[0][2])
+        return len(next(iter(os.walk(".")))[2])
 
     with open("empty.txt", "w", encoding="utf-8") as file_h:
         file_h.write("")
@@ -522,7 +522,7 @@ OBS_CONFIG observations.txt
 FORWARD_MODEL GENDATA_RFT(<PATH_TO_TRAJECTORY_FILES>=../../rft_input, <WELL_AND_TIME_FILE>=../../rft_input/well_time.txt)
 GEN_KW PARAMS parameter_template parameters.json parameter_prior
 GEN_DATA OP_1_RFT_SIM1 INPUT_FORMAT:ASCII REPORT_STEPS:1 RESULT_FILE:RFT_OP_1_%d
-""",  # noqa
+""",
         encoding="utf-8",
     )
 
@@ -646,7 +646,7 @@ def test_ert_setup_one_well_two_points_different_time_and_depth(tmpdir):
     GEN_DATA OP_1_RFT_SIM1 INPUT_FORMAT:ASCII REPORT_STEPS:1 RESULT_FILE:gendata_rft/RFT_OP_1_%d
     GEN_DATA OP_1_RFT_SIM2 INPUT_FORMAT:ASCII REPORT_STEPS:2 RESULT_FILE:gendata_rft/RFT_OP_1_%d
     GEN_KW PARAMS parameter_template parameters.json parameter_prior
-    """  # noqa
+    """
         ),
         encoding="utf-8",
     )
