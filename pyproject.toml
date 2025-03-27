@@ -111,6 +111,7 @@ select = [
   "C4",  # flake8-comprehensions
   "F",   # pyflakes
   "I",   # isort
+  "ICN", # flake8-import-conventions
   "NPY", # numpy specific rules
   "PL",  # pylint
   "SIM", # flake-8-simplify
