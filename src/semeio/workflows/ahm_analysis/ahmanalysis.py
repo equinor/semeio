@@ -13,7 +13,6 @@ from typing import Any
 import ert
 import numpy as np
 import pandas as pd
-import polars
 import polars as pl
 from ert import ErtScript, LibresFacade
 from ert.analysis import ErtAnalysisError, SmootherSnapshot, smoother_update
@@ -153,7 +152,7 @@ class AhmAnalysisJob(ErtScript):
                 for df in prior_experiment.observations.values()
             )
             if len(prior_experiment.observations) > 0
-            else polars.DataFrame({"observation_key": [], "response_key": []})
+            else pl.DataFrame({"observation_key": [], "response_key": []})
         )
 
         def _replace(s: str) -> str:

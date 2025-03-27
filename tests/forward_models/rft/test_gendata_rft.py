@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 from textwrap import dedent
 
-import numpy
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -88,10 +88,10 @@ def test_gendata_rft_csv_reek(tmpdir, monkeypatch):
     dframe = pd.read_csv(csv_filename)
     assert not dframe.empty
     assert {"pressure", "swat", "sgas"}.issubset(set(dframe.columns))
-    assert numpy.isclose(dframe["pressure"].to_numpy()[0], 304.37)
-    assert numpy.isclose(dframe["swat"].to_numpy()[0], 0.151044)
-    assert numpy.isclose(dframe["soil"].to_numpy()[0], 1 - 0.151044)
-    assert numpy.isclose(dframe["sgas"].to_numpy()[0], 0.0)
+    assert np.isclose(dframe["pressure"].to_numpy()[0], 304.37)
+    assert np.isclose(dframe["swat"].to_numpy()[0], 0.151044)
+    assert np.isclose(dframe["soil"].to_numpy()[0], 1 - 0.151044)
+    assert np.isclose(dframe["sgas"].to_numpy()[0], 0.0)
 
     # This requires 1-indexed ijk in the dataframe:
     assert dframe["i"].to_numpy()[0] == 29
@@ -205,19 +205,17 @@ def test_multiple_report_steps(tmpdir, monkeypatch):
     csvdata = pd.read_csv("gendata_rft.csv")
     assert (csvdata["report_step"].to_numpy() == [0, 1]).all()
     assert (csvdata["time"].to_numpy() == ["2000-02-01", "2001-01-01"]).all()
-    assert numpy.isclose(csvdata["pressure"].to_numpy(), [304.370087, 249.214965]).all()
+    assert np.isclose(csvdata["pressure"].to_numpy(), [304.370087, 249.214965]).all()
 
     # Testing only the data for report step 1:
-    assert numpy.isclose(
-        float(Path("RFT_OP_1_1").read_text(encoding="utf8")), 249.214965
-    )
+    assert np.isclose(float(Path("RFT_OP_1_1").read_text(encoding="utf8")), 249.214965)
     assert Path("RFT_OP_1_1_active").read_text(encoding="utf8") == "1"
     assert not Path("RFT_OP_1_1_inactive_info").read_text(encoding="utf8")
-    assert numpy.isclose(float(Path("RFT_SGAS_OP_1_1").read_text(encoding="utf8")), 0.0)
-    assert numpy.isclose(
+    assert np.isclose(float(Path("RFT_SGAS_OP_1_1").read_text(encoding="utf8")), 0.0)
+    assert np.isclose(
         float(Path("RFT_SOIL_OP_1_1").read_text(encoding="utf8")), 0.6119158
     )
-    assert numpy.isclose(
+    assert np.isclose(
         float(Path("RFT_SWAT_OP_1_1").read_text(encoding="utf8")), 0.3880841
     )
 
@@ -704,4 +702,4 @@ def _assert_almost_equal_line_by_line(file1, file2):
             line1, line2 = float(line1), float(line2)
         except ValueError:
             continue
-        numpy.testing.assert_almost_equal(line1, line2, decimal=7)
+        np.testing.assert_almost_equal(line1, line2, decimal=7)
