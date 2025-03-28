@@ -209,10 +209,7 @@ class DesignMatrix:
 
         self.reset()  # Emptying if regenerating matrix
 
-        if inputdict.get("distribution_seed"):
-            rng = np.random.RandomState(inputdict["distribution_seed"])
-        else:
-            rng = np.random.RandomState()
+        rng = np.random.RandomState(seed=inputdict.get("distribution_seed"))
 
         self.defaultvalues = inputdict["defaultvalues"]
 
