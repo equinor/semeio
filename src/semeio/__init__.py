@@ -5,7 +5,7 @@ import sys
 
 import importlib_metadata
 
-try:  # noqa SIM105
+try:  # noqa: SIM105
     __version__ = importlib_metadata.distribution(__name__).version
 except importlib_metadata.PackageNotFoundError:
     # package is not installed
