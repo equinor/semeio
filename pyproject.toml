@@ -113,6 +113,7 @@ select = [
   "I",   # isort
   "ICN", # flake8-import-conventions
   "NPY", # numpy specific rules
+  "PGH", # pygrep-hooks
   "PIE", # flake8-pie
   "PL",  # pylint
   "RUF", # ruff specific rules
