@@ -15,7 +15,12 @@ import numpy as np
 import pandas as pd
 import polars as pl
 from ert import ErtScript, LibresFacade
-from ert.analysis import ErtAnalysisError, SmootherSnapshot, smoother_update
+from ert.analysis import (
+    ErtAnalysisError,
+    ObservationStatus,
+    SmootherSnapshot,
+    smoother_update,
+)
 from ert.config import ESSettings, Field, GenKwConfig, UpdateSettings
 from ert.storage import Ensemble, Storage, open_storage
 from scipy.stats import ks_2samp
@@ -302,38 +307,32 @@ class AhmAnalysisJob(ErtScript):
 
 def make_update_log_df(update_log: SmootherSnapshot) -> pd.DataFrame:
     """Read update_log file to get active and inactive observations"""
-    obs_key = []
-    obs_mean = []
-    obs_std = []
-    sim_mean = []
-    sim_std = []
-    status = []
-
-    # Loop through each update_step_snapshot once, collecting all necessary information
-    for step in update_log.update_step_snapshots:
-        obs_key.append(step.obs_name)
-        obs_mean.append(step.obs_val)
-        obs_std.append(step.obs_std)
-        sim_mean.append(step.response_mean)
-        sim_std.append(step.response_std)
-        status.append(
-            "Active"
-            if step.response_mean_mask and step.response_std_mask
-            else "Inactive"
+    return (
+        update_log.observations_and_responses.select(
+            "observation_key",
+            "observations",
+            "std",
+            "status",
+            "response_mean",
+            "response_std",
         )
-
-    updatelog = pd.DataFrame(
-        {
-            "obs_key": obs_key,
-            "obs_mean": obs_mean,
-            "obs_std": obs_std,
-            "status": status,
-            "sim_mean": sim_mean,
-            "sim_std": sim_std,
-        }
+        .rename(
+            {
+                "observation_key": "obs_key",
+                "observations": "obs_mean",  # not really the mean, just the value, but ok
+                "std": "obs_std",
+                "response_mean": "sim_mean",
+                "response_std": "sim_std",
+            }
+        )
+        .with_columns(
+            pl.when(pl.col("status") == ObservationStatus.ACTIVE)
+            .then(pl.lit("Active"))
+            .otherwise(pl.lit("Inactive"))
+            .alias("status")
+        )
+        .to_pandas()
     )
-
-    return updatelog
 
 
 def _run_ministep(
