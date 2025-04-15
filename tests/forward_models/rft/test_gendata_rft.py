@@ -12,8 +12,8 @@ import pytest
 from semeio.forward_models.scripts.gendata_rft import main_entry_point
 from tests.forward_models.rft import conftest
 
-ECL_BASE_NORNE = conftest.get_ecl_base_norne()
-ECL_BASE_REEK = conftest.get_ecl_base_reek()
+ECLBASE_NORNE = conftest.get_ecl_base_norne()
+ECLBASE_REEK = conftest.get_ecl_base_reek()
 MOCK_DATA_CONTENT_NORNE = conftest.get_mock_data_content_norne()
 EXPECTED_RESULTS_PATH_NORNE = conftest.get_expected_results_path_norne()
 
@@ -24,7 +24,7 @@ def test_gendata_rft_csv(tmpdir, monkeypatch):
     arguments = [
         "script_name",
         "-e",
-        ECL_BASE_NORNE,
+        ECLBASE_NORNE,
         "-w",
         "well_and_time.txt",
         "-t",
@@ -76,7 +76,7 @@ def test_gendata_rft_csv_reek(tmpdir, monkeypatch):
     arguments = [
         "script_name",
         "-e",
-        ECL_BASE_REEK,
+        ECLBASE_REEK,
         "-w",
         "well_and_time.txt",
         "-t",
@@ -106,7 +106,7 @@ def test_gendata_rft_directory(tmpdir, monkeypatch):
     arguments = [
         "script_name",
         "-e",
-        ECL_BASE_NORNE,
+        ECLBASE_NORNE,
         "-w",
         "well_and_time.txt",
         "-t",
@@ -131,7 +131,7 @@ def test_gendata_rft_entry_point_wrong_well_file(tmpdir, monkeypatch):
     arguments = [
         "script_name",
         "-e",
-        ECL_BASE_NORNE,
+        ECLBASE_NORNE,
         "-w",
         "well_and_time.txt",
         "-t",
@@ -151,7 +151,7 @@ def test_gendata_rft_entry_point(tmpdir, monkeypatch):
     arguments = [
         "script_name",
         "-e",
-        ECL_BASE_NORNE,
+        ECLBASE_NORNE,
         "-w",
         "well_and_time.txt",
         "-t",
@@ -194,7 +194,7 @@ def test_multiple_report_steps(tmpdir, monkeypatch):
     arguments = [
         "script_name",
         "-e",
-        ECL_BASE_REEK,
+        ECLBASE_REEK,
         "-w",
         "well_and_time.txt",
         "-t",
@@ -231,7 +231,7 @@ def test_gendata_inactive_info_point_not_in_grid(tmpdir, monkeypatch):
     arguments = [
         "script_name",
         "-e",
-        ECL_BASE_NORNE,
+        ECLBASE_NORNE,
         "-w",
         "well_and_time.txt",
         "-t",
@@ -268,7 +268,7 @@ def test_gendata_inactive_info_zone_mismatch(tmpdir, monkeypatch):
     arguments = [
         "script_name",
         "-e",
-        ECL_BASE_NORNE,
+        ECLBASE_NORNE,
         "-w",
         "well_and_time.txt",
         "-t",
@@ -303,7 +303,7 @@ def test_gendata_inactive_info_not_in_rft(tmpdir, monkeypatch):
     arguments = [
         "script_name",
         "-e",
-        ECL_BASE_NORNE,
+        ECLBASE_NORNE,
         "-w",
         "well_and_time.txt",
         "-t",
@@ -330,7 +330,7 @@ def test_gendata_inactive_info_zone_missing_value(tmpdir, monkeypatch):
     arguments = [
         "script_name",
         "-e",
-        ECL_BASE_NORNE,
+        ECLBASE_NORNE,
         "-w",
         "well_and_time.txt",
         "-t",
@@ -366,7 +366,7 @@ def test_partial_rft_file(tmpdir, monkeypatch, caplog):
     arguments = [
         "script_name",
         "-e",
-        ECL_BASE_NORNE,
+        ECLBASE_NORNE,
         "-w",
         "well_and_time.txt",
         "-t",
@@ -396,7 +396,7 @@ def test_one_wrong_date(tmpdir, monkeypatch, caplog):
     arguments = [
         "script_name",
         "-e",
-        ECL_BASE_NORNE,
+        ECLBASE_NORNE,
         "-w",
         "well_wrongtime.txt",
         "-t",
@@ -427,7 +427,7 @@ def test_empty_well_and_time(tmpdir, monkeypatch, caplog):
     arguments = [
         "script_name",
         "-e",
-        ECL_BASE_NORNE,
+        ECLBASE_NORNE,
         "-w",
         "empty.txt",
         "-t",
@@ -465,7 +465,7 @@ def test_ert_setup_one_well_one_rft_point(tmpdir):
     for real_id in [0, 1]:
         Path(f"realization-{real_id}/iter-0").mkdir(parents=True)
         Path(f"realization-{real_id}/iter-1").mkdir(parents=True)
-        for filename in Path(ECL_BASE_REEK).parent.glob("2_R001_REEK-0.*"):
+        for filename in Path(ECLBASE_REEK).parent.glob("2_R001_REEK-0.*"):
             shutil.copy(
                 filename,
                 Path(f"realization-{real_id}/iter-0")
@@ -578,7 +578,7 @@ def test_ert_setup_one_well_two_points_different_time_and_depth(tmpdir):
     for real_id in [0, 1]:
         Path(f"realization-{real_id}/iter-0").mkdir(parents=True)
         Path(f"realization-{real_id}/iter-1").mkdir(parents=True)
-        for filename in Path(ECL_BASE_REEK).parent.glob("2_R001_REEK-0.*"):
+        for filename in Path(ECLBASE_REEK).parent.glob("2_R001_REEK-0.*"):
             shutil.copy(
                 filename,
                 Path(f"realization-{real_id}/iter-0")
