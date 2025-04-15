@@ -92,7 +92,7 @@ class GenDataRFT(ForwardModelStepPlugin):
             command=[
                 "gendata_rft",
                 "-e",
-                "<ECL_BASE>",
+                "<ECLBASE>",
                 "-t",
                 "<PATH_TO_TRAJECTORY_FILES>",
                 "-w",

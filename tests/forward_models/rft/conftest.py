@@ -4,10 +4,10 @@ import shutil
 
 import pytest
 
-ECL_BASE_NORNE = os.path.join(
+ECLBASE_NORNE = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "data/norne/NORNE_ATW2013"
 )
-ECL_BASE_REEK = os.path.join(
+ECLBASE_REEK = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "data/reek/2_R001_REEK-0"
 )
 EXPECTED_RESULTS_PATH_NORNE = os.path.join(
@@ -25,11 +25,11 @@ MOCK_DATA_CONTENT_NORNE = {
 
 
 def get_ecl_base_norne():
-    return copy.copy(ECL_BASE_NORNE)
+    return copy.copy(ECLBASE_NORNE)
 
 
 def get_ecl_base_reek():
-    return copy.copy(ECL_BASE_REEK)
+    return copy.copy(ECLBASE_REEK)
 
 
 def get_expected_results_path_norne():

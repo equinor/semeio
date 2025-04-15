@@ -50,7 +50,7 @@ def test_console_scripts_exit_code(script_runner, entry_point, options):
             "<template_file>=no_template",
             " no_template is not an existing file!",
         ),
-        ("GENDATA_RFT", "<ECL_BASE>=not_ecl", "The path not_ecl.RFT does not exist"),
+        ("GENDATA_RFT", "<ECLBASE>=not_ecl", "The path not_ecl.RFT does not exist"),
         ("PYSCAL", "<PARAMETER_FILE>=not_file", "not_file does not exist"),
     ],
 )
