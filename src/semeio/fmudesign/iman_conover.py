@@ -17,12 +17,12 @@ Map to distributions
 
 Induce correlations
 
->>> sp.stats.pearsonr(*X.T).statistic
+>>> float(sp.stats.pearsonr(*X.T).statistic)
 0.065898...
 >>> correlation_matrix = np.array([[1, 0.3], [0.3, 1]])
 >>> transform = ImanConover(correlation_matrix)
 >>> X_transformed = transform(X)
->>> sp.stats.pearsonr(*X_transformed.T).statistic
+>>> float(sp.stats.pearsonr(*X_transformed.T).statistic)
 0.279652...
 """
 
@@ -86,9 +86,9 @@ class ImanConover:
         The original data X has no correlation at all, while the transformed
         data has correlation that is closer to the desired correlation structure:
 
-        >>> sp.stats.pearsonr(*X.T).statistic
+        >>> float(sp.stats.pearsonr(*X.T).statistic)
         0.0
-        >>> sp.stats.pearsonr(*X_transformed.T).statistic
+        >>> float(sp.stats.pearsonr(*X_transformed.T).statistic)
         0.816496...
 
         Achieving the exact correlation structure might be impossible. For the
@@ -101,7 +101,7 @@ class ImanConover:
         >>> rng = np.random.default_rng(42)
         >>> X = rng.normal(size=(1000, 2))
         >>> X_transformed = transform(X)
-        >>> sp.stats.pearsonr(*X_transformed.T).statistic
+        >>> float(sp.stats.pearsonr(*X_transformed.T).statistic)
         0.697701...
 
         But if the data are far from normal (here:lognormal), the results are
@@ -111,7 +111,7 @@ class ImanConover:
         >>> rng = np.random.default_rng(42)
         >>> X = rng.lognormal(size=(1000, 2))
         >>> X_transformed = transform(X)
-        >>> sp.stats.pearsonr(*X_transformed.T).statistic
+        >>> float(sp.stats.pearsonr(*X_transformed.T).statistic)
         0.592541...
         """
         if not isinstance(correlation_matrix, np.ndarray):
