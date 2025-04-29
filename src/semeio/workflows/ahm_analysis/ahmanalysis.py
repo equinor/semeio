@@ -1,4 +1,5 @@
 import contextlib
+import copy
 import itertools
 import logging
 import os
@@ -6,7 +7,6 @@ import tempfile
 import warnings
 from collections.abc import Iterable
 from copy import deepcopy
-from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
@@ -346,14 +346,12 @@ def _run_ministep(
 ) -> SmootherSnapshot:
     rng = np.random.default_rng(random_seed)
 
-    observation_settings = UpdateSettings(**asdict(observation_settings))
-
     return smoother_update(
         prior_storage=prior_storage,
         posterior_storage=target_storage,
         observations=obs_group,
         parameters=data_parameters,
-        update_settings=observation_settings,
+        update_settings=copy.deepcopy(observation_settings),
         es_settings=es_settings,
         rng=rng,
     )
