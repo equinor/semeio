@@ -21,7 +21,7 @@ from ert.analysis import (
     SmootherSnapshot,
     smoother_update,
 )
-from ert.config import ESSettings, Field, GenKwConfig, UpdateSettings
+from ert.config import ESSettings, Field, GenKwConfig, ObservationSettings
 from ert.storage import Ensemble, Storage, open_storage
 from scipy.stats import ks_2samp
 
@@ -120,7 +120,7 @@ class AhmAnalysisJob(ErtScript):
         workflow_args: list[str],
         storage: Storage,
         es_settings: ESSettings,
-        observation_settings: UpdateSettings,
+        observation_settings: ObservationSettings,
         random_seed: int,
         reports_dir: str,
         ensemble: Ensemble | None,
@@ -340,7 +340,7 @@ def _run_ministep(
     target_storage: Ensemble,
     obs_group: Iterable[str],
     data_parameters: Iterable[str],
-    observation_settings: UpdateSettings,
+    observation_settings: ObservationSettings,
     es_settings: ESSettings,
     random_seed: int,
 ) -> SmootherSnapshot:
