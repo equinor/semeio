@@ -33,7 +33,7 @@ def test_make_update_log_df(snake_oil_facade, snapshot):
             obs_group=sorted(prior_ens.experiment.observation_keys),
             data_parameters=sorted(prior_ens.experiment.parameter_configuration.keys()),
             observation_settings=snake_oil_facade.config.analysis_config.observation_settings,
-            es_settings=snake_oil_facade.config.analysis_config.es_module,
+            es_settings=snake_oil_facade.config.analysis_config.es_settings,
             random_seed=snake_oil_facade.config.random_seed,
         )
     snapshot.assert_match(
