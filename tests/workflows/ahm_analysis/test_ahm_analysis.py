@@ -1,5 +1,3 @@
-from unittest.mock import MagicMock
-
 import numpy as np
 import pandas as pd
 import pytest
@@ -12,12 +10,12 @@ from semeio.workflows.ahm_analysis.ahmanalysis import _run_ministep
 
 
 @pytest.mark.integration_test
-def test_make_update_log_df(snake_oil_facade, snapshot):
+def test_make_update_log_df(snake_oil_config, snapshot):
     """
     Note that this is now a snapshot test, so there is no guarantee that the
     snapshots are correct, they are just documenting the current behavior.
     """
-    with open_storage(snake_oil_facade.enspath, "w") as storage:
+    with open_storage(snake_oil_config.ens_path, "w") as storage:
         experiment = storage.get_experiment_by_name("ensemble-experiment")
         prior_ens = experiment.get_ensemble_by_name("default")
         posterior_ens = storage.create_ensemble(
@@ -32,9 +30,9 @@ def test_make_update_log_df(snake_oil_facade, snapshot):
             target_storage=posterior_ens,
             obs_group=sorted(prior_ens.experiment.observation_keys),
             data_parameters=sorted(prior_ens.experiment.parameter_configuration.keys()),
-            observation_settings=snake_oil_facade.config.analysis_config.observation_settings,
-            es_settings=snake_oil_facade.config.analysis_config.es_settings,
-            random_seed=snake_oil_facade.config.random_seed,
+            observation_settings=snake_oil_config.analysis_config.observation_settings,
+            es_settings=snake_oil_config.analysis_config.es_settings,
+            random_seed=snake_oil_config.random_seed,
         )
     snapshot.assert_match(
         ahmanalysis.make_update_log_df(log).round(4).to_csv(),
@@ -303,12 +301,3 @@ def test_warning_get_updated_parameters(prior_data_w):
     scalar_parameters = ["SNAKE_OIL_PARAM", "SNAKE_OIL_PRES"]
     with pytest.warns(UserWarning, match=expected_msg):
         ahmanalysis.get_updated_parameters(prior_data_w, scalar_parameters)
-
-
-def create_facade(keys):
-    def side_effect(key):
-        return keys[key]
-
-    facade = MagicMock()
-    facade.get_data_key_for_obs_key.side_effect = side_effect
-    return facade
