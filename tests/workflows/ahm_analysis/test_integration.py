@@ -1,21 +1,19 @@
 import logging
-import os
-import shutil
 import subprocess
 from pathlib import Path
 
 import pandas as pd
 import pytest
-from ert import LibresFacade
+from ert.config import ErtConfig
 from ert.storage import open_storage
 
 from semeio.workflows.ahm_analysis import ahmanalysis
 
 
 @pytest.mark.integration_test
-def test_ahmanalysis_run(snake_oil_facade):
+def test_ahmanalysis_run(snake_oil_config):
     """test data_set with only scalar parameters"""
-    with open_storage("storage/snake_oil/ensemble", "w") as storage:
+    with open_storage(snake_oil_config.ens_path, "w") as storage:
         ensemble = storage.get_experiment_by_name(
             "ensemble-experiment"
         ).get_ensemble_by_name("default")
@@ -27,12 +25,11 @@ def test_ahmanalysis_run(snake_oil_facade):
                 "storage": storage,
                 "ensemble": ensemble,
                 "reports_dir": (
-                    snake_oil_facade.config.analysis_config.log_path
-                    / ensemble.experiment.name
+                    snake_oil_config.analysis_config.log_path / ensemble.experiment.name
                 ),
-                "observation_settings": snake_oil_facade.config.analysis_config.observation_settings,
-                "es_settings": snake_oil_facade.config.analysis_config.es_settings,
-                "random_seed": snake_oil_facade.config.random_seed,
+                "observation_settings": snake_oil_config.analysis_config.observation_settings,
+                "es_settings": snake_oil_config.analysis_config.es_settings,
+                "random_seed": snake_oil_config.random_seed,
             },
         )
     assert not Path("tmp_storage").exists()
@@ -78,9 +75,9 @@ def test_ahmanalysis_run(snake_oil_facade):
 
 
 @pytest.mark.integration_test
-def test_ahmanalysis_run_group_by_obs(snake_oil_facade):
+def test_ahmanalysis_run_group_by_obs(snake_oil_config):
     """test data_set with only scalar parameters"""
-    with open_storage("storage/snake_oil/ensemble", "w") as storage:
+    with open_storage(snake_oil_config.ens_path, "w") as storage:
         ensemble = storage.get_experiment_by_name(
             "ensemble-experiment"
         ).get_ensemble_by_name("default")
@@ -92,12 +89,11 @@ def test_ahmanalysis_run_group_by_obs(snake_oil_facade):
                 "storage": storage,
                 "ensemble": ensemble,
                 "reports_dir": (
-                    snake_oil_facade.config.analysis_config.log_path
-                    / ensemble.experiment.name
+                    snake_oil_config.analysis_config.log_path / ensemble.experiment.name
                 ),
-                "observation_settings": snake_oil_facade.config.analysis_config.observation_settings,
-                "es_settings": snake_oil_facade.config.analysis_config.es_settings,
-                "random_seed": snake_oil_facade.config.random_seed,
+                "observation_settings": snake_oil_config.analysis_config.observation_settings,
+                "es_settings": snake_oil_config.analysis_config.es_settings,
+                "random_seed": snake_oil_config.random_seed,
             },
         )
 
@@ -162,10 +158,10 @@ def test_ahmanalysis_run_deactivated_obs(copy_snake_oil_case_storage, snapshot, 
     with Path("snake_oil.ert").open(mode="a", encoding="utf-8") as f:
         f.write("ENKF_ALPHA 0.1")
 
-    snake_oil_facade = LibresFacade.from_config_file("snake_oil.ert")
+    config = ErtConfig.from_file("snake_oil.ert")
 
     with (
-        open_storage("storage/snake_oil/ensemble", "w") as storage,
+        open_storage(config.ens_path, "w") as storage,
         caplog.at_level(logging.WARNING),
     ):
         ensemble = storage.get_experiment_by_name(
@@ -179,12 +175,11 @@ def test_ahmanalysis_run_deactivated_obs(copy_snake_oil_case_storage, snapshot, 
                 "storage": storage,
                 "ensemble": ensemble,
                 "reports_dir": (
-                    snake_oil_facade.config.analysis_config.log_path
-                    / ensemble.experiment.name
+                    config.analysis_config.log_path / ensemble.experiment.name
                 ),
-                "observation_settings": snake_oil_facade.config.analysis_config.observation_settings,
-                "es_settings": snake_oil_facade.config.analysis_config.es_settings,
-                "random_seed": snake_oil_facade.config.random_seed,
+                "observation_settings": config.analysis_config.observation_settings,
+                "es_settings": config.analysis_config.es_settings,
+                "random_seed": config.random_seed,
             },
         )
 
@@ -197,13 +192,8 @@ def test_ahmanalysis_run_deactivated_obs(copy_snake_oil_case_storage, snapshot, 
 
 
 @pytest.mark.usefixtures("setup_tmpdir")
-def test_that_dataset_with_no_prior_will_fail(test_data_root, capsys):
-    test_data_dir = os.path.join(test_data_root, "snake_oil")
-    shutil.copytree(test_data_dir, "test_data")
-    os.chdir(os.path.join("test_data"))
-    snake_oil_facade = LibresFacade.from_config_file("snake_oil.ert")
-
-    with open_storage("storage/snake_oil/ensemble", "w") as storage:
+def test_that_dataset_with_no_prior_will_fail(snake_oil_config, capsys):
+    with open_storage(snake_oil_config.ens_path, "w") as storage:
         ensemble = storage.create_experiment().create_ensemble(
             name="default", ensemble_size=10
         )
@@ -215,19 +205,18 @@ def test_that_dataset_with_no_prior_will_fail(test_data_root, capsys):
                 "storage": storage,
                 "ensemble": ensemble,
                 "reports_dir": (
-                    snake_oil_facade.config.analysis_config.log_path
-                    / ensemble.experiment.name
+                    snake_oil_config.analysis_config.log_path / ensemble.experiment.name
                 ),
-                "observation_settings": snake_oil_facade.config.analysis_config.observation_settings,
-                "es_settings": snake_oil_facade.config.analysis_config.es_settings,
-                "random_seed": snake_oil_facade.config.random_seed,
+                "observation_settings": snake_oil_config.analysis_config.observation_settings,
+                "es_settings": snake_oil_config.analysis_config.es_settings,
+                "random_seed": snake_oil_config.random_seed,
             },
         )
 
         assert "Empty prior ensemble" in capsys.readouterr().err
 
 
-def test_ahmanalysis_run_cli(snake_oil_facade):
+def test_ahmanalysis_run_cli(snake_oil_config):
     # Make workflow invoking ahmanalysis workflow job with args
     # add it to ert config
     # then run it

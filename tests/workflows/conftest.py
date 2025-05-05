@@ -2,14 +2,14 @@ import os
 import shutil
 
 import pytest
-from ert import LibresFacade
+from ert.config import ErtConfig
 
 
 @pytest.fixture()
-def snake_oil_facade(
+def snake_oil_config(
     copy_snake_oil_case_storage,
 ):  # pylint: disable=unused-argument
-    yield LibresFacade.from_config_file("snake_oil.ert")
+    yield ErtConfig.from_file("snake_oil.ert")
 
 
 @pytest.fixture()
