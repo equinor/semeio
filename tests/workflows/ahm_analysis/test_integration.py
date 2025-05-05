@@ -15,7 +15,7 @@ from semeio.workflows.ahm_analysis import ahmanalysis
 @pytest.mark.integration_test
 def test_ahmanalysis_run(snake_oil_facade):
     """test data_set with only scalar parameters"""
-    with open_storage(snake_oil_facade.enspath, "w") as storage:
+    with open_storage("storage/snake_oil/ensemble", "w") as storage:
         experiment = storage.get_experiment_by_name("ensemble-experiment")
         snake_oil_facade.run_ertscript(
             ahmanalysis.AhmAnalysisJob,
@@ -66,7 +66,7 @@ def test_ahmanalysis_run(snake_oil_facade):
 @pytest.mark.integration_test
 def test_ahmanalysis_run_group_by_obs(snake_oil_facade):
     """test data_set with only scalar parameters"""
-    with open_storage(snake_oil_facade.enspath, "w") as storage:
+    with open_storage("storage/snake_oil/ensemble", "w") as storage:
         experiment = storage.get_experiment_by_name("ensemble-experiment")
         snake_oil_facade.run_ertscript(
             ahmanalysis.AhmAnalysisJob,
@@ -141,7 +141,7 @@ def test_ahmanalysis_run_deactivated_obs(copy_snake_oil_case_storage, snapshot, 
     snake_oil_facade = LibresFacade.from_config_file("snake_oil.ert")
 
     with (
-        open_storage(snake_oil_facade.enspath, "w") as storage,
+        open_storage("storage/snake_oil/ensemble", "w") as storage,
         caplog.at_level(logging.WARNING),
     ):
         experiment = storage.get_experiment_by_name("ensemble-experiment")
@@ -168,7 +168,7 @@ def test_that_dataset_with_no_prior_will_fail(test_data_root, capsys):
     os.chdir(os.path.join("test_data"))
     ert = LibresFacade.from_config_file("snake_oil.ert")
     expected_msg = "Empty prior ensemble"
-    with open_storage(ert.enspath, "w") as storage:
+    with open_storage("storage/snake_oil/ensemble", "w") as storage:
         ert.run_ertscript(
             ahmanalysis.AhmAnalysisJob,
             storage,
