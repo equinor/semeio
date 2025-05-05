@@ -173,7 +173,7 @@ def test_that_dataset_with_no_prior_will_fail(test_data_root, capsys):
             ahmanalysis.AhmAnalysisJob,
             storage,
             storage.create_experiment().create_ensemble(
-                name="default", ensemble_size=ert.get_ensemble_size()
+                name="default", ensemble_size=10
             ),
         )
         assert expected_msg in capsys.readouterr().err
