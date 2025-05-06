@@ -15,12 +15,25 @@ from semeio.workflows.ahm_analysis import ahmanalysis
 @pytest.mark.integration_test
 def test_ahmanalysis_run(snake_oil_facade):
     """test data_set with only scalar parameters"""
-    with open_storage(snake_oil_facade.enspath, "w") as storage:
-        experiment = storage.get_experiment_by_name("ensemble-experiment")
-        snake_oil_facade.run_ertscript(
-            ahmanalysis.AhmAnalysisJob,
-            storage,
-            experiment.get_ensemble_by_name("default"),
+    with open_storage("storage/snake_oil/ensemble", "w") as storage:
+        ensemble = storage.get_experiment_by_name(
+            "ensemble-experiment"
+        ).get_ensemble_by_name("default")
+
+        ahmanalysis.AhmAnalysisJob().initializeAndRun(
+            argument_types=[],
+            argument_values=[],
+            fixtures={
+                "storage": storage,
+                "ensemble": ensemble,
+                "reports_dir": (
+                    snake_oil_facade.config.analysis_config.log_path
+                    / ensemble.experiment.name
+                ),
+                "observation_settings": snake_oil_facade.config.analysis_config.observation_settings,
+                "es_settings": snake_oil_facade.config.analysis_config.es_settings,
+                "random_seed": snake_oil_facade.config.random_seed,
+            },
         )
 
     # assert that this returns/generates a KS csv file
@@ -66,15 +79,25 @@ def test_ahmanalysis_run(snake_oil_facade):
 @pytest.mark.integration_test
 def test_ahmanalysis_run_group_by_obs(snake_oil_facade):
     """test data_set with only scalar parameters"""
-    with open_storage(snake_oil_facade.enspath, "w") as storage:
-        experiment = storage.get_experiment_by_name("ensemble-experiment")
-        snake_oil_facade.run_ertscript(
-            ahmanalysis.AhmAnalysisJob,
-            storage,
-            experiment.get_ensemble_by_name("default"),
-            "analysis_case",
-            "default",
-            "obs_key",  # if it is not "data_key" it defaults to obs key
+    with open_storage("storage/snake_oil/ensemble", "w") as storage:
+        ensemble = storage.get_experiment_by_name(
+            "ensemble-experiment"
+        ).get_ensemble_by_name("default")
+
+        ahmanalysis.AhmAnalysisJob().initializeAndRun(
+            argument_types=[],
+            argument_values=[None, None, "obs_key"],
+            fixtures={
+                "storage": storage,
+                "ensemble": ensemble,
+                "reports_dir": (
+                    snake_oil_facade.config.analysis_config.log_path
+                    / ensemble.experiment.name
+                ),
+                "observation_settings": snake_oil_facade.config.analysis_config.observation_settings,
+                "es_settings": snake_oil_facade.config.analysis_config.es_settings,
+                "random_seed": snake_oil_facade.config.random_seed,
+            },
         )
 
     # assert that this returns/generates a KS csv file
@@ -141,18 +164,29 @@ def test_ahmanalysis_run_deactivated_obs(copy_snake_oil_case_storage, snapshot, 
     snake_oil_facade = LibresFacade.from_config_file("snake_oil.ert")
 
     with (
-        open_storage(snake_oil_facade.enspath, "w") as storage,
+        open_storage("storage/snake_oil/ensemble", "w") as storage,
         caplog.at_level(logging.WARNING),
     ):
-        experiment = storage.get_experiment_by_name("ensemble-experiment")
-        snake_oil_facade.run_ertscript(
-            ahmanalysis.AhmAnalysisJob,
-            storage,
-            experiment.get_ensemble_by_name("default"),
-            None,
-            None,
-            "data_key",
+        ensemble = storage.get_experiment_by_name(
+            "ensemble-experiment"
+        ).get_ensemble_by_name("default")
+
+        ahmanalysis.AhmAnalysisJob().initializeAndRun(
+            argument_types=[],
+            argument_values=[None, None, "data_key"],
+            fixtures={
+                "storage": storage,
+                "ensemble": ensemble,
+                "reports_dir": (
+                    snake_oil_facade.config.analysis_config.log_path
+                    / ensemble.experiment.name
+                ),
+                "observation_settings": snake_oil_facade.config.analysis_config.observation_settings,
+                "es_settings": snake_oil_facade.config.analysis_config.es_settings,
+                "random_seed": snake_oil_facade.config.random_seed,
+            },
         )
+
     assert "Analysis failed for" in caplog.text
 
     # assert that this returns/generates a KS csv file
@@ -166,17 +200,30 @@ def test_that_dataset_with_no_prior_will_fail(test_data_root, capsys):
     test_data_dir = os.path.join(test_data_root, "snake_oil")
     shutil.copytree(test_data_dir, "test_data")
     os.chdir(os.path.join("test_data"))
-    ert = LibresFacade.from_config_file("snake_oil.ert")
-    expected_msg = "Empty prior ensemble"
-    with open_storage(ert.enspath, "w") as storage:
-        ert.run_ertscript(
-            ahmanalysis.AhmAnalysisJob,
-            storage,
-            storage.create_experiment().create_ensemble(
-                name="default", ensemble_size=10
-            ),
+    snake_oil_facade = LibresFacade.from_config_file("snake_oil.ert")
+
+    with open_storage("storage/snake_oil/ensemble", "w") as storage:
+        ensemble = storage.create_experiment().create_ensemble(
+            name="default", ensemble_size=10
         )
-        assert expected_msg in capsys.readouterr().err
+
+        ahmanalysis.AhmAnalysisJob().initializeAndRun(
+            argument_types=[],
+            argument_values=[],
+            fixtures={
+                "storage": storage,
+                "ensemble": ensemble,
+                "reports_dir": (
+                    snake_oil_facade.config.analysis_config.log_path
+                    / ensemble.experiment.name
+                ),
+                "observation_settings": snake_oil_facade.config.analysis_config.observation_settings,
+                "es_settings": snake_oil_facade.config.analysis_config.es_settings,
+                "random_seed": snake_oil_facade.config.random_seed,
+            },
+        )
+
+        assert "Empty prior ensemble" in capsys.readouterr().err
 
 
 def test_ahmanalysis_run_cli(snake_oil_facade):
