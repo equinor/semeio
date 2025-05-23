@@ -35,6 +35,7 @@ def test_ahmanalysis_run(snake_oil_facade):
                 "random_seed": snake_oil_facade.config.random_seed,
             },
         )
+    assert not Path("tmp_storage").exists()
 
     # assert that this returns/generates a KS csv file
     output_dir = Path("log/update/ensemble-experiment/AhmAnalysisJob")
