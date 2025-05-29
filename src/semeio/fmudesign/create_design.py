@@ -361,21 +361,25 @@ class DesignMatrix:
         )
         print(f"Designmatrix written to {filename}")
 
-    def add_seeds(self, seeds, max_reals):
-        """Adding background as specified in dictionary.
-        Either from external file or from distributions in background
-        dictionary
+    def add_seeds(self, seeds: str | None, max_reals: int) -> None:
+        """Set RMS seed values.
+
+        Configures seed values either by loading from an external file, generating
+        default sequential seeds, or setting to None based on the input parameter.
 
         Args:
-            back_dict (OrderedDict): how to generate background values
-            max_values (int): number of background values to generate
+            seeds: Seed configuration. Can be:
+                - "None" or None: Sets seedvalues to None
+                - "default": Generates sequential seeds starting from 1000
+                - str that represents a path to an existing file
+            max_reals: Maximum number of seed values to generate or load
         """
-        if seeds in [None, "None"]:
+        if seeds in (None, "None"):
             self.seedvalues = None
             print("seeds is set to None in general_input")
-        elif seeds.lower() == "default":
+        elif seeds and seeds.lower() == "default":
             self.seedvalues = [item + 1000 for item in range(max_reals)]
-        elif Path(seeds).is_file():
+        elif seeds and Path(seeds).is_file():
             self.seedvalues = _seeds_from_extern(seeds, max_reals)
         else:
             raise ValueError(
