@@ -1,3 +1,4 @@
+import textwrap
 from copy import deepcopy
 
 
@@ -81,7 +82,16 @@ def _make_documentation(
             if key == "description":
                 docs += [indent + val.replace("\n", " ")]
             elif key == "examples":
-                docs += [indent + f".. code-block:: yaml\n{val}\n"]
+                normalized = textwrap.dedent(val)
+                current_indent_level = indent + 2 * " "
+                indented = textwrap.indent(
+                    normalized,
+                    current_indent_level,
+                    lambda line: line.strip() != "",
+                )
+                if not indented.endswith(f"\n{current_indent_level}"):
+                    indented = indented.rstrip() + f"\n{current_indent_level}"
+                docs += [indent + f".. code-block:: yaml\n{indented}\n"]
             elif isinstance(val, dict):
                 if key in required and level == 0:
                     key += "*"
