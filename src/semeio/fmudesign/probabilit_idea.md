@@ -150,8 +150,6 @@ def test_comprehensive_project_analysis():
         name="Daily_Fuel_Cost"
     )
 
-
-
     # Define correlation matrix for cost variables
     cost_corr = pl.DataFrame({
         "variable": ["Steel_Cost", "Maintenance_Cost", "Daily_Fuel_Cost"],
@@ -181,6 +179,15 @@ def test_comprehensive_project_analysis():
     #         distribution="truncated_normal"
     #     )
     # )
+
+    market_scenario = exp.Trigen(
+        pessimistic=0.85,
+        most_likely=1.0, 
+        optimistic=1.15,
+        prob_pessimistic=0.10,
+        prob_optimistic=0.90,
+        name="Market_Scenario_Multiplier"
+    )
 
     equipment_lifetime = exp.Weibull(
         shape=2.5,
@@ -301,7 +308,7 @@ def test_comprehensive_project_analysis():
     # === Final Cost Calculation ===
     # Direct costs
     direct_cost = (
-        steel_cost +
+        steel_cost * market_scenario + # Market affects material costs
         maintenance_cost +
         equipment_replacement_cost +
         productivity * 1_000_000 * (1 + worker_absences * 0.01)
