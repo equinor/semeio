@@ -1,21 +1,25 @@
 """Module for calculating values for a tornadoplot"""
 
+from collections.abc import Sequence
+
 import pandas as pd
 from deprecation import deprecated
 
 
-def real_mask(dfr, start, end):
+def real_mask(dfr: pd.DataFrame, start: int, end: int):
     """Creates mask for which realisations to calc from"""
     return (start <= dfr.REAL) & (end >= dfr.REAL)
 
 
-def check_selector(resultfile, selector):
+def check_selector(resultfile: pd.DataFrame, selector: str) -> None:
     """Checks whether selector is in resultfile headers"""
     if selector not in resultfile.columns:
         raise ValueError("Did not find ", selector, " as column in", "resultfile")
 
 
-def check_selection(resultfile, selector, selection):
+def check_selection(
+    resultfile: pd.DataFrame, selector: str, selection: Sequence[str]
+) -> None:
     """Checks whether selection is in resultfile values
     in the column selector"""
     for sel in selection:
@@ -28,13 +32,13 @@ def check_selection(resultfile, selector, selection):
         resultfile[selector].values.astype(str)
 
 
-def check_response(resultfile, response):
+def check_response(resultfile: pd.DataFrame, response: str):
     """Checks whether responses in in resultfile"""
     if response not in resultfile.columns:
         raise ValueError("Did not find ", response, " as column in", "resultfile")
 
 
-def cut_by_ref(tornadotable, refname):
+def cut_by_ref(tornadotable: pd.DataFrame, refname: str) -> pd.DataFrame:
     """Removes sensitivities smaller than reference sensitivity from table"""
     maskref = tornadotable.sensname == refname
     reflow = tornadotable[maskref].low.abs()
@@ -49,7 +53,7 @@ def cut_by_ref(tornadotable, refname):
     ]
 
 
-def sort_by_max(tornadotable):
+def sort_by_max(tornadotable: pd.DataFrame) -> pd.DataFrame:
     """Sorts table based on max(abs('low', 'high'))"""
     tornadotable["max"] = (
         tornadotable[["low", "high"]]
@@ -63,15 +67,15 @@ def sort_by_max(tornadotable):
 
 @deprecated(details="Use TornadoPlotterFMU from webviz instead")
 def calc_tornadoinput(
-    designsummary,
-    resultfile,
-    response,
-    selectors,
-    selection,
-    reference="rms_seed",
-    scale="percentage",
-    cutbyref=False,
-    sortsens=True,
+    designsummary: pd.DataFrame,
+    resultfile: pd.DataFrame,
+    response: str,
+    selectors: Sequence[str],
+    selection: Sequence[Sequence[str]],
+    reference: str = "rms_seed",
+    scale: str = "percentage",
+    cutbyref: bool = False,
+    sortsens: bool = True,
 ):
     """
      Calculates input values for a tornadoplot for one response

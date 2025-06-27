@@ -4,6 +4,8 @@ read by semeio.fmudesign.DesignMatrix.generate
 """
 
 from collections import OrderedDict
+from collections.abc import Mapping
+from typing import Any
 
 import numpy as np
 import openpyxl
@@ -11,7 +13,9 @@ import pandas as pd
 import yaml
 
 
-def excel2dict_design(input_filename, sheetnames=None):
+def excel2dict_design(
+    input_filename: str, sheetnames: Mapping[str, Any] | None = None
+) -> OrderedDict[str, Any]:
     """Read excel file with input to design setup
     Currently only specification of
     onebyone design is implemented
@@ -53,7 +57,7 @@ def excel2dict_design(input_filename, sheetnames=None):
     return returndict
 
 
-def inputdict_to_yaml(inputdict, filename):
+def inputdict_to_yaml(inputdict: OrderedDict[str, Any], filename: str) -> None:
     """Write inputdict to yaml format
 
     Args:
@@ -64,12 +68,12 @@ def inputdict_to_yaml(inputdict, filename):
         yaml.dump(inputdict, stream)
 
 
-def _find_geninput_sheetname(input_filename):
+def _find_geninput_sheetname(input_filename: str) -> str:
     """Finding general input sheet, allowing for name
     variations."""
     xlsx = openpyxl.load_workbook(input_filename, read_only=True, keep_links=False)
     sheets = xlsx.sheetnames
-    general_input_sheet = []
+    general_input_sheet: list[str] = []
     for sheet in sheets:
         if sheet in [
             "general_input",
@@ -94,7 +98,7 @@ def _find_geninput_sheetname(input_filename):
     return general_input_sheet[0]
 
 
-def _find_onebyone_defaults_sheet(input_filename):
+def _find_onebyone_defaults_sheet(input_filename: str) -> str:
     """Finds correct sheet name for default values to use when parsing
     excel file.
 
@@ -104,7 +108,7 @@ def _find_onebyone_defaults_sheet(input_filename):
     xlsx = openpyxl.load_workbook(input_filename, read_only=True, keep_links=False)
     sheets = xlsx.sheetnames
 
-    default_values_sheet = []
+    default_values_sheet: list[str] = []
 
     for sheet in sheets:
         if sheet in [
@@ -129,7 +133,7 @@ def _find_onebyone_defaults_sheet(input_filename):
     return default_values_sheet[0]
 
 
-def _find_onebyone_input_sheet(input_filename):
+def _find_onebyone_input_sheet(input_filename: str) -> str:
     """Finds correct sheet name for input to use when parsing excel file.
 
     Returns:
@@ -138,7 +142,7 @@ def _find_onebyone_input_sheet(input_filename):
     xlsx = openpyxl.load_workbook(input_filename, read_only=True, keep_links=False)
     sheets = xlsx.sheetnames
 
-    design_input_sheet = []
+    design_input_sheet: list[str] = []
 
     for sheet in sheets:
         if sheet in [
@@ -162,11 +166,11 @@ def _find_onebyone_input_sheet(input_filename):
     return design_input_sheet[0]
 
 
-def _check_designinput(dsgn_input):
+def _check_designinput(dsgn_input: pd.DataFrame) -> None:
     """Checks for valid input in designinput sheet"""
 
     # Check for duplicate sensnames
-    sensitivity_names = []
+    sensitivity_names: list[str] = []
     for row in dsgn_input.itertuples():
         if _has_value(row.sensname):
             if row.sensname in sensitivity_names:
@@ -178,7 +182,7 @@ def _check_designinput(dsgn_input):
             sensitivity_names.append(row.sensname)
 
 
-def _check_for_mixed_sensitivities(sens_name, sens_group):
+def _check_for_mixed_sensitivities(sens_name: str, sens_group: pd.DataFrame) -> None:
     """Checks for valid input in designinput sheet. A sensitivity cannot contain
     two different sensitivity types"""
 
@@ -192,7 +196,10 @@ def _check_for_mixed_sensitivities(sens_name, sens_group):
         )
 
 
-def _excel2dict_onebyone(input_filename, sheetnames=None):
+def _excel2dict_onebyone(
+    input_filename: str,
+    sheetnames: Mapping[str, Any] | None = None,
+) -> OrderedDict[str, Any]:
     """Reads specification for onebyone design
 
     Args:
@@ -206,7 +213,7 @@ def _excel2dict_onebyone(input_filename, sheetnames=None):
     """
 
     seedname = "RMS_SEED"
-    inputdict = OrderedDict()
+    inputdict: OrderedDict[str, Any] = OrderedDict()
 
     if not sheetnames or "general_input" not in sheetnames:
         gen_input_sheet = _find_geninput_sheetname(input_filename)
@@ -313,7 +320,7 @@ def _excel2dict_onebyone(input_filename, sheetnames=None):
     for sensname, group in grouped:
         _check_for_mixed_sensitivities(sensname, group)
 
-        sensdict = OrderedDict()
+        sensdict: OrderedDict[str, Any] = OrderedDict()
 
         if group["type"].iloc[0] == "ref":
             sensdict["senstype"] = "ref"
@@ -360,7 +367,7 @@ def _excel2dict_onebyone(input_filename, sheetnames=None):
     return inputdict
 
 
-def _read_defaultvalues(filename, sheetname):
+def _read_defaultvalues(filename: str, sheetname: str) -> OrderedDict[str, Any]:
     """Reads defaultvalues, also used as values for
     reference/base case
 
@@ -371,7 +378,7 @@ def _read_defaultvalues(filename, sheetname):
     Returns:
         OrderedDict with defaultvalues (parameter, value)
     """
-    default_dict = OrderedDict()
+    default_dict: OrderedDict[str, Any] = OrderedDict()
     default_df = pd.read_excel(
         filename, sheetname, header=0, index_col=0, engine="openpyxl"
     )
@@ -398,7 +405,9 @@ def _read_defaultvalues(filename, sheetname):
     return default_dict
 
 
-def _read_dependencies(filename, sheetname, from_parameter):
+def _read_dependencies(
+    filename: str, sheetname: str, from_parameter: str
+) -> OrderedDict[str, Any]:
     """Reads parameters that are set from other parameters
 
     Args:
@@ -409,7 +418,7 @@ def _read_dependencies(filename, sheetname, from_parameter):
         OrderedDict with design parameter, dependent parameters
         and values
     """
-    depend_dict = OrderedDict()
+    depend_dict: OrderedDict[str, Any] = OrderedDict()
     depend_df = pd.read_excel(
         filename, sheetname, dtype=str, na_values="", engine="openpyxl"
     )
@@ -433,7 +442,7 @@ def _read_dependencies(filename, sheetname, from_parameter):
     return depend_dict
 
 
-def _read_background(inp_filename, bck_sheet):
+def _read_background(inp_filename: str, bck_sheet: str) -> OrderedDict[str, Any]:
     """Reads excel sheet with background parameters and distributions
 
     Args:
@@ -443,8 +452,8 @@ def _read_background(inp_filename, bck_sheet):
     Returns:
         OrderedDict with parameter names and distributions
     """
-    backdict = OrderedDict()
-    paramdict = OrderedDict()
+    backdict: OrderedDict[str, Any] = OrderedDict()
+    paramdict: OrderedDict[str, Any] = OrderedDict()
     bck_input = pd.read_excel(inp_filename, bck_sheet, engine="openpyxl")
     bck_input.dropna(axis=0, how="all", inplace=True)
     bck_input = bck_input.loc[
@@ -511,7 +520,7 @@ def _read_background(inp_filename, bck_sheet):
     backdict["parameters"] = paramdict
 
     if "decimals" in bck_input:
-        decimals = OrderedDict()
+        decimals: OrderedDict[str, Any] = OrderedDict()
         for row in bck_input.itertuples():
             if _has_value(row.decimals) and _is_int(row.decimals):
                 decimals[row.param_name] = int(row.decimals)
@@ -520,14 +529,14 @@ def _read_background(inp_filename, bck_sheet):
     return backdict
 
 
-def _read_scenario_sensitivity(sensgroup):
+def _read_scenario_sensitivity(sensgroup: pd.DataFrame) -> OrderedDict[str, Any]:
     """Reads parameters and values
     for scenario sensitivities
     """
-    sdict = OrderedDict()
+    sdict: OrderedDict[str, Any] = OrderedDict()
     sdict["cases"] = OrderedDict()
-    casedict1 = OrderedDict()
-    casedict2 = OrderedDict()
+    casedict1: OrderedDict[str, Any] = OrderedDict()
+    casedict2: OrderedDict[str, Any] = OrderedDict()
 
     if not _has_value(sensgroup["senscase1"].iloc[0]):
         raise ValueError(
@@ -581,12 +590,12 @@ def _read_scenario_sensitivity(sensgroup):
     return sdict
 
 
-def _read_constants(sensgroup):
+def _read_constants(sensgroup: pd.DataFrame) -> OrderedDict[str, Any]:
     """Reads constants to be used together with
     seed sensitivity"""
     if "dist_param1" not in sensgroup.columns.values:
         sensgroup["dist_param1"] = float("NaN")
-    paramdict = OrderedDict()
+    paramdict: OrderedDict[str, Any] = OrderedDict()
     for row in sensgroup.itertuples():
         if not _has_value(row.dist_param1):
             raise ValueError(
@@ -607,7 +616,7 @@ def _read_constants(sensgroup):
     return paramdict
 
 
-def _read_dist_sensitivity(sensgroup):
+def _read_dist_sensitivity(sensgroup: pd.DataFrame) -> OrderedDict[str, Any]:
     """Reads parameters and distributions
     for monte carlo sensitivities
     """
@@ -619,7 +628,7 @@ def _read_dist_sensitivity(sensgroup):
         sensgroup["dist_param3"] = float("NaN")
     if "dist_param4" not in sensgroup.columns.values:
         sensgroup["dist_param4"] = float("NaN")
-    paramdict = OrderedDict()
+    paramdict: OrderedDict[str, Any] = OrderedDict()
     for row in sensgroup.itertuples():
         if not _has_value(row.param_name):
             raise ValueError(
@@ -666,10 +675,12 @@ def _read_dist_sensitivity(sensgroup):
     return paramdict
 
 
-def _read_correlations(sensgroup, inputfile):
+def _read_correlations(
+    sensgroup: pd.DataFrame, inputfile: str
+) -> OrderedDict[str, Any] | None:
     if "corr_sheet" in sensgroup:
         if not sensgroup["corr_sheet"].dropna().empty:
-            correlations = OrderedDict()
+            correlations: OrderedDict[str, Any] | None = OrderedDict()
             correlations["inputfile"] = inputfile
             correlations["sheetnames"] = []
             for _index, row in sensgroup.iterrows():
@@ -686,7 +697,7 @@ def _read_correlations(sensgroup, inputfile):
     return correlations
 
 
-def _has_value(value):
+def _has_value(value: Any) -> bool:
     """Returns False only if the argument is np.nan"""
     try:
         return not np.isnan(value)
@@ -694,7 +705,7 @@ def _has_value(value):
         return True
 
 
-def _is_int(teststring):
+def _is_int(teststring: str) -> bool:
     """Test if a string can be parsed as a float"""
     try:
         if not np.isnan(int(teststring)):
