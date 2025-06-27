@@ -573,3 +573,19 @@ outputs:
       - Market variations
       - Risk adjustments
 ```
+
+## What about AI???
+
+Yes, you can use AI!
+Chatbots are quite good at figuring out suitable distributions.
+For example: "Give me a distribution to represent the height of adult Norwegian men."
+
+Claude:
+```
+For adult Norwegian men, a normal distribution would be appropriate with these parameters:
+Mean (μ): 180.4 cm (5'11")
+Standard deviation (σ): 7.5 cm
+This gives you N(180.4, 7.5²) in statistical notation.
+```
+
+We can also ask chatbots to generate `Probabilit` code.
