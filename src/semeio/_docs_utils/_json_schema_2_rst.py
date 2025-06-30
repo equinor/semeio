@@ -1,8 +1,9 @@
 import textwrap
 from copy import deepcopy
+from typing import Any
 
 
-def _insert_ref(schema: dict, defs: dict) -> dict:
+def _insert_ref(schema: dict[str, Any], defs: dict[str, Any]) -> dict[str, Any]:
     schema_copy = schema.copy()
     for index, value in schema_copy.items():
         if isinstance(value, dict):
@@ -19,7 +20,7 @@ def _insert_ref(schema: dict, defs: dict) -> dict:
     return schema
 
 
-def _remove_key(schema: dict, del_key: str) -> None:
+def _remove_key(schema: dict[str, Any], del_key: str) -> None:
     schema_copy = schema.copy()
     for key, val in schema_copy.items():
         if key == del_key:
@@ -28,7 +29,7 @@ def _remove_key(schema: dict, del_key: str) -> None:
             _remove_key(schema[key], del_key)
 
 
-def _replace_key(schema: dict, old_key: str, new_key: str) -> None:
+def _replace_key(schema: dict[str, Any], old_key: str, new_key: str) -> None:
     schema_copy = schema.copy()
     for key, val in schema_copy.items():
         if key == old_key:
@@ -39,7 +40,7 @@ def _replace_key(schema: dict, old_key: str, new_key: str) -> None:
             _replace_key(schema[key], old_key, new_key)
 
 
-def _create_docs(schema: dict) -> str:
+def _create_docs(schema: dict[str, Any]) -> str:
     """While there are alternatives to implementing something new, most of these
     rely on a sphinx directive, which we can not easily use here. There are
     also libraries such as jsonschema2rst, but they only document their
@@ -66,14 +67,14 @@ def _create_docs(schema: dict) -> str:
 
 
 def _make_documentation(
-    schema: list | dict | str,
+    schema: list[str] | dict[str, Any] | str,
     required: list[str] | None = None,
     level: int = 0,
     preface: str = "",
     element_seperator: str = "\n\n",
 ) -> str:
     indent = level * 2 * " "
-    docs = []
+    docs: list[str] = []
     required = required if required is not None else []
     if isinstance(schema, dict):
         for key, val in schema.items():
@@ -103,7 +104,7 @@ def _make_documentation(
             else:
                 docs += [indent + f"**{key}**: {val}"]
     elif isinstance(schema, list):
-        list_docs = []
+        list_docs: list[str] = []
         for element in schema:
             list_docs += [
                 _make_documentation(

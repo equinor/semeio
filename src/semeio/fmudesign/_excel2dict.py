@@ -170,7 +170,7 @@ def _check_designinput(dsgn_input: pd.DataFrame) -> None:
     """Checks for valid input in designinput sheet"""
 
     # Check for duplicate sensnames
-    sensitivity_names: list[str] = []
+    sensitivity_names = []
     for row in dsgn_input.itertuples():
         if _has_value(row.sensname):
             if row.sensname in sensitivity_names:

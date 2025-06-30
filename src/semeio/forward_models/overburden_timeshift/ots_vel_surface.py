@@ -1,61 +1,69 @@
+from typing import Any, Literal
+
 import numpy as np
+import numpy.typing as npt
 import segyio
+from numpy import float64
 from scipy.interpolate import CloughTocher2DInterpolator
 from segyio import TraceField
 
+from semeio.forward_models.overburden_timeshift import (
+    OTSResSurface,
+)
+
 
 class OTSVelSurface:
-    def __init__(self, res_surface, vcube):
+    def __init__(self, res_surface: OTSResSurface, vcube: str):
         """
         Create a surface where the timeshift can be calculated.
 
         Read a reservoir
         """
 
-        self._x = None
-        self._y = None
-        self._z = None
+        self._x: npt.NDArray[np.float64] | None = None
+        self._y: npt.NDArray[np.float64] | None = None
+        self._z: npt.NDArray[np.float64] | None = None
 
-        self._nx = None
-        self._ny = None
+        self._nx: int | None = None
+        self._ny: int | None = None
 
-        self._z3d = None
-        self._dt = None
+        self._z3d: npt.NDArray[np.float64] | None = None
+        self._dt: float | None = None
 
         self._map_reservoir_surface_to_velocity(res_surface, vcube)
 
     @property
-    def x(self):
+    def x(self) -> npt.NDArray[np.float64] | None:
         return self._x
 
     @property
-    def y(self):
+    def y(self) -> npt.NDArray[np.float64] | None:
         return self._y
 
     @property
-    def z(self):
+    def z(self) -> npt.NDArray[np.float64] | None:
         return self._z
 
     @property
-    def nx(self):
+    def nx(self) -> int | None:
         return self._nx
 
     @property
-    def ny(self):
+    def ny(self) -> int | None:
         return self._ny
 
     @property
-    def z3d(self):
+    def z3d(self) -> npt.NDArray[np.float64] | None:
         return self._z3d
 
     @property
-    def dt(self):
+    def dt(self) -> float | None:
         return self._dt
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.x)
 
-    def __str__(self):
+    def __str__(self) -> str:
         s = "x: " + str(self.x)
         s += "\ny: " + str(self.y)
         s += "\nz: " + str(self.z)
@@ -63,7 +71,11 @@ class OTSVelSurface:
         s += "\nz3d=" + str(self.z3d)
         return s
 
-    def _read_velocity(self, vcube, cell_corners):
+    def _read_velocity(
+        self, vcube: str, cell_corners: npt.NDArray[Any]
+    ) -> tuple[
+        npt.NDArray[float64], npt.NDArray[float64], npt.NDArray[Any], int, float
+    ]:
         """
         Read velocity from segy file. Upscale.
         :param vcube:
@@ -72,9 +84,9 @@ class OTSVelSurface:
         """
 
         with segyio.open(vcube) as f:
-            x = np.empty(f.tracecount, dtype=np.float64)
-            y = np.empty(f.tracecount, dtype=np.float64)
-            dt = segyio.dt(f) / 1e6
+            x: npt.NDArray[np.float64] = np.empty(f.tracecount, dtype=np.float64)
+            y: npt.NDArray[np.float64] = np.empty(f.tracecount, dtype=np.float64)
+            dt: float = segyio.dt(f) / 1e6
             nt = len(f.samples)
 
             for i, h in enumerate(f.header):
@@ -111,7 +123,9 @@ class OTSVelSurface:
         return x, y, traces, nt, dt
 
     @staticmethod
-    def _upscaling_size_stepping(res_corners, axis, vel_axis):
+    def _upscaling_size_stepping(
+        res_corners: npt.NDArray[Any], axis: Literal[0, 1], vel_axis: npt.NDArray[Any]
+    ) -> tuple[int, int]:
         """
         Upscales axis of velocity.
 
@@ -126,12 +140,12 @@ class OTSVelSurface:
         size = np.mean(np.max(res_corners, axis) - np.min(res_corners, axis)) / res_n
         # the number of grid voxels that can be fit into the segy volume
         # defined by CDP_X and CDP_Y
-        nn = np.ceil(
+        nn: int = np.ceil(
             np.mean(np.max(vel_axis, axis) - np.min(vel_axis, axis)) / size
         ).astype(int)
 
         n = vel_axis.shape[axis]
-        ups = np.floor((n - 1) / nn).astype(int)
+        ups: int = np.floor((n - 1) / nn).astype(int)
         # always only upscaling
         if ups < 1:
             ups = 1
@@ -139,7 +153,15 @@ class OTSVelSurface:
 
         return nn, ups
 
-    def _upscale_velocity(self, res_corners, x_vel, y_vel, traces, nt, dt):
+    def _upscale_velocity(
+        self,
+        res_corners: npt.NDArray[Any],
+        x_vel: npt.NDArray[Any],
+        y_vel: npt.NDArray[Any],
+        traces: npt.NDArray[Any],
+        nt: int,
+        dt: float,
+    ) -> tuple[npt.NDArray[Any], npt.NDArray[Any], npt.NDArray[Any], int, float]:
         """resample to a new grid size based on the grid size"""
 
         nxx, upsx = self._upscaling_size_stepping(res_corners[:, :, 0], 0, x_vel)
@@ -165,7 +187,9 @@ class OTSVelSurface:
 
         return x, y, traces_upscaled, nt, dt
 
-    def _map_reservoir_surface_to_velocity(self, res_surface, vcube):
+    def _map_reservoir_surface_to_velocity(
+        self, res_surface: OTSResSurface, vcube: str
+    ) -> None:
         """
         Interpolates reservoir top surface to velocity grid
         """

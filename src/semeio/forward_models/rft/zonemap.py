@@ -1,5 +1,7 @@
 import argparse
 import os
+from collections.abc import Mapping
+from typing import Any, Self
 
 from semeio.forward_models.rft.utility import strip_comments
 
@@ -17,9 +19,9 @@ class ZoneMap:
             of strings with zone names.
     """
 
-    def __init__(self, zones_at_k_value=None):
-        self._zones_at_k_value = zones_at_k_value or {}
-        self._k_values_at_zone = {}
+    def __init__(self, zones_at_k_value: Mapping[int, Any] | None = None):
+        self._zones_at_k_value: Mapping[int, Any] | None = zones_at_k_value or {}
+        self._k_values_at_zone: Mapping[str, Any] = {}
 
         # Construct a reverse dictionary for the reverse
         # lookup _k_values_at_zone
@@ -31,7 +33,7 @@ class ZoneMap:
                 self._k_values_at_zone[zone_name].append(k_value)
 
     @classmethod
-    def load_and_parse_zonemap_file(cls, filename):
+    def load_and_parse_zonemap_file(cls, filename: str) -> Self | None:
         # The forward model description files used in ERT does not allow
         # for optional arguments. If the user has not specified
         # a value in their configuration, the forward model description
@@ -42,7 +44,7 @@ class ZoneMap:
         if not os.path.isfile(filename):
             raise argparse.ArgumentTypeError(f"ZoneMap file {filename} not found!")
 
-        zones_at_k_value = {}
+        zones_at_k_value: dict[int, Any] = {}
 
         with open(filename, encoding="utf-8") as file_handle:
             zonemap_lines = file_handle.readlines()
@@ -85,19 +87,19 @@ class ZoneMap:
 
         return cls(zones_at_k_value)
 
-    def __contains__(self, item):
+    def __contains__(self, item: Any) -> bool:
         if isinstance(item, int):
             return item in self._zones_at_k_value
         if isinstance(item, str):
             return item in self._k_values_at_zone
         return False
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: Any) -> Any:
         if isinstance(item, int):
             return self._zones_at_k_value[item]
         if isinstance(item, str):
             return self._k_values_at_zone[item]
         raise KeyError(f"{item} is neither a k value nor a zone")
 
-    def has_relationship(self, zone, k):
+    def has_relationship(self, zone: str, k: Any) -> bool:
         return k in self._k_values_at_zone.get(zone, [])

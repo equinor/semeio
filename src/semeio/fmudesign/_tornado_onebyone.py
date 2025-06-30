@@ -1,12 +1,14 @@
 """Module for calculating values for a tornadoplot"""
 
 from collections.abc import Sequence
+from typing import Any
 
 import pandas as pd
 from deprecation import deprecated
+from pandas.core.frame import DataFrame
 
 
-def real_mask(dfr: pd.DataFrame, start: int, end: int):
+def real_mask(dfr: pd.DataFrame, start: int, end: int) -> pd.Series[bool]:
     """Creates mask for which realisations to calc from"""
     return (start <= dfr.REAL) & (end >= dfr.REAL)
 
@@ -32,7 +34,7 @@ def check_selection(
         resultfile[selector].values.astype(str)
 
 
-def check_response(resultfile: pd.DataFrame, response: str):
+def check_response(resultfile: pd.DataFrame, response: str) -> None:
     """Checks whether responses in in resultfile"""
     if response not in resultfile.columns:
         raise ValueError("Did not find ", response, " as column in", "resultfile")
@@ -76,7 +78,7 @@ def calc_tornadoinput(
     scale: str = "percentage",
     cutbyref: bool = False,
     sortsens: bool = True,
-):
+) -> tuple[DataFrame, Any]:
     """
      Calculates input values for a tornadoplot for one response
      and one design set up

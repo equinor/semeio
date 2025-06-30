@@ -124,7 +124,7 @@ class AhmAnalysisJob(ErtScript):
         random_seed: int,
         reports_dir: str,
         ensemble: Ensemble | None,
-    ) -> Any:
+    ) -> None:
         """Perform analysis of parameters change per obs group
         prior to posterior of ahm"""
 
@@ -357,7 +357,7 @@ def _run_ministep(
     )
 
 
-def make_obs_groups(key_map):
+def make_obs_groups(key_map: dict[str, Any]) -> dict[str, Any]:
     """Create a mapping of observation groups, the names will be:
     data_key -> [obs_keys] and All_obs-{missing_obs} -> [obs_keys]
     and All_obs -> [all_obs_keys]
@@ -383,13 +383,17 @@ def make_obs_groups(key_map):
     return combinations
 
 
-def count_active_observations(df_update_log):
+def count_active_observations(df_update_log: pd.DataFrame) -> int:
     """To get the active observation info."""
     df_active = df_update_log[(df_update_log["status"] == "Active")]
     return len(df_active)
 
 
-def calc_observationsgroup_misfit(obs_keys, df_update_log, misfit_df):
+def calc_observationsgroup_misfit(
+    obs_keys: str,
+    df_update_log: pd.DataFrame,
+    misfit_df: pd.DataFrame,
+) -> pd.Series[float] | float:
     """To get the misfit for total observations (active/inactive)."""
 
     total_obs_nr = len(df_update_log[df_update_log.status.isin(["Active", "Inactive"])])
@@ -411,7 +415,9 @@ def calc_observationsgroup_misfit(obs_keys, df_update_log, misfit_df):
     return mean.mean()
 
 
-def _filter_on_prefix(list_of_strings, prefixes):
+def _filter_on_prefix(
+    list_of_strings: Iterable[str], prefixes: Iterable[str]
+) -> set[str]:
     """returns the set of strings that has a match for any of the given prefixes"""
     return {
         string
@@ -420,7 +426,9 @@ def _filter_on_prefix(list_of_strings, prefixes):
     }
 
 
-def get_updated_parameters(prior_data, parameters):
+def get_updated_parameters(
+    prior_data: pd.DataFrame, parameters: Iterable[str]
+) -> list[str]:
     """make list of updated parameters
     (excluding duplicate transformed parameters)
     """
@@ -428,7 +436,7 @@ def get_updated_parameters(prior_data, parameters):
         list_of_strings=prior_data.keys(), prefixes=parameters
     )
     # remove parameters with constant prior distribution
-    p_keysf = []
+    p_keysf: list[str] = []
     for dkey in parameter_keys:
         if prior_data[dkey].ndim > 1:
             warnings.warn(
@@ -443,16 +451,20 @@ def get_updated_parameters(prior_data, parameters):
     return p_keysf
 
 
-def calc_kolmogorov_smirnov(columns, prior_data, target_data):
+def calc_kolmogorov_smirnov(
+    columns: Iterable[str],
+    prior_data: pd.DataFrame,
+    target_data: pd.DataFrame,
+) -> dict[str, float]:
     """Calculate kolmogorov_smirnov matrix"""
-    ks_param = {}
+    ks_param: dict[str, float] = {}
     for dkey in sorted(columns):
         ks_val = ks_2samp(prior_data[dkey], target_data[dkey])
         ks_param[dkey] = ks_val[0]
     return ks_param
 
 
-def raise_if_empty(dataframes, messages):
+def raise_if_empty(dataframes: Iterable[pd.DataFrame], messages: Iterable[str]) -> None:
     """Check input ensemble prior is not empty
     and if ensemble contains parameters for hm"""
     for dframe in dataframes:

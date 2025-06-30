@@ -1,12 +1,21 @@
+import datetime
 import logging
 import os
+from collections.abc import Iterable, Mapping
 
 import pandas as pd
+from resdata.grid import Grid
+from resdata.rft import ResdataRFTFile
+
+from semeio.forward_models.rft.trajectory import TrajectoryPoint
+from semeio.forward_models.rft.zonemap import ZoneMap
 
 logger = logging.getLogger(__name__)
 
 
-def _write_gen_data_files(trajectory_df, directory, well, report_step):
+def _write_gen_data_files(
+    trajectory_df: pd.DataFrame, directory: str, well: str, report_step: int
+) -> None:
     """Generate three files with the information GEN_DATA needs
     from the trajectory dataframe.
 
@@ -57,7 +66,7 @@ def _write_gen_data_files(trajectory_df, directory, well, report_step):
     )
 
 
-def _write_simdata(fname, dataname, trajectory_df):
+def _write_simdata(fname: str, dataname: str, trajectory_df: pd.DataFrame) -> None:
     """Write pressure value, one pr line for all points, -1 is used where
     there is no pressure information.
     """
@@ -78,7 +87,7 @@ def _write_simdata(fname, dataname, trajectory_df):
     logger.info(f"Forward model script gendata_rft.py: Wrote file {fname}")
 
 
-def _write_active(fname, trajectory_df):
+def _write_active(fname: str, trajectory_df: pd.DataFrame) -> None:
     """Write a file with "1" pr row if a point is active, "0" if not"""
     with open(fname, "w+", encoding="utf-8") as file_handle:
         file_handle.write(
@@ -91,7 +100,7 @@ def _write_active(fname, trajectory_df):
         )
 
 
-def _write_inactive_info(fname, trajectory_df):
+def _write_inactive_info(fname: str, trajectory_df: pd.DataFrame) -> None:
     """Write a file with explanations to users for inactive points"""
     with open(fname, "w+", encoding="utf-8") as file_handle:
         if "inactive_info" not in trajectory_df:
@@ -108,8 +117,13 @@ def _write_inactive_info(fname, trajectory_df):
 
 
 def _populate_trajectory_points(
-    well, date, trajectory_points, ecl_grid, ecl_rft, zonemap=None
-):
+    well: str,
+    date: datetime.date,
+    trajectory_points: list[TrajectoryPoint],
+    ecl_grid: Grid,
+    ecl_rft: ResdataRFTFile,
+    zonemap: ZoneMap | None = None,
+) -> list[TrajectoryPoint]:
     """
     Populate a list of trajectory points, that only contain UTM coordinates
     for a well-path, with (i,j,k) indices corresponding to a given Eclipse grid,
@@ -140,7 +154,7 @@ def _populate_trajectory_points(
 
     ijk_guess = None
     for point in trajectory_points:
-        ijk = ecl_grid.find_cell(
+        ijk: tuple[int, int, int] | None = ecl_grid.find_cell(
             point.utm_x, point.utm_y, point.true_vertical_depth, start_ijk=ijk_guess
         )
         point.set_ijk(ijk)
@@ -152,15 +166,15 @@ def _populate_trajectory_points(
 
 
 def run(
-    well_times,
-    trajectories,
-    ecl_grid,
-    ecl_rft,
-    zonemap=None,
-    csvfile=None,
-    outputdirectory=".",
-):
-    dframes = []
+    well_times: Iterable[tuple[str, datetime.date, int]],
+    trajectories: Mapping[str, list[TrajectoryPoint]],
+    ecl_grid: Grid,
+    ecl_rft: ResdataRFTFile,
+    zonemap: ZoneMap | None = None,
+    csvfile: str | None = None,
+    outputdirectory: str = ".",
+) -> None:
+    dframes: list[pd.DataFrame] = []
 
     if not well_times:
         raise ValueError("No RFT data requested")

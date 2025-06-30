@@ -5,6 +5,7 @@ distributions. For use in generation of design matrices
 import re
 from collections.abc import Sequence
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 import numpy.typing as npt
@@ -151,7 +152,7 @@ def _check_dist_params_logunif(dist_params: Sequence[str]) -> tuple[bool, str]:
 
 def generate_stratified_samples(
     numreals: int, rng: np.random.RandomState
-) -> npt.NDArray[np.float64]:
+) -> npt.NDArray[Any]:
     """Generate stratified samples in [0,1] by dividing the interval
     into equal-probability strata.
 

@@ -1,4 +1,5 @@
 import importlib
+from typing import Any
 
 import ert
 import importlib_resources
@@ -47,11 +48,13 @@ def _get_forward_models_from_directory(directory: str) -> dict[str, str]:
 
 
 @ert.plugin(name="semeio")
-def installable_jobs():
+def installable_jobs() -> dict[str, str]:
     return _get_forward_models_from_directory("forward_models/config")
 
 
-def _get_module_variable_if_exists(module_name, variable_name, default=""):
+def _get_module_variable_if_exists(
+    module_name: str, variable_name: str, default: str = ""
+) -> Any:
     try:
         script_module = importlib.import_module(module_name)
     except ImportError:
@@ -61,7 +64,7 @@ def _get_module_variable_if_exists(module_name, variable_name, default=""):
 
 
 @ert.plugin(name="semeio")
-def job_documentation(job_name):
+def job_documentation(job_name: str) -> dict[str, Any] | None:
     forward_model_name = job_name
     semeio_forward_models = set(installable_jobs().data.keys())
     if forward_model_name not in semeio_forward_models:
