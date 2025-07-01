@@ -1,8 +1,10 @@
 import numpy as np
+import numpy.typing as npt
+from resdata.grid import Grid
 
 
 class OTSResSurface:
-    def __init__(self, grid, above=0):
+    def __init__(self, grid: Grid, above: float = 0):
         """
         Create a surface from a reservoir grid.
 
@@ -12,46 +14,46 @@ class OTSResSurface:
         :param above: Scalar: meters above most shallow active cell
         """
 
-        self._grid = grid
-        self._x = None
-        self._y = None
-        self._z = None
-        self._nx = None
-        self._ny = None
+        self._grid: Grid = grid
+        self._x: npt.NDArray[np.float32] | None = None
+        self._y: npt.NDArray[np.float32] | None = None
+        self._z: npt.NDArray[np.float32] | None = None
+        self._nx: int | None = None
+        self._ny: int | None = None
 
         self._calculate_surface(grid, above)
 
     @property
-    def x(self):
+    def x(self) -> npt.NDArray[np.float32] | None:
         return self._x
 
     @property
-    def y(self):
+    def y(self) -> npt.NDArray[np.float32] | None:
         return self._y
 
     @property
-    def z(self):
+    def z(self) -> npt.NDArray[np.float32] | None:
         return self._z
 
     @property
-    def nx(self):
+    def nx(self) -> int | None:
         return self._nx
 
     @property
-    def ny(self):
+    def ny(self) -> int | None:
         return self._ny
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.x)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"x: {self.x}\ny: {self.y}\nz: {self.z}"
 
     @property
-    def cell_corners(self):
+    def cell_corners(self) -> npt.NDArray[np.float32]:
         return self._get_top_corners()
 
-    def _calculate_surface(self, grid, above):
+    def _calculate_surface(self, grid: Grid, above: float) -> None:
         # calculate average from top face vecrtices
         # from unstructured grid as an interface between active and inactive cells
         nx, ny, nz = grid.getNX(), grid.getNY(), grid.getNZ()
@@ -82,7 +84,7 @@ class OTSResSurface:
         self._nx = nx
         self._ny = ny
 
-    def _get_top_corners(self):
+    def _get_top_corners(self) -> npt.NDArray[np.float32]:
         grid = self._grid
         nx = grid.getNX() + 1
         ny = grid.getNY() + 1

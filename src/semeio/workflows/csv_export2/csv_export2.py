@@ -1,5 +1,7 @@
 import argparse
 import sys
+from collections.abc import Iterable
+from typing import Any
 
 import pandas as pd
 from ert import ErtScript, plugin
@@ -70,7 +72,12 @@ runs::
 """
 
 
-def csv_exporter(runpathfile, time_index, outputfile, column_keys=None):
+def csv_exporter(
+    runpathfile: str,
+    time_index: str,
+    outputfile: str,
+    column_keys: Iterable[str] | None = None,
+) -> None:
     """Export CSV data (summary and parameters) from an EnsembleSet
 
     The EnsembleSet is described by a runpathfile which must exists
@@ -91,11 +98,11 @@ def csv_exporter(runpathfile, time_index, outputfile, column_keys=None):
 
 
 class CsvExport2Job(ErtScript):
-    def run(self, *args, **_):
+    def run(self, *args: Any, **_) -> None:
         main(args)
 
 
-def main(args):
+def main(args: Any) -> None:
     parser = csv_export_parser()
     args = parser.parse_args(args)
 
@@ -142,7 +149,7 @@ def csv_export_parser():
 
 
 @plugin(name="semeio")
-def legacy_ertscript_workflow(config):
+def legacy_ertscript_workflow(config: Any) -> None:
     workflow = config.add_workflow(CsvExport2Job, "CSV_EXPORT2")
     workflow.parser = csv_export_parser
     workflow.description = DESCRIPTION
@@ -150,5 +157,5 @@ def legacy_ertscript_workflow(config):
     workflow.category = "export"
 
 
-def cli():
+def cli() -> None:
     main(sys.argv[1:])

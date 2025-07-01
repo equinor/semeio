@@ -1,6 +1,7 @@
 import logging
 import warnings
 from pathlib import Path
+from typing import Literal
 
 import numpy as np
 import pandas as pd
@@ -24,13 +25,13 @@ logger = logging.getLogger(__name__)
 
 
 def run(
-    realization,
-    xlsfilename,
-    designsheetname="DesignSheet01",
-    defaultssheetname="DefaultValues",
-    parametersfilename="parameters.txt",
-    log_level=None,
-):
+    realization: int,
+    xlsfilename: str,
+    designsheetname: str = "DesignSheet01",
+    defaultssheetname: str = "DefaultValues",
+    parametersfilename: str = "parameters.txt",
+    log_level: int | str | None = None,
+) -> None:
     """
     Reads out all file content from different files and create dataframes
     """
@@ -68,8 +69,12 @@ def run(
 
 
 def _complete_parameters_file(
-    realization, parameters, parametersfilename, design_matrix_sheet, default_sheet
-):
+    realization: int,
+    parameters: pd.DataFrame,
+    parametersfilename: str,
+    design_matrix_sheet: pd.DataFrame,
+    default_sheet: pd.DataFrame,
+) -> None:
     """
     Pick key / values from chosen realization in design matrix
     Append those key / values if not present into parameters.txt
@@ -184,7 +189,13 @@ def _complete_parameters_file(
     )
 
 
-def _read_excel(file_name, sheet_name, header=0, usecols=None, engine=None):
+def _read_excel(
+    file_name: str,
+    sheet_name: str,
+    header: int = 0,
+    usecols: list[int] | None = None,
+    engine: Literal["xlrd", "openpyxl", "odf", "pyxlsb", "calamine"] | None = None,
+) -> pd.DataFrame:
     """
     Make dataframe from excel file
     :return: Dataframe
@@ -219,7 +230,7 @@ def _read_excel(file_name, sheet_name, header=0, usecols=None, engine=None):
     return dframe.dropna(axis=1, how="all")
 
 
-def _validate_design_matrix_header(design_matrix):
+def _validate_design_matrix_header(design_matrix: pd.DataFrame) -> None:
     """
     Validate header in user inputted design matrix
     :raises: ValueError if design matrix contains empty headers
@@ -239,7 +250,7 @@ def _validate_design_matrix_header(design_matrix):
         raise ValueError(f"Column headers not present in column {column_indexes}")
 
 
-def _invalid_design_realizations(design_matrix):
+def _invalid_design_realizations(design_matrix: pd.DataFrame) -> set[int]:
     """
     Build a set of realization indices where something is wrong,
     f.ex empty cells
@@ -292,7 +303,7 @@ def _invalid_design_realizations(design_matrix):
     return {cell_coord[0] for cell_coord in empty_cell_coords}
 
 
-def _read_defaultssheet(xlsfilename, defaultssheetname):
+def _read_defaultssheet(xlsfilename: str, defaultssheetname: str) -> pd.DataFrame:
     """
     Construct a dataframe of keys and values to be used as defaults from the
     first two columns in a spreadsheet.
