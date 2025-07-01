@@ -182,8 +182,8 @@ def draw_values_normal(
     dist_parameters: Sequence[str],
     numreals: int,
     rng: np.random.RandomState,
-    normalscoresamples: npt.NDArray[np.float64] | None = None,
-) -> npt.NDArray[np.float64]:
+    normalscoresamples: npt.NDArray[Any] | None = None,
+) -> npt.NDArray[Any]:
     status, msg = _check_dist_params_normal(dist_parameters)
 
     if not status:
@@ -226,8 +226,8 @@ def draw_values_lognormal(
     dist_parameters: Sequence[str],
     numreals: int,
     rng: np.random.RandomState,
-    normalscoresamples: npt.NDArray[np.float64] | None = None,
-) -> npt.NDArray[np.float64]:
+    normalscoresamples: npt.NDArray[Any] | None = None,
+) -> npt.NDArray[Any]:
     """Draws values from lognormal distribution.
     Args:
         dist_parameters(list): [mu, sigma] for the logarithm of the variable
@@ -263,8 +263,8 @@ def draw_values_uniform(
     dist_parameters: Sequence[str],
     numreals: int,
     rng: np.random.RandomState,
-    normalscoresamples: npt.NDArray[np.float64] | None = None,
-) -> npt.NDArray[np.float64]:
+    normalscoresamples: npt.NDArray[Any] | None = None,
+) -> npt.NDArray[Any]:
     """Draws values from uniform distribution.
     Args:
         dist_parameters(list): [minimum, maximum]
@@ -301,8 +301,8 @@ def draw_values_triangular(
     dist_parameters: Sequence[str],
     numreals: int,
     rng: np.random.RandomState,
-    normalscoresamples: npt.NDArray[np.float64] | None = None,
-) -> npt.NDArray[np.float64]:
+    normalscoresamples: npt.NDArray[Any] | None = None,
+) -> npt.NDArray[Any]:
     """Draws values from triangular distribution.
     Args:
         dist_parameters(list): [min, mode, max]
@@ -355,8 +355,8 @@ def draw_values_pert(
     dist_parameters: Sequence[str],
     numreals: int,
     rng: np.random.RandomState,
-    normalscoresamples: npt.NDArray[np.float64] | None = None,
-) -> npt.NDArray[np.float64]:
+    normalscoresamples: npt.NDArray[Any] | None = None,
+) -> npt.NDArray[Any]:
     """Draws values from pert distribution.
     Args:
         dist_parameters(list): [min, mode, max, scale]
@@ -416,8 +416,8 @@ def draw_values_loguniform(
     dist_parameters: Sequence[str],
     numreals: int,
     rng: np.random.RandomState,
-    normalscoresamples: npt.NDArray[np.float64] | None = None,
-) -> npt.NDArray[np.float64]:
+    normalscoresamples: npt.NDArray[Any] | None = None,
+) -> npt.NDArray[Any]:
     """Draws values from loguniform distribution.
     Args:
         dist_parameters(list): [minimum, maximum]
@@ -450,8 +450,8 @@ def draw_values(
     dist_parameters: Sequence[str],
     numreals: int,
     rng: np.random.RandomState,
-    normalscoresamples: npt.NDArray[np.float64] | None = None,
-) -> npt.NDArray[np.float64] | list[str] | str:
+    normalscoresamples: npt.NDArray[Any] | None = None,
+) -> npt.NDArray[Any] | list[str] | str:
     """
     Prepare scipy distributions with parameters
     Args:
@@ -508,8 +508,8 @@ def sample_discrete(
     dist_params: Sequence[str],
     numreals: int,
     rng: np.random.RandomState,
-    normalscoresamples: npt.NDArray[np.float64] | None = None,
-) -> tuple[bool, npt.NDArray[np.float64] | str]:
+    normalscoresamples: npt.NDArray[Any] | None = None,
+) -> tuple[bool, npt.NDArray[Any] | str]:
     status = True
     outcomes = re.split(",", dist_params[0])
     outcomes = [item.strip() for item in outcomes]

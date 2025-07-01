@@ -33,7 +33,7 @@ from semeio.fmudesign import design_distributions as design_dist
 from semeio.fmudesign.iman_conover import ImanConover
 
 
-def is_consistent_correlation_matrix(matrix: npt.NDArray[np.float64]) -> bool:
+def is_consistent_correlation_matrix(matrix: npt.NDArray[Any]) -> bool:
     """
     Check if a matrix is a consistent correlation matrix.
 
@@ -65,9 +65,9 @@ def is_consistent_correlation_matrix(matrix: npt.NDArray[np.float64]) -> bool:
 
 
 def nearest_correlation_matrix(
-    matrix: npt.NDArray[np.float64],
+    matrix: npt.NDArray[Any],
     *,
-    weights: npt.NDArray[np.float64] | None = None,
+    weights: npt.NDArray[Any] | None = None,
     eps: float = 1e-6,
     verbose: bool = False,
 ) -> npt.NDArray[np.float64]:
@@ -844,7 +844,7 @@ class MonteCarloSensitivity:
         dist_params: Sequence[str],
         numreals: int,
         rng: np.random.RandomState,
-    ) -> npt.NDArray[np.float64] | list[str] | str:
+    ) -> npt.NDArray[Any] | list[str] | str:
         try:
             return design_dist.draw_values(
                 dist_name.lower(), dist_params, numreals, rng

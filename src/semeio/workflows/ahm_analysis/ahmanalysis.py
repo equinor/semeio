@@ -393,7 +393,7 @@ def calc_observationsgroup_misfit(
     obs_keys: str,
     df_update_log: pd.DataFrame,
     misfit_df: pd.DataFrame,
-) -> pd.Series[float] | float:
+) -> "pd.Series[float] | float":
     """To get the misfit for total observations (active/inactive)."""
 
     total_obs_nr = len(df_update_log[df_update_log.status.isin(["Active", "Inactive"])])

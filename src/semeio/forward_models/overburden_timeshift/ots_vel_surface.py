@@ -3,7 +3,6 @@ from typing import Any, Literal
 import numpy as np
 import numpy.typing as npt
 import segyio
-from numpy import float64
 from scipy.interpolate import CloughTocher2DInterpolator
 from segyio import TraceField
 
@@ -73,9 +72,7 @@ class OTSVelSurface:
 
     def _read_velocity(
         self, vcube: str, cell_corners: npt.NDArray[Any]
-    ) -> tuple[
-        npt.NDArray[float64], npt.NDArray[float64], npt.NDArray[Any], int, float
-    ]:
+    ) -> tuple[npt.NDArray[Any], npt.NDArray[Any], npt.NDArray[Any], int, float]:
         """
         Read velocity from segy file. Upscale.
         :param vcube:

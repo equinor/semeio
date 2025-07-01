@@ -17,7 +17,6 @@ from resdata.gravimetry import ResdataSubsidence
 from resdata.grid import Grid
 from resdata.resfile import Resdata3DKW, ResdataFile
 from scipy.interpolate import CloughTocher2DInterpolator
-from xtgeo.surface.regular_surface import RegularSurface
 
 from semeio._exceptions.exceptions import ConfigurationError
 from semeio.forward_models.overburden_timeshift import (
@@ -29,8 +28,6 @@ from semeio.forward_models.overburden_timeshift.ots_config import (
     ConstrainedList,
     Vintages,
 )
-
-Vintage = namedtuple("Vintages", "name date")
 
 
 def ots_load_params(input_file: str) -> OTSConfig:
@@ -47,7 +44,7 @@ def ots_load_params(input_file: str) -> OTSConfig:
 
 def write_surface(
     vintage_pairs: Iterable[ConstrainedList],
-    ts: Sequence[RegularSurface],
+    ts: Sequence[xtgeo.RegularSurface],
     output_dir: str,
     type_str: str,
     file_format: str = "irap_binary",
@@ -204,10 +201,12 @@ class OverburdenTimeshift:
 
         self._restart_views: dict[str, Any] = {}
 
-    def get_horizon(self) -> RegularSurface:
+    def get_horizon(self) -> xtgeo.RegularSurface:
         return self._create_surface()
 
-    def _create_surface(self, z: npt.NDArray[Any] | None = None) -> RegularSurface:
+    def _create_surface(
+        self, z: npt.NDArray[Any] | None = None
+    ) -> xtgeo.RegularSurface:
         """
         Generate irap surface
 
@@ -280,7 +279,7 @@ class OverburdenTimeshift:
 
     def geertsma_ts_rporv(
         self, vintage_pairs: Sequence[ConstrainedList]
-    ) -> tuple[Literal[0], list[Any]] | list[RegularSurface]:
+    ) -> tuple[Literal[0], list[Any]] | list[xtgeo.RegularSurface]:
         """
         Calculates TS without using velocity. Fast.
         Velocity is only used to get the surface on the velocity grid.
@@ -295,7 +294,7 @@ class OverburdenTimeshift:
 
     def geertsma_ts_simple(
         self, vintage_pairs: Sequence[ConstrainedList]
-    ) -> tuple[Literal[0], list[Any]] | list[RegularSurface]:
+    ) -> tuple[Literal[0], list[Any]] | list[xtgeo.RegularSurface]:
         """
         Calculates TS without using velocity. Fast.
         Velocity is only used to get the surface on the velocity grid.
@@ -311,7 +310,7 @@ class OverburdenTimeshift:
         vintage_pairs: Sequence[ConstrainedList],
         subsidence_func: Callable[..., float],
         method_name: str,
-    ) -> tuple[Literal[0], list[Any]] | list[RegularSurface]:
+    ) -> tuple[Literal[0], list[Any]] | list[xtgeo.RegularSurface]:
         """
         Calculates TS without using velocity. Fast.
 
@@ -326,7 +325,7 @@ class OverburdenTimeshift:
         surface = self._surface
         points_to_calculate = self._get_non_nan_points()
         surf_displacement = {}
-        ts_surfaces: list[RegularSurface] = []
+        ts_surfaces: list[xtgeo.RegularSurface] = []
         for vintage in vintages:
             logging.info(
                 f"{dt.now():%x %X} {method_name}: Calculating vintage {vintage.date:%Y.%m.%d}"
@@ -383,7 +382,7 @@ class OverburdenTimeshift:
 
     def geertsma_ts(
         self, vintage_pairs: Sequence[ConstrainedList]
-    ) -> tuple[Literal[0], list[Any]] | list[RegularSurface]:
+    ) -> tuple[Literal[0], list[Any]] | list[xtgeo.RegularSurface]:
         """
         Calculates TS using velocity. Slow.
 
@@ -396,7 +395,7 @@ class OverburdenTimeshift:
         surface = self._surface
         points_to_calculate = self._get_non_nan_points()
 
-        ts_surfaces: list[RegularSurface] = []
+        ts_surfaces: list[xtgeo.RegularSurface] = []
         _, nz = surface.z3d.shape
 
         for base, monitor in vintage_pairs:
@@ -457,7 +456,7 @@ class OverburdenTimeshift:
     @staticmethod
     def _vintages_name_date(
         vintage_pairs: Iterable[ConstrainedList],
-    ) -> list[Vintage]:
+    ) -> list[tuple[str, date]]:
         vintages: set[date] = set()
         for pair in vintage_pairs:
             vintages.add(pair[0])
@@ -467,6 +466,7 @@ class OverburdenTimeshift:
         for i in range(len(vintages_date)):
             vintages_name.append(f"S{i}")
 
+        Vintage = namedtuple("Vintages", "name date")
         return [
             Vintage(name, date)
             for name, date in zip(vintages_name, vintages_date, strict=False)
@@ -503,7 +503,7 @@ class OverburdenTimeshift:
 
     def dpv(
         self, vintage_pairs: Sequence[ConstrainedList]
-    ) -> tuple[Literal[0], list[None]] | list[RegularSurface]:
+    ) -> tuple[Literal[0], list[None]] | list[xtgeo.RegularSurface]:
         """
         Calculates change in pressure multiplied by cell volume
         and sum for all cells in column
@@ -524,7 +524,7 @@ class OverburdenTimeshift:
         surf = self._surface
         points_to_calculate = self._get_non_nan_points()
 
-        shift_surfaces: list[RegularSurface] = []
+        shift_surfaces: list[xtgeo.RegularSurface] = []
         pressure_volume = {}
 
         for vintage in vintages:

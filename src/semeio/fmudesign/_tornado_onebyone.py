@@ -5,10 +5,9 @@ from typing import Any
 
 import pandas as pd
 from deprecation import deprecated
-from pandas.core.frame import DataFrame
 
 
-def real_mask(dfr: pd.DataFrame, start: int, end: int) -> pd.Series[bool]:
+def real_mask(dfr: pd.DataFrame, start: int, end: int) -> "pd.Series[bool]":
     """Creates mask for which realisations to calc from"""
     return (start <= dfr.REAL) & (end >= dfr.REAL)
 
@@ -78,7 +77,7 @@ def calc_tornadoinput(
     scale: str = "percentage",
     cutbyref: bool = False,
     sortsens: bool = True,
-) -> tuple[DataFrame, Any]:
+) -> tuple[pd.DataFrame, Any]:
     """
      Calculates input values for a tornadoplot for one response
      and one design set up
