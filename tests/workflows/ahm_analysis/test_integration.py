@@ -231,6 +231,7 @@ def test_ahmanalysis_run_cli(snake_oil_config):
         [
             "ert",
             "workflow",
+            "--disable-monitoring",
             "ahmanalysis_wf",
             "snake_oil.ert",
             "--ensemble",
