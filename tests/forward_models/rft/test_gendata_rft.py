@@ -529,7 +529,7 @@ GEN_DATA OP_1_RFT_SIM1 INPUT_FORMAT:ASCII REPORT_STEPS:1 RESULT_FILE:RFT_OP_1_%d
     # pylint: disable=subprocess-run-check
     # (assert on the return code further down)
     result = subprocess.run(
-        ["ert", "ensemble_smoother", "--target-case", "default_%d", "config.ert"],
+        ["ert", "ensemble_smoother", "--target-ensemble", "default_%d", "config.ert"],
         capture_output=True,
         check=False,
     )
@@ -654,7 +654,7 @@ def test_ert_setup_one_well_two_points_different_time_and_depth(tmpdir):
     # pylint: disable=subprocess-run-check
     # (assert on the return code further down)
     result = subprocess.run(
-        ["ert", "ensemble_smoother", "--target-case", "default_%d", "config.ert"],
+        ["ert", "ensemble_smoother", "--target-ensemble", "default_%d", "config.ert"],
         capture_output=True,
         check=False,
     )
