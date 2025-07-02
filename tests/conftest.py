@@ -93,7 +93,9 @@ def _run_snake_oil(source_root, grid_prop):
                 print("NUM_REALIZATIONS 5", end="")
             else:
                 print(line, end="")
-        subprocess.call(["ert", "ensemble_experiment", "snake_oil.ert"])
+        subprocess.call(
+            ["ert", "ensemble_experiment", "--disable-monitoring", "snake_oil.ert"]
+        )
 
 
 @pytest.fixture

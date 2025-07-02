@@ -205,7 +205,9 @@ def test_ert_integration():
     with open(ert_config_fname, "w", encoding="utf-8") as file_h:
         file_h.write("\n".join(ert_config))
 
-    subprocess.run(["ert", "test_run", ert_config_fname], check=True)
+    subprocess.run(
+        ["ert", "test_run", "--disable-monitoring", ert_config_fname], check=True
+    )
 
     assert pd.read_csv("csv_output/data.csv").shape == (16, 5)
 
@@ -240,7 +242,9 @@ def test_ert_integration_errors(snapshot):
     with open(ert_config_fname, "w", encoding="utf-8") as file_h:
         file_h.write("\n".join(ert_config))
 
-    subprocess.run(["ert", "test_run", ert_config_fname], check=True)
+    subprocess.run(
+        ["ert", "test_run", "--disable-monitoring", ert_config_fname], check=True
+    )
 
     assert os.path.exists("data.csv")
     data = pd.read_csv("data.csv")
