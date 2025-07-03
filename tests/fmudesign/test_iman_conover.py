@@ -206,8 +206,78 @@ class TestImanConover:
         desired_corr = np.identity(2)
 
         transform = ImanConover(desired_corr)
-        with pytest.raises(ValueError):
+        with pytest.raises(
+            ValueError,
+            match="Input data has perfect rank correlations that conflict with target correlation structure.",
+        ):
             transform(X)
+
+    def test_perfect_correlation_target(self):
+        """Test that Iman-Conover can transform data to have perfect correlation."""
+        # Use Latin Hypercube sampling for well-distributed, uncorrelated data
+        sampler = sp.stats.qmc.LatinHypercube(d=2, seed=42, scramble=True)
+        X = sampler.random(n=1000)
+
+        # Target: perfect positive correlation
+        target_corr = np.array([[1, 1], [1, 1]])
+
+        ic = ImanConover(target_corr)
+        X_transformed = ic(X)
+
+        # Calculate achieved Spearman correlation
+        spearman_corr, _ = sp.stats.spearmanr(X_transformed[:, 0], X_transformed[:, 1])
+
+        # Should achieve perfect correlation
+        assert np.isclose(spearman_corr, 1.0, atol=0.01), (
+            f"Expected perfect correlation, got {spearman_corr}"
+        )
+
+        # Marginal distributions should be preserved
+        for k in range(X.shape[1]):
+            assert np.allclose(np.sort(X[:, k]), np.sort(X_transformed[:, k]))
+
+        # With perfect correlation, the ranks should be identical
+        ranks_col1 = sp.stats.rankdata(X_transformed[:, 0])
+        ranks_col2 = sp.stats.rankdata(X_transformed[:, 1])
+        assert np.allclose(ranks_col1, ranks_col2)
+
+    def test_rank_deficient_correlation_matrix(self):
+        """Test handling of rank-deficient correlation matrices."""
+        # Create a 3x3 rank-deficient matrix where X3 = X1 (perfect correlation)
+        target_corr = np.array([[1.0, 0.3, 1.0], [0.3, 1.0, 0.3], [1.0, 0.3, 1.0]])
+
+        # Verify it's actually rank-deficient
+        n_vars = target_corr.shape[0]
+        n_dependencies = 1  # X3 depends on X1
+        expected_rank = n_vars - n_dependencies
+        assert np.linalg.matrix_rank(target_corr) == expected_rank
+
+        sampler = sp.stats.qmc.LatinHypercube(d=3, seed=42, scramble=True)
+        X = sampler.random(n=1000)
+
+        ic = ImanConover(target_corr)
+        X_transformed = ic(X)
+        achieved_corr = sp.stats.spearmanr(X_transformed)[0]
+
+        # Should achieve near-perfect correlation between X1 and X3
+        assert np.isclose(achieved_corr[0, 2], 1.0, atol=0.01), (
+            f"Expected near-perfect correlation, got {achieved_corr[0, 2]:.6f}"
+        )
+
+        # Other correlations should be close to target
+        assert np.isclose(achieved_corr[0, 1], 0.3, atol=0.05), (
+            f"Expected ~0.3 correlation, got {achieved_corr[0, 1]:.6f}"
+        )
+
+        ranks_col1 = sp.stats.rankdata(X_transformed[:, 0])
+        ranks_col3 = sp.stats.rankdata(X_transformed[:, 2])
+        assert np.allclose(ranks_col1, ranks_col3), (
+            "Ranks should be identical for perfectly correlated columns"
+        )
+
+        # Marginal distributions should be preserved
+        for k in range(X.shape[1]):
+            assert np.allclose(np.sort(X[:, k]), np.sort(X_transformed[:, k]))
 
 
 if __name__ == "__main__":

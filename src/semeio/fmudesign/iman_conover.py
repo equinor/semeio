@@ -1,5 +1,5 @@
 """
-An implementation of the Iman-Conover transformation.
+An implementation of the Iman-Conover transformation using hybrid Cholesky/SVD.
 
 Using Iman-Conover with Latin Hybercube sampling
 ------------------------------------------------
@@ -41,16 +41,54 @@ def _is_positive_definite(X: npt.NDArray[Any]) -> bool:
         return False
 
 
+def _is_positive_semidefinite(X: npt.NDArray[np.float64], tol: float = 1e-12) -> bool:
+    """Check if matrix is positive semidefinite using eigenvalue decomposition."""
+    try:
+        eigenvals = np.linalg.eigvals(X)
+        return bool(np.all(eigenvals >= -tol))
+    except np.linalg.LinAlgError:
+        return False
+
+
+def _matrix_sqrt(
+    X: npt.NDArray[np.float64], tol: float = 1e-12
+) -> npt.NDArray[np.floating[Any]]:
+    """Compute matrix square root using Cholesky if possible, otherwise SVD."""
+    if _is_positive_definite(X):
+        # Use Cholesky for positive definite matrices (faster and more stable)
+        return np.linalg.cholesky(X)
+    else:
+        # Fall back to SVD for positive semidefinite matrices
+        U, s, _ = np.linalg.svd(X, hermitian=True)
+
+        # Threshold small eigenvalues for numerical stability
+        s_clipped = np.maximum(s, 0)
+        s_sqrt = np.sqrt(s_clipped)
+
+        # Keep all dimensions but zero out small eigenvalues
+        mask = s_clipped >= tol
+        s_sqrt[~mask] = 0
+
+        return U @ np.diag(s_sqrt)
+
+
 class ImanConover:
-    def __init__(self, correlation_matrix: npt.NDArray[Any]) -> None:
+    def __init__(
+        self, correlation_matrix: npt.NDArray[Any], eigenvalue_tol: float = 1e-12
+    ) -> None:
         """Create an Iman-Conover transform.
 
         Parameters
         ----------
         correlation_matrix : ndarray
-            Target correlation matrix of shape (K, K). The Iman-Conover will
-            try to induce a correlation on the data set X so that corr(X) is
-            as close to `correlation_matrix` as possible.
+            Target correlation matrix of shape (K, K).
+            The Iman-Conover will try to induce a correlation on
+            the data set X so that corr(X) is as close
+            to `correlation_matrix` as possible.
+            Can be positive definite or positive semidefinite.
+        eigenvalue_tol : float, optional
+            Tolerance for eigenvalue thresholding when using SVD.
+            Default is 1e-12.
 
         Notes
         -----
@@ -127,11 +165,14 @@ class ImanConover:
             raise ValueError("Correlation matrix must have 1.0 on diagonal.")
         if not np.allclose(correlation_matrix.T, correlation_matrix):
             raise ValueError("Correlation matrix must be symmetric.")
-        if not _is_positive_definite(correlation_matrix):
-            raise ValueError("Correlation matrix must be positive definite.")
+        if not _is_positive_semidefinite(correlation_matrix, eigenvalue_tol):
+            raise ValueError("Correlation matrix must be positive semidefinite.")
 
         self.C = correlation_matrix.copy()
-        self.P = np.linalg.cholesky(self.C)
+        self.eigenvalue_tol = eigenvalue_tol
+
+        # Use hybrid approach: Cholesky if possible, SVD otherwise
+        self.P = _matrix_sqrt(self.C, eigenvalue_tol)
 
     def __call__(self, X: npt.NDArray[Any]) -> npt.NDArray[Any]:
         """Transform an input matrix X.
@@ -156,13 +197,13 @@ class ImanConover:
         if not isinstance(X, np.ndarray):
             raise TypeError("Input argument `X` must be NumPy array.")
         if not X.ndim == 2:
-            raise ValueError("Correlation matrix must be square.")
+            raise ValueError("Input matrix must be 2D.")
 
         N, K = X.shape
 
         if self.P.shape[0] != K:
             msg = f"Shape of `X` ({X.shape}) does not match shape of "
-            msg += f"correlation matrix ({self.P.shape})"
+            msg += f"correlation matrix ({self.C.shape})"
             raise ValueError(msg)
 
         if N <= K:
@@ -173,23 +214,36 @@ class ImanConover:
         # approximately multivariate normal (but with correlations).
         # The new data has the same rank correlation as the original data.
         ranks = sp.stats.rankdata(X, axis=0) / (N + 1)
-        normal_scores = sp.stats.norm.ppf(ranks)  # + np.random.randn(N, K) * epsilon
+        normal_scores = sp.stats.norm.ppf(ranks)
 
         # STEP TWO - Remove correlations from the transformed data
         empirical_correlation = np.corrcoef(normal_scores, rowvar=False)
-        if not _is_positive_definite(empirical_correlation):
-            msg = "Rank data correlation not positive definite."
-            msg += "There are perfect correlations in the ranked data."
-            msg += "Supply more data (rows in X) or sample differently."
+        if not _is_positive_semidefinite(empirical_correlation, self.eigenvalue_tol):
+            msg = "Rank data correlation not positive semidefinite."
             raise ValueError(msg)
 
-        decorrelation_matrix = np.linalg.cholesky(empirical_correlation)
+        # Fail if input has perfect rank correlations that differ from target
+        # (impossible to change perfect correlations via permutation)
+        off_diagonal = empirical_correlation[~np.eye(K, dtype=bool)]
+        if np.any(
+            np.isclose(np.abs(off_diagonal), 1.0, rtol=1e-10)
+        ) and not np.allclose(empirical_correlation, self.C, rtol=1e-6, atol=1e-6):
+            msg = "Input data has perfect rank correlations that conflict with target correlation structure."
+            raise ValueError(msg)
 
-        # We exploit the fact that Q is lower-triangular and avoid the inverse.
-        # X = N @ inv(Q)^T  =>  X @ Q^T = N  =>  (Q @ X^T)^T = N
-        decorrelated_scores = sp.linalg.solve_triangular(
-            decorrelation_matrix, normal_scores.T, lower=True
-        ).T
+        # Use same hybrid approach for decorrelation
+        decorrelation_matrix = _matrix_sqrt(empirical_correlation, self.eigenvalue_tol)
+
+        if _is_positive_definite(empirical_correlation):
+            # Use efficient triangular solve for Cholesky case
+            # We exploit the fact that Q is lower-triangular and avoid the inverse.
+            # X = N @ inv(Q)^T  =>  X @ Q^T = N  =>  (Q @ X^T)^T = N
+            decorrelated_scores = sp.linalg.solve_triangular(
+                decorrelation_matrix, normal_scores.T, lower=True
+            ).T
+        else:
+            # Use pseudoinverse for SVD case
+            decorrelated_scores = normal_scores @ np.linalg.pinv(decorrelation_matrix).T
 
         # STEP THREE - Induce correlations in transformed space
         correlated_scores = decorrelated_scores @ self.P.T
