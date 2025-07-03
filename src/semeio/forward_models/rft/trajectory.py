@@ -92,9 +92,7 @@ class TrajectoryPoint:
                 return f"ZONEMAP_MISSING_VALUE {self!s} {self.grid_ijk[2]} {None}"
 
             return (
-                f"ZONE_MISMATCH {self!s} "
-                f"{self.grid_ijk[2]} "
-                f"{zonemap[self.grid_ijk[2]]}"
+                f"ZONE_MISMATCH {self!s} {self.grid_ijk[2]} {zonemap[self.grid_ijk[2]]}"
             )
         return None
 

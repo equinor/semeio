@@ -26,11 +26,14 @@ Induce correlations
 0.279652...
 """
 
+from typing import Any
+
 import numpy as np
+import numpy.typing as npt
 import scipy as sp
 
 
-def _is_positive_definite(X):
+def _is_positive_definite(X: npt.NDArray[Any]) -> bool:
     try:
         np.linalg.cholesky(X)
         return True
@@ -39,7 +42,7 @@ def _is_positive_definite(X):
 
 
 class ImanConover:
-    def __init__(self, correlation_matrix):
+    def __init__(self, correlation_matrix: npt.NDArray[Any]) -> None:
         """Create an Iman-Conover transform.
 
         Parameters
@@ -130,7 +133,7 @@ class ImanConover:
         self.C = correlation_matrix.copy()
         self.P = np.linalg.cholesky(self.C)
 
-    def __call__(self, X):
+    def __call__(self, X: npt.NDArray[Any]) -> npt.NDArray[Any]:
         """Transform an input matrix X.
 
         The output will have the same marginal distributions, but with
@@ -203,7 +206,7 @@ class ImanConover:
         return result
 
 
-def decorrelate(X, remove_variance=True):
+def decorrelate(X: npt.NDArray[Any], remove_variance: bool = True) -> npt.NDArray[Any]:
     """Removes correlations or covariance from data X.
 
     Examples

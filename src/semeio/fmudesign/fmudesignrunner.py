@@ -2,12 +2,13 @@
 
 import argparse
 import warnings
+from argparse import ArgumentParser
 from pathlib import Path
 
 from semeio.fmudesign import DesignMatrix, excel2dict_design
 
 
-def get_parser():
+def get_parser() -> ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Generate design matrix to be used with ert DESIGN2PARAMS",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -45,7 +46,7 @@ def get_parser():
     return parser
 
 
-def main():
+def main() -> None:
     """semeio.fmudesign is a command line utility for generating design matrices
 
     Wrapper for the the semeio.fmudesign module"""
