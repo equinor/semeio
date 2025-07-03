@@ -62,35 +62,43 @@ def is_consistent_correlation_matrix(matrix):
 
 
 def nearest_correlation_matrix(matrix, *, weights=None, eps=1e-6, verbose=False):
-    """Returns the correlation matrix nearest to `matrix`, weighted elementwise
-    by `weights`.
+    """Returns the positive definite correlation matrix nearest to `matrix`,
+    weighted elementwise by `weights`.
 
     Parameters
     ----------
     matrix : np.ndarray
-        The matrix that we want to find the nearest correlation matrix to.
-        A square 2-dimensional NumPy ndarray.
+        The matrix that we want to find the nearest positive definite
+        correlation matrix to. A square 2-dimensional NumPy ndarray.
     weights : np.ndarray or None, optional
         An elementwise weighting matrix. A square 2-dimensional NumPy ndarray
         that must have the same shape as `matrix`. The default is None.
     eps : float, optional
-        Tolerance for the optimization solver. The default is 1e-6.
+        Tolerance for the optimization solver and minimum eigenvalue threshold.
+        The result will have all eigenvalues > eps. The default is 1e-6.
     verbose : bool, optional
         Whether to print information from the solver. The default is False.
 
     Returns
     -------
     np.ndarray
-        The correlation matrix that is nearest to the input matrix.
+        The positive definite correlation matrix that is nearest to the input
+        matrix. All eigenvalues will be strictly positive.
 
     Notes
     -----
     This function implements equation (3) in the paper "An Augmented Lagrangian
     Dual Approach for the H-Weighted Nearest Correlation Matrix Problem" by
-    Houduo Qi and Defeng Sun.
+    Houduo Qi and Defeng Sun, with an additional constraint to ensure the
+    result is positive definite (not just positive semidefinite).
         http://www.personal.soton.ac.uk/hdqi/REPORTS/Cor_matrix_H.pdf
     Another useful link is:
         https://nhigham.com/2020/04/14/what-is-a-correlation-matrix/
+
+    The algorithm finds a matrix that is:
+    1. A valid correlation matrix (diagonal elements = 1)
+    2. Positive definite (all eigenvalues > eps)
+    3. Closest to the input matrix in weighted Frobenius norm
 
     Examples
     --------
@@ -123,15 +131,16 @@ def nearest_correlation_matrix(matrix, *, weights=None, eps=1e-6, verbose=False)
     if not (H.shape == G.shape):
         raise ValueError("Argument `weights` must have same shape as `matrix`.")
 
-    # To constrain Y to be Positive Symmetric Definite (PSD), you need to
+    # To constrain Y to be Positive Semidefinite (PSD), you need to
     # either set PSD=True here, or add the special constraint 'Y >> 0'. See:
     # https://www.cvxpy.org/tutorial/constraints/index.html#semidefinite-matrices
     X = cp.Variable(shape=G.shape, PSD=True)
 
     # Objective and constraints for minimizing the weighted frobenius norm.
-    # This is equation (3) in the paper. We set (X - eps * I) >> 0 as an extra
-    # constraint. Mathematically this is not needed, but numerically it helps
-    # by nudging the solution slightly more, so the minimum eigenvalue is > 0.
+    # This is equation (3) in the paper. We add (X - eps * I) >> 0 as an extra
+    # constraint to ensure the result is positive definite (all eigenvalues > eps).
+    # This constraint makes X - eps*I positive semidefinite, which means
+    # all eigenvalues of X are > eps, ensuring positive definiteness.
     objective = cp.norm(cp.multiply(H, X - G), "fro")
     eps_identity = (eps / G.shape[0]) * 10
     constraints = [cp.diag(X) == 1.0, (X - eps_identity * np.eye(G.shape[0])) >> 0]
@@ -144,9 +153,9 @@ def nearest_correlation_matrix(matrix, *, weights=None, eps=1e-6, verbose=False)
 
     # We might get small eigenvalues due to numerics. Attempt to fix this by
     # recursively calling the solver with smaller values of epsilon. This is
-    # an extra fail-safe that is very rarely triggered on actual data.
+    # an extra fail-safe that ensures we maintain positive definiteness.
     is_symmetric = np.allclose(X, X.T)
-    is_PD = np.linalg.eig(X)[0].min() > 0
+    is_PD = np.linalg.eig(X)[0].min() > 0  # Check for positive definiteness
     if not (is_symmetric and is_PD) and (eps > 1e-14):
         if verbose:
             print(f"Recursively calling solver with eps := {eps} / 10")
