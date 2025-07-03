@@ -3,15 +3,18 @@ distributions. For use in generation of design matrices
 """
 
 import re
+from collections.abc import Sequence
 from pathlib import Path
+from typing import Any
 
 import numpy as np
+import numpy.typing as npt
 import pandas as pd
 import scipy.stats
 from scipy.stats import qmc
 
 
-def _check_dist_params_normal(dist_params):
+def _check_dist_params_normal(dist_params: Sequence[str]) -> tuple[bool, str]:
     if len(dist_params) not in [2, 4]:
         status = False
         msg = (
@@ -39,7 +42,7 @@ def _check_dist_params_normal(dist_params):
     return status, msg
 
 
-def _check_dist_params_lognormal(dist_params):
+def _check_dist_params_lognormal(dist_params: Sequence[str]) -> tuple[bool, str]:
     if len(dist_params) != 2:
         status = False
         msg = (
@@ -59,7 +62,7 @@ def _check_dist_params_lognormal(dist_params):
     return status, msg
 
 
-def _check_dist_params_uniform(dist_params):
+def _check_dist_params_uniform(dist_params: Sequence[str]) -> tuple[bool, str]:
     if len(dist_params) != 2:
         status = False
         msg = (
@@ -79,7 +82,7 @@ def _check_dist_params_uniform(dist_params):
     return status, msg
 
 
-def _check_dist_params_triang(dist_params):
+def _check_dist_params_triang(dist_params: Sequence[str]) -> tuple[bool, str]:
     if len(dist_params) != 3:
         status = False
         msg = (
@@ -102,7 +105,7 @@ def _check_dist_params_triang(dist_params):
     return status, msg
 
 
-def _check_dist_params_pert(dist_params):
+def _check_dist_params_pert(dist_params: Sequence[str]) -> tuple[bool, str]:
     if len(dist_params) not in [3, 4]:
         status = False
         msg = (
@@ -125,7 +128,7 @@ def _check_dist_params_pert(dist_params):
     return status, msg
 
 
-def _check_dist_params_logunif(dist_params):
+def _check_dist_params_logunif(dist_params: Sequence[str]) -> tuple[bool, str]:
     if len(dist_params) != 2:
         status = False
         msg = (
@@ -147,7 +150,9 @@ def _check_dist_params_logunif(dist_params):
     return status, msg
 
 
-def generate_stratified_samples(numreals, rng):
+def generate_stratified_samples(
+    numreals: int, rng: np.random.RandomState
+) -> npt.NDArray[Any]:
     """Generate stratified samples in [0,1] by dividing the interval
     into equal-probability strata.
 
@@ -173,7 +178,12 @@ def generate_stratified_samples(numreals, rng):
     return samples.flatten()
 
 
-def draw_values_normal(dist_parameters, numreals, rng, normalscoresamples=None):
+def draw_values_normal(
+    dist_parameters: Sequence[str],
+    numreals: int,
+    rng: np.random.RandomState,
+    normalscoresamples: npt.NDArray[Any] | None = None,
+) -> npt.NDArray[Any]:
     status, msg = _check_dist_params_normal(dist_parameters)
 
     if not status:
@@ -212,7 +222,12 @@ def draw_values_normal(dist_parameters, numreals, rng, normalscoresamples=None):
     return values
 
 
-def draw_values_lognormal(dist_parameters, numreals, rng, normalscoresamples=None):
+def draw_values_lognormal(
+    dist_parameters: Sequence[str],
+    numreals: int,
+    rng: np.random.RandomState,
+    normalscoresamples: npt.NDArray[Any] | None = None,
+) -> npt.NDArray[Any]:
     """Draws values from lognormal distribution.
     Args:
         dist_parameters(list): [mu, sigma] for the logarithm of the variable
@@ -244,7 +259,12 @@ def draw_values_lognormal(dist_parameters, numreals, rng, normalscoresamples=Non
     return values
 
 
-def draw_values_uniform(dist_parameters, numreals, rng, normalscoresamples=None):
+def draw_values_uniform(
+    dist_parameters: Sequence[str],
+    numreals: int,
+    rng: np.random.RandomState,
+    normalscoresamples: npt.NDArray[Any] | None = None,
+) -> npt.NDArray[Any]:
     """Draws values from uniform distribution.
     Args:
         dist_parameters(list): [minimum, maximum]
@@ -277,7 +297,12 @@ def draw_values_uniform(dist_parameters, numreals, rng, normalscoresamples=None)
     return scipy.stats.uniform.ppf(uniform_samples, loc=low, scale=uscale)
 
 
-def draw_values_triangular(dist_parameters, numreals, rng, normalscoresamples=None):
+def draw_values_triangular(
+    dist_parameters: Sequence[str],
+    numreals: int,
+    rng: np.random.RandomState,
+    normalscoresamples: npt.NDArray[Any] | None = None,
+) -> npt.NDArray[Any]:
     """Draws values from triangular distribution.
     Args:
         dist_parameters(list): [min, mode, max]
@@ -326,7 +351,12 @@ def draw_values_triangular(dist_parameters, numreals, rng, normalscoresamples=No
     return values
 
 
-def draw_values_pert(dist_parameters, numreals, rng, normalscoresamples=None):
+def draw_values_pert(
+    dist_parameters: Sequence[str],
+    numreals: int,
+    rng: np.random.RandomState,
+    normalscoresamples: npt.NDArray[Any] | None = None,
+) -> npt.NDArray[Any]:
     """Draws values from pert distribution.
     Args:
         dist_parameters(list): [min, mode, max, scale]
@@ -382,7 +412,12 @@ def draw_values_pert(dist_parameters, numreals, rng, normalscoresamples=None):
     return values * (high - low) + low
 
 
-def draw_values_loguniform(dist_parameters, numreals, rng, normalscoresamples=None):
+def draw_values_loguniform(
+    dist_parameters: Sequence[str],
+    numreals: int,
+    rng: np.random.RandomState,
+    normalscoresamples: npt.NDArray[Any] | None = None,
+) -> npt.NDArray[Any]:
     """Draws values from loguniform distribution.
     Args:
         dist_parameters(list): [minimum, maximum]
@@ -410,7 +445,13 @@ def draw_values_loguniform(dist_parameters, numreals, rng, normalscoresamples=No
     return values
 
 
-def draw_values(distname, dist_parameters, numreals, rng, normalscoresamples=None):
+def draw_values(
+    distname: str,
+    dist_parameters: Sequence[str],
+    numreals: int,
+    rng: np.random.RandomState,
+    normalscoresamples: npt.NDArray[Any] | None = None,
+) -> npt.NDArray[Any] | list[str]:
     """
     Prepare scipy distributions with parameters
     Args:
@@ -449,7 +490,7 @@ def draw_values(distname, dist_parameters, numreals, rng, normalscoresamples=Non
                 "but const distribution cannot "
                 "be used with correlation. "
             )
-        values = [dist_parameters[0]] * numreals
+        values = np.array([[dist_parameters[0]] * numreals])
     elif distname[0:4].lower() == "disc":
         status, result = sample_discrete(
             dist_parameters, numreals, rng, normalscoresamples
@@ -463,7 +504,12 @@ def draw_values(distname, dist_parameters, numreals, rng, normalscoresamples=Non
     return values
 
 
-def sample_discrete(dist_params, numreals, rng, normalscoresamples=None):
+def sample_discrete(
+    dist_params: Sequence[str],
+    numreals: int,
+    rng: np.random.RandomState,
+    normalscoresamples: npt.NDArray[Any] | None = None,
+) -> tuple[bool, npt.NDArray[Any]]:
     status = True
     outcomes = re.split(",", dist_params[0])
     outcomes = [item.strip() for item in outcomes]
@@ -493,9 +539,7 @@ def sample_discrete(dist_params, numreals, rng, normalscoresamples=None):
     elif len(dist_params) == 1:  # uniform
         fractions = [1.0 / len(outcomes)] * len(outcomes)
     else:
-        status = False
-        values = "Wrong input for discrete distribution"
-        return status, values
+        raise ValueError("Wrong input for discrete distribution")
     # Handle correlation through normalscoresamples
     if normalscoresamples is not None:
         uniform_samples = scipy.stats.norm.cdf(normalscoresamples)
@@ -506,7 +550,7 @@ def sample_discrete(dist_params, numreals, rng, normalscoresamples=None):
     return status, values
 
 
-def is_number(teststring):
+def is_number(teststring: str) -> bool:
     """Test if a string can be parsed as a float"""
     try:
         return not np.isnan(float(teststring))

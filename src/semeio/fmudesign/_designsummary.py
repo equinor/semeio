@@ -9,7 +9,7 @@ def _get_sensitivity_type(senscase: str) -> str:
     return sensitivity_types.get(senscase.lower(), "scalar")
 
 
-def summarize_design(filename, sheetname="DesignSheet01"):
+def summarize_design(filename: str, sheetname: str = "DesignSheet01") -> pd.DataFrame:
     """
      Summarizes the design set up for one by one sensitivities
      specified in a design matrix on standard fmu format.

@@ -5,8 +5,10 @@ and DESIGN_KW in FMU/ERT.
 import contextlib
 import os
 from collections import OrderedDict
+from collections.abc import Hashable, Mapping, Sequence
 from datetime import datetime
 from pathlib import Path
+from typing import Any, TypeAlias, cast
 
 # CVXPY prints error messages about incompatible ortools version during import.
 # Since we use the SCS solver and not GLOP/PDLP (which need ortools), these errors
@@ -21,16 +23,17 @@ with (
     import cvxpy as cp
 
 import numpy as np
+import numpy.typing as npt
 import pandas as pd
 import scipy
 from scipy.stats import qmc
 
-import semeio.fmudesign
+import semeio
 from semeio.fmudesign import design_distributions as design_dist
 from semeio.fmudesign.iman_conover import ImanConover
 
 
-def is_consistent_correlation_matrix(matrix):
+def is_consistent_correlation_matrix(matrix: npt.NDArray[Any]) -> bool:
     """
     Check if a matrix is a consistent correlation matrix.
 
@@ -61,7 +64,13 @@ def is_consistent_correlation_matrix(matrix):
     return True
 
 
-def nearest_correlation_matrix(matrix, *, weights=None, eps=1e-6, verbose=False):
+def nearest_correlation_matrix(
+    matrix: npt.NDArray[Any],
+    *,
+    weights: npt.NDArray[Any] | None = None,
+    eps: float = 1e-6,
+    verbose: bool = False,
+) -> npt.NDArray[Any]:
     """Returns the correlation matrix nearest to `matrix`, weighted elementwise
     by `weights`.
 
@@ -140,19 +149,23 @@ def nearest_correlation_matrix(matrix, *, weights=None, eps=1e-6, verbose=False)
     # https://www.cvxpy.org/tutorial/solvers/index.html#setting-solver-options
     problem = cp.Problem(cp.Minimize(objective), constraints)
     problem.solve(solver="SCS", verbose=verbose, eps=eps)
-    X = X.value.copy()  # Copy over solution
+    # Copy over solution
+    X = X.value.copy()  # type: ignore[union-attr, assignment]
 
     # We might get small eigenvalues due to numerics. Attempt to fix this by
     # recursively calling the solver with smaller values of epsilon. This is
     # an extra fail-safe that is very rarely triggered on actual data.
-    is_symmetric = np.allclose(X, X.T)
-    is_PD = np.linalg.eig(X)[0].min() > 0
+    is_symmetric = np.allclose(X, X.T)  # type: ignore[arg-type]
+    is_PD = np.linalg.eig(X)[0].min() > 0  # type: ignore[call-overload]
     if not (is_symmetric and is_PD) and (eps > 1e-14):
         if verbose:
             print(f"Recursively calling solver with eps := {eps} / 10")
         return nearest_correlation_matrix(G, weights=H, eps=eps / 10, verbose=verbose)
 
-    return X
+    return X  # type: ignore[return-value]
+
+
+SensitivityType: TypeAlias = "SeedSensitivity | MonteCarloSensitivity | ScenarioSensitivity | ExternSensitivity | BackgroundSensitivity | SingleRealisationReference"
 
 
 class DesignMatrix:
@@ -169,7 +182,7 @@ class DesignMatrix:
             or they are read from a file.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Placeholders for:
         designvalues: dataframe with parameters that varies
@@ -177,12 +190,12 @@ class DesignMatrix:
         backgroundvalues: dataframe with background parameters
         seedvalues: list of seed values
         """
-        self.designvalues = pd.DataFrame(columns=["REAL"])
-        self.defaultvalues = OrderedDict()
-        self.backgroundvalues = None
-        self.seedvalues = None
+        self.designvalues: pd.DataFrame = pd.DataFrame(columns=["REAL"])
+        self.defaultvalues: OrderedDict[Hashable, Any] = OrderedDict()
+        self.backgroundvalues: pd.DataFrame | None = None
+        self.seedvalues: list[int] | None = None
 
-    def reset(self):
+    def reset(self) -> None:
         """Resets DesignMatrix to empty. Necessary iin case method generate
         is used several times for same instance of DesignMatrix"""
         self.designvalues = pd.DataFrame(columns=["REAL"])
@@ -190,7 +203,7 @@ class DesignMatrix:
         self.backgroundvalues = None
         self.seedvalues = None
 
-    def generate(self, inputdict):
+    def generate(self, inputdict: Mapping[str, Any]) -> None:
         """Generating design matrix from input dictionary in specific
         format. Adding default values and background values if existing.
         Looping through sensitivities and adding them to designvalues.
@@ -222,6 +235,8 @@ class DesignMatrix:
         # If background values used - read or generate
         if "background" in inputdict:
             self.add_background(inputdict["background"], max_reals, rng)
+
+        sensitivity: SensitivityType
 
         self.designvalues["SENSNAME"] = None
         self.designvalues["SENSCASE"] = None
@@ -309,8 +324,11 @@ class DesignMatrix:
         ]
 
     def to_xlsx(
-        self, filename, designsheet="DesignSheet01", defaultsheet="DefaultValues"
-    ):
+        self,
+        filename: str,
+        designsheet: str = "DesignSheet01",
+        defaultsheet: str = "DefaultValues",
+    ) -> None:
         """Writing design matrix to excel workfbook on standard fmu format
         to be used in FMU/ERT by DESIGN2PARAMS and DESIGN_KW
 
@@ -390,7 +408,10 @@ class DesignMatrix:
             )
 
     def add_background(
-        self, back_dict: OrderedDict, max_values: int, rng: np.random.RandomState
+        self,
+        back_dict: Mapping[str, Any] | None,
+        max_values: int,
+        rng: np.random.RandomState,
     ) -> None:
         """Adding background as specified in dictionary.
         Either from external file or from distributions in background
@@ -408,13 +429,18 @@ class DesignMatrix:
         elif "parameters" in back_dict:
             self._add_dist_background(back_dict, max_values, rng)
 
-    def background_to_excel(self, filename, backgroundsheet="Background"):
+    def background_to_excel(
+        self, filename: str, backgroundsheet: str = "Background"
+    ) -> None:
         """Writing background values to an Excel spreadsheet
 
         Args:
             filename (str): output filename (extension .xlsx)
             backgroundsheet (str): name of excel sheet
         """
+        if self.backgroundvalues is None:
+            raise ValueError("No background values available to write to Excel")
+
         # pylint: disable=abstract-class-instantiated
         xlsxwriter = pd.ExcelWriter(filename, engine="openpyxl")
         self.backgroundvalues.to_excel(
@@ -423,7 +449,10 @@ class DesignMatrix:
         xlsxwriter.close()
         print(f"Backgroundvalues written to {filename}")
 
-    def _add_sensitivity(self, sensitivity):
+    def _add_sensitivity(
+        self,
+        sensitivity: SensitivityType,
+    ) -> None:
         """Adding a sensitivity to the design
 
         Args:
@@ -432,7 +461,7 @@ class DesignMatrix:
         existing_values = self.designvalues.copy()
         self.designvalues = pd.concat([existing_values, sensitivity.sensvalues])
 
-    def _fill_with_background_values(self):
+    def _fill_with_background_values(self) -> None:
         """Substituting NaNs with background values if existing.
         background values not in design are added as separate columns
         """
@@ -466,7 +495,7 @@ class DesignMatrix:
             result_values = result_values.drop(["index"], axis=1)
             self.designvalues = result_values
 
-    def _fill_with_defaultvalues(self):
+    def _fill_with_defaultvalues(self) -> None:
         """Filling NaNs with default values"""
         for key in self.designvalues:
             if key in self.defaultvalues:
@@ -476,7 +505,7 @@ class DesignMatrix:
             elif key not in ["REAL", "SENSNAME", "SENSCASE", "RMS_SEED"]:
                 raise LookupError(f"No defaultvalues given for parameter {key} ")
 
-    def _fill_derived_params(self, depend_dict):
+    def _fill_derived_params(self, depend_dict: Mapping[str, Any]) -> None:
         for from_param in depend_dict:
             if from_param in self.designvalues:
                 for param in depend_dict[from_param]["to_params"]:
@@ -499,7 +528,7 @@ class DesignMatrix:
                         )
 
     def _add_dist_background(
-        self, back_dict: OrderedDict, numreal: int, rng: np.random.RandomState
+        self, back_dict: Mapping[str, Any], numreal: int, rng: np.random.RandomState
     ) -> None:
         """Drawing background values from distributions
         specified in dictionary
@@ -509,18 +538,21 @@ class DesignMatrix:
             numreal (int): Number of samples to generate
             rng (numpy.random.RandomState): Random number generator instance
         """
-        assert isinstance(
-            numreal, int
-        ), f"numreal must be an integer, got {type(numreal)} with value {numreal}"
+        assert isinstance(numreal, int), (
+            f"numreal must be an integer, got {type(numreal)} with value {numreal}"
+        )
         mc_background = MonteCarloSensitivity("background")
         mc_background.generate(
             range(numreal),
             back_dict["parameters"],
-            "None",
+            None,
             back_dict["correlations"],
             rng,
         )
         mc_backgroundvalues = mc_background.sensvalues
+        assert (
+            mc_backgroundvalues is not None
+        )  # Will always be a dataframe after generate is called
 
         # Rounding of background values as specified
         if "decimals" in back_dict:
@@ -535,7 +567,7 @@ class DesignMatrix:
                     raise ValueError("Cannot round a string parameter")
         self.backgroundvalues = mc_backgroundvalues.copy()
 
-    def _set_decimals(self, dict_decimals):
+    def _set_decimals(self, dict_decimals: Mapping[Hashable, float]) -> None:
         """Rounding to specified number of decimals
 
         Args:
@@ -568,16 +600,22 @@ class SeedSensitivity:
     """
 
     # pylint: disable=too-few-public-methods
-    def __init__(self, sensname):
+    def __init__(self, sensname: str) -> None:
         """Initiate method.
 
         Args:
             sensname (str): Name of sensitivity. Defines SENSNAME in design matrix.
         """
-        self.sensname = sensname
-        self.sensvalues = None
+        self.sensname: str = sensname
+        self.sensvalues: pd.DataFrame | None = None
 
-    def generate(self, realnums, seedname, seedvalues, parameters):
+    def generate(
+        self,
+        realnums: range,
+        seedname: str,
+        seedvalues: Sequence[int],
+        parameters: Mapping[str, Any] | None,
+    ) -> None:
         """Generates parameter values for a seed sensitivity
 
         Args:
@@ -587,9 +625,9 @@ class SeedSensitivity:
             parameters (OrderedDict): parameter names and
                 distributions or values.
         """
-        assert isinstance(
-            seedvalues, list
-        ), f"seedvalues must be a list, got {seedvalues}"
+        assert isinstance(seedvalues, list), (
+            f"seedvalues must be a list, got {seedvalues}"
+        )
 
         self.sensvalues = pd.DataFrame(index=realnums)
         self.sensvalues[seedname] = seedvalues[0 : len(realnums)]
@@ -627,16 +665,16 @@ class SingleRealisationReference:
     """
 
     # pylint: disable=too-few-public-methods
-    def __init__(self, sensname):
+    def __init__(self, sensname: str) -> None:
         """Initiate.
 
         Args:
             sensname (str): Name of sensitivity. Defines SENSNAME in design matrix.
         """
-        self.sensname = sensname
-        self.sensvalues = None
+        self.sensname: str = sensname
+        self.sensvalues: pd.DataFrame | None = None
 
-    def generate(self, realnums):
+    def generate(self, realnums: range) -> None:
         """Generates realisation number only
 
         Args:
@@ -664,16 +702,16 @@ class BackgroundSensitivity:
     """
 
     # pylint: disable=too-few-public-methods
-    def __init__(self, sensname):
+    def __init__(self, sensname: str) -> None:
         """Initiate
 
         Args:
             sensname (str): Name of sensitivity. Defines SENSNAME in design matrix.
         """
-        self.sensname = sensname
-        self.sensvalues = None
+        self.sensname: str = sensname
+        self.sensvalues: pd.DataFrame | None = None
 
-    def generate(self, realnums):
+    def generate(self, realnums: range) -> None:
         """Generates realisation number only
 
         Args:
@@ -707,18 +745,18 @@ class ScenarioSensitivity:
     """
 
     # pylint: disable=too-few-public-methods
-    def __init__(self, sensname):
+    def __init__(self, sensname: str) -> None:
         """
         Args:
             sensname (str): Name of sensitivity.
                 Equals SENSNAME in design matrix
         """
-        self.sensname = sensname
-        self.case1 = None
-        self.case2 = None
-        self.sensvalues = None
+        self.sensname: str = sensname
+        self.case1: ScenarioSensitivityCase | None = None
+        self.case2: ScenarioSensitivityCase | None = None
+        self.sensvalues: pd.DataFrame | None = None
 
-    def add_case(self, senscase):
+    def add_case(self, senscase: "ScenarioSensitivityCase") -> None:
         """
         Adds a ScenarioSensitivityCase instance
         to a ScenarioSensitivity object.
@@ -728,13 +766,21 @@ class ScenarioSensitivity:
                 Equals SENSCASE in design matrix.
         """
         if self.case1 is not None:  # Case 1 has been read, this is case2
-            if "REAL" in senscase.casevalues and "SENSCASE" in senscase.casevalues:
+            if (
+                senscase.casevalues is not None
+                and "REAL" in senscase.casevalues
+                and "SENSCASE" in senscase.casevalues
+            ):
                 self.case2 = senscase
                 senscase.casevalues["SENSNAME"] = self.sensname
                 self.sensvalues = pd.concat(
                     [self.sensvalues, senscase.casevalues], sort=True
                 )
-        elif "REAL" in senscase.casevalues and "SENSCASE" in senscase.casevalues:
+        elif (
+            senscase.casevalues is not None
+            and "REAL" in senscase.casevalues
+            and "SENSCASE" in senscase.casevalues
+        ):
             self.case1 = senscase
             self.sensvalues = senscase.casevalues.copy()
             self.sensvalues["SENSNAME"] = self.sensname
@@ -762,11 +808,16 @@ class ScenarioSensitivityCase:
     """
 
     # pylint: disable=too-few-public-methods
-    def __init__(self, casename):
-        self.casename = casename
-        self.casevalues = None
+    def __init__(self, casename: str) -> None:
+        self.casename: str = casename
+        self.casevalues: pd.DataFrame | None = None
 
-    def generate(self, realnums, parameters, seedvalues):
+    def generate(
+        self,
+        realnums: range,
+        parameters: dict[str, Any],
+        seedvalues: Sequence[int] | None,
+    ) -> None:
         """Generate casevalues for the ScenarioSensitivityCase
 
         Args:
@@ -776,9 +827,9 @@ class ScenarioSensitivityCase:
             seeds (str): default or None
         """
 
-        self.casevalues = pd.DataFrame(columns=parameters.keys(), index=realnums)
-        for key in parameters:
-            self.casevalues[key] = parameters[key]
+        self.casevalues = pd.DataFrame(columns=list(parameters.keys()), index=realnums)
+        for key, value in parameters.items():
+            self.casevalues[key] = value
         self.casevalues["REAL"] = realnums
         self.casevalues["SENSCASE"] = self.casename
 
@@ -802,13 +853,18 @@ class MonteCarloSensitivity:
     """
 
     # pylint: disable=too-few-public-methods
-    def __init__(self, sensname):
-        self.sensname = sensname
-        self.sensvalues = None
+    def __init__(self, sensname: str) -> None:
+        self.sensname: str = sensname
+        self.sensvalues: pd.DataFrame | None = None
 
     def _draw_uncorrelated_values(
-        self, param_name, dist_name, dist_params, numreals, rng
-    ):
+        self,
+        param_name: str,
+        dist_name: str,
+        dist_params: Sequence[str],
+        numreals: int,
+        rng: np.random.RandomState,
+    ) -> npt.NDArray[Any] | list[str] | str:
         try:
             return design_dist.draw_values(
                 dist_name.lower(), dist_params, numreals, rng
@@ -819,7 +875,14 @@ class MonteCarloSensitivity:
                 f"for parameter {param_name}: {error.args[0]}"
             ) from error
 
-    def generate(self, realnums, parameters, seedvalues, corrdict, rng):
+    def generate(
+        self,
+        realnums: range,
+        parameters: dict[str, Any],
+        seedvalues: Sequence[int] | None,
+        corrdict: Mapping[str, Any] | None,
+        rng: np.random.RandomState,
+    ) -> None:
         """Generates parameter values by drawing from defined distributions.
 
         Args:
@@ -831,7 +894,7 @@ class MonteCarloSensitivity:
                 - 'sheetnames': List of sheet names, where each sheet contains a correlation matrix
                 If None, parameters are treated as uncorrelated.
         """
-        self.sensvalues = pd.DataFrame(columns=parameters.keys(), index=realnums)
+        self.sensvalues = pd.DataFrame(columns=list(parameters.keys()), index=realnums)
         numreals = len(realnums)
 
         if corrdict is None:
@@ -851,6 +914,7 @@ class MonteCarloSensitivity:
             corr_groups = df_params.groupby("corr_sheet")
 
             for corr_group_name, corr_group in corr_groups:
+                corr_group_name = cast(str, corr_group_name)
                 if corr_group_name != "nocorr":
                     if len(corr_group) == 1:
                         _printwarning(corr_group_name)
@@ -948,11 +1012,17 @@ class ExternSensitivity:
     """
 
     # pylint: disable=too-few-public-methods
-    def __init__(self, sensname):
-        self.sensname = sensname
-        self.sensvalues = None
+    def __init__(self, sensname: str) -> None:
+        self.sensname: str = sensname
+        self.sensvalues: pd.DataFrame | None = None
 
-    def generate(self, realnums, filename, parameters, seedvalues):
+    def generate(
+        self,
+        realnums: range,
+        filename: str,
+        parameters: list[str],
+        seedvalues: Sequence[int] | None,
+    ) -> None:
         """Reads parameter values for a monte carlo sensitivity
         from file
 
@@ -986,7 +1056,7 @@ class ExternSensitivity:
 # Support functions used with several classes
 
 
-def _parameters_from_extern(filename):
+def _parameters_from_extern(filename: str) -> pd.DataFrame:
     """Read parameter values or background values
     from specified file. Format either Excel ('xlsx')
     or csv.
@@ -1009,7 +1079,7 @@ def _parameters_from_extern(filename):
     return parameters
 
 
-def _seeds_from_extern(filename, max_reals):
+def _seeds_from_extern(filename: str, max_reals: int) -> list[int]:
     """Read parameter values or background values
     from specified file. Format either Excel ('xlsx')
     or csv.
@@ -1045,7 +1115,7 @@ def _seeds_from_extern(filename, max_reals):
     return seed_numbers
 
 
-def _find_max_realisations(inputdict):
+def _find_max_realisations(inputdict: Mapping[str, Any]) -> int:
     """Finds the maximum number of realisations
     in a sensitivity case"""
     max_reals = inputdict["repeats"]
@@ -1056,7 +1126,7 @@ def _find_max_realisations(inputdict):
     return max_reals
 
 
-def _printwarning(corr_group_name):
+def _printwarning(corr_group_name: str) -> None:
     print(
         "#######################################################\n"
         "semeio.fmudesign Warning:                                     \n"

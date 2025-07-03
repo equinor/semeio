@@ -1,21 +1,27 @@
 """Module for calculating values for a tornadoplot"""
 
+from collections.abc import Iterable, Sequence
+from typing import cast
+
 import pandas as pd
-from deprecation import deprecated
+from pandas.core.frame import DataFrame
+from typing_extensions import deprecated
 
 
-def real_mask(dfr, start, end):
+def real_mask(dfr: pd.DataFrame, start: int, end: int) -> "pd.Series[bool]":
     """Creates mask for which realisations to calc from"""
     return (start <= dfr.REAL) & (end >= dfr.REAL)
 
 
-def check_selector(resultfile, selector):
+def check_selector(resultfile: pd.DataFrame, selector: str) -> None:
     """Checks whether selector is in resultfile headers"""
     if selector not in resultfile.columns:
         raise ValueError("Did not find ", selector, " as column in", "resultfile")
 
 
-def check_selection(resultfile, selector, selection):
+def check_selection(
+    resultfile: pd.DataFrame, selector: str, selection: Iterable[str]
+) -> None:
     """Checks whether selection is in resultfile values
     in the column selector"""
     for sel in selection:
@@ -28,13 +34,13 @@ def check_selection(resultfile, selector, selection):
         resultfile[selector].values.astype(str)
 
 
-def check_response(resultfile, response):
+def check_response(resultfile: pd.DataFrame, response: str) -> None:
     """Checks whether responses in in resultfile"""
     if response not in resultfile.columns:
         raise ValueError("Did not find ", response, " as column in", "resultfile")
 
 
-def cut_by_ref(tornadotable, refname):
+def cut_by_ref(tornadotable: pd.DataFrame, refname: str) -> pd.DataFrame:
     """Removes sensitivities smaller than reference sensitivity from table"""
     maskref = tornadotable.sensname == refname
     reflow = tornadotable[maskref].low.abs()
@@ -49,7 +55,7 @@ def cut_by_ref(tornadotable, refname):
     ]
 
 
-def sort_by_max(tornadotable):
+def sort_by_max(tornadotable: pd.DataFrame) -> pd.DataFrame:
     """Sorts table based on max(abs('low', 'high'))"""
     tornadotable["max"] = (
         tornadotable[["low", "high"]]
@@ -61,18 +67,18 @@ def sort_by_max(tornadotable):
     return df_sorted
 
 
-@deprecated(details="Use TornadoPlotterFMU from webviz instead")
+@deprecated("Use TornadoPlotterFMU from webviz instead")
 def calc_tornadoinput(
-    designsummary,
-    resultfile,
-    response,
-    selectors,
-    selection,
-    reference="rms_seed",
-    scale="percentage",
-    cutbyref=False,
-    sortsens=True,
-):
+    designsummary: pd.DataFrame,
+    resultfile: pd.DataFrame,
+    response: str,
+    selectors: Sequence[str],
+    selection: Iterable[Iterable[str]],
+    reference: str = "rms_seed",
+    scale: str = "percentage",
+    cutbyref: bool = False,
+    sortsens: bool = True,
+) -> tuple[DataFrame, float]:
     """
      Calculates input values for a tornadoplot for one response
      and one design set up
@@ -161,9 +167,11 @@ def calc_tornadoinput(
     # Calculate mean for reference
     if reference in designsummary["sensname"].values:
         startreal = int(
-            designsummary[designsummary["sensname"] == reference]["startreal1"]
+            designsummary[designsummary["sensname"] == reference]["startreal1"].iloc[0]
         )
-        endreal = int(designsummary[designsummary["sensname"] == reference]["endreal1"])
+        endreal = int(
+            designsummary[designsummary["sensname"] == reference]["endreal1"].iloc[0]
+        )
         mask = real_mask(dfr_summed, startreal, endreal)
         ref_avg = dfr_summed[mask][response].mean()
     elif reference.isdigit():
@@ -178,8 +186,8 @@ def calc_tornadoinput(
     # for each sensitivity calculate statistics
     for sensno in range(len(designsummary)):
         sensname = designsummary.loc[sensno]["sensname"]
-        startreal = designsummary.loc[sensno]["startreal1"]
-        endreal = designsummary.loc[sensno]["endreal1"]
+        startreal = cast(int, designsummary.loc[sensno]["startreal1"])
+        endreal = cast(int, designsummary.loc[sensno]["endreal1"])
         mask = real_mask(dfr_summed, startreal, endreal)
         numreal1 = len(dfr_summed.REAL[mask])
         if numreal1 > 0:
@@ -214,11 +222,11 @@ def calc_tornadoinput(
                 numreal1,
             ]
         elif designsummary.loc[sensno]["senstype"] == "scalar":
-            subset1name = designsummary.loc[sensno]["casename1"]
+            subset1name = designsummary.loc[sensno]["casename1"]  # type: ignore[assignment]
             # if case 2 exists
             if designsummary.loc[sensno]["casename2"] is not None:
-                startreal = designsummary.loc[sensno]["startreal2"]
-                endreal = designsummary.loc[sensno]["endreal2"]
+                startreal = designsummary.loc[sensno]["startreal2"]  # type: ignore[assignment]
+                endreal = designsummary.loc[sensno]["endreal2"]  # type: ignore[assignment]
                 mask = real_mask(dfr_summed, startreal, endreal)
                 numreal2 = len(dfr_summed.REAL[mask])
                 if numreal2 > 0:
@@ -229,7 +237,7 @@ def calc_tornadoinput(
                         "Warning: Number of ok realizations is 0 in"
                         f"sensitivity {sensname} case2"
                     )
-                subset2name = designsummary.loc[sensno]["casename2"]
+                subset2name = designsummary.loc[sensno]["casename2"]  # type: ignore[assignment]
             else:
                 avg2 = 0
                 numreal2 = 0
@@ -238,7 +246,7 @@ def calc_tornadoinput(
             if avg2 < avg1:
                 avg1, avg2 = avg2, avg1
                 numreal1, numreal2 = numreal2, numreal1
-                subset1name, subset2name = subset2name, subset1name
+                subset1name, subset2name = subset2name, subset1name  # type: ignore[assignment]
             tornadoinput.loc[sensno] = [
                 sensno,
                 sensname,
