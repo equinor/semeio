@@ -1,6 +1,7 @@
 import argparse
 import logging
 import sys
+from argparse import ArgumentParser
 
 from semeio import valid_file
 from semeio._docs_utils._json_schema_2_rst import _create_docs
@@ -28,7 +29,7 @@ description = (
 )
 
 
-def _get_args_parser():
+def _get_args_parser() -> ArgumentParser:
     parser = argparse.ArgumentParser(description=short_description)
 
     parser.add_argument(
@@ -51,7 +52,7 @@ def _get_args_parser():
     return parser
 
 
-def main_entry_point():
+def main_entry_point() -> None:
     parser = _get_args_parser()
     options = parser.parse_args()
     logger.setLevel(options.log_level)

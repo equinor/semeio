@@ -1,9 +1,13 @@
 import os
+from typing import Any, Self, TypeAlias
 
 import pandas as pd
-from resdata.rft import ResdataRFTCell
+from resdata.rft import ResdataRFT, ResdataRFTCell
 
 from semeio.forward_models.rft.utility import strip_comments
+from semeio.forward_models.rft.zonemap import ZoneMap
+
+IJKPoint: TypeAlias = tuple[int, int, int]
 
 
 class TrajectoryPoint:
@@ -26,20 +30,27 @@ class TrajectoryPoint:
         zone (str)
     """
 
-    def __init__(self, utm_x, utm_y, measured_depth, true_vertical_depth, zone=None):
-        self.utm_x = utm_x
-        self.utm_y = utm_y
-        self.measured_depth = measured_depth
-        self.true_vertical_depth = true_vertical_depth
-        self.zone = zone
-        self.grid_ijk = None  # tuple
-        self.pressure = None
-        self.swat = None
-        self.sgas = None
-        self.soil = None
-        self.valid_zone = False
+    def __init__(
+        self,
+        utm_x: float,
+        utm_y: float,
+        measured_depth: float,
+        true_vertical_depth: float,
+        zone: str | None = None,
+    ) -> None:
+        self.utm_x: float = utm_x
+        self.utm_y: float = utm_y
+        self.measured_depth: float = measured_depth
+        self.true_vertical_depth: float = true_vertical_depth
+        self.zone: str | None = zone
+        self.grid_ijk: IJKPoint | None = None  # tuple
+        self.pressure: float | None = None
+        self.swat: float | None = None
+        self.sgas: float | None = None
+        self.soil: float | None = None
+        self.valid_zone: bool = False
 
-    def set_ijk(self, point):
+    def set_ijk(self, point: IJKPoint | None) -> None:
         """Set the ijk-tuple for the point, relating the UTM-coordinates to
         ijk-coordinates in a specific Eclipse grid.
 
@@ -48,7 +59,7 @@ class TrajectoryPoint:
         """
         self.grid_ijk = point
 
-    def validate_zone(self, zonemap=None):
+    def validate_zone(self, zonemap: ZoneMap | None = None) -> None:
         """Update the internal valid_zone property determining if
         the point can be validated. If the point is not initialized
         to be in a specific zone and has a well-defined k-index, the
@@ -64,7 +75,7 @@ class TrajectoryPoint:
                 self.zone, self.grid_ijk[2]
             )
 
-    def is_active(self):
+    def is_active(self) -> bool:
         """Determines if the point is regarded as active, and thus usable
         in a history match setting - meaning there is a simulated pressure
         value available and the zone is valid"""
@@ -72,7 +83,7 @@ class TrajectoryPoint:
             self.grid_ijk is not None and self.pressure is not None and self.valid_zone
         )
 
-    def inactive_info(self, zonemap=None):
+    def inactive_info(self, zonemap: ZoneMap | None = None) -> str | None:
         """Provides a string explaining why a point is not active.
 
         Returns None for active points.
@@ -96,7 +107,7 @@ class TrajectoryPoint:
             )
         return None
 
-    def get_pressure(self):
+    def get_pressure(self) -> float | None:
         """Returns the simulated pressure for the point, or -1 if
         no simulated pressure is available
 
@@ -107,7 +118,7 @@ class TrajectoryPoint:
             return self.pressure
         return -1
 
-    def update_simdata_from_rft(self, rftfile):
+    def update_simdata_from_rft(self, rftfile: ResdataRFT) -> None:
         """Fetch simulated data from an Eclipse simulation by looking up
         binary RFT files. This requires the point to have the ijk-tuple
         set upfront.
@@ -134,7 +145,7 @@ class TrajectoryPoint:
                         # Two-phase Eclipse runs
                         self.soil = 1 - self.swat
 
-    def __str__(self):
+    def __str__(self) -> str:
         return (
             f"(utm_x={self.utm_x}, "
             f"utm_y={self.utm_y}, "
@@ -149,16 +160,18 @@ class Trajectory:
         points (list): List of lists with (textual) data for the trajectory.
     """
 
-    def __init__(self, points):
-        self.trajectory_points = [TrajectoryPoint(*point) for point in points]
+    def __init__(self, points: Any) -> None:  # noqa: ANN401
+        self.trajectory_points: list[TrajectoryPoint] = [
+            TrajectoryPoint(*point) for point in points
+        ]
 
-    def __getitem__(self, i):
+    def __getitem__(self, i: int) -> TrajectoryPoint:
         return self.trajectory_points[i]
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.trajectory_points)
 
-    def to_dataframe(self, zonemap=None):
+    def to_dataframe(self, zonemap: ZoneMap | None = None) -> pd.DataFrame:
         """Expose the trajectory data as a Pandas DataFrame.
 
         The data grid_ijk in self is a tuple, this is split into three distinct
@@ -202,7 +215,11 @@ class Trajectory:
         return dframe.dropna(how="all", axis="columns")
 
     @staticmethod
-    def split_tuple_column(dframe, tuplecolumn="grid_ijk", components=None):
+    def split_tuple_column(
+        dframe: pd.DataFrame,
+        tuplecolumn: str = "grid_ijk",
+        components: list[str] | None = None,
+    ) -> pd.DataFrame:
         """For a dataframe with a column containing a tuple
         datatype, split the tuple into the components [I, J, K] as new columns.
 
@@ -242,7 +259,7 @@ class Trajectory:
         )
 
     @staticmethod
-    def parse_trajectory_line(line):
+    def parse_trajectory_line(line: str) -> list[float | str | None]:
         """Reads a text line with four floating point values (utm_x, utm_y, md, and tvd)
         and an optional string being the zone name.
 
@@ -269,9 +286,9 @@ class Trajectory:
         return [*floats, zone]
 
     @classmethod
-    def load_from_file(cls, filepath):
+    def load_from_file(cls, filepath: str) -> Self:
         """Initialize a Trajectory from a text file describing a well path."""
-        trajectory_points = []
+        trajectory_points: list[Any] = []
 
         filename = os.path.join(filepath)
         if not os.path.isfile(filename):

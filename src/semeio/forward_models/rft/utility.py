@@ -8,11 +8,11 @@ from resdata.grid import Grid
 from resdata.rft import ResdataRFTFile
 
 
-def strip_comments(line):
+def strip_comments(line: str) -> str:
     return line.partition("--")[0].rstrip()
 
 
-def existing_directory(path):
+def existing_directory(path: str) -> str:
     if not os.path.isdir(path):
         raise argparse.ArgumentTypeError(
             f"The path {path} is not an existing directory"
@@ -112,7 +112,7 @@ def load_and_parse_well_time_file(
     return well_times
 
 
-def valid_eclbase(file_path):
+def valid_eclbase(file_path: str) -> tuple[Grid, ResdataRFTFile]:
     """
     The filename is assumed to be without extension and two files
     must be present, <filename>.RFT and <filename>.EGRID.

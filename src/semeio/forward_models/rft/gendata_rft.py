@@ -1,12 +1,21 @@
+import datetime
 import logging
 import os
+from collections.abc import Mapping, Sequence
 
 import pandas as pd
+from resdata.grid import Grid
+from resdata.rft import ResdataRFTFile
+
+from semeio.forward_models.rft.trajectory import TrajectoryPoint
+from semeio.forward_models.rft.zonemap import ZoneMap
 
 logger = logging.getLogger(__name__)
 
 
-def _write_gen_data_files(trajectory_df, directory, well, report_step):
+def _write_gen_data_files(
+    trajectory_df: pd.DataFrame, directory: str, well: str, report_step: int
+) -> None:
     """Generate three files with the information GEN_DATA needs
     from the trajectory dataframe.
 
@@ -38,7 +47,9 @@ def _write_gen_data_files(trajectory_df, directory, well, report_step):
         report_step (int): The RFT report step, used to construct filenames
     """
     data2fname = {"pressure": "", "swat": "SWAT_", "sgas": "SGAS_", "soil": "SOIL_"}
-    for dataname in {"pressure"}.union(set(trajectory_df).intersection(data2fname)):
+    for dataname in {"pressure"}.union(
+        set(trajectory_df.columns).intersection(data2fname)
+    ):
         _write_simdata(
             os.path.join(
                 directory,
@@ -57,7 +68,7 @@ def _write_gen_data_files(trajectory_df, directory, well, report_step):
     )
 
 
-def _write_simdata(fname, dataname, trajectory_df):
+def _write_simdata(fname: str, dataname: str, trajectory_df: pd.DataFrame) -> None:
     """Write pressure value, one pr line for all points, -1 is used where
     there is no pressure information.
     """
@@ -78,7 +89,7 @@ def _write_simdata(fname, dataname, trajectory_df):
     logger.info(f"Forward model script gendata_rft.py: Wrote file {fname}")
 
 
-def _write_active(fname, trajectory_df):
+def _write_active(fname: str, trajectory_df: pd.DataFrame) -> None:
     """Write a file with "1" pr row if a point is active, "0" if not"""
     with open(fname, "w+", encoding="utf-8") as file_handle:
         file_handle.write(
@@ -91,7 +102,7 @@ def _write_active(fname, trajectory_df):
         )
 
 
-def _write_inactive_info(fname, trajectory_df):
+def _write_inactive_info(fname: str, trajectory_df: pd.DataFrame) -> None:
     """Write a file with explanations to users for inactive points"""
     with open(fname, "w+", encoding="utf-8") as file_handle:
         if "inactive_info" not in trajectory_df:
@@ -108,8 +119,13 @@ def _write_inactive_info(fname, trajectory_df):
 
 
 def _populate_trajectory_points(
-    well, date, trajectory_points, ecl_grid, ecl_rft, zonemap=None
-):
+    well: str,
+    date: datetime.date,
+    trajectory_points: list[TrajectoryPoint],
+    ecl_grid: Grid,
+    ecl_rft: ResdataRFTFile,
+    zonemap: ZoneMap | None = None,
+) -> list[TrajectoryPoint]:
     """
     Populate a list of trajectory points, that only contain UTM coordinates
     for a well-path, with (i,j,k) indices corresponding to a given Eclipse grid,
@@ -152,15 +168,15 @@ def _populate_trajectory_points(
 
 
 def run(
-    well_times,
-    trajectories,
-    ecl_grid,
-    ecl_rft,
-    zonemap=None,
-    csvfile=None,
-    outputdirectory=".",
-):
-    dframes = []
+    well_times: Sequence[tuple[str, datetime.date, int]],
+    trajectories: Mapping[str, list[TrajectoryPoint]],
+    ecl_grid: Grid,
+    ecl_rft: ResdataRFTFile,
+    zonemap: ZoneMap | None = None,
+    csvfile: str | None = None,
+    outputdirectory: str = ".",
+) -> None:
+    dframes: list[pd.DataFrame] = []
 
     if not well_times:
         raise ValueError("No RFT data requested")
@@ -172,14 +188,23 @@ def run(
         )
 
         trajectory_points = _populate_trajectory_points(
-            well, time, trajectories[well], ecl_grid, ecl_rft, zonemap
+            well=well,
+            date=time,
+            trajectory_points=trajectories[well],
+            ecl_grid=ecl_grid,
+            ecl_rft=ecl_rft,
+            zonemap=zonemap,
         )
 
         if trajectory_points:
             # Aggregate the same data to a dataframe,
             # each trajectory tagged by well and time:
-            trajectory_df = trajectory_points.to_dataframe(zonemap=zonemap).assign(
-                well=well, time=time, report_step=report_step
+            trajectory_df = trajectory_points.to_dataframe(  # type: ignore[attr-defined]
+                zonemap=zonemap,
+            ).assign(
+                well=well,
+                time=time,
+                report_step=report_step,
             )
 
             # Write trajectory and associated data to ASCII files, one file pr.
@@ -192,7 +217,7 @@ def run(
             logger.error(f"No trajectory points for well {well} at date: {time} found")
 
     if csvfile is not None and dframes:
-        pd.concat(dframes, ignore_index=True, sort=False).to_csv(csvfile, index=None)
+        pd.concat(dframes, ignore_index=True, sort=False).to_csv(csvfile, index=False)
 
     if len(dframes) < len(well_times):
         raise ValueError("Failed to extract all requested RFT data")

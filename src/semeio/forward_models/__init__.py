@@ -13,7 +13,7 @@ from .scripts.design_kw import design_kw as DesignKWScript
 
 
 class Design2Params(ForwardModelStepPlugin):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="DESIGN2PARAMS",
             command=[
@@ -44,7 +44,7 @@ class Design2Params(ForwardModelStepPlugin):
 
 
 class DesignKW(ForwardModelStepPlugin):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="DESIGN_KW",
             command=[
@@ -86,7 +86,7 @@ from .scripts.gendata_rft import description as gendata_rft_description
 
 
 class GenDataRFT(ForwardModelStepPlugin):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="GENDATA_RFT",
             command=[
@@ -160,7 +160,7 @@ from .scripts.overburden_timeshift import description as ots_description
 
 
 class OTS(ForwardModelStepPlugin):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="OTS",
             command=["overburden_timeshift", "-c", "<CONFIG>"],
@@ -180,7 +180,7 @@ from .scripts.fm_pyscal import description as pyscal_description
 
 
 class Pyscal(ForwardModelStepPlugin):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="PYSCAL",
             command=[
@@ -223,7 +223,7 @@ class Pyscal(ForwardModelStepPlugin):
 
 
 class InsertNoSim(ForwardModelStepPlugin):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="INSERT_NOSIM",
             command=[
@@ -255,7 +255,7 @@ Inserts a NOSIM for every RUNSPEC occurrence in the file
 
 
 class RemoveNoSim(ForwardModelStepPlugin):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="REMOVE_NOSIM",
             command=["sed", "-i", "", "/^NOSIM/d", "<ECLBASE>.DATA"]
@@ -277,7 +277,7 @@ from .scripts.replace_string import description as replace_string_description
 
 
 class ReplaceString(ForwardModelStepPlugin):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="REPLACE_STRING",
             command=["replace_string", "-o", "<FROM>", "-n", "<TO>", "-f", "<FILE>"],
