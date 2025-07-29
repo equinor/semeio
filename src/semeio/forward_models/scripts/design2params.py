@@ -1,5 +1,6 @@
 import argparse
 import logging
+from argparse import ArgumentParser
 
 from semeio import valid_file
 from semeio._exceptions.exceptions import ValidationError
@@ -22,7 +23,7 @@ before you run DESIGN_KW.
 """
 
 
-def create_parser():
+def create_parser() -> ArgumentParser:
     parser = argparse.ArgumentParser(description=description)
 
     parser.add_argument(
@@ -70,7 +71,7 @@ def create_parser():
     return parser
 
 
-def main_entry_point():
+def main_entry_point() -> None:
     parser = create_parser()
     parsed_args = parser.parse_args()
     try:
