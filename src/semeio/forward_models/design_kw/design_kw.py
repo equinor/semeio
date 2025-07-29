@@ -1,7 +1,9 @@
 import logging
 import re
 import shlex
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping, Sequence
+from re import Match
+from typing import Any
 
 from ert import ForwardModelStepWarning
 
@@ -79,28 +81,28 @@ def find_matching_errors(
     return errors
 
 
-def is_perl(file_name, template):
+def is_perl(file_name: str, template: Sequence[str]) -> bool:
     return file_name.endswith(".pl") or template[0].find("perl") != -1
 
 
-def is_xml(file_name: str, template: list[str]) -> bool:
+def is_xml(file_name: str, template: Sequence[str]) -> bool:
     return file_name.endswith(".xml") or template[0].find("?xml") != -1
 
 
-def unmatched_templates(line):
+def unmatched_templates(line: str) -> list[str]:
     bracketpattern = re.compile("<.+?>")
     if bracketpattern.search(line):
         return bracketpattern.findall(line)
     return []
 
 
-def is_comment(line):
+def is_comment(line: str) -> Match[str] | None:
     ecl_comment_pattern = re.compile("^--")
     std_comment_pattern = re.compile("^#")
     return ecl_comment_pattern.search(line) or std_comment_pattern.search(line)
 
 
-def extract_key_value(parameters: list[str]) -> dict[str, str]:
+def extract_key_value(parameters: Iterable[str]) -> dict[str, Any]:
     """Parses a list of strings, looking for key-value pairs pr. line
     separated by whitespace, into a dictionary.
 
@@ -142,7 +144,9 @@ def extract_key_value(parameters: list[str]) -> dict[str, str]:
     return res
 
 
-def rm_genkw_prefix(paramsdict, ignoreprefixes="LOG10_"):
+def rm_genkw_prefix(
+    paramsdict: Mapping[str, Any], ignoreprefixes: str | Iterable[str] | None = "LOG10_"
+) -> dict[str, Any]:
     """Strip prefixes from keys in a dictionary.
 
     Prefix is any string before a colon. No colon means no prefix.

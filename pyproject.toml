@@ -135,7 +135,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"!*/semeio/fmudesign/**.py" = ["ANN"]
+"!*/semeio/{fmudesign,forward_models}/**.py" = ["ANN"]
 
 [tool.ruff.lint.pylint]
 max-args = 20
