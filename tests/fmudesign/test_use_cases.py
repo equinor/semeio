@@ -90,3 +90,60 @@ def test_prediction_rejection_sampled_ensemble(tmpdir, monkeypatch):
     # This is the most important bit in this test function, that the realization
     # list in the background xlsx is repeated for each sensitivity:
     assert all(design.designvalues["HMREAL"] == [31, 38, 54, 31, 38, 54])
+
+
+def test_constant_distribution(tmpdir, monkeypatch):
+    """Create a design matrix workbook with a single constant parameter 'a'."""
+    monkeypatch.chdir(tmpdir)
+
+    # General input configuration
+    general_input = pd.DataFrame(
+        data=[
+            ["designtype", "onebyone"],
+            ["repeats", 1],
+            ["rms_seeds", None],
+            ["distribution_seed", None],
+        ]
+    )
+
+    # Default values for parameters
+    defaultvalues = pd.DataFrame(
+        columns=["param_name", "default_value"],
+        data=[
+            ["a", 1.0],
+        ],
+    )
+
+    # Design input with single constant parameter
+    design_input = pd.DataFrame(
+        columns=[
+            "sensname",
+            "numreal",
+            "type",
+            "param_name",
+            "dist_name",
+            "dist_param1",
+        ],
+        data=[
+            ["montecarlo", 100, "dist", "a", "const", 1.0],
+        ],
+    )
+
+    # Create Excel workbook with all sheets
+    writer = pd.ExcelWriter("designinput.xlsx", engine="openpyxl")
+    general_input.to_excel(writer, sheet_name="general_input", index=False, header=None)
+    design_input.to_excel(writer, sheet_name="designinput", index=False)
+    defaultvalues.to_excel(writer, sheet_name="defaultvalues", index=False)
+    writer.close()
+
+    # Generate design matrix
+    dict_design = excel2dict_design("designinput.xlsx")
+    design = DesignMatrix()
+    design.generate(dict_design)
+
+    # Print results
+    print(f"Parameter 'a' values: {set(design.designvalues['a'])}")
+    print(f"Number of realizations: {len(design.designvalues)}")
+    print(f"Sensitivity name: {set(design.designvalues['SENSNAME'])}")
+
+    return design
