@@ -490,7 +490,7 @@ def draw_values(
                 "but const distribution cannot "
                 "be used with correlation. "
             )
-        values = np.array([[dist_parameters[0]] * numreals])
+        values = np.array([dist_parameters[0]] * numreals)
     elif distname[0:4].lower() == "disc":
         status, result = sample_discrete(
             dist_parameters, numreals, rng, normalscoresamples
