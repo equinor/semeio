@@ -4,6 +4,8 @@ import argparse
 import logging
 import os
 import sys
+from argparse import ArgumentParser
+from typing import Literal
 
 from pyscal import pyscalcli
 
@@ -30,7 +32,7 @@ MAGIC_CASES = {
 }
 
 
-def main_entry_point():
+def main_entry_point() -> None:
     """This mimics the pyscal command line client, but differs because
     all arguments are required (but can be defaulted using MAGIC_NONE)"""
     parser = _get_args_parser()
@@ -79,7 +81,7 @@ Run ``pyscal --help`` for syntax.
 """
 
 
-def _get_args_parser():
+def _get_args_parser() -> ArgumentParser:
     """Construct an argparse parser for fm_pyscal"""
 
     parser = argparse.ArgumentParser(description=description)
@@ -143,15 +145,15 @@ def _get_args_parser():
 
 
 def run(
-    relperm_parameters_file,
-    output_filename,
-    sheet_name,  # string, use 0 or __NONE__ when irrelevant or default
-    int_param_wo_name,  # string or __NONE__
-    int_param_go_name,  # string or __NONE__
-    slgof,  # sgof or slgof, default sgof
-    family,  # int: 1 or 2, default 1
-    parameters_file_name="parameters.txt",
-):
+    relperm_parameters_file: str,
+    output_filename: str,
+    sheet_name: str | None,  # string, use 0 or __NONE__ when irrelevant or default
+    int_param_wo_name: str,  # string or __NONE__
+    int_param_go_name: str,  # string or __NONE__
+    slgof: str,  # sgof or slgof, default sgof
+    family: Literal[1] | Literal[2],  # int: 1 or 2, default 1
+    parameters_file_name: str = "parameters.txt",
+) -> None:
     """This function is a wrapper around the Pyscal command
     line tool. The command line tool is designed around argparse
     and this function wraps around that design.
@@ -223,8 +225,10 @@ def run(
 
 
 def _get_interpolation_values(
-    int_param_wo_name, int_param_go_name, parameters_file_name="parameters.txt"
-):
+    int_param_wo_name: str,
+    int_param_go_name: str,
+    parameters_file_name: str = "parameters.txt",
+) -> tuple[float, float]:
     """
     Given parameter names, obtain values to interpolate through from parameters.txt
 

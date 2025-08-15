@@ -1,11 +1,15 @@
 import logging
 import os.path
 from collections import namedtuple
+from collections.abc import Callable, Iterable, Sequence
+from datetime import date
 from datetime import datetime as dt
 from itertools import product
 from pathlib import Path
+from typing import Any, Literal
 
 import numpy as np
+import numpy.typing as npt
 import xtgeo
 import yaml
 from pydantic import ValidationError
@@ -20,9 +24,12 @@ from semeio.forward_models.overburden_timeshift import (
     OTSResSurface,
     OTSVelSurface,
 )
+from semeio.forward_models.overburden_timeshift.ots_config import (
+    ConstrainedList,
+)
 
 
-def ots_load_params(input_file):
+def ots_load_params(input_file: str) -> OTSConfig:
     try:
         with open(input_file, encoding="utf-8") as fin:
             config = OTSConfig(**yaml.safe_load(fin))
@@ -34,7 +41,13 @@ def ots_load_params(input_file):
     return config
 
 
-def write_surface(vintage_pairs, ts, output_dir, type_str, file_format="irap_binary"):
+def write_surface(
+    vintage_pairs: Iterable[ConstrainedList],
+    ts: Sequence[xtgeo.RegularSurface],
+    output_dir: str,
+    type_str: str,
+    file_format: str = "irap_binary",
+) -> None:
     # If there is nothing to write we return early to avoid creating an empty folder
     if not vintage_pairs:
         return
@@ -47,7 +60,7 @@ def write_surface(vintage_pairs, ts, output_dir, type_str, file_format="irap_bin
         ts[iv].to_file(output_path / f"ots_{d0}_{d1}.irap", fformat=file_format)
 
 
-def ots_run(parameter_file):
+def ots_run(parameter_file: str) -> None:
     parms = ots_load_params(parameter_file)
     vintage_pairs = parms.vintages
 
@@ -142,16 +155,16 @@ def ots_run(parameter_file):
 class OverburdenTimeshift:
     def __init__(
         self,
-        eclbase,
-        mapaxes,
-        seabed,
-        youngs,
-        poisson,
-        rfactor,
-        convention,
-        above,
-        velocity_model,
-    ):
+        eclbase: str,
+        mapaxes: bool,
+        seabed: float,
+        youngs: float,
+        poisson: float,
+        rfactor: float,
+        convention: Literal[-1, 1],
+        above: float,
+        velocity_model: str | None,
+    ) -> None:
         """
         The OTS class manages the information required to calculate
         overburden timeshift.
@@ -162,29 +175,37 @@ class OverburdenTimeshift:
         a ResdataSubsidence object will be used to manage the rest of the
         overburden timeshift calculations.
         """
-        case = os.path.splitext(eclbase)[0]
-        self._init_file = ResdataFile(f"{case}.INIT")
-        self._rst_file = ResdataFile(f"{case}.UNRST")
-        self._grid = Grid(f"{case}.EGRID", apply_mapaxes=mapaxes)
+        case: str = os.path.splitext(eclbase)[0]
+        self._init_file: ResdataFile = ResdataFile(f"{case}.INIT")
+        self._rst_file: ResdataFile = ResdataFile(f"{case}.UNRST")
+        self._grid: Grid = Grid(f"{case}.EGRID", apply_mapaxes=mapaxes)
 
-        self.subsidence = ResdataSubsidence(self._grid, self._init_file)
+        self.subsidence: ResdataSubsidence = ResdataSubsidence(
+            self._grid, self._init_file
+        )
 
-        self._seabed = seabed
-        self._youngs_modulus = youngs * 1e9
-        self._poisson_ratio = poisson
-        self._r_factor = rfactor
-        self._convention = convention
+        self._seabed: float = seabed
+        self._youngs_modulus: float = youngs * 1e9
+        self._poisson_ratio: float = poisson
+        self._r_factor: float = rfactor
+        self._convention: Literal[-1, 1] = convention
 
-        self._surface = res_surface = OTSResSurface(grid=self._grid, above=above)
+        self._surface: OTSResSurface | OTSVelSurface = OTSResSurface(
+            grid=self._grid, above=above
+        )
         if velocity_model is not None:
-            self._surface = OTSVelSurface(res_surface=res_surface, vcube=velocity_model)
+            self._surface = OTSVelSurface(
+                res_surface=self._surface, vcube=velocity_model
+            )
 
-        self._restart_views = {}
+        self._restart_views: dict[str, Any] = {}
 
-    def get_horizon(self):
+    def get_horizon(self) -> xtgeo.RegularSurface:
         return self._create_surface()
 
-    def _create_surface(self, z=None):
+    def _create_surface(
+        self, z: npt.NDArray[Any] | None = None
+    ) -> xtgeo.RegularSurface:
         """
         Generate irap surface
 
@@ -233,7 +254,7 @@ class OverburdenTimeshift:
 
         return surf_geo
 
-    def add_survey(self, name, date):
+    def add_survey(self, name: str, date: date) -> Any:  # noqa: ANN401
         """The add_survey() method will register a survey at a specific date.
 
         The name argument should be a unique string, this will later
@@ -250,12 +271,14 @@ class OverburdenTimeshift:
         return restart_view
 
     @staticmethod
-    def _divide_negative_shift(ts, div_val=5.0):
+    def _divide_negative_shift(ts: npt.NDArray[Any], div_val: float = 5.0) -> None:
         for index, value in enumerate(ts):
             if value < 0:
                 ts[index] = value / div_val
 
-    def geertsma_ts_rporv(self, vintage_pairs):
+    def geertsma_ts_rporv(
+        self, vintage_pairs: Sequence[ConstrainedList]
+    ) -> list[xtgeo.RegularSurface]:
         """
         Calculates TS without using velocity. Fast.
         Velocity is only used to get the surface on the velocity grid.
@@ -268,7 +291,9 @@ class OverburdenTimeshift:
             vintage_pairs, self.subsidence.eval_geertsma_rporv, "TS_RPORV"
         )
 
-    def geertsma_ts_simple(self, vintage_pairs):
+    def geertsma_ts_simple(
+        self, vintage_pairs: Sequence[ConstrainedList]
+    ) -> list[xtgeo.RegularSurface]:
         """
         Calculates TS without using velocity. Fast.
         Velocity is only used to get the surface on the velocity grid.
@@ -279,7 +304,12 @@ class OverburdenTimeshift:
             vintage_pairs, self.subsidence.eval_geertsma, "TS_SIMPLE"
         )
 
-    def _geertsma_ts_custom(self, vintage_pairs, subsidence_func, method_name):
+    def _geertsma_ts_custom(
+        self,
+        vintage_pairs: Sequence[ConstrainedList],
+        subsidence_func: Callable[..., float],
+        method_name: str,
+    ) -> list[xtgeo.RegularSurface]:
         """
         Calculates TS without using velocity. Fast.
 
@@ -288,7 +318,7 @@ class OverburdenTimeshift:
         :param method_name: string representing the subsudence func name
         """
         if len(vintage_pairs) < 1:
-            return 0, []
+            raise ValueError("No vintage pairs provided")
 
         vintages = self._vintages_name_date(vintage_pairs)
         surface = self._surface
@@ -349,7 +379,9 @@ class OverburdenTimeshift:
 
         return ts_surfaces
 
-    def geertsma_ts(self, vintage_pairs):
+    def geertsma_ts(
+        self, vintage_pairs: Sequence[ConstrainedList]
+    ) -> list[xtgeo.RegularSurface]:
         """
         Calculates TS using velocity. Slow.
 
@@ -357,9 +389,10 @@ class OverburdenTimeshift:
         """
 
         if len(vintage_pairs) < 1:
-            return 0, []
+            raise ValueError("No vintage pairs provided")
 
         surface = self._surface
+        assert isinstance(surface, OTSVelSurface)
         points_to_calculate = self._get_non_nan_points()
 
         ts_surfaces = []
@@ -421,7 +454,7 @@ class OverburdenTimeshift:
         return ts_surfaces
 
     @staticmethod
-    def _vintages_name_date(vintage_pairs):
+    def _vintages_name_date(vintage_pairs: Sequence[ConstrainedList]) -> list[Any]:
         vintages = set()
         for pair in vintage_pairs:
             vintages.add(pair[0])
@@ -431,13 +464,15 @@ class OverburdenTimeshift:
         for i in range(len(vintages_date)):
             vintages_name.append(f"S{i}")
 
-        Vintage = namedtuple("Vintages", "name date")
+        Vintage = namedtuple("Vintage", "name date")
         return [
             Vintage(name, date)
             for name, date in zip(vintages_name, vintages_date, strict=False)
         ]
 
-    def _report(self, func_name, base, monitor, num_points_calculated):
+    def _report(
+        self, func_name: str, base: date, monitor: date, num_points_calculated: int
+    ) -> None:
         if self._convention == 1:
             start_date, end_date = monitor, base
         elif self._convention == -1:
@@ -449,7 +484,7 @@ class OverburdenTimeshift:
             f" {start_date:%Y.%m.%d}-{end_date:%Y.%m.%d} in {num_points_calculated} points"
         )
 
-    def _get_non_nan_points(self):
+    def _get_non_nan_points(self) -> list[int]:
         points_to_calculate = [
             _id
             for _id in range(len(self._surface))
@@ -464,7 +499,9 @@ class OverburdenTimeshift:
             )
         return points_to_calculate
 
-    def dpv(self, vintage_pairs):
+    def dpv(
+        self, vintage_pairs: Sequence[ConstrainedList]
+    ) -> list[xtgeo.RegularSurface]:
         """
         Calculates change in pressure multiplied by cell volume
         and sum for all cells in column
@@ -478,7 +515,7 @@ class OverburdenTimeshift:
         """
 
         if len(vintage_pairs) < 1:
-            return 0, []
+            raise ValueError("No vintage pairs provided")
 
         vintages = self._vintages_name_date(vintage_pairs)
 

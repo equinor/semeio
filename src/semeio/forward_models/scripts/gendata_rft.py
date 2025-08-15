@@ -2,6 +2,8 @@ import argparse
 import logging
 import os
 import sys
+from argparse import ArgumentParser
+from collections.abc import MutableMapping
 
 from semeio.forward_models.rft import gendata_rft
 from semeio.forward_models.rft.trajectory import Trajectory
@@ -47,7 +49,7 @@ https://equinor.github.io/fmu-tools/create_rft_ertobs.html
 """
 
 
-def _build_parser():
+def _build_parser() -> ArgumentParser:
     parser = argparse.ArgumentParser(description=description)
 
     parser.add_argument(
@@ -135,13 +137,13 @@ a specific pressure point is valid
     return parser
 
 
-def main_entry_point():
+def main_entry_point() -> None:
     arg_parser = _build_parser()
     options = arg_parser.parse_args()
     logger.setLevel(options.log_level)
 
     context_errors = []
-    trajectories = {}
+    trajectories: MutableMapping[str, Trajectory] = {}
     for well_name, *_ in options.well_and_time_file:
         try:
             trajectories[well_name] = Trajectory.load_from_file(
@@ -158,7 +160,7 @@ def main_entry_point():
     try:
         gendata_rft.run(
             well_times=options.well_and_time_file,
-            trajectories=trajectories,
+            trajectories=trajectories,  # type: ignore[arg-type]
             ecl_grid=options.eclbase[0],
             ecl_rft=options.eclbase[1],
             zonemap=options.zonemap,
