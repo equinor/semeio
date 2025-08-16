@@ -168,18 +168,18 @@ def _find_onebyone_input_sheet(input_filename: str) -> str:
 
 def _check_designinput(dsgn_input: pd.DataFrame) -> None:
     """Checks for valid input in designinput sheet"""
+    # Filter out rows where sensname has no value
+    valid_sensnames = dsgn_input["sensname"].dropna()
+    duplicated_mask = valid_sensnames.duplicated()
 
-    # Check for duplicate sensnames
-    sensitivity_names = []
-    for row in dsgn_input.itertuples():
-        if _has_value(row.sensname):
-            if row.sensname in sensitivity_names:
-                raise ValueError(
-                    f"sensname '{row.sensname}' was found on more than one row in designinput "
-                    "sheet. Two sensitivities can not share the same sensname. "
-                    "Please correct this and rerun"
-                )
-            sensitivity_names.append(row.sensname)
+    if duplicated_mask.any():
+        # Find the first duplicate to include in error message
+        duplicate_name = valid_sensnames[duplicated_mask].iloc[0]
+        raise ValueError(
+            f"sensname '{duplicate_name}' was found on more than one row in designinput "
+            "sheet. Two sensitivities can not share the same sensname. "
+            "Please correct this and rerun"
+        )
 
 
 def _check_for_mixed_sensitivities(sens_name: str, sens_group: pd.DataFrame) -> None:

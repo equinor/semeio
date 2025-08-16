@@ -87,6 +87,9 @@ def test_duplicate_sensname_exception(tmpdir, monkeypatch):
             ["sensname", "numreal", "type", "param_name"],
             ["rms_seed", "", "seed"],
             ["rms_seed", "", "seed"],
+            [np.nan, "", "seed"],  # NaN sensname - should be ignored
+            ["", "", "seed"],  # Empty string - should be ignored
+            ["valid_name", "", "seed"],  # Valid unique name
         ]
     )
     monkeypatch.chdir(tmpdir)
