@@ -214,20 +214,20 @@ def _excel2dict_onebyone(
     seedname = "RMS_SEED"
     inputdict: OrderedDict[str, Any] = OrderedDict()
 
-    if not sheetnames or "general_input" not in sheetnames:
-        gen_input_sheet = _find_geninput_sheetname(input_filename)
-    else:
+    if sheetnames and "general_input" in sheetnames:
         gen_input_sheet = sheetnames["general_input"]
-
-    if not sheetnames or "designinput" not in sheetnames:
-        design_inp_sheet = _find_onebyone_input_sheet(input_filename)
     else:
+        gen_input_sheet = _find_geninput_sheetname(input_filename)
+
+    if sheetnames and "designinput" in sheetnames:
         design_inp_sheet = sheetnames["designinput"]
-
-    if not sheetnames or "defaultvalues" not in sheetnames:
-        default_val_sheet = _find_onebyone_defaults_sheet(input_filename)
     else:
+        design_inp_sheet = _find_onebyone_input_sheet(input_filename)
+
+    if sheetnames and "defaultvalues" in sheetnames:
         default_val_sheet = sheetnames["defaultvalues"]
+    else:
+        default_val_sheet = _find_onebyone_defaults_sheet(input_filename)
 
     # Read general input
     generalinput = pd.read_excel(
