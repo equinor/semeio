@@ -12,6 +12,7 @@ from scipy import stats
 
 import semeio
 from semeio.fmudesign import DesignMatrix, excel2dict_design
+from semeio.fmudesign._excel2dict import _read_defaultvalues
 from semeio.fmudesign.create_design import nearest_correlation_matrix
 
 TESTDATA = Path(__file__).parent / "data"
@@ -425,6 +426,34 @@ class TestNearestCorrelationMatrix:
 
         # Matlab output has 4 digits, so atol is set to 1e-4 here
         assert np.allclose(Y, matlab_Y, atol=1e-4)
+
+
+def test_read_defaultvalues_duplicate_error(tmpdir, monkeypatch):
+    """Test that read_defaultvalues raises ValueError for duplicate parameter names."""
+    monkeypatch.chdir(tmpdir)
+
+    # Create a simple Excel file with duplicate parameter names in defaultvalues
+    defaultvalues = pd.DataFrame(
+        columns=["param_name", "default_value"],
+        data=[
+            ["a", 1.0],
+            ["b", 2.0],
+            [" a", 3.0],  # Should be treated as duplicate of "a" after stripping
+            ["c", 4.0],
+            ["c  ", 5.0],  # Should be treated as duplicate of "c" after stripping
+        ],
+    )
+
+    defaultvalues.to_excel(
+        "test_defaults.xlsx", sheet_name="defaultvalues", index=False
+    )
+
+    # Test that ValueError is raised with the exact expected message
+    with pytest.raises(
+        ValueError,
+        match=r"Duplicate parameter names found in sheet 'defaultvalues': a, c\. All parameter names must be unique\.",
+    ):
+        _read_defaultvalues("test_defaults.xlsx", "defaultvalues")
 
 
 if __name__ == "__main__":
