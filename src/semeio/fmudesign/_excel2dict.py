@@ -382,34 +382,31 @@ def _read_defaultvalues(filename: str, sheetname: str) -> OrderedDict[str, Any]:
     Returns:
         OrderedDict with defaultvalues (parameter, value)
     """
-    default_dict: OrderedDict[str, Any] = OrderedDict()
     default_df = pd.read_excel(
         filename, sheetname, header=0, index_col=0, engine="openpyxl"
     )
+
     default_df.dropna(axis=0, how="all", inplace=True)
     default_df = default_df.loc[
         :, ~default_df.columns.astype(str).str.contains("^Unnamed")
     ]
 
-    # Strip spaces before and after parameter names, if they are there
-    # it is probably invisible user errors in Excel.
+    if default_df.empty:
+        return OrderedDict()
 
-    default_df.index = pd.Index(
-        [
-            paramname.strip() if isinstance(paramname, str) else paramname
-            for paramname in default_df.index
-        ]
-    )
-    for row in default_df.itertuples():
-        if str(row[0]) in default_dict:
-            print(
-                f"WARNING: The default value '{row[0]}' "
-                f"is listed twice in the sheet '{sheetname}'. "
-                "Only the first entry will be used in output file"
-            )
-        else:
-            default_dict[str(row[0])] = row[1]
-    return default_dict
+    # Strip leading/trailing spaces from parameter names such that
+    # for example "  PARAM" and "PARAM" are treated as duplicates.
+    default_df.index = default_df.index.str.strip()
+
+    # Check for duplicates and raise error if found
+    duplicates = default_df.index.duplicated(keep=False)
+    if duplicates.any():
+        duplicate_names = default_df.index[duplicates].unique()
+        raise ValueError(
+            f"Duplicate parameter names found in sheet '{sheetname}': "
+            f"{', '.join(duplicate_names)}. All parameter names must be unique."
+        )
+    return OrderedDict(default_df.iloc[:, 0].to_dict())
 
 
 def _read_dependencies(
