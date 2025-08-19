@@ -304,23 +304,23 @@ def _excel2dict_onebyone(
             if _has_value(row.dependencies):
                 inputdict["dependencies"][row.param_name] = _read_dependencies(
                     input_filename,
-                    row.dependencies,  # type: ignore[arg-type]
-                    row.param_name,  # type: ignore[arg-type]
+                    row.dependencies,
+                    row.param_name,
                 )
 
     # Read decimals
     if "decimals" in designinput:
         inputdict["decimals"] = OrderedDict()
         for row in designinput.itertuples():
-            if _has_value(row.decimals) and _is_int(row.decimals):  # type: ignore[arg-type]
-                inputdict["decimals"][row.param_name] = int(row.decimals)  # type: ignore[arg-type]
+            if _has_value(row.decimals) and _is_int(row.decimals):
+                inputdict["decimals"][row.param_name] = int(row.decimals)
 
     grouped = designinput.groupby("sensname", sort=False)
 
     # Read each sensitivity
     for sensname, group in grouped:
         _check_for_mixed_sensitivities(
-            sensname,  # type: ignore[arg-type]
+            sensname,
             group,
         )
 
