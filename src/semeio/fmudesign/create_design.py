@@ -222,7 +222,7 @@ class DesignMatrix:
 
         self.reset()  # Emptying if regenerating matrix
 
-        rng = np.random.RandomState(seed=inputdict.get("distribution_seed"))
+        rng = np.random.default_rng(seed=inputdict.get("distribution_seed"))
 
         self.defaultvalues = inputdict["defaultvalues"]
 
@@ -411,7 +411,7 @@ class DesignMatrix:
         self,
         back_dict: Mapping[str, Any] | None,
         max_values: int,
-        rng: np.random.RandomState,
+        rng: np.random.Generator,
     ) -> None:
         """Adding background as specified in dictionary.
         Either from external file or from distributions in background
@@ -420,7 +420,7 @@ class DesignMatrix:
         Args:
             back_dict (OrderedDict): how to generate background values
             max_values (int): number of background values to generate
-            rng (numpy.random.RandomState): Random number generator instance
+            rng (numpy.random.Generator): Random number generator instance
         """
         if back_dict is None:
             self.backgroundvalues = None
@@ -528,7 +528,7 @@ class DesignMatrix:
                         )
 
     def _add_dist_background(
-        self, back_dict: Mapping[str, Any], numreal: int, rng: np.random.RandomState
+        self, back_dict: Mapping[str, Any], numreal: int, rng: np.random.Generator
     ) -> None:
         """Drawing background values from distributions
         specified in dictionary
@@ -536,7 +536,7 @@ class DesignMatrix:
         Args:
             back_dict (OrderedDict): parameters and distributions
             numreal (int): Number of samples to generate
-            rng (numpy.random.RandomState): Random number generator instance
+            rng (numpy.random.Generator): Random number generator instance
         """
         assert isinstance(numreal, int), (
             f"numreal must be an integer, got {type(numreal)} with value {numreal}"
@@ -863,7 +863,7 @@ class MonteCarloSensitivity:
         dist_name: str,
         dist_params: Sequence[str],
         numreals: int,
-        rng: np.random.RandomState,
+        rng: np.random.Generator,
     ) -> npt.NDArray[Any] | list[str] | str:
         try:
             return design_dist.draw_values(
@@ -881,7 +881,7 @@ class MonteCarloSensitivity:
         parameters: dict[str, Any],
         seedvalues: Sequence[int] | None,
         corrdict: Mapping[str, Any] | None,
-        rng: np.random.RandomState,
+        rng: np.random.Generator,
     ) -> None:
         """Generates parameter values by drawing from defined distributions.
 
@@ -952,7 +952,7 @@ class MonteCarloSensitivity:
                         print()
 
                     sampler = qmc.LatinHypercube(
-                        d=len(multivariate_parameters), seed=rng
+                        d=len(multivariate_parameters), rng=rng
                     )
                     lhs_samples = sampler.random(n=numreals)
 

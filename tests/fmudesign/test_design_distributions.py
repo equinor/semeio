@@ -118,7 +118,7 @@ def test_check_dist_params_logunif():
 
 
 def test_draw_values_normal():
-    rng = np.random.RandomState()
+    rng = np.random.default_rng()
     values = dists.draw_values_normal([0, 1], 10, rng)
     assert len(values) == 10
     assert all(isinstance(value, numbers.Number) for value in values)
@@ -157,7 +157,7 @@ def test_draw_values_normal():
 
 
 def test_draw_values_uniform():
-    rng = np.random.RandomState()
+    rng = np.random.default_rng()
 
     values = dists.draw_values_uniform([10, 100], 0, rng)
     assert len(values) == 0
@@ -188,7 +188,7 @@ def test_draw_values_uniform():
 
 
 def test_draw_values_triangular():
-    rng = np.random.RandomState()
+    rng = np.random.default_rng()
 
     assert not dists.draw_values_triangular([10, 100, 1000], 0, rng).size
     with pytest.raises(ValueError):
@@ -223,7 +223,7 @@ def test_draw_values_pert(seed):
 
 
 def test_draw_values_loguniform():
-    rng = np.random.RandomState()
+    rng = np.random.default_rng()
 
     assert not dists.draw_values_uniform([10, 100], 0, rng).size
 
@@ -234,7 +234,7 @@ def test_draw_values_loguniform():
 
 
 def test_sample_discrete():
-    rng = np.random.RandomState()
+    rng = np.random.default_rng()
     outcomes = ["foo", "bar.com"]
     # Test basic functionality
     values = dists.sample_discrete([",".join(outcomes)], 10, rng)[1]
@@ -259,7 +259,7 @@ def test_sample_discrete():
 
 def test_draw_values():
     """Test the wrapper function for drawing values"""
-    rng = np.random.RandomState()
+    rng = np.random.default_rng()
 
     values = dists.draw_values("unif", [0, 1], 10, rng)
     assert len(values) == 10

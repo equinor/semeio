@@ -151,7 +151,7 @@ def _check_dist_params_logunif(dist_params: Sequence[str]) -> tuple[bool, str]:
 
 
 def generate_stratified_samples(
-    numreals: int, rng: np.random.RandomState
+    numreals: int, rng: np.random.Generator
 ) -> npt.NDArray[Any]:
     """Generate stratified samples in [0,1] by dividing the interval
     into equal-probability strata.
@@ -162,7 +162,7 @@ def generate_stratified_samples(
 
     Parameters:
         numreals: int, number of samples to generate
-        rng: numpy.random.RandomState, random number generator instance
+        rng: numpy.random.Generator, random number generator instance
 
     Returns:
         numpy.ndarray: Array of stratified samples in [0,1]
@@ -173,7 +173,7 @@ def generate_stratified_samples(
     if numreals == 0:
         return np.array([])
 
-    sampler = qmc.LatinHypercube(d=1, seed=rng)
+    sampler = qmc.LatinHypercube(d=1, rng=rng)
     samples = sampler.random(n=numreals)
     return samples.flatten()
 
@@ -181,7 +181,7 @@ def generate_stratified_samples(
 def draw_values_normal(
     dist_parameters: Sequence[str],
     numreals: int,
-    rng: np.random.RandomState,
+    rng: np.random.Generator,
     normalscoresamples: npt.NDArray[Any] | None = None,
 ) -> npt.NDArray[Any]:
     status, msg = _check_dist_params_normal(dist_parameters)
@@ -225,14 +225,14 @@ def draw_values_normal(
 def draw_values_lognormal(
     dist_parameters: Sequence[str],
     numreals: int,
-    rng: np.random.RandomState,
+    rng: np.random.Generator,
     normalscoresamples: npt.NDArray[Any] | None = None,
 ) -> npt.NDArray[Any]:
     """Draws values from lognormal distribution.
     Args:
         dist_parameters(list): [mu, sigma] for the logarithm of the variable
         numreals(int): number of realisations to draw
-        rng: numpy.random.RandomState instance
+        rng: numpy.random.Generator instance
         normalscoresamples(list): samples for correlated parameters
     Returns:
         list of values
@@ -262,14 +262,14 @@ def draw_values_lognormal(
 def draw_values_uniform(
     dist_parameters: Sequence[str],
     numreals: int,
-    rng: np.random.RandomState,
+    rng: np.random.Generator,
     normalscoresamples: npt.NDArray[Any] | None = None,
 ) -> npt.NDArray[Any]:
     """Draws values from uniform distribution.
     Args:
         dist_parameters(list): [minimum, maximum]
         numreals(int): number of realisations to draw
-        rng: numpy.random.RandomState instance
+        rng: numpy.random.Generator instance
         normalscoresamples(list): samples for correlated parameters
     Returns:
         list of values
@@ -300,14 +300,14 @@ def draw_values_uniform(
 def draw_values_triangular(
     dist_parameters: Sequence[str],
     numreals: int,
-    rng: np.random.RandomState,
+    rng: np.random.Generator,
     normalscoresamples: npt.NDArray[Any] | None = None,
 ) -> npt.NDArray[Any]:
     """Draws values from triangular distribution.
     Args:
         dist_parameters(list): [min, mode, max]
         numreals(int): number of realisations to draw
-        rng: numpy.random.RandomState instance
+        rng: numpy.random.Generator instance
         normalscoresamples(list): samples for correlated parameters
     Returns:
         list of values
@@ -354,7 +354,7 @@ def draw_values_triangular(
 def draw_values_pert(
     dist_parameters: Sequence[str],
     numreals: int,
-    rng: np.random.RandomState,
+    rng: np.random.Generator,
     normalscoresamples: npt.NDArray[Any] | None = None,
 ) -> npt.NDArray[Any]:
     """Draws values from pert distribution.
@@ -363,7 +363,7 @@ def draw_values_pert(
         where scale is only specified
         for a 4 parameter pert distribution
         numreals(int): number of realisations to draw
-        rng: numpy.random.RandomState instance
+        rng: numpy.random.Generator instance
         normalscoresamples(list): samples for correlated parameters
     Returns:
         list of values
@@ -415,14 +415,14 @@ def draw_values_pert(
 def draw_values_loguniform(
     dist_parameters: Sequence[str],
     numreals: int,
-    rng: np.random.RandomState,
+    rng: np.random.Generator,
     normalscoresamples: npt.NDArray[Any] | None = None,
 ) -> npt.NDArray[Any]:
     """Draws values from loguniform distribution.
     Args:
         dist_parameters(list): [minimum, maximum]
         numreals(int): number of realisations to draw
-        rng: numpy.random.RandomState instance
+        rng: numpy.random.Generator instance
         normalscoresamples(list): samples for correlated parameters
     Returns:
         list of values
@@ -449,7 +449,7 @@ def draw_values(
     distname: str,
     dist_parameters: Sequence[str],
     numreals: int,
-    rng: np.random.RandomState,
+    rng: np.random.Generator,
     normalscoresamples: npt.NDArray[Any] | None = None,
 ) -> npt.NDArray[Any] | list[str]:
     """
@@ -459,7 +459,7 @@ def draw_values(
         'uniform', 'logunif', 'discrete', 'pert'
         dist_parameters (list): list with parameters for distribution
         numreals (int): number of realizations to generate
-        rng (numpy.random.RandomState): random number generator instance
+        rng (numpy.random.Generator): random number generator instance
         normalscoresamples (array, optional): samples for correlated distributions
     Returns:
         scipy.stats distribution with parameters
@@ -507,7 +507,7 @@ def draw_values(
 def sample_discrete(
     dist_params: Sequence[str],
     numreals: int,
-    rng: np.random.RandomState,
+    rng: np.random.Generator,
     normalscoresamples: npt.NDArray[Any] | None = None,
 ) -> tuple[bool, npt.NDArray[Any]]:
     status = True
