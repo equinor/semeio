@@ -5,7 +5,7 @@ read by semeio.fmudesign.DesignMatrix.generate
 
 from collections import OrderedDict
 from collections.abc import Mapping
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 import openpyxl
@@ -29,10 +29,10 @@ def excel2dict_design(
     Returns:
         OrderedDict on format for DesignMatrix.generate
     """
-    if not sheetnames or "general_input" not in sheetnames:
-        gen_input_sheet = _find_geninput_sheetname(input_filename)
-    else:
+    if sheetnames and "general_input" in sheetnames:
         gen_input_sheet = sheetnames["general_input"]
+    else:
+        gen_input_sheet = _find_geninput_sheetname(input_filename)
 
     generalinput = pd.read_excel(
         input_filename, gen_input_sheet, header=None, index_col=0, engine="openpyxl"
@@ -40,21 +40,35 @@ def excel2dict_design(
     generalinput.dropna(axis=0, how="all", inplace=True)
     generalinput.dropna(axis=1, how="all", inplace=True)
 
-    if str(generalinput[1]["designtype"]) == "onebyone":
-        returndict = _excel2dict_onebyone(input_filename, sheetnames)
-    elif "seeds" in generalinput[1]:
-        raise ValueError(
-            "The 'seeds' parameter has been deprecated and is no longer supported. "
-            "Use 'rms_seeds' instead"
-        )
-    else:
+    design_type = str(generalinput.loc["designtype"].iloc[0])
+
+    if design_type != "onebyone":
         raise ValueError(
             "Generation of DesignMatrix only "
             "implemented for type onebyone "
             "In general_input designtype was "
-            "set to {}".format(str(generalinput[1]["designtype"]))
+            f"set to {design_type}"
         )
-    return returndict
+
+    if "seeds" in generalinput.index:
+        raise ValueError(
+            "The 'seeds' parameter has been deprecated and is no longer supported. "
+            "Use 'rms_seeds' instead"
+        )
+
+    if sheetnames and "designinput" in sheetnames:
+        design_input_sheet = sheetnames["designinput"]
+    else:
+        design_input_sheet = _find_onebyone_input_sheet(input_filename)
+
+    if sheetnames and "defaultvalues" in sheetnames:
+        default_val_sheet = sheetnames["defaultvalues"]
+    else:
+        default_val_sheet = _find_onebyone_defaults_sheet(input_filename)
+
+    return _excel2dict_onebyone(
+        input_filename, gen_input_sheet, design_input_sheet, default_val_sheet
+    )
 
 
 def inputdict_to_yaml(inputdict: Mapping[str, Any], filename: str) -> None:
@@ -186,8 +200,8 @@ def _check_for_mixed_sensitivities(sens_name: str, sens_group: pd.DataFrame) -> 
     """Checks for valid input in designinput sheet. A sensitivity cannot contain
     two different sensitivity types"""
 
-    types = sens_group.groupby("type", sort=False)
-    if len(types) > 1:
+    unique_types = sens_group["type"].dropna().unique()
+    if len(unique_types) > 1:
         raise ValueError(
             f"The sensitivity with sensname '{sens_name}' in designinput sheet contains more "
             "than one sensitivity type. For each sensname all parameters must be "
@@ -197,12 +211,18 @@ def _check_for_mixed_sensitivities(sens_name: str, sens_group: pd.DataFrame) -> 
 
 
 def _excel2dict_onebyone(
-    input_filename: str, sheetnames: Mapping[str, Any] | None = None
+    input_filename: str,
+    gen_input_sheet: str,
+    design_input_sheet: str,
+    default_val_sheet: str,
 ) -> OrderedDict[str, Any]:
     """Reads specification for onebyone design
 
     Args:
         input_filename(path): path to excel workbook
+        gen_input_sheet (str): name of general input sheet
+        design_input_sheet (str): name of design input sheet
+        default_val_sheet (str): name of defaul value sheet
         sheetnames (dict): Dictionary of worksheet names to load
             information from. Supported keys: general_input, defaultvalues,
             and designinput.
@@ -214,22 +234,6 @@ def _excel2dict_onebyone(
     seedname = "RMS_SEED"
     inputdict: OrderedDict[str, Any] = OrderedDict()
 
-    if sheetnames and "general_input" in sheetnames:
-        gen_input_sheet = sheetnames["general_input"]
-    else:
-        gen_input_sheet = _find_geninput_sheetname(input_filename)
-
-    if sheetnames and "designinput" in sheetnames:
-        design_inp_sheet = sheetnames["designinput"]
-    else:
-        design_inp_sheet = _find_onebyone_input_sheet(input_filename)
-
-    if sheetnames and "defaultvalues" in sheetnames:
-        default_val_sheet = sheetnames["defaultvalues"]
-    else:
-        default_val_sheet = _find_onebyone_defaults_sheet(input_filename)
-
-    # Read general input
     generalinput = pd.read_excel(
         input_filename, gen_input_sheet, header=None, index_col=0, engine="openpyxl"
     )
@@ -238,49 +242,45 @@ def _excel2dict_onebyone(
 
     inputdict["designtype"] = generalinput[1]["designtype"]
 
-    if "rms_seeds" in generalinput[1]:
-        if str(generalinput[1]["rms_seeds"]) == "None":
+    if "rms_seeds" in generalinput.index:
+        rms_seeds = str(generalinput.loc["rms_seeds"].iloc[0])
+        if rms_seeds == "None":
             inputdict["seeds"] = None
         else:
-            inputdict["seeds"] = generalinput[1]["rms_seeds"]
+            inputdict["seeds"] = rms_seeds
     else:
         inputdict["seeds"] = None
 
-    if "repeats" not in generalinput[1]:
+    if "repeats" not in generalinput.index:
         raise LookupError('"repeats" must be specified in general_input sheet')
 
-    inputdict["repeats"] = generalinput[1]["repeats"]
+    inputdict["repeats"] = generalinput.loc["repeats"].iloc[0]
 
-    if "distribution_seed" in generalinput[1]:
-        if str(generalinput[1]["distribution_seed"]) == "None":
+    if "distribution_seed" in generalinput.index:
+        distribution_seed = str(generalinput.loc["distribution_seed"].iloc[0])
+        if distribution_seed == "None":
             inputdict["distribution_seed"] = None
         else:
-            inputdict["distribution_seed"] = generalinput[1]["distribution_seed"]
+            inputdict["distribution_seed"] = int(distribution_seed)
     else:
         inputdict["distribution_seed"] = None
 
-    # Read background
     if "background" in generalinput.index:
+        background = str(generalinput.loc["background"].iloc[0])
         inputdict["background"] = OrderedDict()
-        if generalinput[1]["background"].endswith("csv") or generalinput[1][
-            "background"
-        ].endswith("xlsx"):
-            inputdict["background"]["extern"] = generalinput[1]["background"]
-        elif str(generalinput[1]["background"]) == "None":
+        if background.endswith(("csv", "xlsx")):
+            inputdict["background"]["extern"] = background
+        elif background == "None":
             inputdict["background"] = None
         else:
-            inputdict["background"] = _read_background(
-                input_filename, generalinput[1]["background"]
-            )
+            inputdict["background"] = _read_background(input_filename, background)
     else:
         inputdict["background"] = None
 
-    # Read default values
     inputdict["defaultvalues"] = _read_defaultvalues(input_filename, default_val_sheet)
 
-    # Read input for sensitivities
     inputdict["sensitivities"] = OrderedDict()
-    designinput = pd.read_excel(input_filename, design_inp_sheet, engine="openpyxl")
+    designinput = pd.read_excel(input_filename, design_input_sheet, engine="openpyxl")
     designinput.dropna(axis=0, how="all", inplace=True)
     designinput = designinput.loc[
         :, ~designinput.columns.astype(str).str.contains("^Unnamed")
@@ -297,63 +297,66 @@ def _excel2dict_onebyone(
 
     designinput["sensname"] = designinput["sensname"].ffill()
 
-    # Read dependencies
     if "dependencies" in designinput:
+        valid_deps = designinput[designinput["dependencies"].notna()]
         inputdict["dependencies"] = OrderedDict()
-        for row in designinput.itertuples():
-            if _has_value(row.dependencies):
-                inputdict["dependencies"][row.param_name] = _read_dependencies(
-                    input_filename,
-                    row.dependencies,
-                    row.param_name,
-                )
+        for row in valid_deps.itertuples():
+            inputdict["dependencies"][row.param_name] = _read_dependencies(
+                input_filename,
+                str(row.dependencies),
+                str(row.param_name),
+            )
 
-    # Read decimals
     if "decimals" in designinput:
-        inputdict["decimals"] = OrderedDict()
-        for row in designinput.itertuples():
-            if _has_value(row.decimals) and _is_int(row.decimals):
-                inputdict["decimals"][row.param_name] = int(row.decimals)
+        # Convert to numeric, then filter for integers
+        numeric_decimals = pd.to_numeric(designinput["decimals"], errors="coerce")
+        mask = numeric_decimals.notna() & (numeric_decimals % 1 == 0)
+
+        valid_decimals = designinput[mask]
+        inputdict["decimals"] = OrderedDict(
+            {
+                row.param_name: int(cast(float, row.decimals))
+                for row in valid_decimals.itertuples()
+            }
+        )
 
     grouped = designinput.groupby("sensname", sort=False)
 
     # Read each sensitivity
     for sensname, group in grouped:
         _check_for_mixed_sensitivities(
-            sensname,
+            str(sensname),
             group,
         )
 
         sensdict: OrderedDict[str, Any] = OrderedDict()
 
-        if group["type"].iloc[0] == "ref":
-            sensdict["senstype"] = "ref"
+        sens_type = group["type"].iloc[0]
+        if sens_type in {"ref", "background"}:
+            sensdict["senstype"] = sens_type
 
-        elif group["type"].iloc[0] == "background":
-            sensdict["senstype"] = "background"
-
-        elif group["type"].iloc[0] == "seed":
+        elif sens_type == "seed":
             sensdict["seedname"] = seedname
-            sensdict["senstype"] = "seed"
+            sensdict["senstype"] = sens_type
             if _has_value(group["param_name"].iloc[0]):
                 sensdict["parameters"] = _read_constants(group)
             else:
                 sensdict["parameters"] = None
 
-        elif group["type"].iloc[0] == "scenario":
+        elif sens_type == "scenario":
             sensdict = _read_scenario_sensitivity(group)
-            sensdict["senstype"] = "scenario"
+            sensdict["senstype"] = sens_type
 
-        elif group["type"].iloc[0] == "dist":
-            sensdict["senstype"] = "dist"
+        elif sens_type == "dist":
+            sensdict["senstype"] = sens_type
             sensdict["parameters"] = _read_dist_sensitivity(group)
             sensdict["correlations"] = None
             if "corr_sheet" in group:
                 sensdict["correlations"] = _read_correlations(group, input_filename)
 
-        elif group["type"].iloc[0] == "extern":
+        elif sens_type == "extern":
             sensdict["extern_file"] = str(group["extern_file"].iloc[0])
-            sensdict["senstype"] = "extern"
+            sensdict["senstype"] = sens_type
             sensdict["parameters"] = list(group["param_name"])
 
         else:
