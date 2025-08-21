@@ -2,12 +2,13 @@ import datetime
 import logging
 import os
 from collections.abc import Mapping, Sequence
+from typing import Never
 
 import pandas as pd
 from resdata.grid import Grid
 from resdata.rft import ResdataRFTFile
 
-from semeio.forward_models.rft.trajectory import TrajectoryPoint
+from semeio.forward_models.rft.trajectory import Trajectory
 from semeio.forward_models.rft.zonemap import ZoneMap
 
 logger = logging.getLogger(__name__)
@@ -121,11 +122,11 @@ def _write_inactive_info(fname: str, trajectory_df: pd.DataFrame) -> None:
 def _populate_trajectory_points(
     well: str,
     date: datetime.date,
-    trajectory_points: list[TrajectoryPoint],
+    trajectory_points: Trajectory,
     ecl_grid: Grid,
     ecl_rft: ResdataRFTFile,
     zonemap: ZoneMap | None = None,
-) -> list[TrajectoryPoint]:
+) -> Trajectory | list[Never]:
     """
     Populate a list of trajectory points, that only contain UTM coordinates
     for a well-path, with (i,j,k) indices corresponding to a given Eclipse grid,
@@ -155,7 +156,7 @@ def _populate_trajectory_points(
         return []
 
     ijk_guess = None
-    for point in trajectory_points:
+    for point in trajectory_points:  # type: ignore[attr-defined]
         ijk = ecl_grid.find_cell(
             point.utm_x, point.utm_y, point.true_vertical_depth, start_ijk=ijk_guess
         )
@@ -169,7 +170,7 @@ def _populate_trajectory_points(
 
 def run(
     well_times: Sequence[tuple[str, datetime.date, int]],
-    trajectories: Mapping[str, list[TrajectoryPoint]],
+    trajectories: Mapping[str, Trajectory],
     ecl_grid: Grid,
     ecl_rft: ResdataRFTFile,
     zonemap: ZoneMap | None = None,
@@ -199,7 +200,7 @@ def run(
         if trajectory_points:
             # Aggregate the same data to a dataframe,
             # each trajectory tagged by well and time:
-            trajectory_df = trajectory_points.to_dataframe(  # type: ignore[attr-defined]
+            trajectory_df = trajectory_points.to_dataframe( # type: ignore[union-attr]
                 zonemap=zonemap,
             ).assign(
                 well=well,

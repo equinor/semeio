@@ -160,7 +160,7 @@ def main_entry_point() -> None:
     try:
         gendata_rft.run(
             well_times=options.well_and_time_file,
-            trajectories=trajectories,  # type: ignore[arg-type]
+            trajectories=trajectories,
             ecl_grid=options.eclbase[0],
             ecl_rft=options.eclbase[1],
             zonemap=options.zonemap,
