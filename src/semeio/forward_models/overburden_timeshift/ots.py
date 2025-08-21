@@ -6,7 +6,7 @@ from datetime import date
 from datetime import datetime as dt
 from itertools import product
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, Literal, cast
 
 import numpy as np
 import numpy.typing as npt
@@ -76,9 +76,9 @@ def ots_run(parameter_file: str) -> None:
         velocity_model=parms.velocity_model,
     )
 
-    tshift_ts = ots.geertsma_ts(vintage_pairs.ts)
+    tshift_ts = cast(list[xtgeo.RegularSurface], ots.geertsma_ts(vintage_pairs.ts))
     tshift_ts_simple = ots.geertsma_ts_simple(vintage_pairs.ts_simple)
-    tshift_dpv = ots.dpv(vintage_pairs.dpv)
+    tshift_dpv = cast(list[xtgeo.RegularSurface], ots.dpv(vintage_pairs.dpv))
     tshift_ts_rporv = ots.geertsma_ts_rporv(vintage_pairs.ts_rporv)
 
     surface_horizon = ots.get_horizon()
@@ -287,8 +287,13 @@ class OverburdenTimeshift:
 
         :param vintage_pairs:
         """
-        return self._geertsma_ts_custom(
-            vintage_pairs, self.subsidence.eval_geertsma_rporv, "TS_RPORV"
+        return cast(
+            list[xtgeo.RegularSurface],
+            self._geertsma_ts_custom(
+                vintage_pairs=vintage_pairs,
+                subsidence_func=self.subsidence.eval_geertsma_rporv,
+                method_name="TS_RPORV",
+            ),
         )
 
     def geertsma_ts_simple(
@@ -300,8 +305,13 @@ class OverburdenTimeshift:
 
         :param vintage_pairs:
         """
-        return self._geertsma_ts_custom(
-            vintage_pairs, self.subsidence.eval_geertsma, "TS_SIMPLE"
+        return cast(
+            list[xtgeo.RegularSurface],
+            self._geertsma_ts_custom(
+                vintage_pairs=vintage_pairs,
+                subsidence_func=self.subsidence.eval_geertsma,
+                method_name="TS_SIMPLE",
+            ),
         )
 
     def _geertsma_ts_custom(
@@ -309,7 +319,7 @@ class OverburdenTimeshift:
         vintage_pairs: Sequence[ConstrainedList],
         subsidence_func: Callable[..., float],
         method_name: str,
-    ) -> list[xtgeo.RegularSurface]:
+    ) -> list[xtgeo.RegularSurface] | tuple[int, list[Any]]:
         """
         Calculates TS without using velocity. Fast.
 
@@ -318,7 +328,7 @@ class OverburdenTimeshift:
         :param method_name: string representing the subsudence func name
         """
         if len(vintage_pairs) < 1:
-            raise ValueError("No vintage pairs provided")
+            return 0, []
 
         vintages = self._vintages_name_date(vintage_pairs)
         surface = self._surface
@@ -381,7 +391,7 @@ class OverburdenTimeshift:
 
     def geertsma_ts(
         self, vintage_pairs: Sequence[ConstrainedList]
-    ) -> list[xtgeo.RegularSurface]:
+    ) -> list[xtgeo.RegularSurface] | tuple[int, list[Any]]:
         """
         Calculates TS using velocity. Slow.
 
@@ -389,7 +399,7 @@ class OverburdenTimeshift:
         """
 
         if len(vintage_pairs) < 1:
-            raise ValueError("No vintage pairs provided")
+            return 0, []
 
         surface = self._surface
         assert isinstance(surface, OTSVelSurface)
@@ -501,7 +511,7 @@ class OverburdenTimeshift:
 
     def dpv(
         self, vintage_pairs: Sequence[ConstrainedList]
-    ) -> list[xtgeo.RegularSurface]:
+    ) -> list[xtgeo.RegularSurface] | tuple[int, list[Any]]:
         """
         Calculates change in pressure multiplied by cell volume
         and sum for all cells in column
@@ -515,7 +525,7 @@ class OverburdenTimeshift:
         """
 
         if len(vintage_pairs) < 1:
-            raise ValueError("No vintage pairs provided")
+            return 0, []
 
         vintages = self._vintages_name_date(vintage_pairs)
 
