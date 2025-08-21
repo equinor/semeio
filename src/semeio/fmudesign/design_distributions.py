@@ -320,33 +320,21 @@ def draw_values_triangular(
     mode = float(dist_parameters[1])
     high = float(dist_parameters[2])
 
-    if high == low:  # collapsed distribution
-        print(
-            "Low and high parameters for triangular distribution"
-            f" are equal. Using constant {low}"
-        )
-        if normalscoresamples is not None:
-            values = scipy.stats.uniform.ppf(
-                scipy.stats.norm.cdf(normalscoresamples), loc=low, scale=0
-            )
-        else:
-            values = np.full(numreals, low)
-    else:
-        dist_scale = high - low
-        shape = (mode - low) / dist_scale
+    dist_scale = high - low
+    shape = (mode - low) / dist_scale
 
-        if normalscoresamples is not None:
-            values = scipy.stats.triang.ppf(
-                scipy.stats.norm.cdf(normalscoresamples),
-                shape,
-                loc=low,
-                scale=dist_scale,
-            )
-        else:
-            uniform_samples = generate_stratified_samples(numreals, rng)
-            values = scipy.stats.triang.ppf(
-                uniform_samples, shape, loc=low, scale=dist_scale
-            )
+    if normalscoresamples is not None:
+        values = scipy.stats.triang.ppf(
+            scipy.stats.norm.cdf(normalscoresamples),
+            shape,
+            loc=low,
+            scale=dist_scale,
+        )
+    else:
+        uniform_samples = generate_stratified_samples(numreals, rng)
+        values = scipy.stats.triang.ppf(
+            uniform_samples, shape, loc=low, scale=dist_scale
+        )
 
     return values
 
