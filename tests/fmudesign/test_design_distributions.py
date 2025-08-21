@@ -202,6 +202,9 @@ def test_draw_values_triangular():
     assert all(isinstance(value, numbers.Number) for value in values)
     assert all(10 <= value <= 1000 for value in values)
 
+    with pytest.raises(ValueError, match="minimum .* and maximum .* cannot be equal"):
+        dists.draw_values_triangular([100, 100, 100], 10, rng)
+
 
 @pytest.mark.parametrize("seed", range(100))
 def test_draw_values_pert(seed):

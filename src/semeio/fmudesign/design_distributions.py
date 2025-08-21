@@ -321,6 +321,12 @@ def draw_values_triangular(
     high = float(dist_parameters[2])
 
     dist_scale = high - low
+
+    if dist_scale == 0:
+        raise ValueError(
+            f"Invalid triangular distribution: minimum ({low}) and maximum ({high}) cannot be equal"
+        )
+
     shape = (mode - low) / dist_scale
 
     if normalscoresamples is not None:
