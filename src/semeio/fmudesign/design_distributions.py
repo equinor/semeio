@@ -62,24 +62,24 @@ def _check_dist_params_lognormal(dist_params: Sequence[str]) -> tuple[bool, str]
     return status, msg
 
 
-def _check_dist_params_uniform(dist_params: Sequence[str]) -> tuple[bool, str]:
+def parse_and_validate_uniform_params(
+    dist_params: Sequence[int | str | float],
+) -> tuple[float, float]:
     if len(dist_params) != 2:
-        status = False
-        msg = (
-            "Uniform distribution must have 2 parameters, "
-            "but had " + str(len(dist_params)) + " parameters. "
+        raise ValueError(
+            f"Uniform distribution requires exactly 2 parameters, got {len(dist_params)}"
         )
-    elif not (is_number(dist_params[0]) and is_number(dist_params[1])):
-        status = False
-        msg = "Parameters for uniform distribution must be numbers. "
-    elif float(dist_params[1]) < float(dist_params[0]):
-        status = False
-        msg = "Uniform distribution must have dist_param2 >= dist_param1"
-    else:
-        status = True
-        msg = ""
-
-    return status, msg
+    try:
+        low, high = [float(p) for p in dist_params]
+    except (ValueError, TypeError) as e:
+        raise ValueError(
+            f"All parameters must be convertible to numbers. Got: {dist_params}"
+        ) from e
+    if np.any(np.isnan([low, high])):
+        raise ValueError(f"Parameters cannot be NaN. Got: low={low}, high={high}")
+    if high < low:
+        raise ValueError(f"Parameters must satisfy low < high, got [{low}, {high}]")
+    return low, high
 
 
 def parse_and_validate_triangular_params(
@@ -265,7 +265,7 @@ def draw_values_lognormal(
 
 
 def draw_values_uniform(
-    dist_parameters: Sequence[str],
+    dist_parameters: Sequence[int | str | float],
     numreals: int,
     rng: np.random.Generator,
     normalscoresamples: npt.NDArray[Any] | None = None,
@@ -285,12 +285,8 @@ def draw_values_uniform(
     if numreals == 0:
         return np.array([])
 
-    status, msg = _check_dist_params_uniform(dist_parameters)
-    if not status:
-        raise ValueError(msg)
+    low, high = parse_and_validate_uniform_params(dist_parameters)
 
-    low = float(dist_parameters[0])
-    high = float(dist_parameters[1])
     uscale = high - low
 
     if normalscoresamples is not None:
