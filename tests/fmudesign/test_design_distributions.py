@@ -46,20 +46,48 @@ def test_check_dist_params_lognormal():
     assert dists._check_dist_params_lognormal([0, 0])[0]  # edge case
 
 
-def test_check_dist_params_uniform():
-    """Test lognormal dist param checker"""
-    assert not dists._check_dist_params_uniform([])[0]
-    assert not dists._check_dist_params_uniform(())[0]
+class TestUniformDistribution:
+    def test_that_empty_list_raises_parameter_count_error(self):
+        with pytest.raises(
+            ValueError,
+            match="Uniform distribution requires exactly 2 parameters, got 0",
+        ):
+            dists.parse_and_validate_uniform_params([])
 
-    assert not dists._check_dist_params_uniform([0])[0]
-    assert not dists._check_dist_params_uniform([0, 0, 0])[0]
+    def test_that_empty_tuple_raises_parameter_count_error(self):
+        with pytest.raises(
+            ValueError,
+            match="Uniform distribution requires exactly 2 parameters, got 0",
+        ):
+            dists.parse_and_validate_uniform_params(())
 
-    assert not dists._check_dist_params_uniform(["mean", "mu"])[0]
+    def test_that_insufficient_parameters_raises_count_error(self):
+        with pytest.raises(
+            ValueError,
+            match="Uniform distribution requires exactly 2 parameters, got 1",
+        ):
+            dists.parse_and_validate_uniform_params([0])
 
-    assert dists._check_dist_params_uniform([0, 1])[0]
-    assert not dists._check_dist_params_uniform([0, -1])[0]
+    def test_that_excess_parameters_raises_count_error(self):
+        with pytest.raises(
+            ValueError,
+            match="Uniform distribution requires exactly 2 parameters, got 3",
+        ):
+            dists.parse_and_validate_uniform_params([0, 0, 0])
 
-    assert dists._check_dist_params_uniform([0, 0])[0]  # edge case
+    def test_that_non_numeric_parameters_raise_conversion_error(self):
+        with pytest.raises(ValueError, match="must be convertible to numbers"):
+            dists.parse_and_validate_uniform_params(["mean", "mu"])
+
+    def test_that_invalid_ordering_raises_constraint_error(self):
+        with pytest.raises(ValueError, match="must satisfy low < high"):
+            dists.parse_and_validate_uniform_params([0, -1])
+
+    def test_that_valid_parameters_return_float_tuple(self):
+        assert dists.parse_and_validate_uniform_params([0, 1]) == (0.0, 1.0)
+
+    def test_that_equal_bounds_are_accepted(self):
+        assert dists.parse_and_validate_uniform_params([0, 0]) == (0.0, 0.0)
 
 
 def test_validate_triangular_params():
@@ -190,18 +218,14 @@ def test_draw_values_uniform():
 
     with pytest.raises(
         ValueError,
-        match="Uniform distribution must have 2 parameters, but had 3 parameters.",
+        match="Uniform distribution requires exactly 2 parameters, got 3",
     ):
         values = dists.draw_values_uniform([10, 50, 100], 10, rng)
 
-    with pytest.raises(
-        ValueError, match="Uniform distribution must have dist_param2 >= dist_param1"
-    ):
+    with pytest.raises(ValueError, match="must satisfy low < high"):
         values = dists.draw_values_uniform([50, 10], 10, rng)
 
-    with pytest.raises(
-        ValueError, match="Parameters for uniform distribution must be numbers."
-    ):
+    with pytest.raises(ValueError, match="must be convertible to numbers"):
         values = dists.draw_values_uniform(["a", 10], 10, rng)
 
     with pytest.raises(ValueError, match="numreal must be a positive integer"):
