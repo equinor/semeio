@@ -82,27 +82,32 @@ def _check_dist_params_uniform(dist_params: Sequence[str]) -> tuple[bool, str]:
     return status, msg
 
 
-def _check_dist_params_triang(dist_params: Sequence[str]) -> tuple[bool, str]:
+def parse_and_validate_triangular_params(
+    dist_params: Sequence[int | str | float],
+) -> tuple[float, float, float]:
     if len(dist_params) != 3:
-        status = False
-        msg = (
-            "Triangular distribution must have 3 parameters, "
-            "but had " + str(len(dist_params)) + " parameters. "
+        raise ValueError(
+            f"Triangular distribution requires exactly 3 parameters, got {len(dist_params)}"
         )
-    elif not all(is_number(param) for param in dist_params):
-        status = False
-        msg = "Parameters for triangular distribution must be numbers. "
-    elif not (
-        (float(dist_params[2]) >= float(dist_params[1]))
-        and (float(dist_params[1]) >= float(dist_params[0]))
-    ):
-        status = False
-        msg = "Triangular distribution must have: low <= mode <= high. "
-    else:
-        status = True
-        msg = ""
 
-    return status, msg
+    try:
+        low, mode, high = [float(p) for p in dist_params]
+    except (ValueError, TypeError) as e:
+        raise ValueError(
+            f"All parameters must be convertible to numbers. Got: {dist_params}"
+        ) from e
+
+    if np.any(np.isnan([low, mode, high])):
+        raise ValueError(
+            f"Parameters cannot be NaN. Got: low={low}, mode={mode}, high={high}"
+        )
+
+    if not (low <= mode <= high):
+        raise ValueError(
+            f"Parameters must satisfy low <= mode <= high, got [{low}, {mode}, {high}]"
+        )
+
+    return low, mode, high
 
 
 def _check_dist_params_pert(dist_params: Sequence[str]) -> tuple[bool, str]:
@@ -312,13 +317,7 @@ def draw_values_triangular(
     Returns:
         list of values
     """
-    status, msg = _check_dist_params_triang(dist_parameters)
-    if not status:
-        raise ValueError(msg)
-
-    low = float(dist_parameters[0])
-    mode = float(dist_parameters[1])
-    high = float(dist_parameters[2])
+    low, mode, high = parse_and_validate_triangular_params(dist_parameters)
 
     dist_scale = high - low
 

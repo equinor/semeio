@@ -62,22 +62,43 @@ def test_check_dist_params_uniform():
     assert dists._check_dist_params_uniform([0, 0])[0]  # edge case
 
 
-def test_check_dist_params_triang():
-    """Test triang dist param checker"""
-    assert not dists._check_dist_params_triang([])[0]
-    assert not dists._check_dist_params_triang(())[0]
+def test_validate_triangular_params():
+    """Test triangular distribution parameter validator"""
 
-    assert not dists._check_dist_params_triang([0])[0]
-    assert not dists._check_dist_params_triang([0, 0])[0]
-    assert not dists._check_dist_params_triang([0, 0, 0, 0])[0]
+    # Test invalid parameter counts
+    with pytest.raises(ValueError, match="requires exactly 3 parameters"):
+        dists.parse_and_validate_triangular_params([])
 
-    assert not dists._check_dist_params_triang(["foo", "bar", 0])[0]
+    with pytest.raises(ValueError, match="requires exactly 3 parameters"):
+        dists.parse_and_validate_triangular_params(())
 
-    assert dists._check_dist_params_triang([0, 1, 2])[0]
-    assert not dists._check_dist_params_triang([0, -1, -4])[0]
-    assert not dists._check_dist_params_triang([0, 1000, 999.99])[0]
+    with pytest.raises(ValueError, match="requires exactly 3 parameters"):
+        dists.parse_and_validate_triangular_params([0])
 
-    assert dists._check_dist_params_triang([0, 0, 0])[0]  # edge case
+    with pytest.raises(ValueError, match="requires exactly 3 parameters"):
+        dists.parse_and_validate_triangular_params([0, 0])
+
+    with pytest.raises(ValueError, match="requires exactly 3 parameters"):
+        dists.parse_and_validate_triangular_params([0, 0, 0, 0])
+
+    # Test non-numeric parameters
+    with pytest.raises(ValueError, match="must be convertible to numbers"):
+        dists.parse_and_validate_triangular_params(["foo", "bar", 0])
+
+    # Test valid parameters
+    low, mode, high = dists.parse_and_validate_triangular_params([0, 1, 2])
+    assert (low, mode, high) == (0.0, 1.0, 2.0)
+
+    # Test invalid ordering
+    with pytest.raises(ValueError, match="must satisfy low <= mode <= high"):
+        dists.parse_and_validate_triangular_params([0, -1, -4])
+
+    with pytest.raises(ValueError, match="must satisfy low <= mode <= high"):
+        dists.parse_and_validate_triangular_params([0, 1000, 999.99])
+
+    # Test edge case (all equal values)
+    low, mode, high = dists.parse_and_validate_triangular_params([0, 0, 0])
+    assert (low, mode, high) == (0.0, 0.0, 0.0)
 
 
 def test_check_dist_params_pert():
