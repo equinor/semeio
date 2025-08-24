@@ -10,24 +10,75 @@ from semeio.fmudesign import design_distributions as dists
 # pylint: disable=protected-access
 
 
-def test_check_dist_params_normal():
-    """Test normal dist param checker"""
-    # First element in returned 2-tuple is True or False:
-    assert not dists._check_dist_params_normal([])[0]
-    assert not dists._check_dist_params_normal(())[0]
+class TestNormalDistribution:
+    def test_that_empty_list_raises_parameter_count_error(self):
+        with pytest.raises(
+            ValueError,
+            match="Normal distribution must have 2 parameters or 4 for a truncated normal, but had 0 parameters.",
+        ):
+            dists.parse_and_validate_normal_params([])
 
-    assert not dists._check_dist_params_normal([0])[0]
-    assert not dists._check_dist_params_normal([0, 0, 0])[0]
-    assert not dists._check_dist_params_normal([0, 0, 0, 0, 0])[0]
+    def test_that_empty_tuple_raises_parameter_count_error(self):
+        with pytest.raises(
+            ValueError,
+            match="Normal distribution must have 2 parameters or 4 for a truncated normal, but had 0 parameters.",
+        ):
+            dists.parse_and_validate_normal_params(())
 
-    assert not dists._check_dist_params_normal(["mean", "mu"])[0]
+    def test_that_single_parameter_raises_count_error(self):
+        with pytest.raises(
+            ValueError,
+            match="Normal distribution must have 2 parameters or 4 for a truncated normal, but had 1 parameters.",
+        ):
+            dists.parse_and_validate_normal_params([0])
 
-    assert dists._check_dist_params_normal([0, 1])[0]
-    assert not dists._check_dist_params_normal([0, -1])[0]
-    assert dists._check_dist_params_normal([0, 0])[0]  # edge case
+    def test_that_three_parameters_raises_count_error(self):
+        with pytest.raises(
+            ValueError,
+            match="Normal distribution must have 2 parameters or 4 for a truncated normal, but had 3 parameters.",
+        ):
+            dists.parse_and_validate_normal_params([0, 0, 0])
 
-    # Truncated
-    assert dists._check_dist_params_normal([0, 1, 0, 1])[0]
+    def test_that_five_parameters_raises_count_error(self):
+        with pytest.raises(
+            ValueError,
+            match="Normal distribution must have 2 parameters or 4 for a truncated normal, but had 5 parameters.",
+        ):
+            dists.parse_and_validate_normal_params([0, 0, 0, 0, 0])
+
+    def test_that_non_numeric_parameters_raise_conversion_error(self):
+        with pytest.raises(
+            ValueError,
+            match=r"All parameters must be convertible to numbers. Got: \['mean', 'mu'\]",
+        ):
+            dists.parse_and_validate_normal_params(["mean", "mu"])
+
+    def test_that_valid_normal_parameters_return_float_tuple(self):
+        assert dists.parse_and_validate_normal_params([0, 1]) == (0.0, 1.0)
+
+    def test_that_negative_stddev_raises_validation_error(self):
+        with pytest.raises(
+            ValueError, match="Stddev for normal distribution must be >= 0. Got: -1.0"
+        ):
+            dists.parse_and_validate_normal_params([0, -1])
+
+    def test_that_zero_stddev_is_accepted(self):
+        assert dists.parse_and_validate_normal_params([0, 0]) == (0.0, 0.0)
+
+    def test_that_valid_truncated_normal_parameters_return_four_tuple(self):
+        assert dists.parse_and_validate_normal_params([0, 1, 0, 1]) == (
+            0.0,
+            1.0,
+            0.0,
+            1.0,
+        )
+
+    def test_that_invalid_truncation_bounds_raise_ordering_error(self):
+        with pytest.raises(
+            ValueError,
+            match=r"For truncated normal distribution, lower bound must be less than upper bound, but got \[1.0, 0.0\].",
+        ):
+            dists.parse_and_validate_normal_params([0, 1, 1, 0])
 
 
 def test_check_dist_params_lognormal():
@@ -168,7 +219,7 @@ def test_check_dist_params_logunif():
 
 def test_draw_values_normal():
     rng = np.random.default_rng()
-    values = dists.draw_values_normal([0, 1], 10, rng)
+    values = dists.draw_values_normal(["0", "1"], 10, rng)
     assert len(values) == 10
     assert all(isinstance(value, numbers.Number) for value in values)
 
@@ -179,29 +230,26 @@ def test_draw_values_normal():
             "but had 3 parameters."
         ),
     ):
-        values = dists.draw_values_normal([0, 1, 2], 10, rng)
-
-    with pytest.raises(
-        ValueError, match="Parameters for normal distribution must be numbers."
-    ):
-        values = dists.draw_values_normal([0, "b"], 10, rng)
-
-    with pytest.raises(
-        ValueError, match="Stddev for normal distribution must be >= 0."
-    ):
-        values = dists.draw_values_normal([0, -1], 10, rng)
+        dists.draw_values_normal(["0", "1", "2"], 10, rng)
 
     with pytest.raises(
         ValueError,
-        match=(
-            "For truncated normal distribution, "
-            "lower bound must be less than upper bound, "
-            r"but got \[2, -1\]."
-        ),
+        match=r"All parameters must be convertible to numbers. Got: \['0', 'b'\]",
     ):
-        values = dists.draw_values_normal([0, 1, 2, -1], 10, rng)
+        dists.draw_values_normal(["0", "b"], 10, rng)
 
-    values = dists.draw_values_normal([0, 10, -1, 2], 50, rng)
+    with pytest.raises(
+        ValueError, match="Stddev for normal distribution must be >= 0. Got: -1.0"
+    ):
+        dists.draw_values_normal(["0", "-1"], 10, rng)
+
+    with pytest.raises(
+        ValueError,
+        match=r"For truncated normal distribution, lower bound must be less than upper bound, but got \[2.0, -1.0\].",
+    ):
+        dists.draw_values_normal(["0", "1", "2", "-1"], 10, rng)
+
+    values = dists.draw_values_normal(["0", "10", "-1", "2"], 50, rng)
     assert all(-1 <= value <= 2 for value in values)
 
 
@@ -326,7 +374,7 @@ def test_draw_values():
     with pytest.raises(ValueError):
         dists.draw_values("non-existing-distribution", [0, 10], 100, rng)
 
-    values = dists.draw_values("NORMAL", [0, 1], 10, rng)
+    values = dists.draw_values("NORMAL", ["0", "1"], 10, rng)
     assert len(values) == 10
 
     values = dists.draw_values("LOGNORMAL", [0.1, 1], 10, rng)

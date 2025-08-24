@@ -14,32 +14,37 @@ import scipy.stats
 from scipy.stats import qmc
 
 
-def _check_dist_params_normal(dist_params: Sequence[str]) -> tuple[bool, str]:
+def parse_and_validate_normal_params(
+    dist_params: Sequence[int | str | float],
+) -> tuple[float, ...]:
     if len(dist_params) not in [2, 4]:
-        status = False
-        msg = (
+        raise ValueError(
             "Normal distribution must have 2 parameters"
             " or 4 for a truncated normal, "
-            "but had " + str(len(dist_params)) + " parameters. "
+            f"but had {len(dist_params)} parameters."
         )
-    elif not all(is_number(param) for param in dist_params):
-        status = False
-        msg = "Parameters for normal distribution must be numbers. "
-    elif float(dist_params[1]) < 0:
-        status = False
-        msg = "Stddev for normal distribution must be >= 0. "
-    elif len(dist_params) == 4 and float(dist_params[2]) >= float(dist_params[3]):
-        status = False
-        msg = (
+    try:
+        params = [float(p) for p in dist_params]
+    except (ValueError, TypeError) as e:
+        raise ValueError(
+            f"All parameters must be convertible to numbers. Got: {dist_params}"
+        ) from e
+
+    if np.any(np.isnan(params)):
+        raise ValueError(f"Parameters cannot be NaN. Got: {params}")
+
+    if params[1] < 0:
+        raise ValueError(
+            f"Stddev for normal distribution must be >= 0. Got: {params[1]}"
+        )
+
+    if len(params) == 4 and params[2] >= params[3]:
+        raise ValueError(
             "For truncated normal distribution, "
             "lower bound must be less than upper bound, "
-            f"but got [{dist_params[2]}, {dist_params[3]}]. "
+            f"but got [{params[2]}, {params[3]}]."
         )
-    else:
-        status = True
-        msg = ""
-
-    return status, msg
+    return tuple(params)
 
 
 def _check_dist_params_lognormal(dist_params: Sequence[str]) -> tuple[bool, str]:
@@ -189,15 +194,10 @@ def draw_values_normal(
     rng: np.random.Generator,
     normalscoresamples: npt.NDArray[Any] | None = None,
 ) -> npt.NDArray[Any]:
-    status, msg = _check_dist_params_normal(dist_parameters)
+    params = parse_and_validate_normal_params(dist_parameters)
+    mean, stddev = params[0], params[1]
 
-    if not status:
-        raise ValueError(msg)
-
-    mean = float(dist_parameters[0])
-    stddev = float(dist_parameters[1])
-
-    if len(dist_parameters) == 2:  # normal
+    if len(params) == 2:  # normal
         if normalscoresamples is not None:
             values = mean + normalscoresamples * stddev
         else:
@@ -205,8 +205,7 @@ def draw_values_normal(
             values = scipy.stats.norm.ppf(uniform_samples, loc=mean, scale=stddev)
 
     else:  # truncated normal
-        clip1 = float(dist_parameters[2])
-        clip2 = float(dist_parameters[3])
+        clip1, clip2 = params[2], params[3]
         low = (clip1 - mean) / stddev
         high = (clip2 - mean) / stddev
 
