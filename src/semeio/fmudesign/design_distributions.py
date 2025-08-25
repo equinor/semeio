@@ -47,24 +47,29 @@ def parse_and_validate_normal_params(
     return tuple(params)
 
 
-def _check_dist_params_lognormal(dist_params: Sequence[str]) -> tuple[bool, str]:
+def parse_and_validate_lognormal_params(
+    dist_params: Sequence[int | str | float],
+) -> tuple[float, float]:
     if len(dist_params) != 2:
-        status = False
-        msg = (
+        raise ValueError(
             "Lognormal distribution must have 2 parameters, "
-            "but had " + str(len(dist_params)) + " parameters. "
+            f"but had {len(dist_params)} parameters."
         )
-    elif not (is_number(dist_params[0]) and is_number(dist_params[1])):
-        status = False
-        msg = "Parameters for lognormal distribution must be numbers. "
-    elif float(dist_params[1]) < 0:
-        status = False
-        msg = "Lognormal distribution must have stddev >= 0. "
-    else:
-        status = True
-        msg = ""
+    try:
+        mean, stddev = [float(p) for p in dist_params]
+    except (ValueError, TypeError) as e:
+        raise ValueError(
+            f"All parameters must be convertible to numbers. Got: {dist_params}"
+        ) from e
 
-    return status, msg
+    if np.any(np.isnan([mean, stddev])):
+        raise ValueError(f"Parameters cannot be NaN. Got: {[mean, stddev]}")
+
+    if stddev < 0:
+        raise ValueError(
+            f"Stddev for lognormal distribution must be >= 0. Got: {stddev}"
+        )
+    return mean, stddev
 
 
 def parse_and_validate_uniform_params(
@@ -227,7 +232,7 @@ def draw_values_normal(
 
 
 def draw_values_lognormal(
-    dist_parameters: Sequence[str],
+    dist_parameters: Sequence[int | str | float],
     numreals: int,
     rng: np.random.Generator,
     normalscoresamples: npt.NDArray[Any] | None = None,
@@ -241,12 +246,7 @@ def draw_values_lognormal(
     Returns:
         list of values
     """
-    status, msg = _check_dist_params_lognormal(dist_parameters)
-    if not status:
-        raise ValueError(msg)
-
-    mean = float(dist_parameters[0])
-    sigma = float(dist_parameters[1])
+    mean, sigma = parse_and_validate_lognormal_params(dist_parameters)
     if normalscoresamples is not None:
         values = scipy.stats.lognorm.ppf(
             scipy.stats.norm.cdf(normalscoresamples),

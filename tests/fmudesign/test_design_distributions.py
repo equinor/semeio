@@ -81,20 +81,58 @@ class TestNormalDistribution:
             dists.parse_and_validate_normal_params([0, 1, 1, 0])
 
 
-def test_check_dist_params_lognormal():
-    """Test lognormal dist param checker"""
-    assert not dists._check_dist_params_lognormal([])[0]
-    assert not dists._check_dist_params_lognormal(())[0]
+class TestLognormalDistribution:
+    def test_that_empty_list_raises_parameter_count_error(self):
+        with pytest.raises(
+            ValueError,
+            match="Lognormal distribution must have 2 parameters, but had 0 parameters.",
+        ):
+            dists.parse_and_validate_lognormal_params([])
 
-    assert not dists._check_dist_params_lognormal([0])[0]
-    assert not dists._check_dist_params_lognormal([0, 0, 0])[0]
+    def test_that_empty_tuple_raises_parameter_count_error(self):
+        with pytest.raises(
+            ValueError,
+            match="Lognormal distribution must have 2 parameters, but had 0 parameters.",
+        ):
+            dists.parse_and_validate_lognormal_params(())
 
-    assert not dists._check_dist_params_lognormal(["mean", "mu"])[0]
+    def test_that_single_parameter_raises_count_error(self):
+        with pytest.raises(
+            ValueError,
+            match="Lognormal distribution must have 2 parameters, but had 1 parameters.",
+        ):
+            dists.parse_and_validate_lognormal_params([0])
 
-    assert dists._check_dist_params_lognormal([0, 1])[0]
-    assert not dists._check_dist_params_lognormal([0, -1])[0]
+    def test_that_three_parameters_raises_count_error(self):
+        with pytest.raises(
+            ValueError,
+            match="Lognormal distribution must have 2 parameters, but had 3 parameters.",
+        ):
+            dists.parse_and_validate_lognormal_params([0, 0, 0])
 
-    assert dists._check_dist_params_lognormal([0, 0])[0]  # edge case
+    def test_that_non_numeric_parameters_raise_conversion_error(self):
+        with pytest.raises(
+            ValueError,
+            match=r"All parameters must be convertible to numbers. Got: \['mean', 'mu'\]",
+        ):
+            dists.parse_and_validate_lognormal_params(["mean", "mu"])
+
+    def test_that_valid_lognormal_parameters_return_float_tuple(self):
+        assert dists.parse_and_validate_lognormal_params([0, 1]) == (0.0, 1.0)
+
+    def test_that_negative_stddev_raises_validation_error(self):
+        with pytest.raises(
+            ValueError,
+            match="Stddev for lognormal distribution must be >= 0. Got: -1.0",
+        ):
+            dists.parse_and_validate_lognormal_params([0, -1])
+
+    def test_that_zero_stddev_is_accepted(self):
+        assert dists.parse_and_validate_lognormal_params([0, 0]) == (0.0, 0.0)
+
+    def test_that_nan_parameter_raises_error(self):
+        with pytest.raises(ValueError, match="Parameters cannot be NaN"):
+            dists.parse_and_validate_lognormal_params([0, np.nan])
 
 
 class TestUniformDistribution:
