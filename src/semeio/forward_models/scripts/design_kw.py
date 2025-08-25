@@ -1,6 +1,7 @@
 import argparse
 import logging
 import sys
+from argparse import ArgumentParser
 
 from semeio import valid_file
 from semeio.forward_models.design_kw import design_kw
@@ -25,7 +26,7 @@ Configuration validation pre experiment can be disabled by explicitly setting ``
 """
 
 
-def create_parser():
+def create_parser() -> ArgumentParser:
     parser = argparse.ArgumentParser(description=description)
 
     parser.add_argument(
