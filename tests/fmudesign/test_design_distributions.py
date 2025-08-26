@@ -134,6 +134,9 @@ class TestLognormalDistribution:
         with pytest.raises(ValueError, match="Parameters cannot be NaN"):
             dists.parse_and_validate_lognormal_params([0, np.nan])
 
+    def test_that_string_numbers_are_converted_to_floats(self):
+        assert dists.parse_and_validate_lognormal_params(["0", "1"]) == (0.0, 1.0)
+
 
 class TestUniformDistribution:
     def test_that_empty_list_raises_parameter_count_error(self):
