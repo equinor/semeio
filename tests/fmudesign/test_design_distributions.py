@@ -221,23 +221,74 @@ def test_validate_triangular_params():
     assert (low, mode, high) == (0.0, 0.0, 0.0)
 
 
-def test_check_dist_params_pert():
-    """Test pert dist param checker"""
-    assert not dists._check_dist_params_pert([])[0]
-    assert not dists._check_dist_params_pert(())[0]
+class TestPertDistribution:
+    def test_that_empty_list_raises_parameter_count_error(self):
+        with pytest.raises(
+            ValueError,
+            match="PERT distribution must have 3 or 4 parameters, but had 0 parameters.",
+        ):
+            dists.parse_and_validate_pert_params([])
 
-    assert not dists._check_dist_params_pert([0])[0]
-    assert not dists._check_dist_params_pert([0, 0])[0]
-    assert not dists._check_dist_params_pert([0, 0, 0, 0, 0])[0]
+    def test_that_2_parameters_raises_count_error(self):
+        with pytest.raises(
+            ValueError,
+            match="PERT distribution must have 3 or 4 parameters, but had 2 parameters.",
+        ):
+            dists.parse_and_validate_pert_params([0, 1])
 
-    assert not dists._check_dist_params_pert(["foo", "bar", 0])[0]
+    def test_that_5_parameters_raises_count_error(self):
+        with pytest.raises(
+            ValueError,
+            match="PERT distribution must have 3 or 4 parameters, but had 5 parameters.",
+        ):
+            dists.parse_and_validate_pert_params([0, 1, 2, 3, 4])
 
-    assert dists._check_dist_params_pert([0, 1, 2])[0]
-    assert not dists._check_dist_params_pert([0, -1, -4])[0]
-    assert not dists._check_dist_params_pert([0, 1000, 999.99])[0]
-    assert dists._check_dist_params_pert([0, 1000, 1000, 999.99])[0]
+    def test_that_non_numeric_parameters_raise_conversion_error(self):
+        with pytest.raises(
+            ValueError,
+            match=r"All parameters must be convertible to numbers. Got: \['a', 'b', 'c'\]",
+        ):
+            dists.parse_and_validate_pert_params(["a", "b", "c"])
 
-    assert dists._check_dist_params_pert([0, 0, 0])[0]  # edge case
+    def test_that_invalid_ordering_raises_constraint_error(self):
+        with pytest.raises(
+            ValueError,
+            match="For PERT distribution, parameters must satisfy low <= mode <= high",
+        ):
+            dists.parse_and_validate_pert_params([1, 0, 2])  # low > mode
+
+    def test_that_invalid_ordering_raises_constraint_error_2(self):
+        with pytest.raises(
+            ValueError,
+            match="For PERT distribution, parameters must satisfy low <= mode <= high",
+        ):
+            dists.parse_and_validate_pert_params([0, 2, 1])  # mode > high
+
+    def test_that_valid_3_params_return_float_tuple_with_default_scale(self):
+        assert dists.parse_and_validate_pert_params([0, 1, 2]) == (0.0, 1.0, 2.0, 4.0)
+
+    def test_that_valid_4_params_return_float_tuple(self):
+        assert dists.parse_and_validate_pert_params([0, 1, 2, 5]) == (
+            0.0,
+            1.0,
+            2.0,
+            5.0,
+        )
+
+    def test_that_equal_bounds_are_accepted(self):
+        assert dists.parse_and_validate_pert_params([1, 1, 1]) == (1.0, 1.0, 1.0, 4.0)
+
+    def test_that_nan_parameter_raises_error(self):
+        with pytest.raises(ValueError, match="Parameters cannot be NaN"):
+            dists.parse_and_validate_pert_params([1, np.nan, 2])
+
+    def test_that_string_numbers_are_converted_to_floats(self):
+        assert dists.parse_and_validate_pert_params(["0", "1", "2"]) == (
+            0.0,
+            1.0,
+            2.0,
+            4.0,
+        )
 
 
 class TestLoguniformDistribution:
@@ -385,6 +436,21 @@ def test_draw_values_triangular():
 
     with pytest.raises(ValueError, match="minimum .* and maximum .* cannot be equal"):
         dists.draw_values_triangular([100, 100, 100], 10, rng)
+
+
+def test_draw_values_pert_validation():
+    rng = np.random.default_rng()
+    with pytest.raises(
+        ValueError,
+        match="PERT distribution must have 3 or 4 parameters, but had 2 parameters.",
+    ):
+        dists.draw_values_pert([1, 2], 10, rng)
+
+    with pytest.raises(ValueError, match="must be convertible to numbers"):
+        dists.draw_values_pert(["a", "b", "c"], 10, rng)
+
+    with pytest.raises(ValueError, match="must satisfy low <= mode <= high"):
+        dists.draw_values_pert([2, 1, 3], 10, rng)
 
 
 @pytest.mark.parametrize("seed", range(100))

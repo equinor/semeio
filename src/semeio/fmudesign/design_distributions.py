@@ -120,27 +120,32 @@ def parse_and_validate_triangular_params(
     return low, mode, high
 
 
-def _check_dist_params_pert(dist_params: Sequence[str]) -> tuple[bool, str]:
+def parse_and_validate_pert_params(
+    dist_params: Sequence[int | str | float],
+) -> tuple[float, float, float, float]:
     if len(dist_params) not in [3, 4]:
-        status = False
-        msg = (
-            "pert distribution must have 3 or 4 parameters, "
-            "but had " + str(len(dist_params)) + " parameters. "
+        raise ValueError(
+            f"PERT distribution must have 3 or 4 parameters, but had {len(dist_params)} parameters."
         )
-    elif not all(is_number(param) for param in dist_params):
-        status = False
-        msg = "Parameters for pert distribution must be numbers. "
-    elif not (
-        (float(dist_params[2]) >= float(dist_params[1]))
-        and (float(dist_params[1]) >= float(dist_params[0]))
-    ):
-        status = False
-        msg = "Pert distribution must have: low <= mode <= high. "
-    else:
-        status = True
-        msg = ""
+    try:
+        params = [float(p) for p in dist_params]
+    except (ValueError, TypeError) as e:
+        raise ValueError(
+            f"All parameters must be convertible to numbers. Got: {dist_params}"
+        ) from e
 
-    return status, msg
+    if np.any(np.isnan(params)):
+        raise ValueError(f"Parameters cannot be NaN. Got: {params}")
+
+    low, mode, high = params[0], params[1], params[2]
+    if not (low <= mode <= high):
+        raise ValueError(
+            "For PERT distribution, parameters must satisfy low <= mode <= high, "
+            f"but got low={low}, mode={mode}, high={high}."
+        )
+
+    scale = params[3] if len(params) == 4 else 4.0
+    return low, mode, high, scale
 
 
 def parse_and_validate_loguniform_params(
@@ -356,18 +361,7 @@ def draw_values_pert(
     Returns:
         list of values
     """
-    status, msg = _check_dist_params_pert(dist_parameters)
-    if not status:
-        raise ValueError(msg)
-
-    low = float(dist_parameters[0])
-    mode = float(dist_parameters[1])
-    high = float(dist_parameters[2])
-    scale = (
-        float(dist_parameters[3])
-        if len(dist_parameters) == 4
-        else 4  # pert 3 parameter distribution
-    )
+    low, mode, high, scale = parse_and_validate_pert_params(dist_parameters)
 
     if high == low:  # collapsed distribution
         print(
