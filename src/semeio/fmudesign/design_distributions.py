@@ -143,26 +143,26 @@ def _check_dist_params_pert(dist_params: Sequence[str]) -> tuple[bool, str]:
     return status, msg
 
 
-def _check_dist_params_logunif(dist_params: Sequence[str]) -> tuple[bool, str]:
+def parse_and_validate_loguniform_params(
+    dist_params: Sequence[int | str | float],
+) -> tuple[float, float]:
     if len(dist_params) != 2:
-        status = False
-        msg = (
-            "Log uniform distribution must have 2 parameters. "
-            "but had " + str(len(dist_params)) + " parameters. "
+        raise ValueError(
+            f"Loguniform distribution requires exactly 2 parameters, got {len(dist_params)}"
         )
-    elif not (is_number(dist_params[0]) and is_number(dist_params[1])):
-        status = False
-        msg = "Parameters for log uniform distribution must be numbers. "
-    elif not (
-        (float(dist_params[0]) > 0) and (float(dist_params[1]) >= float(dist_params[0]))
-    ):
-        status = False
-        msg = "loguniform distribution must have low > 0 and high >=low. "
-    else:
-        status = True
-        msg = ""
-
-    return status, msg
+    try:
+        low, high = [float(p) for p in dist_params]
+    except (ValueError, TypeError) as e:
+        raise ValueError(
+            f"All parameters must be convertible to numbers. Got: {dist_params}"
+        ) from e
+    if np.any(np.isnan([low, high])):
+        raise ValueError(f"Parameters cannot be NaN. Got: low={low}, high={high}")
+    if low <= 0:
+        raise ValueError(f"For loguniform distribution, low must be > 0, got {low}")
+    if high < low:
+        raise ValueError(f"Parameters must satisfy low <= high, got [{low}, {high}]")
+    return low, high
 
 
 def generate_stratified_samples(
@@ -401,7 +401,7 @@ def draw_values_pert(
 
 
 def draw_values_loguniform(
-    dist_parameters: Sequence[str],
+    dist_parameters: Sequence[int | str | float],
     numreals: int,
     rng: np.random.Generator,
     normalscoresamples: npt.NDArray[Any] | None = None,
@@ -415,12 +415,7 @@ def draw_values_loguniform(
     Returns:
         list of values
     """
-    status, msg = _check_dist_params_logunif(dist_parameters)
-    if not status:
-        raise ValueError(msg)
-
-    low = float(dist_parameters[0])
-    high = float(dist_parameters[1])
+    low, high = parse_and_validate_loguniform_params(dist_parameters)
 
     if normalscoresamples is not None:
         values = scipy.stats.reciprocal.ppf(

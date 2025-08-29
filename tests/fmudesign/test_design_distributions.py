@@ -240,22 +240,69 @@ def test_check_dist_params_pert():
     assert dists._check_dist_params_pert([0, 0, 0])[0]  # edge case
 
 
-def test_check_dist_params_logunif():
-    """Test logunif dist param checker"""
-    assert not dists._check_dist_params_logunif([])[0]
-    assert not dists._check_dist_params_logunif(())[0]
+class TestLoguniformDistribution:
+    def test_that_empty_list_raises_parameter_count_error(self):
+        with pytest.raises(
+            ValueError,
+            match="Loguniform distribution requires exactly 2 parameters, got 0",
+        ):
+            dists.parse_and_validate_loguniform_params([])
 
-    assert not dists._check_dist_params_logunif([0])[0]
-    assert not dists._check_dist_params_logunif([0, 0, 0])[0]
+    def test_that_empty_tuple_raises_parameter_count_error(self):
+        with pytest.raises(
+            ValueError,
+            match="Loguniform distribution requires exactly 2 parameters, got 0",
+        ):
+            dists.parse_and_validate_loguniform_params(())
 
-    assert not dists._check_dist_params_logunif(["foo", "bar"])[0]
+    def test_that_insufficient_parameters_raises_count_error(self):
+        with pytest.raises(
+            ValueError,
+            match="Loguniform distribution requires exactly 2 parameters, got 1",
+        ):
+            dists.parse_and_validate_loguniform_params([1])
 
-    assert not dists._check_dist_params_logunif([0, 1])[0]
-    assert dists._check_dist_params_logunif([0.00001, 1])[0]
-    assert dists._check_dist_params_logunif([0.0000001, 0.00001])[0]
-    assert not dists._check_dist_params_logunif([0.00001, 0.0000001])[0]
+    def test_that_excess_parameters_raises_count_error(self):
+        with pytest.raises(
+            ValueError,
+            match="Loguniform distribution requires exactly 2 parameters, got 3",
+        ):
+            dists.parse_and_validate_loguniform_params([1, 2, 3])
 
-    assert dists._check_dist_params_logunif([1, 1])[0]
+    def test_that_non_numeric_parameters_raise_conversion_error(self):
+        with pytest.raises(ValueError, match="must be convertible to numbers"):
+            dists.parse_and_validate_loguniform_params(["foo", "bar"])
+
+    def test_that_low_is_zero_raises_constraint_error(self):
+        with pytest.raises(
+            ValueError, match="For loguniform distribution, low must be > 0, got 0.0"
+        ):
+            dists.parse_and_validate_loguniform_params([0, 1])
+
+    def test_that_low_is_negative_raises_constraint_error(self):
+        with pytest.raises(
+            ValueError, match="For loguniform distribution, low must be > 0, got -1.0"
+        ):
+            dists.parse_and_validate_loguniform_params([-1, 1])
+
+    def test_that_invalid_ordering_raises_constraint_error(self):
+        with pytest.raises(
+            ValueError, match=r"Parameters must satisfy low <= high, got \[2.0, 1.0\]"
+        ):
+            dists.parse_and_validate_loguniform_params([2, 1])
+
+    def test_that_valid_parameters_return_float_tuple(self):
+        assert dists.parse_and_validate_loguniform_params([1, 2]) == (1.0, 2.0)
+
+    def test_that_equal_bounds_are_accepted(self):
+        assert dists.parse_and_validate_loguniform_params([1, 1]) == (1.0, 1.0)
+
+    def test_that_nan_parameter_raises_error(self):
+        with pytest.raises(ValueError, match="Parameters cannot be NaN"):
+            dists.parse_and_validate_loguniform_params([1, np.nan])
+
+    def test_that_string_numbers_are_converted_to_floats(self):
+        assert dists.parse_and_validate_loguniform_params(["1", "2"]) == (1.0, 2.0)
 
 
 def test_draw_values_normal():
@@ -362,12 +409,31 @@ def test_draw_values_pert(seed):
 def test_draw_values_loguniform():
     rng = np.random.default_rng()
 
-    assert not dists.draw_values_uniform([10, 100], 0, rng).size
+    assert not dists.draw_values_loguniform([10, 100], 0, rng).size
 
-    values = dists.draw_values_uniform([10, 100], 20, rng)
+    values = dists.draw_values_loguniform([10, 100], 20, rng)
     assert len(values) == 20
     assert all(isinstance(value, numbers.Number) for value in values)
     assert all(10 <= value <= 100 for value in values)
+
+    with pytest.raises(
+        ValueError,
+        match="Loguniform distribution requires exactly 2 parameters, got 3",
+    ):
+        dists.draw_values_loguniform([10, 50, 100], 10, rng)
+
+    with pytest.raises(
+        ValueError, match=r"Parameters must satisfy low <= high, got \[50.0, 10.0\]"
+    ):
+        dists.draw_values_loguniform([50, 10], 10, rng)
+
+    with pytest.raises(ValueError, match="must be convertible to numbers"):
+        dists.draw_values_loguniform(["a", 10], 10, rng)
+
+    with pytest.raises(
+        ValueError, match="For loguniform distribution, low must be > 0, got 0.0"
+    ):
+        dists.draw_values_loguniform([0, 10], 10, rng)
 
 
 def test_sample_discrete():
