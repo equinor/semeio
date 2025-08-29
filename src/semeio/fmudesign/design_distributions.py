@@ -363,32 +363,25 @@ def draw_values_pert(
     """
     low, mode, high, scale = parse_and_validate_pert_params(dist_parameters)
 
-    if high == low:  # collapsed distribution
-        print(
-            "Low and high parameters for pert distribution"
-            f" are equal. Using constant {low}"
+    if high == low:
+        raise ValueError(
+            f"Invalid PERT distribution: minimum ({low}) and maximum ({high}) cannot be equal"
         )
-        if normalscoresamples is not None:
-            values = scipy.stats.uniform.ppf(
-                scipy.stats.norm.cdf(normalscoresamples), loc=low, scale=0
-            )
-        else:
-            values = np.full(numreals, low)
-    else:
-        muval = (low + high + scale * mode) / (scale + 2)
-        if np.isclose(muval, mode):
-            alpha1 = (scale / 2) + 1
-        else:
-            alpha1 = ((muval - low) * (2 * mode - low - high)) / (
-                (mode - muval) * (high - low)
-            )
-        alpha2 = alpha1 * (high - muval) / (muval - low)
 
-        if normalscoresamples is not None:
-            uniform_samples = scipy.stats.norm.cdf(normalscoresamples)
-        else:
-            uniform_samples = generate_stratified_samples(numreals, rng)
-        values = scipy.stats.beta.ppf(uniform_samples, alpha1, alpha2)
+    muval = (low + high + scale * mode) / (scale + 2)
+    if np.isclose(muval, mode):
+        alpha1 = (scale / 2) + 1
+    else:
+        alpha1 = ((muval - low) * (2 * mode - low - high)) / (
+            (mode - muval) * (high - low)
+        )
+    alpha2 = alpha1 * (high - muval) / (muval - low)
+
+    if normalscoresamples is not None:
+        uniform_samples = scipy.stats.norm.cdf(normalscoresamples)
+    else:
+        uniform_samples = generate_stratified_samples(numreals, rng)
+    values = scipy.stats.beta.ppf(uniform_samples, alpha1, alpha2)
 
     # Scale the beta distribution to the desired range
     return values * (high - low) + low

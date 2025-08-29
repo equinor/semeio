@@ -452,6 +452,12 @@ def test_draw_values_pert_validation():
     with pytest.raises(ValueError, match="must satisfy low <= mode <= high"):
         dists.draw_values_pert([2, 1, 3], 10, rng)
 
+    with pytest.raises(
+        ValueError,
+        match="Invalid PERT distribution: minimum .* and maximum .* cannot be equal",
+    ):
+        dists.draw_values_pert([100, 100, 100], 10, rng)
+
 
 @pytest.mark.parametrize("seed", range(100))
 def test_draw_values_pert(seed):
