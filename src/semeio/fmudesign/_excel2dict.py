@@ -82,102 +82,35 @@ def inputdict_to_yaml(inputdict: Mapping[str, Any], filename: str) -> None:
         yaml.dump(inputdict, stream)
 
 
+def find_if_single(name: str, names: list[str]) -> str:
+    """Return a rough match if a single one is found, else fail."""
+    found = [
+        name_i for name_i in names if name == name_i.lower().strip().replace("_", "")
+    ]
+    if len(found) > 1:
+        raise ValueError(f"More than one match for {name}: {found}")
+    elif len(found) == 0:
+        raise ValueError(f"No match for {name}: {names}")
+    else:
+        return found[0]
+
+
 def _find_geninput_sheetname(input_filename: str) -> str:
-    """Finding general input sheet, allowing for name
-    variations."""
+    """Finding general input sheet, allowing for name variations."""
     xlsx = openpyxl.load_workbook(input_filename, read_only=True, keep_links=False)
-    sheets = xlsx.sheetnames
-    general_input_sheet: list[str] = []
-    for sheet in sheets:
-        if sheet in [
-            "general_input",
-            "generalinput",
-            "GeneralInput",
-            "Generalinput",
-            "General_Input",
-            "General_input",
-        ]:
-            general_input_sheet.append(sheet)
-
-    if len(general_input_sheet) > 1:
-        raise ValueError(
-            f"More than one sheet with general input. Sheetnames are {general_input_sheet} "
-        )
-
-    if not general_input_sheet:
-        raise ValueError(
-            f"No general_input sheet provided in Excel file {input_filename} "
-        )
-
-    return general_input_sheet[0]
+    return find_if_single("generalinput", names=xlsx.sheetnames)
 
 
 def _find_onebyone_defaults_sheet(input_filename: str) -> str:
-    """Finds correct sheet name for default values to use when parsing
-    excel file.
-
-    Returns:
-        string, name of a sheet in the excel file
-    """
+    """Finds correct sheet name for default values to use when parsing excel file."""
     xlsx = openpyxl.load_workbook(input_filename, read_only=True, keep_links=False)
-    sheets = xlsx.sheetnames
-
-    default_values_sheet: list[str] = []
-
-    for sheet in sheets:
-        if sheet in [
-            "default_values",
-            "defaultvalues",
-            "DefaultValues",
-            "Defaultvalues",
-            "Default_Values",
-            "Default_values",
-        ]:
-            default_values_sheet.append(sheet)
-    if len(default_values_sheet) > 1:
-        raise ValueError(
-            f"More than one sheet with default values. Sheetnames are {default_values_sheet} "
-        )
-
-    if not default_values_sheet:
-        raise ValueError(
-            f"No defaultvalues sheet provided in Excel file {input_filename} "
-        )
-
-    return default_values_sheet[0]
+    return find_if_single("defaultvalues", names=xlsx.sheetnames)
 
 
 def _find_onebyone_input_sheet(input_filename: str) -> str:
-    """Finds correct sheet name for input to use when parsing excel file.
-
-    Returns:
-        string, name of a sheet in the excel file
-    """
+    """Finds correct sheet name for input to use when parsing excel file."""
     xlsx = openpyxl.load_workbook(input_filename, read_only=True, keep_links=False)
-    sheets = xlsx.sheetnames
-
-    design_input_sheet: list[str] = []
-
-    for sheet in sheets:
-        if sheet in [
-            "design_input",
-            "designinput",
-            "DesignInput",
-            "Designinput",
-            "Design_Input",
-            "Design_input",
-        ]:
-            design_input_sheet.append(sheet)
-    if len(design_input_sheet) > 1:
-        raise ValueError(
-            f"More than one sheet with design inputSheetnames are {design_input_sheet} "
-        )
-
-    if not design_input_sheet:
-        raise ValueError(
-            f"No designinput sheet provided in Excel file {input_filename} "
-        )
-    return design_input_sheet[0]
+    return find_if_single("designinput", names=xlsx.sheetnames)
 
 
 def _check_designinput(dsgn_input: pd.DataFrame) -> None:
