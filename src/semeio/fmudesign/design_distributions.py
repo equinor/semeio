@@ -11,6 +11,7 @@ import numpy as np
 import numpy.typing as npt
 import pandas as pd
 import scipy.stats
+from probabilit.distributions import Lognormal, Normal, Triangular, Uniform
 from scipy.stats import qmc
 
 
@@ -211,8 +212,7 @@ def draw_values_normal(
         if normalscoresamples is not None:
             values = mean + normalscoresamples * stddev
         else:
-            uniform_samples = generate_stratified_samples(numreals, rng)
-            values = scipy.stats.norm.ppf(uniform_samples, loc=mean, scale=stddev)
+            values = Normal(mean, stddev).sample(numreals, rng, method="lhs")
 
     else:  # truncated normal
         clip1, clip2 = params[2], params[3]
@@ -260,11 +260,7 @@ def draw_values_lognormal(
             scale=np.exp(mean),
         )
     else:
-        uniform_samples = generate_stratified_samples(numreals, rng)
-        values = scipy.stats.lognorm.ppf(
-            uniform_samples, s=sigma, loc=0, scale=np.exp(mean)
-        )
-
+        values = Lognormal.from_log_params(mean, sigma).sample(numreals, rng)
     return values
 
 
@@ -298,8 +294,7 @@ def draw_values_uniform(
             scipy.stats.norm.cdf(normalscoresamples), loc=low, scale=uscale
         )
 
-    uniform_samples = generate_stratified_samples(numreals, rng)
-    return scipy.stats.uniform.ppf(uniform_samples, loc=low, scale=uscale)
+    return Uniform(low, high).sample(numreals, rng)
 
 
 def draw_values_triangular(
@@ -336,9 +331,8 @@ def draw_values_triangular(
             scale=dist_scale,
         )
     else:
-        uniform_samples = generate_stratified_samples(numreals, rng)
-        values = scipy.stats.triang.ppf(
-            uniform_samples, shape, loc=low, scale=dist_scale
+        values = Triangular(low, mode, high, low_perc=0, high_perc=1).sample(
+            numreals, rng
         )
 
     return values
