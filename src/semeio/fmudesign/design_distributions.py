@@ -1,7 +1,6 @@
-"""Module for random sampling of parameter values from
-distributions. For use in generation of design matrices
-"""
+"""Module for random sampling of parameter values from distributions."""
 
+import dataclasses
 import re
 from collections.abc import Sequence
 from pathlib import Path
@@ -14,160 +13,272 @@ import scipy.stats
 from scipy.stats import qmc
 
 
-def parse_and_validate_normal_params(
-    dist_params: Sequence[int | str | float],
-) -> tuple[float, ...]:
-    if len(dist_params) not in [2, 4]:
-        raise ValueError(
-            "Normal distribution must have 2 parameters"
-            " or 4 for a truncated normal, "
-            f"but had {len(dist_params)} parameters."
-        )
-    try:
-        params = [float(p) for p in dist_params]
-    except (ValueError, TypeError) as e:
-        raise ValueError(
-            f"All parameters must be convertible to numbers. Got: {dist_params}"
-        ) from e
+def validate_params(distname: str, parameters: list[str]) -> list[float]:
+    """Common parameter validation for all distributions.
 
-    if np.any(np.isnan(params)):
-        raise ValueError(f"Parameters cannot be NaN. Got: {params}")
+    Example:
+    >>> validate_params('normal', ['0', '-3.14', '1e10'])
+    [0.0, -3.14, 10000000000.0]
+    >>> validate_params('normal', ['inf'])
+    Traceback (most recent call last):
+        ...
+    ValueError: Parameter 1 in distribution normal is not finite: inf
+    """
+    new_parameters: list[float] = []
 
-    if params[1] < 0:
-        raise ValueError(
-            f"Stddev for normal distribution must be >= 0. Got: {params[1]}"
-        )
+    for i, parameter in enumerate(parameters):
+        try:
+            new_parameters.append(float(parameter))
+        except (ValueError, TypeError) as e:
+            raise ValueError(
+                f"Parameter {i + 1} in distribution {distname} not convertible to number: {parameter}"
+            ) from e
 
-    if len(params) == 4 and params[2] >= params[3]:
-        raise ValueError(
-            "For truncated normal distribution, "
-            "lower bound must be less than upper bound, "
-            f"but got [{params[2]}, {params[3]}]."
-        )
-    return tuple(params)
+        if not np.isfinite(new_parameters[i]):
+            raise ValueError(
+                f"Parameter {i + 1} in distribution {distname} is not finite: {parameter}"
+            )
+
+    return new_parameters
 
 
-def parse_and_validate_lognormal_params(
-    dist_params: Sequence[int | str | float],
-) -> tuple[float, float]:
-    if len(dist_params) != 2:
-        raise ValueError(
-            "Lognormal distribution must have 2 parameters, "
-            f"but had {len(dist_params)} parameters."
-        )
-    try:
-        mean, stddev = [float(p) for p in dist_params]
-    except (ValueError, TypeError) as e:
-        raise ValueError(
-            f"All parameters must be convertible to numbers. Got: {dist_params}"
-        ) from e
+class Distribution:
+    def validate_params(self) -> None:
+        """Common parameter validation for all distributions."""
 
-    if np.any(np.isnan([mean, stddev])):
-        raise ValueError(f"Parameters cannot be NaN. Got: {[mean, stddev]}")
+        # Check that all parameters are numbers
+        for param_name, param_value in self.__dict__.items():
+            try:
+                setattr(self, param_name, float(param_value))
+            except (ValueError, TypeError) as e:
+                raise ValueError(
+                    f"Parameter {param_name}={param_value} not convertible to number in: {self}"
+                ) from e
 
-    if stddev < 0:
-        raise ValueError(
-            f"Stddev for lognormal distribution must be >= 0. Got: {stddev}"
-        )
-    return mean, stddev
+        # Check low and high if distribution has these
+        if hasattr(self, "low") and hasattr(self, "high"):
+            if self.high <= self.low:
+                raise ValueError(f"Must have high > low in: {self}")
+
+            # Check mode if distribution has it
+            if hasattr(self, "mode") and not (self.low <= self.mode <= self.high):
+                raise ValueError(f"Must have low <= mode <= high in {self}")
 
 
-def parse_and_validate_uniform_params(
-    dist_params: Sequence[int | str | float],
-) -> tuple[float, float]:
-    if len(dist_params) != 2:
-        raise ValueError(
-            f"Uniform distribution requires exactly 2 parameters, got {len(dist_params)}"
-        )
-    try:
-        low, high = [float(p) for p in dist_params]
-    except (ValueError, TypeError) as e:
-        raise ValueError(
-            f"All parameters must be convertible to numbers. Got: {dist_params}"
-        ) from e
-    if np.any(np.isnan([low, high])):
-        raise ValueError(f"Parameters cannot be NaN. Got: low={low}, high={high}")
-    if high < low:
-        raise ValueError(f"Parameters must satisfy low < high, got [{low}, {high}]")
-    return low, high
+@dataclasses.dataclass
+class Normal(Distribution):
+    """Create a normal distribution.
 
+    Example:
+    >>> rng = np.random.default_rng(42)
+    >>> Normal(mean=0, stddev=2).sample(5, rng=rng)
+    array([-0.42093622, -1.55927141, -3.9308858 ,  1.27522068,  1.74893971])
+    >>> Normal(mean=0, stddev=2, low=10, high=5)
+    Traceback (most recent call last):
+        ...
+    ValueError: Must have high > low in: Normal(mean=0.0, stddev=2.0, low=10.0, high=5.0)
+    """
 
-def parse_and_validate_triangular_params(
-    dist_params: Sequence[int | str | float],
-) -> tuple[float, float, float]:
-    if len(dist_params) != 3:
-        raise ValueError(
-            f"Triangular distribution requires exactly 3 parameters, got {len(dist_params)}"
-        )
+    mean: float = 0.0
+    stddev: float = 1.0
+    low: float = -np.inf
+    high: float = np.inf
 
-    try:
-        low, mode, high = [float(p) for p in dist_params]
-    except (ValueError, TypeError) as e:
-        raise ValueError(
-            f"All parameters must be convertible to numbers. Got: {dist_params}"
-        ) from e
+    def __post_init__(self) -> None:
+        super().validate_params()
+        if self.stddev < 0:
+            raise ValueError(f"Must have positive stddev in: {self}")
 
-    if np.any(np.isnan([low, mode, high])):
-        raise ValueError(
-            f"Parameters cannot be NaN. Got: low={low}, mode={mode}, high={high}"
-        )
+    def sample(
+        self,
+        size: int,
+        rng: np.random.Generator,
+        normalscoresamples: npt.NDArray[Any] | None = None,
+    ) -> npt.NDArray[Any]:
+        # Scipy is parametrized wrt loc and scale
+        low = (self.low - self.mean) / self.stddev
+        high = (self.high - self.mean) / self.stddev
 
-    if not (low <= mode <= high):
-        raise ValueError(
-            f"Parameters must satisfy low <= mode <= high, got [{low}, {mode}, {high}]"
+        if normalscoresamples is not None:
+            return scipy.stats.truncnorm.ppf(
+                scipy.stats.norm.cdf(normalscoresamples),
+                low,
+                high,
+                loc=self.mean,
+                scale=self.stddev,
+            )
+
+        uniform_samples = generate_stratified_samples(size, rng)
+        return scipy.stats.truncnorm.ppf(
+            uniform_samples.flatten(), low, high, loc=self.mean, scale=self.stddev
         )
 
-    return low, mode, high
 
+@dataclasses.dataclass
+class Lognormal(Distribution):
+    mean: float = 0.0
+    sigma: float = 1.0
 
-def parse_and_validate_pert_params(
-    dist_params: Sequence[int | str | float],
-) -> tuple[float, float, float, float]:
-    if len(dist_params) not in [3, 4]:
-        raise ValueError(
-            f"PERT distribution must have 3 or 4 parameters, but had {len(dist_params)} parameters."
+    def __post_init__(self) -> None:
+        super().validate_params()
+        if self.sigma <= 0:
+            raise ValueError(f"Must have positive sigma in: {self}")
+
+    def sample(
+        self,
+        size: int,
+        rng: np.random.Generator,
+        normalscoresamples: npt.NDArray[Any] | None = None,
+    ) -> npt.NDArray[Any]:
+        if normalscoresamples is not None:
+            return scipy.stats.lognorm.ppf(
+                scipy.stats.norm.cdf(normalscoresamples),
+                s=self.sigma,
+                loc=0,
+                scale=np.exp(self.mean),
+            )
+
+        uniform_samples = generate_stratified_samples(size, rng)
+        return scipy.stats.lognorm.ppf(
+            uniform_samples, s=self.sigma, loc=0, scale=np.exp(self.mean)
         )
-    try:
-        params = [float(p) for p in dist_params]
-    except (ValueError, TypeError) as e:
-        raise ValueError(
-            f"All parameters must be convertible to numbers. Got: {dist_params}"
-        ) from e
-
-    if np.any(np.isnan(params)):
-        raise ValueError(f"Parameters cannot be NaN. Got: {params}")
-
-    low, mode, high = params[0], params[1], params[2]
-    if not (low <= mode <= high):
-        raise ValueError(
-            "For PERT distribution, parameters must satisfy low <= mode <= high, "
-            f"but got low={low}, mode={mode}, high={high}."
-        )
-
-    scale = params[3] if len(params) == 4 else 4.0
-    return low, mode, high, scale
 
 
-def parse_and_validate_loguniform_params(
-    dist_params: Sequence[int | str | float],
-) -> tuple[float, float]:
-    if len(dist_params) != 2:
-        raise ValueError(
-            f"Loguniform distribution requires exactly 2 parameters, got {len(dist_params)}"
-        )
-    try:
-        low, high = [float(p) for p in dist_params]
-    except (ValueError, TypeError) as e:
-        raise ValueError(
-            f"All parameters must be convertible to numbers. Got: {dist_params}"
-        ) from e
-    if np.any(np.isnan([low, high])):
-        raise ValueError(f"Parameters cannot be NaN. Got: low={low}, high={high}")
-    if low <= 0:
-        raise ValueError(f"For loguniform distribution, low must be > 0, got {low}")
-    if high < low:
-        raise ValueError(f"Parameters must satisfy low <= high, got [{low}, {high}]")
-    return low, high
+@dataclasses.dataclass
+class Uniform(Distribution):
+    low: float = 0.0
+    high: float = 1.0
+
+    def __post_init__(self) -> None:
+        super().validate_params()
+
+    def sample(
+        self,
+        size: int,
+        rng: np.random.Generator,
+        normalscoresamples: npt.NDArray[Any] | None = None,
+    ) -> npt.NDArray[Any]:
+        scale = self.high - self.low
+
+        if normalscoresamples is not None:
+            return scipy.stats.uniform.ppf(
+                scipy.stats.norm.cdf(normalscoresamples), loc=self.low, scale=scale
+            )
+
+        uniform_samples = generate_stratified_samples(size, rng)
+        return scipy.stats.uniform.ppf(uniform_samples, loc=self.low, scale=scale)
+
+
+@dataclasses.dataclass
+class Loguniform(Distribution):
+    """Create a Loguniform random variable.
+
+    Example:
+    >>> rng = np.random.default_rng(0)
+    >>> Loguniform(low=1, high=2).sample(5, rng=rng)
+    array([1.75492879, 1.26289314, 1.03924188, 1.48955292, 1.64194378])
+    >>> Loguniform(low=0, high=2).sample(5, rng=rng)
+    Traceback (most recent call last):
+      ...
+    ValueError: Must have 0 < low < high in: Loguniform(low=0.0, high=2.0)
+    """
+
+    low: float = 1e-6
+    high: float = 1.0
+
+    def __post_init__(self) -> None:
+        super().validate_params()
+        if not (0 < self.low < self.high):
+            raise ValueError(f"Must have 0 < low < high in: {self}")
+
+    def sample(
+        self,
+        size: int,
+        rng: np.random.Generator,
+        normalscoresamples: npt.NDArray[Any] | None = None,
+    ) -> npt.NDArray[Any]:
+        if normalscoresamples is not None:
+            return scipy.stats.loguniform.ppf(
+                scipy.stats.norm.cdf(normalscoresamples), a=self.low, b=self.high
+            )
+        else:
+            uniform_samples = generate_stratified_samples(size, rng)
+            return scipy.stats.loguniform.ppf(uniform_samples, a=self.low, b=self.high)
+
+
+@dataclasses.dataclass
+class Triangular(Distribution):
+    low: float = 0
+    mode: float = 0.5
+    high: float = 1.0
+
+    def __post_init__(self) -> None:
+        super().validate_params()
+
+    def sample(
+        self,
+        size: int,
+        rng: np.random.Generator,
+        normalscoresamples: npt.NDArray[Any] | None = None,
+    ) -> npt.NDArray[Any]:
+        scale = self.high - self.low
+        shape = (self.mode - self.low) / scale
+
+        if normalscoresamples is not None:
+            return scipy.stats.triang.ppf(
+                scipy.stats.norm.cdf(normalscoresamples),
+                shape,
+                loc=self.low,
+                scale=scale,
+            )
+        else:
+            uniform_samples = generate_stratified_samples(size, rng)
+            return scipy.stats.triang.ppf(
+                uniform_samples, shape, loc=self.low, scale=scale
+            )
+
+
+@dataclasses.dataclass
+class PERT(Distribution):
+    """Create a PERT random variable, which is a re-parametrization of Beta.
+
+    Example:
+    >>> rng = np.random.default_rng(0)
+    >>> PERT(low=0, high=10, mode=4).sample(5, rng=rng)
+    array([6.11670474, 3.39187484, 1.45699256, 4.6543798 , 5.46365429])
+    """
+
+    low: float = 0
+    mode: float = 0.5
+    high: float = 1.0
+    scale: float = 4.0
+
+    def __post_init__(self) -> None:
+        super().validate_params()
+
+    def sample(
+        self,
+        size: int,
+        rng: np.random.Generator,
+        normalscoresamples: npt.NDArray[Any] | None = None,
+    ) -> npt.NDArray[Any]:
+        muval = (self.low + self.high + self.scale * self.mode) / (self.scale + 2)
+        if np.isclose(muval, self.mode):
+            alpha1 = (self.scale / 2) + 1
+        else:
+            alpha1 = ((muval - self.low) * (2 * self.mode - self.low - self.high)) / (
+                (self.mode - muval) * (self.high - self.low)
+            )
+        alpha2 = alpha1 * (self.high - muval) / (muval - self.low)
+
+        if normalscoresamples is not None:
+            uniform_samples = scipy.stats.norm.cdf(normalscoresamples)
+        else:
+            uniform_samples = generate_stratified_samples(size, rng)
+
+        values = scipy.stats.beta.ppf(uniform_samples, alpha1, alpha2)
+        # Scale the beta distribution to the desired range
+        return values * (self.high - self.low) + self.low
 
 
 def generate_stratified_samples(
@@ -194,225 +305,7 @@ def generate_stratified_samples(
         return np.array([])
 
     sampler = qmc.LatinHypercube(d=1, rng=rng)
-    samples = sampler.random(n=numreals)
-    return samples.flatten()
-
-
-def draw_values_normal(
-    dist_parameters: Sequence[str],
-    numreals: int,
-    rng: np.random.Generator,
-    normalscoresamples: npt.NDArray[Any] | None = None,
-) -> npt.NDArray[Any]:
-    params = parse_and_validate_normal_params(dist_parameters)
-    mean, stddev = params[0], params[1]
-
-    if len(params) == 2:  # normal
-        if normalscoresamples is not None:
-            values = mean + normalscoresamples * stddev
-        else:
-            uniform_samples = generate_stratified_samples(numreals, rng)
-            values = scipy.stats.norm.ppf(uniform_samples, loc=mean, scale=stddev)
-
-    else:  # truncated normal
-        clip1, clip2 = params[2], params[3]
-        low = (clip1 - mean) / stddev
-        high = (clip2 - mean) / stddev
-
-        if normalscoresamples is not None:
-            values = scipy.stats.truncnorm.ppf(
-                scipy.stats.norm.cdf(normalscoresamples),
-                low,
-                high,
-                loc=mean,
-                scale=stddev,
-            )
-        else:
-            uniform_samples = generate_stratified_samples(numreals, rng)
-            values = scipy.stats.truncnorm.ppf(
-                uniform_samples.flatten(), low, high, loc=mean, scale=stddev
-            )
-
-    return values
-
-
-def draw_values_lognormal(
-    dist_parameters: Sequence[int | str | float],
-    numreals: int,
-    rng: np.random.Generator,
-    normalscoresamples: npt.NDArray[Any] | None = None,
-) -> npt.NDArray[Any]:
-    """Draws values from lognormal distribution.
-    Args:
-        dist_parameters(list): [mu, sigma] for the logarithm of the variable
-        numreals(int): number of realisations to draw
-        rng: numpy.random.Generator instance
-        normalscoresamples(list): samples for correlated parameters
-    Returns:
-        list of values
-    """
-    mean, sigma = parse_and_validate_lognormal_params(dist_parameters)
-    if normalscoresamples is not None:
-        values = scipy.stats.lognorm.ppf(
-            scipy.stats.norm.cdf(normalscoresamples),
-            s=sigma,
-            loc=0,
-            scale=np.exp(mean),
-        )
-    else:
-        uniform_samples = generate_stratified_samples(numreals, rng)
-        values = scipy.stats.lognorm.ppf(
-            uniform_samples, s=sigma, loc=0, scale=np.exp(mean)
-        )
-
-    return values
-
-
-def draw_values_uniform(
-    dist_parameters: Sequence[int | str | float],
-    numreals: int,
-    rng: np.random.Generator,
-    normalscoresamples: npt.NDArray[Any] | None = None,
-) -> npt.NDArray[Any]:
-    """Draws values from uniform distribution.
-    Args:
-        dist_parameters(list): [minimum, maximum]
-        numreals(int): number of realisations to draw
-        rng: numpy.random.Generator instance
-        normalscoresamples(list): samples for correlated parameters
-    Returns:
-        list of values
-    """
-    if numreals < 0:
-        raise ValueError("numreal must be a positive integer")
-
-    if numreals == 0:
-        return np.array([])
-
-    low, high = parse_and_validate_uniform_params(dist_parameters)
-
-    uscale = high - low
-
-    if normalscoresamples is not None:
-        return scipy.stats.uniform.ppf(
-            scipy.stats.norm.cdf(normalscoresamples), loc=low, scale=uscale
-        )
-
-    uniform_samples = generate_stratified_samples(numreals, rng)
-    return scipy.stats.uniform.ppf(uniform_samples, loc=low, scale=uscale)
-
-
-def draw_values_triangular(
-    dist_parameters: Sequence[str],
-    numreals: int,
-    rng: np.random.Generator,
-    normalscoresamples: npt.NDArray[Any] | None = None,
-) -> npt.NDArray[Any]:
-    """Draws values from triangular distribution.
-    Args:
-        dist_parameters(list): [min, mode, max]
-        numreals(int): number of realisations to draw
-        rng: numpy.random.Generator instance
-        normalscoresamples(list): samples for correlated parameters
-    Returns:
-        list of values
-    """
-    low, mode, high = parse_and_validate_triangular_params(dist_parameters)
-
-    dist_scale = high - low
-
-    if dist_scale == 0:
-        raise ValueError(
-            f"Invalid triangular distribution: minimum ({low}) and maximum ({high}) cannot be equal"
-        )
-
-    shape = (mode - low) / dist_scale
-
-    if normalscoresamples is not None:
-        values = scipy.stats.triang.ppf(
-            scipy.stats.norm.cdf(normalscoresamples),
-            shape,
-            loc=low,
-            scale=dist_scale,
-        )
-    else:
-        uniform_samples = generate_stratified_samples(numreals, rng)
-        values = scipy.stats.triang.ppf(
-            uniform_samples, shape, loc=low, scale=dist_scale
-        )
-
-    return values
-
-
-def draw_values_pert(
-    dist_parameters: Sequence[str],
-    numreals: int,
-    rng: np.random.Generator,
-    normalscoresamples: npt.NDArray[Any] | None = None,
-) -> npt.NDArray[Any]:
-    """Draws values from pert distribution.
-    Args:
-        dist_parameters(list): [min, mode, max, scale]
-        where scale is only specified
-        for a 4 parameter pert distribution
-        numreals(int): number of realisations to draw
-        rng: numpy.random.Generator instance
-        normalscoresamples(list): samples for correlated parameters
-    Returns:
-        list of values
-    """
-    low, mode, high, scale = parse_and_validate_pert_params(dist_parameters)
-
-    if high == low:
-        raise ValueError(
-            f"Invalid PERT distribution: minimum ({low}) and maximum ({high}) cannot be equal"
-        )
-
-    muval = (low + high + scale * mode) / (scale + 2)
-    if np.isclose(muval, mode):
-        alpha1 = (scale / 2) + 1
-    else:
-        alpha1 = ((muval - low) * (2 * mode - low - high)) / (
-            (mode - muval) * (high - low)
-        )
-    alpha2 = alpha1 * (high - muval) / (muval - low)
-
-    if normalscoresamples is not None:
-        uniform_samples = scipy.stats.norm.cdf(normalscoresamples)
-    else:
-        uniform_samples = generate_stratified_samples(numreals, rng)
-    values = scipy.stats.beta.ppf(uniform_samples, alpha1, alpha2)
-
-    # Scale the beta distribution to the desired range
-    return values * (high - low) + low
-
-
-def draw_values_loguniform(
-    dist_parameters: Sequence[int | str | float],
-    numreals: int,
-    rng: np.random.Generator,
-    normalscoresamples: npt.NDArray[Any] | None = None,
-) -> npt.NDArray[Any]:
-    """Draws values from loguniform distribution.
-    Args:
-        dist_parameters(list): [minimum, maximum]
-        numreals(int): number of realisations to draw
-        rng: numpy.random.Generator instance
-        normalscoresamples(list): samples for correlated parameters
-    Returns:
-        list of values
-    """
-    low, high = parse_and_validate_loguniform_params(dist_parameters)
-
-    if normalscoresamples is not None:
-        values = scipy.stats.reciprocal.ppf(
-            scipy.stats.norm.cdf(normalscoresamples), low, high
-        )
-    else:
-        uniform_samples = generate_stratified_samples(numreals, rng)
-        values = scipy.stats.reciprocal.ppf(uniform_samples, low, high)
-
-    return values
+    return sampler.random(n=numreals).flatten()
 
 
 def draw_values(
@@ -432,46 +325,86 @@ def draw_values(
         rng (numpy.random.Generator): random number generator instance
         normalscoresamples (array, optional): samples for correlated distributions
     Returns:
-        scipy.stats distribution with parameters
+        array with sampled values
     """
-    if distname[0:4].lower() == "norm":
-        values = draw_values_normal(dist_parameters, numreals, rng, normalscoresamples)
-    elif distname[0:4].lower() == "logn":
-        values = draw_values_lognormal(
-            dist_parameters, numreals, rng, normalscoresamples
-        )
-    elif distname[0:4].lower() == "unif":
-        values = draw_values_uniform(dist_parameters, numreals, rng, normalscoresamples)
-    elif distname[0:6].lower() == "triang":
-        values = draw_values_triangular(
-            dist_parameters, numreals, rng, normalscoresamples
-        )
-    elif distname[0:4].lower() == "pert":
-        values = draw_values_pert(dist_parameters, numreals, rng, normalscoresamples)
-    elif distname[0:7].lower() == "logunif":
-        values = draw_values_loguniform(
-            dist_parameters, numreals, rng, normalscoresamples
-        )
-    elif distname[0:5].lower() == "const":
+    if numreals < 0:
+        raise ValueError("Got < 0 samples ({numreals=}) for distribution: {distname}")
+    if numreals == 0:
+        return np.array([])
+
+    # Special case for discrete
+    if distname.lower().startswith("disc"):
+        return sample_discrete(dist_parameters, numreals, rng, normalscoresamples)
+
+    # Special case for constant
+    if distname.lower().startswith("const"):
         if normalscoresamples is not None:
             raise ValueError(
-                "Parameter with const distribution "
-                "was defined in correlation matrix "
-                "but const distribution cannot "
-                "be used with correlation. "
+                "Parameter with const distribution was defined in correlation "
+                "matrix but const distribution cannot be used with correlation."
             )
-        values = np.array([dist_parameters[0]] * numreals)
-    elif distname[0:4].lower() == "disc":
-        status, result = sample_discrete(
-            dist_parameters, numreals, rng, normalscoresamples
-        )
-        if status:
-            values = result
+        return np.array([dist_parameters[0]] * numreals)
+
+    # Convert parameters
+    parameters: list[float] = validate_params(
+        distname=distname, parameters=list(dist_parameters)
+    )
+
+    if distname.lower().startswith("norm"):
+        if len(parameters) == 2:
+            mean, stddev = parameters
+            distr = Normal(mean=mean, stddev=stddev)
+        elif len(parameters) == 4:
+            mean, stddev, low, high = parameters
+            distr = Normal(mean=mean, stddev=stddev, low=low, high=high)
         else:
-            raise ValueError(result)
+            raise ValueError(f"Normal must have 2 or 4 parameters, got: {parameters}")
+        return distr.sample(
+            size=numreals, rng=rng, normalscoresamples=normalscoresamples
+        )
+
+    elif distname.lower().startswith("logn"):
+        if len(parameters) != 2:
+            raise ValueError(f"Lognormal must have 2 parameters, got: {parameters}")
+        mean, sigma = parameters
+        return Lognormal(mean=mean, sigma=sigma).sample(
+            size=numreals, rng=rng, normalscoresamples=normalscoresamples
+        )
+    elif distname.lower().startswith("unif"):
+        if len(parameters) != 2:
+            raise ValueError(f"Uniform must have 2 parameters, got: {parameters}")
+        low, high = parameters
+        return Uniform(low=low, high=high).sample(
+            size=numreals, rng=rng, normalscoresamples=normalscoresamples
+        )
+    elif distname.lower().startswith("triang"):
+        if len(parameters) != 3:
+            raise ValueError(f"Triangular must have 3 parameters, got: {parameters}")
+        low, mode, high = parameters
+        return Triangular(low=low, mode=mode, high=high).sample(
+            size=numreals, rng=rng, normalscoresamples=normalscoresamples
+        )
+    elif distname.lower().startswith("pert"):
+        if len(parameters) == 3:
+            low, mode, high = parameters
+            pert = PERT(low=low, mode=mode, high=high)
+        elif len(parameters) == 4:
+            low, mode, high, scale = parameters
+            pert = PERT(low=low, mode=mode, high=high, scale=scale)
+        else:
+            raise ValueError(f"PERT must have 3 or 4 parameters, got: {parameters}")
+        return pert.sample(
+            size=numreals, rng=rng, normalscoresamples=normalscoresamples
+        )
+    elif distname.lower().startswith("logunif"):
+        if len(parameters) != 2:
+            raise ValueError(f"Loguniform must have 2 parameters, got: {parameters}")
+        low, high = parameters
+        return Loguniform(low=low, high=high).sample(
+            size=numreals, rng=rng, normalscoresamples=normalscoresamples
+        )
     else:
-        raise ValueError(f"distribution name {distname} is not implemented")
-    return values
+        raise ValueError(f"Distribution name {distname} is not implemented")
 
 
 def sample_discrete(
@@ -479,12 +412,26 @@ def sample_discrete(
     numreals: int,
     rng: np.random.Generator,
     normalscoresamples: npt.NDArray[Any] | None = None,
-) -> tuple[bool, npt.NDArray[Any]]:
-    status = True
+) -> npt.NDArray[Any]:
+    """Sample discrete variables.
+
+    Examples:
+    >>> rng = np.random.default_rng(0)
+    >>> sample_discrete(['a,b,c'], numreals=5, rng=rng)
+    array(['c', 'b', 'a', 'b', 'c'], dtype='<U1')
+
+    >>> sample_discrete(['a,b,c', '1,2,3'], numreals=5, rng=rng)
+    array(['a', 'c', 'c', 'c', 'b'], dtype='<U1')
+
+    >>> normalscoresamples = np.array([-0.5, 0.3, 0.4, 0.7, 0.7])
+    >>> sample_discrete(['a,b,c', '1,2,3'], numreals=5, rng=rng,
+    ...                 normalscoresamples=normalscoresamples)
+    array(['b', 'c', 'c', 'c', 'c'], dtype='<U1')
+    """
     outcomes = re.split(",", dist_params[0])
     outcomes = [item.strip() for item in outcomes]
     if numreals == 0:
-        return status, np.array([])
+        return np.array([])
     if numreals < 0:
         raise ValueError("numreal must be a positive integer")
     # Handle probability weights
@@ -517,7 +464,7 @@ def sample_discrete(
         uniform_samples = generate_stratified_samples(numreals, rng)
     cum_prob = np.cumsum(fractions)
     values = np.array([outcomes[np.searchsorted(cum_prob, s)] for s in uniform_samples])
-    return status, values
+    return values
 
 
 def is_number(teststring: str) -> bool:
