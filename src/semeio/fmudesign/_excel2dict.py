@@ -48,10 +48,7 @@ def excel2dict_design(
     design_type = str(generalinput.loc["designtype"].iloc[0])
     if design_type != "onebyone":
         raise ValueError(
-            "Generation of DesignMatrix only "
-            "implemented for type onebyone "
-            "In general_input designtype was "
-            f"set to {design_type}"
+            f"Generation of DesignMatrix only implemented for type 'onebyone', not {design_type}"
         )
 
     if "seeds" in generalinput.index:

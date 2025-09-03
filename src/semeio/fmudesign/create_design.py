@@ -223,10 +223,7 @@ class DesignMatrix:
 
         if inputdict["designtype"] != "onebyone":
             raise ValueError(
-                "Generation of DesignMatrix only "
-                "implemented for type onebyone. "
-                "In general_input designtype is "
-                "set to {}".format(inputdict["designtype"])
+                f"Generation of DesignMatrix only implemented for type 'onebyone', not {inputdict['designtype']}"
             )
 
         self.reset()  # Emptying if regenerating matrix
