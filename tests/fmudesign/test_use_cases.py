@@ -1,6 +1,7 @@
 """Example use cases for semeio.fmudesign"""
 
 import pandas as pd
+import pytest
 
 from semeio.fmudesign import DesignMatrix, excel2dict_design
 
@@ -92,7 +93,10 @@ def test_prediction_rejection_sampled_ensemble(tmpdir, monkeypatch):
     assert all(design.designvalues["HMREAL"] == [31, 38, 54, 31, 38, 54])
 
 
-def test_constant_distribution(tmpdir, monkeypatch):
+@pytest.mark.parametrize(
+    "gen_input_sheet", ["general_input", "General_Input", "GENERALINPUT"]
+)
+def test_constant_distribution(tmpdir, monkeypatch, gen_input_sheet):
     """Create a design matrix workbook with a single constant parameter 'a'."""
     monkeypatch.chdir(tmpdir)
 
@@ -131,13 +135,13 @@ def test_constant_distribution(tmpdir, monkeypatch):
 
     # Create Excel workbook with all sheets
     writer = pd.ExcelWriter("designinput.xlsx", engine="openpyxl")
-    general_input.to_excel(writer, sheet_name="general_input", index=False, header=None)
+    general_input.to_excel(writer, sheet_name=gen_input_sheet, index=False, header=None)
     design_input.to_excel(writer, sheet_name="designinput", index=False)
     defaultvalues.to_excel(writer, sheet_name="defaultvalues", index=False)
     writer.close()
 
     # Generate design matrix
-    dict_design = excel2dict_design("designinput.xlsx")
+    dict_design = excel2dict_design("designinput.xlsx", gen_input_sheet="generalinput")
     design = DesignMatrix()
     design.generate(dict_design)
 
