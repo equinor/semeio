@@ -56,30 +56,21 @@ def main() -> None:
     parser = get_parser()
     args = parser.parse_args()
 
-    # Defaulted options should be reset to None, so that the other
-    # defaulting level inside _excel2dict can do its work.
-    if args.designinput == parser.get_default("designinput"):
-        args.designinput = None
-    if args.defaultvalues == parser.get_default("defaultvalues"):
-        args.defaultvalues = None
-    if args.general_input == parser.get_default("general_input"):
-        args.general_input = None
-
-    sheetnames = {}
-    if args.designinput:
-        sheetnames["designinput"] = args.designinput
-    if args.defaultvalues:
-        sheetnames["defaultvalues"] = args.defaultvalues
-    if args.general_input:
-        sheetnames["general_input"] = args.general_input
-
-    if sheetnames:
-        print("Worksheets changed from default:")
-        print(sheetnames)
+    for sheet in ["designinput", "defaultvalues", "general_input"]:
+        default = parser.get_default(sheet)
+        custom = getattr(args, sheet)
+        if default != custom:
+            print(f"Worksheet changed from default: {default!r} -> {custom!r}")
 
     if not Path(args.config).is_file():
         raise OSError(f"Input file {args.config} does not exist")
-    input_dict = excel2dict_design(args.config, sheetnames)
+
+    input_dict = excel2dict_design(
+        args.config,
+        gen_input_sheet=args.general_input,
+        design_input_sheet=args.designinput,
+        default_val_sheet=args.defaultvalues,
+    )
 
     if args.config == args.destination:
         raise OSError(

@@ -14,7 +14,11 @@ import yaml
 
 
 def excel2dict_design(
-    input_filename: str, sheetnames: Mapping[str, Any] | None = None
+    input_filename: str,
+    *,
+    gen_input_sheet: str = "general_input",
+    design_input_sheet: str = "designinput",
+    default_val_sheet: str = "defaultvalues",
 ) -> OrderedDict[str, Any]:
     """Read excel file with input to design setup
     Currently only specification of
@@ -22,20 +26,19 @@ def excel2dict_design(
 
     Args:
         input_filename (str): Name of excel input file
-        sheetnames (dict): Dictionary of worksheet names to load
-            information from. Supported keys: general_input, defaultvalues,
-            and designinput.
+        gen_input_sheet (str): Sheet name for general input
+        design_input_sheet (str): Sheet name for design input
+        default_val_sheet (str): Sheet name for default input
 
     Returns:
         OrderedDict on format for DesignMatrix.generate
     """
-    if sheetnames is None:
-        sheetnames = {}
 
-    if "general_input" in sheetnames:
-        gen_input_sheet = sheetnames["general_input"]
-    else:
-        gen_input_sheet = _find_geninput_sheetname(input_filename)
+    # Find sheets
+    xlsx = openpyxl.load_workbook(input_filename, read_only=True, keep_links=False)
+    gen_input_sheet = find_sheet(gen_input_sheet, names=xlsx.sheetnames)
+    design_input_sheet = find_sheet(design_input_sheet, names=xlsx.sheetnames)
+    default_val_sheet = find_sheet(default_val_sheet, names=xlsx.sheetnames)
 
     generalinput = (
         pd.read_excel(
@@ -57,16 +60,6 @@ def excel2dict_design(
             "Use 'rms_seeds' instead"
         )
 
-    if "designinput" in sheetnames:
-        design_input_sheet = sheetnames["designinput"]
-    else:
-        design_input_sheet = _find_onebyone_input_sheet(input_filename)
-
-    if "defaultvalues" in sheetnames:
-        default_val_sheet = sheetnames["defaultvalues"]
-    else:
-        default_val_sheet = _find_onebyone_defaults_sheet(input_filename)
-
     return _excel2dict_onebyone(
         input_filename=input_filename,
         gen_input_sheet=gen_input_sheet,
@@ -86,35 +79,29 @@ def inputdict_to_yaml(inputdict: Mapping[str, Any], filename: str) -> None:
         yaml.dump(inputdict, stream)
 
 
-def find_if_single(name: str, names: list[str]) -> str:
-    """Return a rough match if a single one is found, else fail."""
-    found = [
-        name_i for name_i in names if name == name_i.lower().strip().replace("_", "")
-    ]
+def find_sheet(name: str, names: list[str]) -> str:
+    """Search for Excel sheets with a soft matching. Raises ValueError if zero
+    or more than one match is found.
+
+    Examples:
+    >>> find_sheet('general_input', ['generalinput', 'designinput', 'defaultinput'])
+    'generalinput'
+    >>> find_sheet('variable_input', ['generalinput', 'designinput', 'defaultinput'])
+    Traceback (most recent call last):
+      ...
+    ValueError: No match for variable_input: ['generalinput', 'designinput', 'defaultinput']
+    """
+
+    def sanitize(inputstring: str) -> str:
+        return inputstring.lower().strip().replace("_", "")
+
+    found = [name_i for name_i in names if sanitize(name) == sanitize(name_i)]
     if len(found) > 1:
         raise ValueError(f"More than one match for {name}: {found}")
     elif len(found) == 0:
         raise ValueError(f"No match for {name}: {names}")
     else:
         return found[0]
-
-
-def _find_geninput_sheetname(input_filename: str) -> str:
-    """Finding general input sheet, allowing for name variations."""
-    xlsx = openpyxl.load_workbook(input_filename, read_only=True, keep_links=False)
-    return find_if_single("generalinput", names=xlsx.sheetnames)
-
-
-def _find_onebyone_defaults_sheet(input_filename: str) -> str:
-    """Finds correct sheet name for default values to use when parsing excel file."""
-    xlsx = openpyxl.load_workbook(input_filename, read_only=True, keep_links=False)
-    return find_if_single("defaultvalues", names=xlsx.sheetnames)
-
-
-def _find_onebyone_input_sheet(input_filename: str) -> str:
-    """Finds correct sheet name for input to use when parsing excel file."""
-    xlsx = openpyxl.load_workbook(input_filename, read_only=True, keep_links=False)
-    return find_if_single("designinput", names=xlsx.sheetnames)
 
 
 def _check_designinput(dsgn_input: pd.DataFrame) -> None:
