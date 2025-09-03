@@ -357,9 +357,10 @@ class DesignMatrix:
             xlsxwriter, sheet_name=designsheet, index=False, header=True
         )
         # Default values from OrderdDictionay to pandas dataframe
-        defaults = pd.DataFrame(columns=["defaultparameters", "defaultvalue"])
-        defaults["defaultparameters"] = self.defaultvalues.keys()
-        defaults["defaultvalue"] = self.defaultvalues.values()
+        defaults = pd.DataFrame(
+            data=list(self.defaultvalues.items()),
+            columns=["defaultparameters", "defaultvalue"],
+        )
         defaults.to_excel(
             xlsxwriter, sheet_name=defaultsheet, index=False, header=False
         )
