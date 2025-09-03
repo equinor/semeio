@@ -34,14 +34,15 @@ def excel2dict_design(
     else:
         gen_input_sheet = _find_geninput_sheetname(input_filename)
 
-    generalinput = pd.read_excel(
-        input_filename, gen_input_sheet, header=None, index_col=0, engine="openpyxl"
+    generalinput = (
+        pd.read_excel(
+            input_filename, gen_input_sheet, header=None, index_col=0, engine="openpyxl"
+        )
+        .dropna(axis=0, how="all")
+        .dropna(axis=1, how="all")
     )
-    generalinput.dropna(axis=0, how="all", inplace=True)
-    generalinput.dropna(axis=1, how="all", inplace=True)
 
     design_type = str(generalinput.loc["designtype"].iloc[0])
-
     if design_type != "onebyone":
         raise ValueError(
             "Generation of DesignMatrix only "
