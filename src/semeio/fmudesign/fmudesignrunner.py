@@ -85,7 +85,6 @@ def main() -> None:
         raise OSError(
             f'Identical name "{args.config}" have been provided for the input'
             "file and the output file. "
-            " Exiting....."
         )
 
     design = DesignMatrix()
