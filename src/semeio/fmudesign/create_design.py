@@ -297,10 +297,10 @@ class DesignMatrix:
             elif sens["senstype"] == "dist":
                 sensitivity = MonteCarloSensitivity(key)
                 sensitivity.generate(
-                    range(current_real_index, current_real_index + numreal),
-                    sens["parameters"],
-                    self.seedvalues,
-                    sens["correlations"],
+                    realnums=range(current_real_index, current_real_index + numreal),
+                    parameters=sens["parameters"],
+                    seedvalues=self.seedvalues,
+                    corrdict=sens["correlations"],
                     rng=rng,
                 )
                 current_real_index += numreal
@@ -876,8 +876,12 @@ class MonteCarloSensitivity:
     ) -> npt.NDArray[Any] | list[str] | str:
         try:
             return design_dist.draw_values(
-                dist_name.lower(), dist_params, numreals, rng
+                distname=dist_name.lower(),
+                dist_parameters=dist_params,
+                numreals=numreals,
+                rng=rng,
             )
+
         except ValueError as error:
             raise ValueError(
                 f"Problem in sensitivity with sensname {self.sensname} "
@@ -975,11 +979,11 @@ class MonteCarloSensitivity:
                         if row["param_name"] in multivariate_parameters:
                             self.sensvalues[row["param_name"]] = (
                                 design_dist.draw_values(
-                                    row["dist_name"].lower(),
-                                    row["dist_params"],
-                                    numreals,
-                                    rng,
-                                    normalscoresamples[:, idx],
+                                    distname=row["dist_name"].lower(),
+                                    dist_parameters=row["dist_params"],
+                                    numreals=numreals,
+                                    rng=rng,
+                                    normalscoresamples=normalscoresamples[:, idx],
                                 )
                             )
                         else:
@@ -991,11 +995,11 @@ class MonteCarloSensitivity:
                     for _, row in corr_group.iterrows():
                         self.sensvalues[row["param_name"]] = (
                             self._draw_uncorrelated_values(
-                                row["param_name"],
-                                row["dist_name"],
-                                row["dist_params"],
-                                numreals,
-                                rng,
+                                param_name=row["param_name"],
+                                dist_name=row["dist_name"],
+                                dist_params=row["dist_params"],
+                                numreals=numreals,
+                                rng=rng,
                             )
                         )
 

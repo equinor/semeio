@@ -71,7 +71,10 @@ def excel2dict_design(
         default_val_sheet = _find_onebyone_defaults_sheet(input_filename)
 
     return _excel2dict_onebyone(
-        input_filename, gen_input_sheet, design_input_sheet, default_val_sheet
+        input_filename=input_filename,
+        gen_input_sheet=gen_input_sheet,
+        design_input_sheet=design_input_sheet,
+        default_val_sheet=default_val_sheet,
     )
 
 
@@ -149,6 +152,7 @@ def _check_for_mixed_sensitivities(sens_name: str, sens_group: pd.DataFrame) -> 
 
 def _excel2dict_onebyone(
     input_filename: str,
+    *,
     gen_input_sheet: str,
     design_input_sheet: str,
     default_val_sheet: str,
