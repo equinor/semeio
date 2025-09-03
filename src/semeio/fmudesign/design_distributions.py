@@ -87,7 +87,7 @@ class Normal(Distribution):
     def __post_init__(self) -> None:
         super().validate_params()
         if self.stddev < 0:
-            raise ValueError(f"Must have positive stddev in: {self}")
+            raise ValueError(f"Must have non-negative stddev in: {self}")
 
     def sample(
         self,
@@ -255,6 +255,8 @@ class PERT(Distribution):
 
     def __post_init__(self) -> None:
         super().validate_params()
+        if self.scale <= 0:
+            raise ValueError(f"Must have scale > 0 in: {self}")
 
     def sample(
         self,
