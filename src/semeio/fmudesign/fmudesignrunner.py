@@ -77,10 +77,9 @@ def main() -> None:
         print("Worksheets changed from default:")
         print(sheetnames)
 
-    if isinstance(args.config, str):
-        if not Path(args.config).is_file():
-            raise OSError(f"Input file {args.config} does not exist")
-        input_dict = excel2dict_design(args.config, sheetnames)
+    if not Path(args.config).is_file():
+        raise OSError(f"Input file {args.config} does not exist")
+    input_dict = excel2dict_design(args.config, sheetnames)
 
     if args.config == args.destination:
         raise OSError(
