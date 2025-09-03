@@ -29,7 +29,10 @@ def excel2dict_design(
     Returns:
         OrderedDict on format for DesignMatrix.generate
     """
-    if sheetnames and "general_input" in sheetnames:
+    if sheetnames is None:
+        sheetnames = {}
+
+    if "general_input" in sheetnames:
         gen_input_sheet = sheetnames["general_input"]
     else:
         gen_input_sheet = _find_geninput_sheetname(input_filename)
@@ -57,12 +60,12 @@ def excel2dict_design(
             "Use 'rms_seeds' instead"
         )
 
-    if sheetnames and "designinput" in sheetnames:
+    if "designinput" in sheetnames:
         design_input_sheet = sheetnames["designinput"]
     else:
         design_input_sheet = _find_onebyone_input_sheet(input_filename)
 
-    if sheetnames and "defaultvalues" in sheetnames:
+    if "defaultvalues" in sheetnames:
         default_val_sheet = sheetnames["defaultvalues"]
     else:
         default_val_sheet = _find_onebyone_defaults_sheet(input_filename)
