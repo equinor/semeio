@@ -93,8 +93,6 @@ def main() -> None:
 
     design.generate(input_dict)
 
-    Path(args.destination).parent.mkdir(exist_ok=True, parents=True)
-
     design.to_xlsx(args.destination)
 
 

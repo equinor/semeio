@@ -345,16 +345,12 @@ class DesignMatrix:
             defaultsheet (str): name of excel sheet containing default
                 values (optional, defaults to 'DefaultValues')
         """
-        # pylint: disable=abstract-class-instantiated
-        basename = Path(filename).stem
-        extension = Path(filename).suffix
-        if extension != ".xlsx":
-            filename = basename + ".xlsx"
-            print(
-                "Warning: Output filename did not have extension .xlsx "
-                "but the export format is Excel .xlsx .  "
-                f"Changing outputname to {filename}"
-            )
+        # Create folder for output file
+        Path(filename).parent.mkdir(exist_ok=True, parents=True)
+
+        if Path(filename).suffix != ".xlsx":
+            filename = Path(filename).stem + ".xlsx"
+            print(f"Warning: Missing .xlsx suffix. Changed to: {filename}")
 
         xlsxwriter = pd.ExcelWriter(filename, engine="openpyxl")
         self.designvalues.to_excel(
