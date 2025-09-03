@@ -8,6 +8,55 @@ import pytest
 from semeio.fmudesign import design_distributions as dists
 
 
+def test_parameter_validation():
+    params = dists.validate_params("normal", ["3.4", "-3", "1e2"])
+    np.testing.assert_allclose(params, np.array([3.4, -3, 100]))
+
+    with pytest.raises(ValueError, match="not convertible to number"):
+        dists.validate_params("normal", ["3.4", "cat"])
+
+    with pytest.raises(ValueError, match="not finite"):
+        dists.validate_params("normal", ["3.4", "inf"])
+
+
+def test_distribution_failures():
+    # Normal distribution
+    with pytest.raises(ValueError, match="Must have non-negative stddev"):
+        dists.Normal(mean=0, stddev=-1)
+    with pytest.raises(ValueError, match="Must have high > low"):
+        dists.Normal(mean=0, stddev=1, low=5, high=4)
+
+    # Lognormal distribution
+    with pytest.raises(ValueError, match="Must have positive sigma"):
+        dists.Lognormal(mean=0, sigma=-1)
+    with pytest.raises(ValueError, match="Must have positive sigma"):
+        dists.Lognormal(mean=0, sigma=0)
+
+    # Uniform distribution
+    with pytest.raises(ValueError, match="Must have high > low"):
+        dists.Uniform(low=0, high=-5)
+    with pytest.raises(ValueError, match="Must have high > low"):
+        dists.Uniform(low=3, high=3)
+
+    # Loguniform distribution
+    with pytest.raises(ValueError, match="Must have 0 < low < high"):
+        dists.Loguniform(low=0, high=1)
+    with pytest.raises(ValueError, match="Must have 0 < low < high"):
+        dists.Loguniform(low=-2, high=-1)
+
+    # Triangular distribution
+    with pytest.raises(ValueError, match="Must have low <= mode <= high"):
+        dists.Triangular(low=0, mode=-1, high=5)
+    with pytest.raises(ValueError, match="Must have high > low"):
+        dists.Triangular(low=0, mode=7, high=-3)
+
+    # PERT
+    with pytest.raises(ValueError, match="Must have scale > 0"):
+        dists.PERT(low=0, mode=5, high=10, scale=0)
+    with pytest.raises(ValueError, match="Must have high > low"):
+        dists.PERT(low=0, mode=5, high=-10, scale=0)
+
+
 @pytest.mark.parametrize("seed", range(100))
 def test_draw_values_pert(seed):
     rng = np.random.default_rng(seed)
