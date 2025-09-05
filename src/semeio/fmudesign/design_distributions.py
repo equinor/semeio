@@ -71,8 +71,8 @@ class Normal(Distribution):
 
     Example:
     >>> rng = np.random.default_rng(42)
-    >>> Normal(mean=0, stddev=2).sample(5, rng=rng)
-    array([-0.42093622, -1.55927141, -3.9308858 ,  1.27522068,  1.74893971])
+    >>> Normal(mean=0, stddev=2).sample(rng.normal(size=5))
+    array([ 0.60943416, -2.07996821,  1.50090239,  1.88112943, -3.90207038])
     >>> Normal(mean=0, stddev=2, low=10, high=5)
     Traceback (most recent call last):
         ...
@@ -91,26 +91,18 @@ class Normal(Distribution):
 
     def sample(
         self,
-        size: int,
-        rng: np.random.Generator,
-        normalscoresamples: npt.NDArray[Any] | None = None,
+        normalscoresamples: npt.NDArray[Any],
     ) -> npt.NDArray[Any]:
         # Scipy is parametrized wrt loc and scale
         low = (self.low - self.mean) / self.stddev
         high = (self.high - self.mean) / self.stddev
 
-        if normalscoresamples is not None:
-            return scipy.stats.truncnorm.ppf(
-                scipy.stats.norm.cdf(normalscoresamples),
-                low,
-                high,
-                loc=self.mean,
-                scale=self.stddev,
-            )
-
-        uniform_samples = generate_stratified_samples(size, rng)
         return scipy.stats.truncnorm.ppf(
-            uniform_samples.flatten(), low, high, loc=self.mean, scale=self.stddev
+            scipy.stats.norm.cdf(normalscoresamples),
+            low,
+            high,
+            loc=self.mean,
+            scale=self.stddev,
         )
 
 
@@ -126,21 +118,13 @@ class Lognormal(Distribution):
 
     def sample(
         self,
-        size: int,
-        rng: np.random.Generator,
-        normalscoresamples: npt.NDArray[Any] | None = None,
+        normalscoresamples: npt.NDArray[Any],
     ) -> npt.NDArray[Any]:
-        if normalscoresamples is not None:
-            return scipy.stats.lognorm.ppf(
-                scipy.stats.norm.cdf(normalscoresamples),
-                s=self.sigma,
-                loc=0,
-                scale=np.exp(self.mean),
-            )
-
-        uniform_samples = generate_stratified_samples(size, rng)
         return scipy.stats.lognorm.ppf(
-            uniform_samples, s=self.sigma, loc=0, scale=np.exp(self.mean)
+            scipy.stats.norm.cdf(normalscoresamples),
+            s=self.sigma,
+            loc=0,
+            scale=np.exp(self.mean),
         )
 
 
@@ -154,19 +138,13 @@ class Uniform(Distribution):
 
     def sample(
         self,
-        size: int,
-        rng: np.random.Generator,
-        normalscoresamples: npt.NDArray[Any] | None = None,
+        normalscoresamples: npt.NDArray[Any],
     ) -> npt.NDArray[Any]:
         scale = self.high - self.low
 
-        if normalscoresamples is not None:
-            return scipy.stats.uniform.ppf(
-                scipy.stats.norm.cdf(normalscoresamples), loc=self.low, scale=scale
-            )
-
-        uniform_samples = generate_stratified_samples(size, rng)
-        return scipy.stats.uniform.ppf(uniform_samples, loc=self.low, scale=scale)
+        return scipy.stats.uniform.ppf(
+            scipy.stats.norm.cdf(normalscoresamples), loc=self.low, scale=scale
+        )
 
 
 @dataclasses.dataclass
@@ -175,8 +153,8 @@ class Loguniform(Distribution):
 
     Example:
     >>> rng = np.random.default_rng(0)
-    >>> Loguniform(low=1, high=2).sample(5, rng=rng)
-    array([1.75492879, 1.26289314, 1.03924188, 1.48955292, 1.64194378])
+    >>> Loguniform(low=1, high=2).sample(rng.normal(size=5))
+    array([1.46411336, 1.36362852, 1.66907764, 1.45575994, 1.22781529])
     >>> Loguniform(low=0, high=2).sample(5, rng=rng)
     Traceback (most recent call last):
       ...
@@ -193,17 +171,11 @@ class Loguniform(Distribution):
 
     def sample(
         self,
-        size: int,
-        rng: np.random.Generator,
-        normalscoresamples: npt.NDArray[Any] | None = None,
+        normalscoresamples: npt.NDArray[Any],
     ) -> npt.NDArray[Any]:
-        if normalscoresamples is not None:
-            return scipy.stats.loguniform.ppf(
-                scipy.stats.norm.cdf(normalscoresamples), a=self.low, b=self.high
-            )
-        else:
-            uniform_samples = generate_stratified_samples(size, rng)
-            return scipy.stats.loguniform.ppf(uniform_samples, a=self.low, b=self.high)
+        return scipy.stats.loguniform.ppf(
+            scipy.stats.norm.cdf(normalscoresamples), a=self.low, b=self.high
+        )
 
 
 @dataclasses.dataclass
@@ -217,25 +189,17 @@ class Triangular(Distribution):
 
     def sample(
         self,
-        size: int,
-        rng: np.random.Generator,
-        normalscoresamples: npt.NDArray[Any] | None = None,
+        normalscoresamples: npt.NDArray[Any],
     ) -> npt.NDArray[Any]:
         scale = self.high - self.low
         shape = (self.mode - self.low) / scale
 
-        if normalscoresamples is not None:
-            return scipy.stats.triang.ppf(
-                scipy.stats.norm.cdf(normalscoresamples),
-                shape,
-                loc=self.low,
-                scale=scale,
-            )
-        else:
-            uniform_samples = generate_stratified_samples(size, rng)
-            return scipy.stats.triang.ppf(
-                uniform_samples, shape, loc=self.low, scale=scale
-            )
+        return scipy.stats.triang.ppf(
+            scipy.stats.norm.cdf(normalscoresamples),
+            shape,
+            loc=self.low,
+            scale=scale,
+        )
 
 
 @dataclasses.dataclass
@@ -244,8 +208,8 @@ class PERT(Distribution):
 
     Example:
     >>> rng = np.random.default_rng(0)
-    >>> PERT(low=0, high=10, mode=4).sample(5, rng=rng)
-    array([6.11670474, 3.39187484, 1.45699256, 4.6543798 , 5.46365429])
+    >>> PERT(low=0, high=10, mode=4).sample(rng.normal(size=5))
+    array([4.52036193, 3.97874164, 5.61364924, 4.4761974 , 3.16880604])
     """
 
     low: float = 0
@@ -260,9 +224,7 @@ class PERT(Distribution):
 
     def sample(
         self,
-        size: int,
-        rng: np.random.Generator,
-        normalscoresamples: npt.NDArray[Any] | None = None,
+        normalscoresamples: npt.NDArray[Any],
     ) -> npt.NDArray[Any]:
         muval = (self.low + self.high + self.scale * self.mode) / (self.scale + 2)
         if np.isclose(muval, self.mode):
@@ -273,10 +235,7 @@ class PERT(Distribution):
             )
         alpha2 = alpha1 * (self.high - muval) / (muval - self.low)
 
-        if normalscoresamples is not None:
-            uniform_samples = scipy.stats.norm.cdf(normalscoresamples)
-        else:
-            uniform_samples = generate_stratified_samples(size, rng)
+        uniform_samples = scipy.stats.norm.cdf(normalscoresamples)
 
         values = scipy.stats.beta.ppf(uniform_samples, alpha1, alpha2)
         # Scale the beta distribution to the desired range
@@ -313,9 +272,7 @@ def generate_stratified_samples(
 def draw_values(
     distname: str,
     dist_parameters: Sequence[str],
-    numreals: int,
-    rng: np.random.Generator,
-    normalscoresamples: npt.NDArray[Any] | None = None,
+    normalscoresamples: npt.NDArray[Any],
 ) -> npt.NDArray[Any] | list[str]:
     """
     Prepare scipy distributions with parameters
@@ -323,29 +280,24 @@ def draw_values(
         distname (str): distribution name 'normal', 'lognormal', 'triang',
         'uniform', 'logunif', 'discrete', 'pert'
         dist_parameters (list): list with parameters for distribution
-        numreals (int): number of realizations to generate
-        rng (numpy.random.Generator): random number generator instance
-        normalscoresamples (array, optional): samples for correlated distributions
+        normalscoresamples (array): samples for correlated distributions
     Returns:
         array with sampled values
     """
-    if numreals < 0:
-        raise ValueError("Got < 0 samples ({numreals=}) for distribution: {distname}")
-    if numreals == 0:
+    normalscoresamples = np.array(normalscoresamples)
+
+    if len(normalscoresamples) == 0:
         return np.array([])
 
     # Special case for discrete
     if distname.lower().startswith("disc"):
-        return sample_discrete(dist_parameters, numreals, rng, normalscoresamples)
+        return sample_discrete(
+            dist_params=dist_parameters, normalscoresamples=normalscoresamples
+        )
 
     # Special case for constant
     if distname.lower().startswith("const"):
-        if normalscoresamples is not None:
-            raise ValueError(
-                "Parameter with const distribution was defined in correlation "
-                "matrix but const distribution cannot be used with correlation."
-            )
-        return np.array([dist_parameters[0]] * numreals)
+        return np.array([dist_parameters[0]] * len(normalscoresamples))
 
     # Convert parameters
     parameters: list[float] = validate_params(
@@ -361,31 +313,23 @@ def draw_values(
             distr = Normal(mean=mean, stddev=stddev, low=low, high=high)
         else:
             raise ValueError(f"Normal must have 2 or 4 parameters, got: {parameters}")
-        return distr.sample(
-            size=numreals, rng=rng, normalscoresamples=normalscoresamples
-        )
+        return distr.sample(normalscoresamples)
 
     elif distname.lower().startswith("logn"):
         if len(parameters) != 2:
             raise ValueError(f"Lognormal must have 2 parameters, got: {parameters}")
         mean, sigma = parameters
-        return Lognormal(mean=mean, sigma=sigma).sample(
-            size=numreals, rng=rng, normalscoresamples=normalscoresamples
-        )
+        return Lognormal(mean=mean, sigma=sigma).sample(normalscoresamples)
     elif distname.lower().startswith("unif"):
         if len(parameters) != 2:
             raise ValueError(f"Uniform must have 2 parameters, got: {parameters}")
         low, high = parameters
-        return Uniform(low=low, high=high).sample(
-            size=numreals, rng=rng, normalscoresamples=normalscoresamples
-        )
+        return Uniform(low=low, high=high).sample(normalscoresamples)
     elif distname.lower().startswith("triang"):
         if len(parameters) != 3:
             raise ValueError(f"Triangular must have 3 parameters, got: {parameters}")
         low, mode, high = parameters
-        return Triangular(low=low, mode=mode, high=high).sample(
-            size=numreals, rng=rng, normalscoresamples=normalscoresamples
-        )
+        return Triangular(low=low, mode=mode, high=high).sample(normalscoresamples)
     elif distname.lower().startswith("pert"):
         if len(parameters) == 3:
             low, mode, high = parameters
@@ -395,47 +339,36 @@ def draw_values(
             pert = PERT(low=low, mode=mode, high=high, scale=scale)
         else:
             raise ValueError(f"PERT must have 3 or 4 parameters, got: {parameters}")
-        return pert.sample(
-            size=numreals, rng=rng, normalscoresamples=normalscoresamples
-        )
+        return pert.sample(normalscoresamples)
     elif distname.lower().startswith("logunif"):
         if len(parameters) != 2:
             raise ValueError(f"Loguniform must have 2 parameters, got: {parameters}")
         low, high = parameters
-        return Loguniform(low=low, high=high).sample(
-            size=numreals, rng=rng, normalscoresamples=normalscoresamples
-        )
+        return Loguniform(low=low, high=high).sample(normalscoresamples)
     else:
         raise ValueError(f"Distribution name {distname} is not implemented")
 
 
 def sample_discrete(
     dist_params: Sequence[str],
-    numreals: int,
-    rng: np.random.Generator,
-    normalscoresamples: npt.NDArray[Any] | None = None,
+    normalscoresamples: npt.NDArray[Any],
 ) -> npt.NDArray[Any]:
     """Sample discrete variables.
 
     Examples:
     >>> rng = np.random.default_rng(0)
-    >>> sample_discrete(['a,b,c'], numreals=5, rng=rng)
-    array(['c', 'b', 'a', 'b', 'c'], dtype='<U1')
+    >>> sample_discrete(['a,b,c'], rng.normal(size=5))
+    array(['b', 'b', 'c', 'b', 'a'], dtype='<U1')
 
-    >>> sample_discrete(['a,b,c', '1,2,3'], numreals=5, rng=rng)
-    array(['a', 'c', 'c', 'c', 'b'], dtype='<U1')
+    >>> sample_discrete(['a,b,c', '1,2,3'], rng.normal(size=5))
+    array(['c', 'c', 'c', 'b', 'a'], dtype='<U1')
 
     >>> normalscoresamples = np.array([-0.5, 0.3, 0.4, 0.7, 0.7])
-    >>> sample_discrete(['a,b,c', '1,2,3'], numreals=5, rng=rng,
-    ...                 normalscoresamples=normalscoresamples)
+    >>> sample_discrete(['a,b,c', '1,2,3'], normalscoresamples)
     array(['b', 'c', 'c', 'c', 'c'], dtype='<U1')
     """
     outcomes = re.split(",", dist_params[0])
     outcomes = [item.strip() for item in outcomes]
-    if numreals == 0:
-        return np.array([])
-    if numreals < 0:
-        raise ValueError("numreal must be a positive integer")
     # Handle probability weights
     if len(dist_params) == 2:  # non uniform
         weights = re.split(",", dist_params[1])
@@ -460,10 +393,7 @@ def sample_discrete(
     else:
         raise ValueError("Wrong input for discrete distribution")
     # Handle correlation through normalscoresamples
-    if normalscoresamples is not None:
-        uniform_samples = scipy.stats.norm.cdf(normalscoresamples)
-    else:
-        uniform_samples = generate_stratified_samples(numreals, rng)
+    uniform_samples = scipy.stats.norm.cdf(normalscoresamples)
     cum_prob = np.cumsum(fractions)
     values = np.array([outcomes[np.searchsorted(cum_prob, s)] for s in uniform_samples])
     return values
