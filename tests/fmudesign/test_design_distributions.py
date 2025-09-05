@@ -4,7 +4,6 @@ import numbers
 
 import numpy as np
 import pytest
-import scipy as sp
 
 from semeio.fmudesign import design_distributions as dists
 
@@ -63,18 +62,17 @@ def test_draw_values_pert(seed):
     rng = np.random.default_rng(seed)
 
     distr = dists.PERT(low=10, mode=50, high=100)
-    assert not distr.sample(normalscoresamples=np.array([])).size
+    assert not distr.sample(quantiles=np.array([])).size
 
-    values = distr.sample(normalscoresamples=rng.normal(size=20))
+    values = distr.sample(quantiles=rng.uniform(size=20))
     assert len(values) == 20
     assert all(isinstance(value, numbers.Number) for value in values)
     assert all(10 <= value <= 100 for value in values)
 
     # For symmetric PERT, verify both mode and mean are at 5
     samples = dists.generate_stratified_samples(numreals=5000, rng=rng)
-    normalscoresamples = sp.stats.norm.ppf(samples)
 
-    values = dists.PERT(low=0, mode=5, high=10, scale=4.0).sample(normalscoresamples)
+    values = dists.PERT(low=0, mode=5, high=10, scale=4.0).sample(samples)
     hist, bins = np.histogram(values, bins=100)
     empirical_mode = bins[np.argmax(hist)]
     assert np.isclose(empirical_mode, 5, atol=0.55)
@@ -86,7 +84,7 @@ def test_sample_discrete():
 
     outcomes = ["foo", "bar.com"]
     # Test basic functionality
-    values = dists.sample_discrete([",".join(outcomes)], rng.normal(size=10))
+    values = dists.sample_discrete([",".join(outcomes)], rng.uniform(size=10))
     assert all(value in outcomes for value in values)
 
     # Test empty case
@@ -94,12 +92,12 @@ def test_sample_discrete():
 
     # Test weighted case where only bar.com should appear
     assert "foo" not in dists.sample_discrete(
-        [",".join(outcomes), "0,1"], rng.normal(size=10)
+        [",".join(outcomes), "0,1"], rng.uniform(size=10)
     )
 
     # Test weights that don't sum to 1
     weighted_values = dists.sample_discrete(
-        [",".join(outcomes), "2,6"], rng.normal(size=100)
+        [",".join(outcomes), "2,6"], rng.uniform(size=100)
     )
     # Should see roughly 25% foo and 75% bar.com
     foo_count = np.sum(weighted_values == "foo")
@@ -110,36 +108,36 @@ def test_draw_values():
     """Test the wrapper function for drawing values"""
     rng = np.random.default_rng()
 
-    normalscoresamples = rng.normal(size=10)
+    quantiles = rng.uniform(size=10)
 
-    values = dists.draw_values("unif", [0, 1], normalscoresamples)
+    values = dists.draw_values("unif", [0, 1], quantiles)
     assert len(values) == 10
     assert all(isinstance(value, numbers.Number) for value in values)
     assert all(0 <= value <= 1 for value in values)
 
-    values = dists.draw_values("UNIF", [0, 1], normalscoresamples)
+    values = dists.draw_values("UNIF", [0, 1], quantiles)
     assert len(values) == 10
 
-    values = dists.draw_values("unifORM", [0, 1], normalscoresamples)
+    values = dists.draw_values("unifORM", [0, 1], quantiles)
     assert len(values) == 10
 
-    values = dists.draw_values("UnifORMgarbagestillworks", [0, 1], normalscoresamples)
+    values = dists.draw_values("UnifORMgarbagestillworks", [0, 1], quantiles)
     assert len(values) == 10
 
     with pytest.raises(ValueError):
-        dists.draw_values("non-existing-distribution", [0, 10], normalscoresamples)
+        dists.draw_values("non-existing-distribution", [0, 10], quantiles)
 
-    values = dists.draw_values("NORMAL", ["0", "1"], normalscoresamples)
+    values = dists.draw_values("NORMAL", ["0", "1"], quantiles)
     assert len(values) == 10
 
-    values = dists.draw_values("LOGNORMAL", [0.1, 1], normalscoresamples)
+    values = dists.draw_values("LOGNORMAL", [0.1, 1], quantiles)
     assert len(values) == 10
 
-    values = dists.draw_values("Pert", [0.1, 1, 10], normalscoresamples)
+    values = dists.draw_values("Pert", [0.1, 1, 10], quantiles)
     assert len(values) == 10
 
-    values = dists.draw_values("triangular", [0.1, 1, 10], normalscoresamples)
+    values = dists.draw_values("triangular", [0.1, 1, 10], quantiles)
     assert len(values) == 10
 
-    values = dists.draw_values("logunif", [0.1, 1], normalscoresamples)
+    values = dists.draw_values("logunif", [0.1, 1], quantiles)
     assert len(values) == 10
