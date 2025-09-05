@@ -149,5 +149,3 @@ def test_constant_distribution(tmpdir, monkeypatch, gen_input_sheet):
     print(f"Parameter 'a' values: {set(design.designvalues['a'])}")
     print(f"Number of realizations: {len(design.designvalues)}")
     print(f"Sensitivity name: {set(design.designvalues['SENSNAME'])}")
-
-    return design
