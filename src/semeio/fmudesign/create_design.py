@@ -1014,6 +1014,11 @@ class MonteCarloSensitivity:
             if "RMS_SEED" not in self.sensvalues and seedvalues:
                 self.sensvalues["RMS_SEED"] = seedvalues[: len(realnums)]
 
+        null_columns = self.sensvalues.isnull().any(axis=0)
+        if null_columns.any():
+            cols_w_null = list(null_columns.loc[lambda ser: ser].index)
+            raise ValueError(f"Found NaN values in columns: {cols_w_null}")
+
 
 class ExternSensitivity:
     """
