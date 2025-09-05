@@ -868,12 +868,15 @@ class MonteCarloSensitivity:
         numreals: int,
         rng: np.random.Generator,
     ) -> npt.NDArray[Any] | list[str] | str:
+        # Draw samples in [0, 1), then transform to normal via inverse CDF
+        samples = design_dist.generate_stratified_samples(numreals=numreals, rng=rng)
+        normalscoresamples = scipy.stats.norm.ppf(samples)
+
         try:
             return design_dist.draw_values(
                 distname=dist_name.lower(),
                 dist_parameters=dist_params,
-                numreals=numreals,
-                rng=rng,
+                normalscoresamples=normalscoresamples,
             )
 
         except ValueError as error:
@@ -903,6 +906,9 @@ class MonteCarloSensitivity:
         """
         self.sensvalues = pd.DataFrame(columns=list(parameters.keys()), index=realnums)
         numreals = len(realnums)
+
+        if numreals < 0:
+            raise ValueError(f"Got < 0 samples ({numreals=})")
 
         if corrdict is None:
             for key in parameters:
@@ -971,12 +977,16 @@ class MonteCarloSensitivity:
 
                     for idx, row in corr_group.reset_index(drop=True).iterrows():
                         if row["param_name"] in multivariate_parameters:
+                            if row["param_name"].lower().startswith("const"):
+                                raise ValueError(
+                                    "Parameter with const distribution was defined in correlation "
+                                    "matrix but const distribution cannot be used with correlation."
+                                )
+
                             self.sensvalues[row["param_name"]] = (
                                 design_dist.draw_values(
                                     distname=row["dist_name"].lower(),
                                     dist_parameters=row["dist_params"],
-                                    numreals=numreals,
-                                    rng=rng,
                                     normalscoresamples=normalscoresamples[:, idx],
                                 )
                             )
