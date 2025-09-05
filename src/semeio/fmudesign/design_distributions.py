@@ -71,8 +71,8 @@ class Normal(Distribution):
 
     Example:
     >>> rng = np.random.default_rng(42)
-    >>> Normal(mean=0, stddev=2).sample(rng.normal(size=5))
-    array([ 0.60943416, -2.07996821,  1.50090239,  1.88112943, -3.90207038])
+    >>> Normal(mean=0, stddev=2).sample(rng.uniform(size=5))
+    array([ 1.50387747, -0.30762677,  2.14808265,  1.03369121, -2.63092391])
     >>> Normal(mean=0, stddev=2, low=10, high=5)
     Traceback (most recent call last):
         ...
@@ -91,14 +91,14 @@ class Normal(Distribution):
 
     def sample(
         self,
-        normalscoresamples: npt.NDArray[Any],
+        quantiles: npt.NDArray[Any],
     ) -> npt.NDArray[Any]:
         # Scipy is parametrized wrt loc and scale
         low = (self.low - self.mean) / self.stddev
         high = (self.high - self.mean) / self.stddev
 
         return scipy.stats.truncnorm.ppf(
-            scipy.stats.norm.cdf(normalscoresamples),
+            quantiles,
             low,
             high,
             loc=self.mean,
@@ -118,10 +118,10 @@ class Lognormal(Distribution):
 
     def sample(
         self,
-        normalscoresamples: npt.NDArray[Any],
+        quantiles: npt.NDArray[Any],
     ) -> npt.NDArray[Any]:
         return scipy.stats.lognorm.ppf(
-            scipy.stats.norm.cdf(normalscoresamples),
+            quantiles,
             s=self.sigma,
             loc=0,
             scale=np.exp(self.mean),
@@ -138,13 +138,11 @@ class Uniform(Distribution):
 
     def sample(
         self,
-        normalscoresamples: npt.NDArray[Any],
+        quantiles: npt.NDArray[Any],
     ) -> npt.NDArray[Any]:
         scale = self.high - self.low
 
-        return scipy.stats.uniform.ppf(
-            scipy.stats.norm.cdf(normalscoresamples), loc=self.low, scale=scale
-        )
+        return scipy.stats.uniform.ppf(quantiles, loc=self.low, scale=scale)
 
 
 @dataclasses.dataclass
@@ -153,8 +151,8 @@ class Loguniform(Distribution):
 
     Example:
     >>> rng = np.random.default_rng(0)
-    >>> Loguniform(low=1, high=2).sample(rng.normal(size=5))
-    array([1.46411336, 1.36362852, 1.66907764, 1.45575994, 1.22781529])
+    >>> Loguniform(low=1, high=2).sample(rng.uniform(size=5))
+    array([1.55505077, 1.20562958, 1.02880783, 1.01152196, 1.75719005])
     >>> Loguniform(low=0, high=2).sample(5, rng=rng)
     Traceback (most recent call last):
       ...
@@ -171,11 +169,9 @@ class Loguniform(Distribution):
 
     def sample(
         self,
-        normalscoresamples: npt.NDArray[Any],
+        quantiles: npt.NDArray[Any],
     ) -> npt.NDArray[Any]:
-        return scipy.stats.loguniform.ppf(
-            scipy.stats.norm.cdf(normalscoresamples), a=self.low, b=self.high
-        )
+        return scipy.stats.loguniform.ppf(quantiles, a=self.low, b=self.high)
 
 
 @dataclasses.dataclass
@@ -189,13 +185,13 @@ class Triangular(Distribution):
 
     def sample(
         self,
-        normalscoresamples: npt.NDArray[Any],
+        quantiles: npt.NDArray[Any],
     ) -> npt.NDArray[Any]:
         scale = self.high - self.low
         shape = (self.mode - self.low) / scale
 
         return scipy.stats.triang.ppf(
-            scipy.stats.norm.cdf(normalscoresamples),
+            quantiles,
             shape,
             loc=self.low,
             scale=scale,
@@ -208,8 +204,8 @@ class PERT(Distribution):
 
     Example:
     >>> rng = np.random.default_rng(0)
-    >>> PERT(low=0, high=10, mode=4).sample(rng.normal(size=5))
-    array([4.52036193, 3.97874164, 5.61364924, 4.4761974 , 3.16880604])
+    >>> PERT(low=0, high=10, mode=4).sample(rng.uniform(size=5))
+    array([4.99857667, 3.02036393, 1.2795421 , 0.87678522, 6.13076527])
     """
 
     low: float = 0
@@ -224,7 +220,7 @@ class PERT(Distribution):
 
     def sample(
         self,
-        normalscoresamples: npt.NDArray[Any],
+        quantiles: npt.NDArray[Any],
     ) -> npt.NDArray[Any]:
         muval = (self.low + self.high + self.scale * self.mode) / (self.scale + 2)
         if np.isclose(muval, self.mode):
@@ -235,9 +231,7 @@ class PERT(Distribution):
             )
         alpha2 = alpha1 * (self.high - muval) / (muval - self.low)
 
-        uniform_samples = scipy.stats.norm.cdf(normalscoresamples)
-
-        values = scipy.stats.beta.ppf(uniform_samples, alpha1, alpha2)
+        values = scipy.stats.beta.ppf(quantiles, alpha1, alpha2)
         # Scale the beta distribution to the desired range
         return values * (self.high - self.low) + self.low
 
@@ -272,7 +266,7 @@ def generate_stratified_samples(
 def draw_values(
     distname: str,
     dist_parameters: Sequence[str],
-    normalscoresamples: npt.NDArray[Any],
+    quantiles: npt.NDArray[Any],
 ) -> npt.NDArray[Any] | list[str]:
     """
     Prepare scipy distributions with parameters
@@ -280,13 +274,21 @@ def draw_values(
         distname (str): distribution name 'normal', 'lognormal', 'triang',
         'uniform', 'logunif', 'discrete', 'pert'
         dist_parameters (list): list with parameters for distribution
-        normalscoresamples (array): samples for correlated distributions
+        quantiles (array): samples for correlated distributions
     Returns:
         array with sampled values
     """
-    normalscoresamples = np.array(normalscoresamples)
+    quantiles = np.array(quantiles)
+    if np.min(quantiles) < 0:
+        raise ValueError(
+            f"Samples (quantiles) must be in [0, 1). Got min={np.min(quantiles)}"
+        )
+    if np.max(quantiles) >= 1:
+        raise ValueError(
+            f"Samples (quantiles) must be in [0, 1). Got max={np.max(quantiles)}"
+        )
 
-    if len(normalscoresamples) == 0:
+    if len(quantiles) == 0:
         return np.array([])
 
     match_names = {"disc", "const", "norm", "logn", "unif", "triang", "pert", "logunif"}
@@ -298,13 +300,11 @@ def draw_values(
 
     # Special case for discrete
     if distname.lower().startswith("disc"):
-        return sample_discrete(
-            dist_params=dist_parameters, normalscoresamples=normalscoresamples
-        )
+        return sample_discrete(dist_params=dist_parameters, quantiles=quantiles)
 
     # Special case for constant
     if distname.lower().startswith("const"):
-        return np.array([dist_parameters[0]] * len(normalscoresamples))
+        return np.array([dist_parameters[0]] * len(quantiles))
 
     # Convert parameters
     parameters: list[float] = validate_params(
@@ -320,23 +320,23 @@ def draw_values(
             distr = Normal(mean=mean, stddev=stddev, low=low, high=high)
         else:
             raise ValueError(f"Normal must have 2 or 4 parameters, got: {parameters}")
-        return distr.sample(normalscoresamples)
+        return distr.sample(quantiles)
 
     elif distname.lower().startswith("logn"):
         if len(parameters) != 2:
             raise ValueError(f"Lognormal must have 2 parameters, got: {parameters}")
         mean, sigma = parameters
-        return Lognormal(mean=mean, sigma=sigma).sample(normalscoresamples)
+        return Lognormal(mean=mean, sigma=sigma).sample(quantiles)
     elif distname.lower().startswith("unif"):
         if len(parameters) != 2:
             raise ValueError(f"Uniform must have 2 parameters, got: {parameters}")
         low, high = parameters
-        return Uniform(low=low, high=high).sample(normalscoresamples)
+        return Uniform(low=low, high=high).sample(quantiles)
     elif distname.lower().startswith("triang"):
         if len(parameters) != 3:
             raise ValueError(f"Triangular must have 3 parameters, got: {parameters}")
         low, mode, high = parameters
-        return Triangular(low=low, mode=mode, high=high).sample(normalscoresamples)
+        return Triangular(low=low, mode=mode, high=high).sample(quantiles)
     elif distname.lower().startswith("pert"):
         if len(parameters) == 3:
             low, mode, high = parameters
@@ -346,33 +346,33 @@ def draw_values(
             pert = PERT(low=low, mode=mode, high=high, scale=scale)
         else:
             raise ValueError(f"PERT must have 3 or 4 parameters, got: {parameters}")
-        return pert.sample(normalscoresamples)
+        return pert.sample(quantiles)
     elif distname.lower().startswith("logunif"):
         if len(parameters) != 2:
             raise ValueError(f"Loguniform must have 2 parameters, got: {parameters}")
         low, high = parameters
-        return Loguniform(low=low, high=high).sample(normalscoresamples)
+        return Loguniform(low=low, high=high).sample(quantiles)
     else:
         raise ValueError(f"Distribution name {distname} is not implemented")
 
 
 def sample_discrete(
     dist_params: Sequence[str],
-    normalscoresamples: npt.NDArray[Any],
+    quantiles: npt.NDArray[Any],
 ) -> npt.NDArray[Any]:
     """Sample discrete variables.
 
     Examples:
     >>> rng = np.random.default_rng(0)
-    >>> sample_discrete(['a,b,c'], rng.normal(size=5))
-    array(['b', 'b', 'c', 'b', 'a'], dtype='<U1')
+    >>> sample_discrete(['a,b,c'], rng.uniform(size=5))
+    array(['b', 'a', 'a', 'a', 'c'], dtype='<U1')
 
-    >>> sample_discrete(['a,b,c', '1,2,3'], rng.normal(size=5))
-    array(['c', 'c', 'c', 'b', 'a'], dtype='<U1')
+    >>> sample_discrete(['a,b,c', '1,2,3'], rng.uniform(size=5))
+    array(['c', 'c', 'c', 'c', 'c'], dtype='<U1')
 
-    >>> normalscoresamples = np.array([-0.5, 0.3, 0.4, 0.7, 0.7])
-    >>> sample_discrete(['a,b,c', '1,2,3'], normalscoresamples)
-    array(['b', 'c', 'c', 'c', 'c'], dtype='<U1')
+    >>> quantiles = np.array([0.1, 0.2, 0.4, 0.5, 0.8])
+    >>> sample_discrete(['a,b,c', '1,2,3'], quantiles)
+    array(['a', 'b', 'b', 'b', 'c'], dtype='<U1')
     """
     outcomes = re.split(",", dist_params[0])
     outcomes = [item.strip() for item in outcomes]
@@ -399,10 +399,9 @@ def sample_discrete(
         fractions = [1.0 / len(outcomes)] * len(outcomes)
     else:
         raise ValueError("Wrong input for discrete distribution")
-    # Handle correlation through normalscoresamples
-    uniform_samples = scipy.stats.norm.cdf(normalscoresamples)
+    # Handle correlation through quantiles
     cum_prob = np.cumsum(fractions)
-    values = np.array([outcomes[np.searchsorted(cum_prob, s)] for s in uniform_samples])
+    values = np.array([outcomes[np.searchsorted(cum_prob, s)] for s in quantiles])
     return values
 
 

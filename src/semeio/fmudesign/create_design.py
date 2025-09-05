@@ -25,7 +25,6 @@ with (
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
-import scipy
 from scipy.stats import qmc
 
 import semeio
@@ -866,15 +865,14 @@ class MonteCarloSensitivity:
         numreals: int,
         rng: np.random.Generator,
     ) -> npt.NDArray[Any] | list[str] | str:
-        # Draw samples in [0, 1), then transform to normal via inverse CDF
-        samples = design_dist.generate_stratified_samples(numreals=numreals, rng=rng)
-        normalscoresamples = scipy.stats.norm.ppf(samples)
+        # Draw samples in [0, 1)
+        quantiles = design_dist.generate_stratified_samples(numreals=numreals, rng=rng)
 
         try:
             return design_dist.draw_values(
                 distname=dist_name.lower(),
                 dist_parameters=dist_params,
-                normalscoresamples=normalscoresamples,
+                quantiles=quantiles,
             )
 
         except ValueError as error:
@@ -965,12 +963,11 @@ class MonteCarloSensitivity:
                     lhs_samples = sampler.random(n=numreals)
 
                     iman_conover = ImanConover(correlation_matrix=correlations)
-                    correlated_samples = iman_conover(lhs_samples)
-
-                    # Transform uniform correlated samples to normal scores
-                    normalscoresamples = scipy.stats.norm.ppf(correlated_samples)
+                    correlated_samples: npt.NDArray[Any] = iman_conover(lhs_samples)
 
                     for idx, row in corr_group.reset_index(drop=True).iterrows():
+                        idx = cast(int, idx)
+
                         if row["param_name"] in multivariate_parameters:
                             if row["param_name"].lower().startswith("const"):
                                 raise ValueError(
@@ -982,7 +979,7 @@ class MonteCarloSensitivity:
                                 design_dist.draw_values(
                                     distname=row["dist_name"].lower(),
                                     dist_parameters=row["dist_params"],
-                                    normalscoresamples=normalscoresamples[:, idx],
+                                    quantiles=correlated_samples[:, idx],
                                 )
                             )
                         else:
