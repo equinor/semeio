@@ -16,7 +16,7 @@ from typing import Any, TypeAlias, cast
 # stdout/stderr during import.
 # https://github.com/cvxpy/cvxpy/issues/2470
 with (
-    open(os.devnull, "w") as devnull,
+    open(os.devnull, "w", encoding="utf-8") as devnull,
     contextlib.redirect_stdout(devnull),
     contextlib.redirect_stderr(devnull),
 ):
@@ -591,7 +591,10 @@ class DesignMatrix:
 
 class SeedSensitivity:
     """
-    A seed sensitivity is normally the reference for one by one sensitivities
+    A seed sensitivity is normally the reference for one by one sensitivities,
+    which all other sensitivities are compared to. All parameters will be at
+    their default values. Only the RMS_SEED will be varying.
+
     It contains a list of seeds to be repeated for each sensitivity
     The parameter name is hardcoded to RMS_SEED
     It will be assigned the sensname 'p10_p90' which will be written to
@@ -927,13 +930,10 @@ class MonteCarloSensitivity:
                     if len(corr_group) == 1:
                         _printwarning(corr_group_name)
                     df_correlations = design_dist.read_correlations(
-                        corrdict["inputfile"], corr_group_name
+                        excel_filename=corrdict["inputfile"], corr_sheet=corr_group_name
                     )
                     multivariate_parameters = df_correlations.index.values
                     correlations = df_correlations.values
-
-                    # Make correlation matrix symmetric by copying lower triangular part
-                    correlations = np.triu(correlations.T, k=1) + np.tril(correlations)
 
                     if not is_consistent_correlation_matrix(correlations):
                         print("\nWarning: Correlation matrix is not consistent")
