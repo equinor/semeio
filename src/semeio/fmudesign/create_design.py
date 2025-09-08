@@ -397,7 +397,7 @@ class DesignMatrix:
                 - str that represents a path to an existing file
             max_reals: Maximum number of seed values to generate or load
         """
-        if seeds in (None, "None"):
+        if seeds in {None, "None"}:
             self.seedvalues = None
             print("seeds is set to None in general_input")
         elif seeds and seeds.lower() == "default":
@@ -507,7 +507,7 @@ class DesignMatrix:
                 self.designvalues[key] = self.designvalues[key].fillna(
                     self.defaultvalues[key]
                 )
-            elif key not in ["REAL", "SENSNAME", "SENSCASE", "RMS_SEED"]:
+            elif key not in {"REAL", "SENSNAME", "SENSCASE", "RMS_SEED"}:
                 raise LookupError(f"No defaultvalues given for parameter {key} ")
 
     def _fill_derived_params(self, depend_dict: Mapping[str, Any]) -> None:
