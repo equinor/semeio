@@ -431,11 +431,20 @@ def read_correlations(excel_filename: str | Path, corr_sheet: str) -> pd.DataFra
             "Correlation matrix filename should be on Excel format and end with .xlsx"
         )
 
-    correlations = pd.read_excel(
+    df_correlations = pd.read_excel(
         excel_filename, corr_sheet, index_col=0, engine="openpyxl"
     )
-    correlations.dropna(axis=0, how="all", inplace=True)
+    df_correlations = df_correlations.dropna(axis=0, how="all")
     # Remove any 'Unnamed' columns that Excel/pandas may have automatically added.
-    correlations = correlations.loc[:, ~correlations.columns.str.contains("^Unnamed")]
+    df_correlations = df_correlations.loc[
+        :, ~df_correlations.columns.str.contains("^Unnamed")
+    ]
 
-    return correlations
+    columns, index = list(df_correlations.columns), list(df_correlations.index)
+    if columns != index:
+        raise ValueError(f"Columns/index mismatch in sheet {corr_sheet}")
+
+    corr_values = df_correlations.values
+    # Make correlation matrix symmetric by copying lower triangular part
+    corr_values = np.triu(corr_values.T, k=1) + np.tril(corr_values)
+    return pd.DataFrame(corr_values, columns=columns, index=index)
