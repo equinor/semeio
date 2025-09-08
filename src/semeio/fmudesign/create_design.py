@@ -25,12 +25,11 @@ with (
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
+import probabilit
 import scipy
-from scipy.stats import qmc
 
 import semeio
 from semeio.fmudesign import design_distributions as design_dist
-from semeio.fmudesign.iman_conover import ImanConover
 
 
 def is_consistent_correlation_matrix(matrix: npt.NDArray[Any]) -> bool:
@@ -910,102 +909,63 @@ class MonteCarloSensitivity:
         if numreals < 0:
             raise ValueError(f"Got < 0 samples ({numreals=})")
 
-        if corrdict is None:
-            for key in parameters:
-                self.sensvalues[key] = self._draw_uncorrelated_values(
-                    key, parameters[key][0], parameters[key][1], numreals, rng
-                )
-        else:  # Some or all parameters are correlated
-            df_params = pd.DataFrame.from_dict(
-                parameters,
-                orient="index",
-                columns=["dist_name", "dist_params", "corr_sheet"],
+        distr_by_name = {}
+        for param_name, (dist_name, dist_params, _) in parameters:
+            # Convert to a probabilit Distribution object
+            distr = design_dist.draw_values(
+                distname=dist_name, dist_parameters=dist_params
             )
-            df_params["corr_sheet"] = df_params["corr_sheet"].fillna("nocorr")
-            df_params.reset_index(inplace=True)
-            df_params.rename(columns={"index": "param_name"}, inplace=True)
+            distr_by_name[param_name] = distr
+
+        # Create a dummy NoOp node for sampling each parent distribution
+        expression = probabilit.modeling.NoOp(*distr_by_name.values())
+
+        if corrdict:
+            df_params = (
+                pd.DataFrame.from_dict(
+                    parameters,
+                    orient="index",
+                    columns=["dist_name", "dist_params", "corr_sheet"],
+                )
+                .reset_index()
+                .rename(columns={"index": "param_name"})
+                .assign(corr_sheet=lambda df: df.corr_sheet.fillna("nocorr"))
+            )
             corr_groups = df_params.groupby("corr_sheet")
 
-            for corr_group_name, corr_group in corr_groups:
+            for corr_group_name, _ in corr_groups:
                 corr_group_name = cast(str, corr_group_name)
-                if corr_group_name != "nocorr":
-                    if len(corr_group) == 1:
-                        _printwarning(corr_group_name)
-                    df_correlations = design_dist.read_correlations(
-                        corrdict["inputfile"], corr_group_name
-                    )
-                    multivariate_parameters = df_correlations.index.values
-                    correlations = df_correlations.values
 
-                    # Make correlation matrix symmetric by copying lower triangular part
-                    correlations = np.triu(correlations.T, k=1) + np.tril(correlations)
+                # Skip nocorr
+                if corr_group_name == "nocorr":
+                    continue
 
-                    if not is_consistent_correlation_matrix(correlations):
-                        print("\nWarning: Correlation matrix is not consistent")
-                        print("Requirements:")
-                        print("  - Ones on the diagonal")
-                        print("  - Positive semi-definite matrix")
-                        print("\nInput correlation matrix:")
-                        with np.printoptions(
-                            precision=2,
-                            suppress=True,
-                            formatter={"float": lambda x: f"{x:.2f}"},
-                        ):
-                            print(correlations)
-                        correlations = nearest_correlation_matrix(
-                            correlations, weights=None, eps=1e-6, verbose=False
-                        )
-                        print("\nAdjusted to nearest consistent correlation matrix:")
-                        with np.printoptions(
-                            precision=2,
-                            suppress=True,
-                            formatter={"float": lambda x: f"{x:.2f}"},
-                        ):
-                            print(correlations)
-                        print()
+                # Read correlation matrix and convert it to a proper matrix
+                df_correlations = design_dist.read_correlations(
+                    corrdict["inputfile"], corr_group_name
+                )
+                corr_mat = df_correlations.values
+                corr_mat = np.triu(corr_mat.T, k=1) + np.tril(corr_mat)
 
-                    sampler = qmc.LatinHypercube(
-                        d=len(multivariate_parameters), rng=rng
-                    )
-                    lhs_samples = sampler.random(n=numreals)
+                corrvars = [distr_by_name[name] for name in df_correlations.columns]
+                expression.correlate(*corrvars, corr_mat=corr_mat)
+                print(f"Correlating variables: {list(df_correlations.columns)}")
+                print(f"Correlation matrix:\n{df_correlations.round(2)}")
 
-                    iman_conover = ImanConover(correlation_matrix=correlations)
-                    correlated_samples = iman_conover(lhs_samples)
+        # Sample the dummy node - this samples every parent and populates "samples_"
+        expression.sample(
+            size=numreals, random_state=rng, method="lhs", correlator="imanconover"
+        )
 
-                    # Transform uniform correlated samples to normal scores
-                    normalscoresamples = scipy.stats.norm.ppf(correlated_samples)
-
-                    for idx, row in corr_group.reset_index(drop=True).iterrows():
-                        if row["param_name"] in multivariate_parameters:
-                            if row["param_name"].lower().startswith("const"):
-                                raise ValueError(
-                                    "Parameter with const distribution was defined in correlation "
-                                    "matrix but const distribution cannot be used with correlation."
-                                )
-
-                            self.sensvalues[row["param_name"]] = (
-                                design_dist.draw_values(
-                                    distname=row["dist_name"].lower(),
-                                    dist_parameters=row["dist_params"],
-                                    normalscoresamples=normalscoresamples[:, idx],
-                                )
-                            )
-                        else:
-                            raise ValueError(
-                                f"Parameter {row['param_name']} specified with correlation "
-                                f"matrix {corr_group_name} but is not listed in that sheet"
-                            )
-                else:  # group nocorr where correlation matrix is not defined
-                    for _, row in corr_group.iterrows():
-                        self.sensvalues[row["param_name"]] = (
-                            self._draw_uncorrelated_values(
-                                param_name=row["param_name"],
-                                dist_name=row["dist_name"],
-                                dist_params=row["dist_params"],
-                                numreals=numreals,
-                                rng=rng,
-                            )
-                        )
+        for distr_name, distr_obj in distr_by_name.items():
+            samples = distr_obj.samples_
+            is_numeric = issubclass(samples.dtype.type, np.number)
+            if is_numeric and not np.all(np.isfinite(distr_obj.samples_)):
+                raise ValueError(
+                    f"Sampling produced non-finite values in {distr_name}={distr_obj}"
+                )
+            self.sensvalues = self.sensvalues.assign(**{distr_name: distr_obj.samples_})
+            print(f"Wrote {numreals} samples from distribution {distr_obj}")
 
         if self.sensname != "background":
             self.sensvalues["REAL"] = realnums
