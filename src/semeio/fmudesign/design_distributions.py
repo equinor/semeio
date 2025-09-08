@@ -1,8 +1,10 @@
 """Module for random sampling of parameter values from distributions."""
 
 import dataclasses
+import functools
 import re
-from collections.abc import Sequence
+import warnings
+from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import Any
 
@@ -42,6 +44,27 @@ def validate_params(distname: str, parameters: list[str]) -> list[float]:
     return new_parameters
 
 
+def high_equals_low_shortcut(sample_method: Callable) -> Callable:
+    """If a distribution has high and low, and high==low, then sample constants."""
+
+    @functools.wraps(sample_method)
+    def wrapper(
+        self: Distribution, normalscoresamples: npt.NDArray[Any]
+    ) -> npt.NDArray[Any]:
+        if (
+            hasattr(self, "high")
+            and hasattr(self, "low")
+            and np.isclose(self.high, self.low)
+        ):
+            warnings.warn(f"Parameters high==low in: {self}", stacklevel=1)
+            return np.array([self.high] * len(normalscoresamples), dtype=float)
+
+        # Call the original method
+        return sample_method(self, normalscoresamples)
+
+    return wrapper
+
+
 class Distribution:
     def validate_params(self) -> None:
         """Common parameter validation for all distributions."""
@@ -57,8 +80,8 @@ class Distribution:
 
         # Check low and high if distribution has these
         if hasattr(self, "low") and hasattr(self, "high"):
-            if self.high <= self.low:
-                raise ValueError(f"Must have high > low in: {self}")
+            if self.high < self.low:
+                raise ValueError(f"Must have high >= low in: {self}")
 
             # Check mode if distribution has it
             if hasattr(self, "mode") and not (self.low <= self.mode <= self.high):
@@ -76,7 +99,7 @@ class Normal(Distribution):
     >>> Normal(mean=0, stddev=2, low=10, high=5)
     Traceback (most recent call last):
         ...
-    ValueError: Must have high > low in: Normal(mean=0.0, stddev=2.0, low=10.0, high=5.0)
+    ValueError: Must have high >= low in: Normal(mean=0.0, stddev=2.0, low=10.0, high=5.0)
     """
 
     mean: float = 0.0
@@ -89,6 +112,7 @@ class Normal(Distribution):
         if self.stddev < 0:
             raise ValueError(f"Must have non-negative stddev in: {self}")
 
+    @high_equals_low_shortcut
     def sample(
         self,
         normalscoresamples: npt.NDArray[Any],
@@ -136,6 +160,7 @@ class Uniform(Distribution):
     def __post_init__(self) -> None:
         super().validate_params()
 
+    @high_equals_low_shortcut
     def sample(
         self,
         normalscoresamples: npt.NDArray[Any],
@@ -169,6 +194,7 @@ class Loguniform(Distribution):
         if not (0 < self.low < self.high):
             raise ValueError(f"Must have 0 < low < high in: {self}")
 
+    @high_equals_low_shortcut
     def sample(
         self,
         normalscoresamples: npt.NDArray[Any],
@@ -187,6 +213,7 @@ class Triangular(Distribution):
     def __post_init__(self) -> None:
         super().validate_params()
 
+    @high_equals_low_shortcut
     def sample(
         self,
         normalscoresamples: npt.NDArray[Any],
@@ -222,6 +249,7 @@ class PERT(Distribution):
         if self.scale <= 0:
             raise ValueError(f"Must have scale > 0 in: {self}")
 
+    @high_equals_low_shortcut
     def sample(
         self,
         normalscoresamples: npt.NDArray[Any],

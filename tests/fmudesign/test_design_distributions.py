@@ -24,7 +24,7 @@ def test_distribution_failures():
     # Normal distribution
     with pytest.raises(ValueError, match="Must have non-negative stddev"):
         dists.Normal(mean=0, stddev=-1)
-    with pytest.raises(ValueError, match="Must have high > low"):
+    with pytest.raises(ValueError, match="Must have high >= low"):
         dists.Normal(mean=0, stddev=1, low=5, high=4)
 
     # Lognormal distribution
@@ -34,10 +34,8 @@ def test_distribution_failures():
         dists.Lognormal(mean=0, sigma=0)
 
     # Uniform distribution
-    with pytest.raises(ValueError, match="Must have high > low"):
+    with pytest.raises(ValueError, match="Must have high >= low"):
         dists.Uniform(low=0, high=-5)
-    with pytest.raises(ValueError, match="Must have high > low"):
-        dists.Uniform(low=3, high=3)
 
     # Loguniform distribution
     with pytest.raises(ValueError, match="Must have 0 < low < high"):
@@ -48,13 +46,13 @@ def test_distribution_failures():
     # Triangular distribution
     with pytest.raises(ValueError, match="Must have low <= mode <= high"):
         dists.Triangular(low=0, mode=-1, high=5)
-    with pytest.raises(ValueError, match="Must have high > low"):
+    with pytest.raises(ValueError, match="Must have high >= low"):
         dists.Triangular(low=0, mode=7, high=-3)
 
     # PERT
     with pytest.raises(ValueError, match="Must have scale > 0"):
         dists.PERT(low=0, mode=5, high=10, scale=0)
-    with pytest.raises(ValueError, match="Must have high > low"):
+    with pytest.raises(ValueError, match="Must have high >= low"):
         dists.PERT(low=0, mode=5, high=-10, scale=0)
 
 
