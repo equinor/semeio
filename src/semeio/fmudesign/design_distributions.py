@@ -289,6 +289,13 @@ def draw_values(
     if len(normalscoresamples) == 0:
         return np.array([])
 
+    match_names = {"disc", "const", "norm", "logn", "unif", "triang", "pert", "logunif"}
+    matches = [distname.lower().startswith(match_name) for match_name in match_names]
+    if sum(match_ for match_ in matches if match_) > 1:
+        raise ValueError(
+            f"Distribution prefix {distname} matched on several: {match_names}"
+        )
+
     # Special case for discrete
     if distname.lower().startswith("disc"):
         return sample_discrete(
