@@ -253,14 +253,14 @@ class DesignMatrix:
             if sens["senstype"] == "ref":
                 sensitivity = SingleRealisationReference(key)
                 sensitivity.generate(
-                    range(current_real_index, current_real_index + numreal)
+                    realnums=range(current_real_index, current_real_index + numreal)
                 )
                 current_real_index += numreal
                 self._add_sensitivity(sensitivity)
             elif sens["senstype"] == "background":
                 sensitivity = BackgroundSensitivity(key)
                 sensitivity.generate(
-                    range(current_real_index, current_real_index + numreal)
+                    realnums=range(current_real_index, current_real_index + numreal)
                 )
                 current_real_index += numreal
                 self._add_sensitivity(sensitivity)
@@ -271,10 +271,10 @@ class DesignMatrix:
                     )
                 sensitivity = SeedSensitivity(key)
                 sensitivity.generate(
-                    range(current_real_index, current_real_index + numreal),
-                    sens["seedname"],
-                    self.seedvalues,
-                    sens["parameters"],
+                    realnums=range(current_real_index, current_real_index + numreal),
+                    seedname=sens["seedname"],
+                    seedvalues=self.seedvalues,
+                    parameters=sens["parameters"],
                 )
                 current_real_index += numreal
                 self._add_sensitivity(sensitivity)
@@ -284,9 +284,11 @@ class DesignMatrix:
                     case = sens["cases"][casekey]
                     temp_case = ScenarioSensitivityCase(casekey)
                     temp_case.generate(
-                        range(current_real_index, current_real_index + numreal),
-                        case,
-                        self.seedvalues,
+                        realnums=range(
+                            current_real_index, current_real_index + numreal
+                        ),
+                        parameters=case,
+                        seedvalues=self.seedvalues,
                     )
                     sensitivity.add_case(temp_case)
                     current_real_index += numreal
@@ -305,10 +307,10 @@ class DesignMatrix:
             elif sens["senstype"] == "extern":
                 sensitivity = ExternSensitivity(key)
                 sensitivity.generate(
-                    range(current_real_index, current_real_index + numreal),
-                    sens["extern_file"],
-                    sens["parameters"],
-                    self.seedvalues,
+                    realnums=range(current_real_index, current_real_index + numreal),
+                    filename=sens["extern_file"],
+                    parameters=sens["parameters"],
+                    seedvalues=self.seedvalues,
                 )
                 current_real_index += numreal
                 self._add_sensitivity(sensitivity)
