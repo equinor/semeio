@@ -446,7 +446,6 @@ class DesignMatrix:
         if self.backgroundvalues is None:
             raise ValueError("No background values available to write to Excel")
 
-        # pylint: disable=abstract-class-instantiated
         xlsxwriter = pd.ExcelWriter(filename, engine="openpyxl")
         self.backgroundvalues.to_excel(
             xlsxwriter, sheet_name=backgroundsheet, index=False, header=True
@@ -604,7 +603,6 @@ class SeedSensitivity:
 
     """
 
-    # pylint: disable=too-few-public-methods
     def __init__(self, sensname: str) -> None:
         """Initiate method.
 
@@ -669,7 +667,6 @@ class SingleRealisationReference:
 
     """
 
-    # pylint: disable=too-few-public-methods
     def __init__(self, sensname: str) -> None:
         """Initiate.
 
@@ -706,7 +703,6 @@ class BackgroundSensitivity:
 
     """
 
-    # pylint: disable=too-few-public-methods
     def __init__(self, sensname: str) -> None:
         """Initiate
 
@@ -749,7 +745,6 @@ class ScenarioSensitivity:
            1-2 cases
     """
 
-    # pylint: disable=too-few-public-methods
     def __init__(self, sensname: str) -> None:
         """
         Args:
@@ -812,7 +807,6 @@ class ScenarioSensitivityCase:
 
     """
 
-    # pylint: disable=too-few-public-methods
     def __init__(self, casename: str) -> None:
         self.casename: str = casename
         self.casevalues: pd.DataFrame | None = None
@@ -857,7 +851,6 @@ class MonteCarloSensitivity:
             with realisation numbers as index.
     """
 
-    # pylint: disable=too-few-public-methods
     def __init__(self, sensname: str) -> None:
         self.sensname: str = sensname
         self.sensvalues: pd.DataFrame | None = None
@@ -1035,7 +1028,6 @@ class ExternSensitivity:
 
     """
 
-    # pylint: disable=too-few-public-methods
     def __init__(self, sensname: str) -> None:
         self.sensname: str = sensname
         self.sensvalues: pd.DataFrame | None = None
