@@ -22,6 +22,8 @@ with (
 ):
     import cvxpy as cp
 
+import warnings
+
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
@@ -31,6 +33,26 @@ from scipy.stats import qmc
 import semeio
 from semeio.fmudesign import design_distributions as design_dist
 from semeio.fmudesign.iman_conover import ImanConover
+
+
+def find_file(path: Path, original: Path | None = None) -> Path:
+    """Look for file `path`. If it is not found, try stripping folders, e.g.
+    - 'data/sensitivities/config/doe1.xlsx'
+    - 'sensitivities/config/doe1.xlsx'
+    - 'config/doe1.xlsx'
+    - 'doe1.xlsx'
+    """
+    if path.is_file():  # Exists and is a file
+        if original is not None and path != original:
+            warnings.warn(
+                f"Could not find file: {original}\nUsing instead: {path}", stacklevel=1
+            )
+        return path
+
+    if len(path.parts) > 1:
+        return find_file(Path(*path.parts[1:]), original=path)
+
+    raise FileNotFoundError(f"Could not find file: {path}")
 
 
 def is_consistent_correlation_matrix(matrix: npt.NDArray[Any]) -> bool:
@@ -395,12 +417,12 @@ class DesignMatrix:
                 - str that represents a path to an existing file
             max_reals: Maximum number of seed values to generate or load
         """
-        if seeds in (None, "None"):
+        if seeds in {None, "None"}:
             self.seedvalues = None
             print("seeds is set to None in general_input")
         elif seeds and seeds.lower() == "default":
             self.seedvalues = [item + 1000 for item in range(max_reals)]
-        elif seeds and Path(seeds).is_file():
+        elif seeds:
             self.seedvalues = _seeds_from_extern(seeds, max_reals)
         else:
             raise ValueError(
@@ -1081,6 +1103,7 @@ def _parameters_from_extern(filename: str) -> pd.DataFrame:
     Args:
         filename (str): path to file
     """
+    filename = str(find_file(Path(filename)))
     if str(filename).endswith(".xlsx"):
         parameters = pd.read_excel(filename, engine="openpyxl")
         parameters.dropna(axis=0, how="all", inplace=True)
@@ -1104,6 +1127,7 @@ def _seeds_from_extern(filename: str, max_reals: int) -> list[int]:
     Args:
         filename (str): path to file
     """
+    filename = str(find_file(Path(filename)))
     if str(filename).endswith(".xlsx"):
         df_seeds = pd.read_excel(filename, header=None, engine="openpyxl")
         df_seeds.dropna(axis=0, how="all", inplace=True)
