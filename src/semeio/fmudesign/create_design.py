@@ -26,7 +26,6 @@ import numpy as np
 import numpy.typing as npt
 import pandas as pd
 import probabilit
-import scipy
 
 import semeio
 from semeio.fmudesign import design_distributions as design_dist
@@ -859,31 +858,6 @@ class MonteCarloSensitivity:
         self.sensname: str = sensname
         self.sensvalues: pd.DataFrame | None = None
 
-    def _draw_uncorrelated_values(
-        self,
-        param_name: str,
-        dist_name: str,
-        dist_params: Sequence[str],
-        numreals: int,
-        rng: np.random.Generator,
-    ) -> npt.NDArray[Any] | list[str] | str:
-        # Draw samples in [0, 1), then transform to normal via inverse CDF
-        samples = design_dist.generate_stratified_samples(numreals=numreals, rng=rng)
-        normalscoresamples = scipy.stats.norm.ppf(samples)
-
-        try:
-            return design_dist.draw_values(
-                distname=dist_name.lower(),
-                dist_parameters=dist_params,
-                normalscoresamples=normalscoresamples,
-            )
-
-        except ValueError as error:
-            raise ValueError(
-                f"Problem in sensitivity with sensname {self.sensname} "
-                f"for parameter {param_name}: {error.args[0]}"
-            ) from error
-
     def generate(
         self,
         realnums: range,
@@ -910,9 +884,9 @@ class MonteCarloSensitivity:
             raise ValueError(f"Got < 0 samples ({numreals=})")
 
         distr_by_name = {}
-        for param_name, (dist_name, dist_params, _) in parameters:
+        for param_name, (dist_name, dist_params, _) in parameters.items():
             # Convert to a probabilit Distribution object
-            distr = design_dist.draw_values(
+            distr = design_dist.to_probabilit(
                 distname=dist_name, dist_parameters=dist_params
             )
             distr_by_name[param_name] = distr
@@ -921,6 +895,7 @@ class MonteCarloSensitivity:
         expression = probabilit.modeling.NoOp(*distr_by_name.values())
 
         if corrdict:
+            # Create an iterator over correlation groups from the main sheet
             df_params = (
                 pd.DataFrame.from_dict(
                     parameters,
@@ -933,11 +908,16 @@ class MonteCarloSensitivity:
             )
             corr_groups = df_params.groupby("corr_sheet")
 
-            for corr_group_name, _ in corr_groups:
+            for corr_group_name, corr_group in corr_groups:
                 corr_group_name = cast(str, corr_group_name)
 
                 # Skip nocorr
                 if corr_group_name == "nocorr":
+                    continue
+
+                # A single correlation - print warning and skip it
+                if len(corr_group) == 1:
+                    _printwarning(corr_group_name)
                     continue
 
                 # Read correlation matrix and convert it to a proper matrix
