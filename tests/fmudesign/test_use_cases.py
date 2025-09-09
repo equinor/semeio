@@ -1,9 +1,16 @@
 """Example use cases for semeio.fmudesign"""
 
+import shutil
+import subprocess
+from pathlib import Path
+
 import pandas as pd
 import pytest
 
 from semeio.fmudesign import DesignMatrix, excel2dict_design
+
+TESTDATA = Path(__file__).parent / "data"
+TEST_FILES = list((TESTDATA / "config").glob("design_input*.xlsx"))
 
 
 def test_prediction_rejection_sampled_ensemble(tmpdir, monkeypatch):
@@ -149,3 +156,21 @@ def test_constant_distribution(tmpdir, monkeypatch, gen_input_sheet):
     print(f"Parameter 'a' values: {set(design.designvalues['a'])}")
     print(f"Number of realizations: {len(design.designvalues)}")
     print(f"Sensitivity name: {set(design.designvalues['SENSNAME'])}")
+
+    return design
+
+
+@pytest.mark.parametrize("designfile", TEST_FILES, ids=[p.stem for p in TEST_FILES])
+def test_all_input_files(tmpdir, monkeypatch, designfile):
+    """Smoketest all files."""
+
+    monkeypatch.chdir(tmpdir)
+
+    # Copy all example files over, to guarantee existence of dependency files
+    for filename in designfile.parent.glob("*"):
+        shutil.copy(filename, ".")
+
+    # Run the CLI tool (test will fail on non-zero status code)
+    subprocess.run(
+        ["fmudesign", str(designfile)], check=True, capture_output=True, text=True
+    )
