@@ -1,5 +1,6 @@
 """Example use cases for semeio.fmudesign"""
 
+import os
 import shutil
 import subprocess
 from pathlib import Path
@@ -172,5 +173,28 @@ def test_all_input_files(tmpdir, monkeypatch, designfile):
 
     # Run the CLI tool (test will fail on non-zero status code)
     subprocess.run(
-        ["fmudesign", str(designfile)], check=True, capture_output=True, text=True
+        ["fmudesign", designfile], check=True, capture_output=True, text=True
+    )
+
+
+@pytest.mark.parametrize("designfile", TEST_FILES, ids=[p.stem for p in TEST_FILES])
+def test_all_input_files_relative_paths(tmpdir, monkeypatch, designfile):
+    """Smoketest all files, but invoke them from a directory above.
+    This tests that relative paths in the Excel files work correctly."""
+
+    monkeypatch.chdir(tmpdir)
+    copy_to = os.path.join(".", "path", "going", "down")
+
+    os.makedirs(copy_to, exist_ok=True)
+
+    # Copy all example files over, to guarantee existence of dependency files
+    for filename in designfile.parent.glob("*"):
+        shutil.copy(filename, copy_to)
+
+    # Run the CLI tool (test will fail on non-zero status code)
+    subprocess.run(
+        ["fmudesign", os.path.join(".", "path", "going", "down", designfile)],
+        check=True,
+        capture_output=True,
+        text=True,
     )
