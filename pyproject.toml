@@ -41,6 +41,7 @@ dependencies = [
     "segyio",
     "xlrd",
     "xtgeo>=2.15",
+    "probabilit@git+https://github.com/equinor/probabilit",
 ]
 
 [project.urls]
