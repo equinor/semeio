@@ -73,37 +73,35 @@ def test_endpoint(tmpdir, monkeypatch):
     )
 
     expected_output = """Added sensitivity : seed
-    Added sensitivity : faults
-    Added sensitivity : velmodel
-    Added sensitivity : contacts
-    Added sensitivity : multz
-    Added sensitivity : sens6
-
-    Warning: Correlation matrix is not consistent
-    Requirements:
-    - Ones on the diagonal
-    - Positive semi-definite matrix
-
-    Input correlation matrix:
-    [[1.00 0.90 0.00 0.00]
-    [0.90 1.00 0.90 0.00]
-    [0.00 0.90 1.00 0.00]
-    [0.00 0.00 0.00 1.00]]
-
-    Adjusted to nearest consistent correlation matrix:
-    [[1.00 0.74 0.11 0.00]
-    [0.74 1.00 0.74 0.00]
-    [0.11 0.74 1.00 0.00]
-    [0.00 0.00 0.00 1.00]]
-
-    Added sensitivity : sens7
-    Added sensitivity : sens8
-    Provided number of background values (11) is smaller than number of realisations for sensitivity ('sens7', 'p10_p90') and parameter PARAM13. Will be filled with default values.
-    Provided number of background values (11) is smaller than number of realisations for sensitivity ('sens7', 'p10_p90') and parameter PARAM14. Will be filled with default values.
-    Provided number of background values (11) is smaller than number of realisations for sensitivity ('sens7', 'p10_p90') and parameter PARAM15. Will be filled with default values.
-    Provided number of background values (11) is smaller than number of realisations for sensitivity ('sens7', 'p10_p90') and parameter PARAM16. Will be filled with default values.
-    A total of 91 realizations were generated
-    Designmatrix written to generateddesignmatrix.xlsx"""
+Added sensitivity : faults
+Added sensitivity : velmodel
+Added sensitivity : contacts
+Wrote 10 samples from distribution Distribution("loguniform", a=0.0001, b=1.0)
+Added sensitivity : multz
+Wrote 10 samples from distribution Distribution("truncnorm", a=-2.0, b=2.0, loc=3.0, scale=1.0)
+Wrote 10 samples from distribution Distribution("uniform", loc=0.0, scale=1.0)
+Wrote 10 samples from distribution Distribution("triang", loc=1.0, scale=4.0, c=0.5)
+Wrote 10 samples from distribution DiscreteDistribution(values=array(['2018-11-02', '2018-11-03', '2018-11-04'], dtype='<U10'), probabilities=array([0.3, 0.4, 0.3]))
+Added sensitivity : sens6
+Correlating variables: ['PARAM9', 'PARAM10', 'PARAM11', 'PARAM12']
+Correlation matrix:
+         PARAM9  PARAM10  PARAM11  PARAM12
+PARAM9      1.0      NaN      NaN      NaN
+PARAM10     0.9      1.0      NaN      NaN
+PARAM11     0.0      0.9      1.0      NaN
+PARAM12     0.0      0.0      0.0      1.0
+Wrote 30 samples from distribution Distribution("lognorm", s=1.0, scale=Exp(Constant(0.0)))
+Wrote 30 samples from distribution Distribution("uniform", loc=0.0, scale=1.0)
+Wrote 30 samples from distribution Distribution("triang", loc=1.0, scale=4.0, c=0.5)
+Wrote 30 samples from distribution Distribution("loguniform", a=1.0, b=10.0)
+Added sensitivity : sens7
+Added sensitivity : sens8
+Provided number of background values (11) is smaller than number of realisations for sensitivity ('sens7', 'p10_p90') and parameter PARAM13. Will be filled with default values.
+Provided number of background values (11) is smaller than number of realisations for sensitivity ('sens7', 'p10_p90') and parameter PARAM14. Will be filled with default values.
+Provided number of background values (11) is smaller than number of realisations for sensitivity ('sens7', 'p10_p90') and parameter PARAM15. Will be filled with default values.
+Provided number of background values (11) is smaller than number of realisations for sensitivity ('sens7', 'p10_p90') and parameter PARAM16. Will be filled with default values.
+A total of 91 realizations were generated
+Designmatrix written to generateddesignmatrix.xlsx"""
 
     assert result.stdout.split() == expected_output.split()
     assert Path("generateddesignmatrix.xlsx").exists  # Default output file
