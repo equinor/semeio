@@ -5,6 +5,7 @@ read by semeio.fmudesign.DesignMatrix.generate
 
 from collections import OrderedDict
 from collections.abc import Mapping
+from pathlib import Path
 from typing import Any, cast
 
 import numpy as np
@@ -134,8 +135,29 @@ def _check_for_mixed_sensitivities(sens_name: str, sens_group: pd.DataFrame) -> 
         )
 
 
+def resolve_path(input_filename: str, reference: str) -> str:
+    """The path `input_filename` is an Excel sheet, and `reference` is a cell
+    value that *might* be a reference to another file. Resolve the path to
+    `reference` and return.
+    """
+    assert str(input_filename).endswith(("xlsx", "csv"))
+
+    # It's not a reference to another file
+    if not reference.endswith(("xlsx", "csv")):
+        return reference
+
+    reference_path = Path(reference)
+
+    # If the reference is e.g. 'C:/Users/USER/files/doe1.xlsx' => full path
+    if reference_path.is_absolute():
+        return str(reference_path.resolve())
+
+    # If the reference is 'doe1.xlsx', then assume the file is in same dir
+    return str(Path(input_filename).parent / reference_path)
+
+
 def _excel2dict_onebyone(
-    input_filename: str,
+    input_filename: str | Path,
     *,
     gen_input_sheet: str,
     design_input_sheet: str,
@@ -144,7 +166,7 @@ def _excel2dict_onebyone(
     """Reads specification for onebyone design
 
     Args:
-        input_filename(path): path to excel workbook
+        input_filename(str or path): path to excel workbook
         gen_input_sheet (str): name of general input sheet
         design_input_sheet (str): name of design input sheet
         default_val_sheet (str): name of defaul value sheet
@@ -155,7 +177,7 @@ def _excel2dict_onebyone(
     Returns:
         OrderedDict on format for DesignMatrix.generate
     """
-
+    input_filename = str(input_filename)
     seedname = "RMS_SEED"
     inputdict: OrderedDict[str, Any] = OrderedDict()
 
@@ -172,7 +194,7 @@ def _excel2dict_onebyone(
         if rms_seeds == "None":
             inputdict["seeds"] = None
         else:
-            inputdict["seeds"] = rms_seeds
+            inputdict["seeds"] = resolve_path(input_filename, rms_seeds)
     else:
         inputdict["seeds"] = None
 
@@ -194,7 +216,7 @@ def _excel2dict_onebyone(
         background = str(generalinput.loc["background"].iloc[0])
         inputdict["background"] = OrderedDict()
         if background.endswith(("csv", "xlsx")):
-            inputdict["background"]["extern"] = background
+            inputdict["background"]["extern"] = resolve_path(input_filename, background)
         elif background == "None":
             inputdict["background"] = None
         else:
@@ -280,7 +302,9 @@ def _excel2dict_onebyone(
                 sensdict["correlations"] = _read_correlations(group, input_filename)
 
         elif sens_type == "extern":
-            sensdict["extern_file"] = str(group["extern_file"].iloc[0])
+            sensdict["extern_file"] = resolve_path(
+                input_filename, str(group["extern_file"].iloc[0])
+            )
             sensdict["senstype"] = sens_type
             sensdict["parameters"] = list(group["param_name"])
 
