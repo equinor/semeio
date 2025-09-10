@@ -29,6 +29,7 @@ from scipy.stats import qmc
 
 import semeio
 from semeio.fmudesign import design_distributions as design_dist
+from semeio.fmudesign._excel2dict import _raise_if_duplicates
 from semeio.fmudesign.iman_conover import ImanConover
 
 
@@ -1045,6 +1046,7 @@ class ExternSensitivity:
             parameters (list): list with parameter names
             seeds (str): default or None
         """
+        _raise_if_duplicates(parameters)
         self.sensvalues = pd.DataFrame(columns=parameters, index=realnums)
         extern_values = _parameters_from_extern(filename)
         if len(realnums) > len(extern_values):
