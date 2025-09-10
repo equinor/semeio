@@ -158,22 +158,23 @@ def test_constant_distribution(tmpdir, monkeypatch, gen_input_sheet):
     print(f"Number of realizations: {len(design.designvalues)}")
     print(f"Sensitivity name: {set(design.designvalues['SENSNAME'])}")
 
-    return design
-
 
 @pytest.mark.parametrize("designfile", TEST_FILES, ids=[p.stem for p in TEST_FILES])
-def test_all_input_files(tmpdir, monkeypatch, designfile):
+@pytest.mark.parametrize("verbosity", [0, 1])
+def test_all_input_files(tmpdir, monkeypatch, designfile, verbosity):
     """Smoketest all files."""
 
     monkeypatch.chdir(tmpdir)
 
     # Copy all example files over, to guarantee existence of dependency files
     for filename in designfile.parent.glob("*"):
-        shutil.copy(filename, ".")
+        if os.path.isfile(filename):
+            shutil.copy(filename, ".")
 
     # Run the CLI tool (test will fail on non-zero status code)
+    verbose = ["--verbose"] * verbosity
     subprocess.run(
-        ["fmudesign", designfile], check=True, capture_output=True, text=True
+        ["fmudesign", designfile, *verbose], check=True, capture_output=True, text=True
     )
 
 
@@ -189,7 +190,8 @@ def test_all_input_files_relative_paths(tmpdir, monkeypatch, designfile):
 
     # Copy all example files over, to guarantee existence of dependency files
     for filename in designfile.parent.glob("*"):
-        shutil.copy(filename, copy_to)
+        if os.path.isfile(filename):
+            shutil.copy(filename, copy_to)
 
     # Run the CLI tool (test will fail on non-zero status code)
     subprocess.run(

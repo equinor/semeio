@@ -41,6 +41,7 @@ dependencies = [
     "segyio",
     "xlrd",
     "xtgeo>=2.15",
+    "seaborn",
 ]
 
 [project.urls]
@@ -91,6 +92,7 @@ types = [
     "types-PyYAML",
     "types-openpyxl",
     "types-setuptools",
+    "types-seaborn",
 ]
 
 [tool.pytest.ini_options]
