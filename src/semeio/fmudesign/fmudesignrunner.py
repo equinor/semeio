@@ -43,6 +43,14 @@ def get_parser() -> ArgumentParser:
         default="general_input",
     )
 
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        action="count",
+        default=0,
+        help="Verbosity of terminal output and plotting.",
+    )
+
     return parser
 
 
@@ -78,7 +86,10 @@ def main() -> None:
             "file and the output file. "
         )
 
-    design = DesignMatrix()
+    # If destination is 'analysis/generateddesignmatrix.xlsx', then plots
+    # will be saved to 'analysis/generateddesignmatrix/<SENSNAME>/<VARNAME>.png'
+    output_dir = Path(args.destination).parent / Path(args.destination).stem
+    design = DesignMatrix(verbosity=args.verbose, output_dir=output_dir)
 
     design.generate(input_dict)
 

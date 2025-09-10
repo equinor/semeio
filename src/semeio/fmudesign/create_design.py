@@ -30,6 +30,7 @@ from scipy.stats import qmc
 import semeio
 from semeio.fmudesign import design_distributions as design_dist
 from semeio.fmudesign.iman_conover import ImanConover
+from semeio.fmudesign.quality_report import QualityReporter
 
 
 def is_consistent_correlation_matrix(matrix: npt.NDArray[Any]) -> bool:
@@ -190,18 +191,23 @@ class DesignMatrix:
             or they are read from a file.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, verbosity: int = 0, output_dir: Path | None = None) -> None:
         """
         Placeholders for:
         designvalues: dataframe with parameters that varies
         defaultvalues: dictionary of default/base case values
         backgroundvalues: dataframe with background parameters
         seedvalues: list of seed values
+        verbosity: how much information to print
+        output_dir: where to write debugging output and QC plots
+
         """
         self.designvalues: pd.DataFrame = pd.DataFrame(columns=["REAL"])
         self.defaultvalues: OrderedDict[Hashable, Any] = OrderedDict()
         self.backgroundvalues: pd.DataFrame | None = None
         self.seedvalues: list[int] | None = None
+        self.verbosity: int = verbosity
+        self.output_dir: Path | None = output_dir
 
     def reset(self) -> None:
         """Resets DesignMatrix to empty. Necessary iin case method generate
@@ -303,6 +309,7 @@ class DesignMatrix:
                 )
                 current_real_index += numreal
                 self._add_sensitivity(sensitivity)
+
             elif sens["senstype"] == "extern":
                 sensitivity = ExternSensitivity(key)
                 sensitivity.generate(
@@ -314,6 +321,44 @@ class DesignMatrix:
                 current_real_index += numreal
                 self._add_sensitivity(sensitivity)
             print("Added sensitivity :", sensitivity.sensname)
+
+            # MonteCarloSensitivity is special - it can produce debugging outputs
+            is_montecarlo = isinstance(sensitivity, MonteCarloSensitivity)
+            if is_montecarlo and self.verbosity > 0:
+                sensitivity = cast(MonteCarloSensitivity, sensitivity)
+
+                # Convert parameteters to a plottable string, e.g.
+                # {"COSTS": "Normal(loc=0, scale=1)", ...}
+                qr_vars = {
+                    pname: f"{plist[0]}~("
+                    + ", ".join(
+                        f"dist_param{i}={v}" for (i, v) in enumerate(plist[1], 1)
+                    )
+                    + ")"
+                    for (pname, plist) in sens["parameters"].items()
+                }
+                quality_reporter = QualityReporter(
+                    df=sensitivity.sensvalues, variables=qr_vars
+                )
+
+                # Print to terminal
+                quality_reporter.print_numeric()
+                quality_reporter.print_discrete()
+                for corr_name, df_corr in sensitivity.correlation_dfs_.items():
+                    quality_reporter.print_correlation(corr_name, df_corr)
+
+            if is_montecarlo and self.verbosity > 0 and self.output_dir is not None:
+                sensitivity = cast(MonteCarloSensitivity, sensitivity)
+                output_dir = self.output_dir / key
+                quality_reporter.plot_columns(output_dir=output_dir)
+
+                # Correlations
+                for corr_name, df_corr in sensitivity.correlation_dfs_.items():
+                    quality_reporter.plot_correlation(
+                        corr_name, df_corr, output_dir=output_dir
+                    )
+
+        # Once all sensitivities have been added, complete the work
         if "background" in inputdict:
             self._fill_with_background_values()
         self._fill_with_defaultvalues()
@@ -612,7 +657,7 @@ class SeedSensitivity:
             sensname (str): Name of sensitivity. Defines SENSNAME in design matrix.
         """
         self.sensname: str = sensname
-        self.sensvalues: pd.DataFrame | None = None
+        self.sensvalues: pd.DataFrame
 
     def generate(
         self,
@@ -676,7 +721,7 @@ class SingleRealisationReference:
             sensname (str): Name of sensitivity. Defines SENSNAME in design matrix.
         """
         self.sensname: str = sensname
-        self.sensvalues: pd.DataFrame | None = None
+        self.sensvalues: pd.DataFrame
 
     def generate(self, realnums: range) -> None:
         """Generates realisation number only
@@ -712,7 +757,7 @@ class BackgroundSensitivity:
             sensname (str): Name of sensitivity. Defines SENSNAME in design matrix.
         """
         self.sensname: str = sensname
-        self.sensvalues: pd.DataFrame | None = None
+        self.sensvalues: pd.DataFrame
 
     def generate(self, realnums: range) -> None:
         """Generates realisation number only
@@ -756,7 +801,7 @@ class ScenarioSensitivity:
         self.sensname: str = sensname
         self.case1: ScenarioSensitivityCase | None = None
         self.case2: ScenarioSensitivityCase | None = None
-        self.sensvalues: pd.DataFrame | None = None
+        self.sensvalues: pd.DataFrame
 
     def add_case(self, senscase: "ScenarioSensitivityCase") -> None:
         """
@@ -855,7 +900,7 @@ class MonteCarloSensitivity:
 
     def __init__(self, sensname: str) -> None:
         self.sensname: str = sensname
-        self.sensvalues: pd.DataFrame | None = None
+        self.sensvalues: pd.DataFrame
 
     def _draw_uncorrelated_values(
         self,
@@ -901,6 +946,7 @@ class MonteCarloSensitivity:
                 If None, parameters are treated as uncorrelated.
         """
         self.sensvalues = pd.DataFrame(columns=list(parameters.keys()), index=realnums)
+        self.correlation_dfs_ = {}  # Store correlation matrices (dataframes)
         numreals = len(realnums)
 
         if numreals < 0:
@@ -932,6 +978,7 @@ class MonteCarloSensitivity:
                     )
                     multivariate_parameters = df_correlations.index.values
                     correlations = df_correlations.values
+                    self.correlation_dfs_[corr_group_name] = df_correlations
 
                     if not is_consistent_correlation_matrix(correlations):
                         print("\nWarning: Correlation matrix is not consistent")
@@ -1027,7 +1074,7 @@ class ExternSensitivity:
 
     def __init__(self, sensname: str) -> None:
         self.sensname: str = sensname
-        self.sensvalues: pd.DataFrame | None = None
+        self.sensvalues: pd.DataFrame
 
     def generate(
         self,
