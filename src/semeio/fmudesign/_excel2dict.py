@@ -3,8 +3,8 @@ a design matrix and converting to an OrderedDict that can be
 read by semeio.fmudesign.DesignMatrix.generate
 """
 
-from collections import OrderedDict
-from collections.abc import Mapping
+from collections import Counter, OrderedDict
+from collections.abc import Hashable, Mapping, Sequence
 from pathlib import Path
 from typing import Any, cast
 
@@ -119,6 +119,14 @@ def _check_designinput(dsgn_input: pd.DataFrame) -> None:
             "sheet. Two sensitivities can not share the same sensname. "
             "Please correct this and rerun"
         )
+
+    # Check for duplicate parameter names within each sensname
+    for sensname, df_sensname in dsgn_input.ffill().groupby("sensname"):
+        param_names = list(df_sensname["param_name"])
+        try:
+            _raise_if_duplicates(param_names)
+        except ValueError as e:
+            raise ValueError(f"Duplicate param names in {sensname}\n{e}") from e
 
 
 def _check_for_mixed_sensitivities(sens_name: str, sens_group: pd.DataFrame) -> None:
@@ -669,3 +677,10 @@ def _is_int(teststring: str) -> bool:
         return False  # It was a "number", but it was NaN.
     except ValueError:
         return False
+
+
+def _raise_if_duplicates(container: Sequence[Hashable]) -> None:
+    """Raises a descriptive error if there are duplicates in the container."""
+    duplicates = {k: v for (k, v) in Counter(container).items() if v > 1}
+    if duplicates:
+        raise ValueError(f"Duplicates with counts: {duplicates}")
