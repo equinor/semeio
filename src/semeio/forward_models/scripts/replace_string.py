@@ -1,4 +1,5 @@
 import argparse
+from argparse import ArgumentParser
 from pathlib import Path
 
 description = """
@@ -20,7 +21,7 @@ To escape whitespace use ""
 """
 
 
-def _get_args_parser():
+def _get_args_parser() -> ArgumentParser:
     parser = argparse.ArgumentParser(description=description)
 
     parser.add_argument(
@@ -41,7 +42,7 @@ def _get_args_parser():
     return parser
 
 
-def main_entry_point():
+def main_entry_point() -> None:
     parser = _get_args_parser()
     options = parser.parse_args()
     file = Path(options.file)
