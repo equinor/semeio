@@ -72,31 +72,43 @@ def test_endpoint(tmpdir, monkeypatch):
         ["fmudesign", str(designfile)], check=True, capture_output=True, text=True
     )
 
-    expected_output = """Added sensitivity : seed
+    expected_output = """Generating sensitivity : seed
+    Added sensitivity : seed
+    Generating sensitivity : faults
     Added sensitivity : faults
+    Generating sensitivity : velmodel
     Added sensitivity : velmodel
+    Generating sensitivity : contacts
     Added sensitivity : contacts
+    Generating sensitivity : multz
     Added sensitivity : multz
+    Generating sensitivity : sens6
     Added sensitivity : sens6
+    Generating sensitivity : sens7
+    Sampling parameters in 'corr1': ['PARAM9', 'PARAM10', 'PARAM11', 'PARAM12']
 
-    Warning: Correlation matrix is not consistent
+    Warning: Correlation matrix 'corr1' is not consistent
     Requirements:
-    - Ones on the diagonal
-    - Positive semi-definite matrix
+      - Ones on the diagonal
+      - Positive semi-definite matrix
 
     Input correlation matrix:
-    [[1.00 0.90 0.00 0.00]
-    [0.90 1.00 0.90 0.00]
-    [0.00 0.90 1.00 0.00]
-    [0.00 0.00 0.00 1.00]]
+    |         |   PARAM9 | PARAM10   | PARAM11   | PARAM12   |
+    |:--------|---------:|:----------|:----------|:----------|
+    | PARAM9  |     1.00 |           |           |           |
+    | PARAM10 |     0.90 | 1.00      |           |           |
+    | PARAM11 |     0.00 | 0.90      | 1.00      |           |
+    | PARAM12 |     0.00 | 0.00      | 0.00      | 1.00      |
 
     Adjusted to nearest consistent correlation matrix:
-    [[1.00 0.74 0.11 0.00]
-    [0.74 1.00 0.74 0.00]
-    [0.11 0.74 1.00 0.00]
-    [0.00 0.00 0.00 1.00]]
-
+    |         |   PARAM9 | PARAM10   | PARAM11   | PARAM12   |
+    |:--------|---------:|:----------|:----------|:----------|
+    | PARAM9  |     1.00 |           |           |           |
+    | PARAM10 |     0.74 | 1.00      |           |           |
+    | PARAM11 |     0.11 | 0.74      | 1.00      |           |
+    | PARAM12 |     0.00 | 0.00      | 0.00      | 1.00      |
     Added sensitivity : sens7
+    Generating sensitivity : sens8
     Added sensitivity : sens8
     Provided number of background values (11) is smaller than number of realisations for sensitivity ('sens7', 'p10_p90') and parameter PARAM13. Will be filled with default values.
     Provided number of background values (11) is smaller than number of realisations for sensitivity ('sens7', 'p10_p90') and parameter PARAM14. Will be filled with default values.

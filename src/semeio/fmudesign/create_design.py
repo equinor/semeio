@@ -256,6 +256,9 @@ class DesignMatrix:
         for key in inputdict["sensitivities"]:
             sens = inputdict["sensitivities"][key]
             numreal = sens["numreal"] if "numreal" in sens else inputdict["repeats"]
+
+            print(f"Generating sensitivity : {key}")
+
             if sens["senstype"] == "ref":
                 sensitivity = SingleRealisationReference(key)
                 sensitivity.generate(
@@ -507,8 +510,9 @@ class DesignMatrix:
         Args:
             sensitivity of class Scenario, MonteCarlo or Extern
         """
-        existing_values = self.designvalues.copy()
-        self.designvalues = pd.concat([existing_values, sensitivity.sensvalues])
+        existing_values = self.designvalues
+        new_values = sensitivity.sensvalues
+        self.designvalues = pd.concat([existing_values, new_values])
 
     def _fill_with_background_values(self) -> None:
         """Substituting NaNs with background values if existing.
@@ -967,85 +971,77 @@ class MonteCarloSensitivity:
             df_params["corr_sheet"] = df_params["corr_sheet"].fillna("nocorr")
             df_params.reset_index(inplace=True)
             df_params.rename(columns={"index": "param_name"}, inplace=True)
-            corr_groups = df_params.groupby("corr_sheet")
+            corr_groups = dict(iter(df_params.groupby("corr_sheet")))
+            nocorr = corr_groups.pop("nocorr", pd.DataFrame())
 
-            for corr_group_name, corr_group in corr_groups:
+            for corr_group_name, corr_group in corr_groups.items():
                 corr_group_name = cast(str, corr_group_name)
-                if corr_group_name != "nocorr":
-                    if len(corr_group) == 1:
-                        _printwarning(corr_group_name)
-                    df_correlations = design_dist.read_correlations(
-                        excel_filename=corrdict["inputfile"], corr_sheet=corr_group_name
+                if len(corr_group) == 1:
+                    _printwarning(corr_group_name)
+                df_correlations = design_dist.read_correlations(
+                    excel_filename=corrdict["inputfile"], corr_sheet=corr_group_name
+                )
+                multivariate_parameters = list(df_correlations.index.values)
+                correlations = df_correlations.values
+
+                print(
+                    f"Sampling parameters in {corr_group_name!r}: {multivariate_parameters}"
+                )
+
+                if not is_consistent_correlation_matrix(correlations):
+                    print(
+                        f"\nWarning: Correlation matrix {corr_group_name!r} is not consistent"
                     )
-                    multivariate_parameters = df_correlations.index.values
-                    correlations = df_correlations.values
-                    self.correlation_dfs_[corr_group_name] = df_correlations
-
-                    if not is_consistent_correlation_matrix(correlations):
-                        print("\nWarning: Correlation matrix is not consistent")
-                        print("Requirements:")
-                        print("  - Ones on the diagonal")
-                        print("  - Positive semi-definite matrix")
-                        print("\nInput correlation matrix:")
-                        with np.printoptions(
-                            precision=2,
-                            suppress=True,
-                            formatter={"float": lambda x: f"{x:.2f}"},
-                        ):
-                            print(correlations)
-                        correlations = nearest_correlation_matrix(
-                            correlations, weights=None, eps=1e-6, verbose=False
-                        )
-                        print("\nAdjusted to nearest consistent correlation matrix:")
-                        with np.printoptions(
-                            precision=2,
-                            suppress=True,
-                            formatter={"float": lambda x: f"{x:.2f}"},
-                        ):
-                            print(correlations)
-                        print()
-
-                    sampler = qmc.LatinHypercube(
-                        d=len(multivariate_parameters), rng=rng
+                    print("Requirements:")
+                    print("  - Ones on the diagonal")
+                    print("  - Positive semi-definite matrix")
+                    print("\nInput correlation matrix:")
+                    _print_corrmat(df_correlations)
+                    correlations = nearest_correlation_matrix(
+                        correlations, weights=None, eps=1e-6, verbose=False
                     )
-                    lhs_samples = sampler.random(n=numreals)
+                    df_correlations.values[:] = correlations
+                    print("\nAdjusted to nearest consistent correlation matrix:")
+                    _print_corrmat(df_correlations)
 
-                    iman_conover = ImanConover(correlation_matrix=correlations)
-                    correlated_samples: npt.NDArray[Any] = iman_conover(lhs_samples)
+                sampler = qmc.LatinHypercube(d=len(multivariate_parameters), rng=rng)
+                lhs_samples = sampler.random(n=numreals)
 
-                    for idx, row in corr_group.reset_index(drop=True).iterrows():
-                        idx = cast(int, idx)
+                iman_conover = ImanConover(correlation_matrix=correlations)
+                self.correlation_dfs_[corr_group_name] = df_correlations
+                correlated_samples: npt.NDArray[Any] = iman_conover(lhs_samples)
 
-                        if row["param_name"] in multivariate_parameters:
-                            if row["param_name"].lower().startswith("const"):
-                                raise ValueError(
-                                    "Parameter with const distribution was defined in correlation "
-                                    "matrix but const distribution cannot be used with correlation."
-                                )
+                for idx, row in corr_group.reset_index(drop=True).iterrows():
+                    idx = cast(int, idx)
 
-                            self.sensvalues[row["param_name"]] = (
-                                design_dist.draw_values(
-                                    distname=row["dist_name"].lower(),
-                                    dist_parameters=row["dist_params"],
-                                    quantiles=correlated_samples[:, idx],
-                                )
-                            )
-                        else:
+                    if row["param_name"] in multivariate_parameters:
+                        if row["param_name"].lower().startswith("const"):
                             raise ValueError(
-                                f"Parameter {row['param_name']} specified with correlation "
-                                f"matrix {corr_group_name} but is not listed in that sheet"
+                                "Parameter with const distribution was defined in correlation "
+                                "matrix but const distribution cannot be used with correlation."
                             )
-                else:  # group nocorr where correlation matrix is not defined
-                    for _, row in corr_group.iterrows():
-                        self.sensvalues[row["param_name"]] = (
-                            self._draw_uncorrelated_values(
-                                param_name=row["param_name"],
-                                dist_name=row["dist_name"],
-                                dist_params=row["dist_params"],
-                                numreals=numreals,
-                                rng=rng,
-                            )
+
+                        self.sensvalues[row["param_name"]] = design_dist.draw_values(
+                            distname=row["dist_name"].lower(),
+                            dist_parameters=row["dist_params"],
+                            quantiles=correlated_samples[:, idx],
                         )
+                    else:
+                        raise ValueError(
+                            f"Parameter {row['param_name']} specified with correlation "
+                            f"matrix {corr_group_name} but is not listed in that sheet"
+                        )
+
+            # Sample every variable without correlation
+            for _, row in nocorr.iterrows():
+                print(f"Sampling parameter {row['param_name']!r}")
+                self.sensvalues[row["param_name"]] = self._draw_uncorrelated_values(
+                    param_name=row["param_name"],
+                    dist_name=row["dist_name"],
+                    dist_params=row["dist_params"],
+                    numreals=numreals,
+                    rng=rng,
+                )
 
         if self.sensname != "background":
             self.sensvalues["REAL"] = realnums
@@ -1211,3 +1207,37 @@ def _printwarning(corr_group_name: str) -> None:
         "\n"
         "####################################################\n"
     )
+
+
+def _print_corrmat(df_corrmat: pd.DataFrame) -> None:
+    """Print a correlation matrix.
+
+    Example:
+    >>> values = np.array([[  1, -0,  0.9],
+    ...                    [ -0,  1,    0],
+    ...                    [0.9,  0,    1]])
+    >>> vars_ = ['OWC1', 'OWC2', 'OWC3']
+    >>> df_corrmat = pd.DataFrame(values, index=vars_, columns=vars_)
+    >>> _print_corrmat(df_corrmat)
+    |      |   OWC1 | OWC2   | OWC3   |
+    |:-----|-------:|:-------|:-------|
+    | OWC1 |   1.00 |        |        |
+    | OWC2 |   0.00 | 1.00   |        |
+    | OWC3 |   0.90 | 0.00   | 1.00   |
+    """
+    df_corrmat = df_corrmat.copy()
+    assert np.allclose(df_corrmat.values, df_corrmat.values.T)
+    # Make slightly negative values positive
+    values = df_corrmat.to_numpy()
+    mask = np.isclose(values, 0)
+    values[mask] = np.abs(values[mask])
+    df_corrmat.values[:] = values
+
+    # Remove upper triangular part for prettier printing
+    formatter = lambda x: np.format_float_positional(
+        x, precision=2, unique=True, min_digits=2
+    )
+    mask = np.triu(np.ones_like(df_corrmat, dtype=bool), k=1)
+    df_display = df_corrmat.astype(float).map(formatter)
+    df_display[mask] = ""
+    print(df_display.to_markdown(floatfmt=".2f"))
