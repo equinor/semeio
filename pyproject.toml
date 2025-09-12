@@ -41,11 +41,8 @@ dependencies = [
     "segyio",
     "xlrd",
     "xtgeo>=2.15",
-<<<<<<< HEAD
     "seaborn",
-=======
-    "git+https://github.com/equinor/probabilit.git@0c51bb8bb7d8d36e4500693abc874097ee635de7",
->>>>>>> 57c182d (add dep)
+    "probabilit @ git+https://github.com/equinor/probabilit.git@0c51bb8bb7d8d36e4500693abc874097ee635de7",
 ]
 
 [project.urls]
