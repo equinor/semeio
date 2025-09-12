@@ -9,11 +9,9 @@ from semeio.fmudesign._designsummary import summarize_design
 from semeio.fmudesign._excel2dict import excel2dict_design, inputdict_to_yaml
 from semeio.fmudesign._tornado_onebyone import calc_tornadoinput
 from semeio.fmudesign.create_design import DesignMatrix
-from semeio.fmudesign.iman_conover import ImanConover
 
 __all__ = [
     "DesignMatrix",
-    "ImanConover",
     "calc_tornadoinput",
     "excel2dict_design",
     "inputdict_to_yaml",

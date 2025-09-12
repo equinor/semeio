@@ -10,6 +10,9 @@ import pandas as pd
 import scipy as sp
 import seaborn as sns
 from matplotlib.patches import Rectangle
+from probabilit.correlation import (  # type: ignore[import-untyped]
+    nearest_correlation_matrix,
+)
 
 COLORS = list(plt.rcParams["axes.prop_cycle"].by_key()["color"])
 
@@ -246,11 +249,6 @@ class QualityReporter:
         assert np.allclose(df_corr.values, df_corr.values.T)
         assert df_corr.shape[0] == df_corr.shape[1]
 
-        # Import here to avoid circular imports
-        from semeio.fmudesign.create_design import (  # noqa: PLC0415
-            nearest_correlation_matrix,
-        )
-
         # Get lower triangular indices
         idx_low_triang = np.tril_indices_from(df_corr.values, k=-1)
         corr = self.df[df_corr.columns].select_dtypes(include="number").corr()
@@ -265,7 +263,7 @@ class QualityReporter:
         )
 
         print("Desired correlation:")
-        print(df_corr.round(2))
+        print_corrmat(df_corr)
 
         nearest_corr = nearest_correlation_matrix(
             df_corr.values, weights=None, eps=1e-6, verbose=False
@@ -275,17 +273,31 @@ class QualityReporter:
         if corr_rmse > 1e-2:
             print(f"The desired correlation matrix is not valid => {corr_rmse=:.2f}")
             print("Closest valid correlation matrix (used as target):")
-            print(
-                pd.DataFrame(
-                    nearest_corr, columns=df_corr.columns, index=df_corr.index
-                ).round(2)
+            df_nearest_corr = pd.DataFrame(
+                nearest_corr, columns=df_corr.columns, index=df_corr.index
             )
+            print_corrmat(df_nearest_corr)
         else:
             print("The desired correlation matrix is valid")
 
-        if not corr.empty:
-            print("Correlation in samples:")
-            print(corr.round(2))
+        # No correlation in samples (e.g. discrete variables)
+        if corr.empty:
+            return
+
+        print("Observed correlation in samples:")
+        print_corrmat(corr)
+
+        # Difference between achieved corr in samples and target
+        diffs = corr.values[idx_low_triang] - nearest_corr[idx_low_triang]
+        corr_rmse = np.sqrt(np.mean(diffs**2))
+        if corr_rmse > 0.10:
+            print(
+                "Target correlation matrix and empirical correlation achieved"
+                f" in data does not match well (RMSE: {corr_rmse:.2f} > 0.05).\n"
+                "This is natural with few samples, or very high/low desired correlations, "
+                "or distributions that are far from\nnormal (e.g. lognormal)."
+                " Setting 'correlation_iterations' to 999 in the general input sheet might help."
+            )
 
     def plot_correlation(
         self,
@@ -358,6 +370,40 @@ class QualityReporter:
             plt.show()
 
         plt.close(pairgrid.fig)
+
+
+def print_corrmat(df_corrmat: pd.DataFrame) -> None:
+    """Print a correlation matrix.
+
+    Example:
+    >>> values = np.array([[  1, -0,  0.9],
+    ...                    [ -0,  1,    0],
+    ...                    [0.9,  0,    1]])
+    >>> vars_ = ['OWC1', 'OWC2', 'OWC3']
+    >>> df_corrmat = pd.DataFrame(values, index=vars_, columns=vars_)
+    >>> print_corrmat(df_corrmat)
+    |      |   OWC1 | OWC2   | OWC3   |
+    |:-----|-------:|:-------|:-------|
+    | OWC1 |   1.00 |        |        |
+    | OWC2 |   0.00 | 1.00   |        |
+    | OWC3 |   0.90 | 0.00   | 1.00   |
+    """
+    df_corrmat = df_corrmat.copy()
+    assert np.allclose(df_corrmat.values, df_corrmat.values.T)
+    # Make slightly negative values positive
+    values = df_corrmat.to_numpy()
+    mask = np.isclose(values, 0)
+    values[mask] = np.abs(values[mask])
+    df_corrmat.values[:] = values
+
+    # Remove upper triangular part for prettier printing
+    formatter = lambda x: np.format_float_positional(
+        x, precision=2, unique=True, min_digits=2
+    )
+    mask = np.triu(np.ones_like(df_corrmat, dtype=bool), k=1)
+    df_display = df_corrmat.astype(float).map(formatter)
+    df_display[mask] = ""
+    print(df_display.to_markdown(floatfmt=".2f"))
 
 
 if __name__ == "__main__":

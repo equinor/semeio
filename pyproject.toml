@@ -42,6 +42,7 @@ dependencies = [
     "xlrd",
     "xtgeo>=2.15",
     "seaborn",
+    "probabilit==0.1.0",
 ]
 
 [project.urls]

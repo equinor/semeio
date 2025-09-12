@@ -2,35 +2,20 @@
 and DESIGN_KW in FMU/ERT.
 """
 
-import contextlib
-import os
 from collections.abc import Hashable, Mapping, Sequence
 from datetime import datetime
 from pathlib import Path
 from typing import Any, TypeAlias, cast
 
-# CVXPY prints error messages about incompatible ortools version during import.
-# Since we use the SCS solver and not GLOP/PDLP (which need ortools), these errors
-# are irrelevant and would only confuse users. We suppress them by redirecting
-# stdout/stderr during import.
-# https://github.com/cvxpy/cvxpy/issues/2470
-with (
-    open(os.devnull, "w", encoding="utf-8") as devnull,
-    contextlib.redirect_stdout(devnull),
-    contextlib.redirect_stderr(devnull),
-):
-    import cvxpy as cp
-
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
-from scipy.stats import qmc
+import probabilit  # type: ignore[import-untyped]
 
 import semeio
 from semeio.fmudesign import design_distributions as design_dist
 from semeio.fmudesign._excel2dict import _raise_if_duplicates
-from semeio.fmudesign.iman_conover import ImanConover
-from semeio.fmudesign.quality_report import QualityReporter
+from semeio.fmudesign.quality_report import QualityReporter, print_corrmat
 
 
 def is_consistent_correlation_matrix(matrix: npt.NDArray[Any]) -> bool:
@@ -62,116 +47,6 @@ def is_consistent_correlation_matrix(matrix: npt.NDArray[Any]) -> bool:
         return False
 
     return True
-
-
-def nearest_correlation_matrix(
-    matrix: npt.NDArray[Any],
-    *,
-    weights: npt.NDArray[Any] | None = None,
-    eps: float = 1e-6,
-    verbose: bool = False,
-) -> npt.NDArray[Any]:
-    """Returns the correlation matrix nearest to `matrix`, weighted elementwise
-    by `weights`.
-
-    Parameters
-    ----------
-    matrix : np.ndarray
-        The matrix that we want to find the nearest positive definite
-        correlation matrix to. A square 2-dimensional NumPy ndarray.
-    weights : np.ndarray or None, optional
-        An elementwise weighting matrix. A square 2-dimensional NumPy ndarray
-        that must have the same shape as `matrix`. The default is None.
-    eps : float, optional
-        Tolerance for the optimization solver and minimum eigenvalue threshold.
-        The result will have all eigenvalues > eps. The default is 1e-6.
-    verbose : bool, optional
-        Whether to print information from the solver. The default is False.
-
-    Returns
-    -------
-    np.ndarray
-        The positive definite correlation matrix that is nearest to the input
-        matrix. All eigenvalues will be strictly positive.
-
-    Notes
-    -----
-    This function implements equation (3) in the paper "An Augmented Lagrangian
-    Dual Approach for the H-Weighted Nearest Correlation Matrix Problem" by
-    Houduo Qi and Defeng Sun, with an additional constraint to ensure the
-    result is positive definite (not just positive semidefinite).
-        http://www.personal.soton.ac.uk/hdqi/REPORTS/Cor_matrix_H.pdf
-    Another useful link is:
-        https://nhigham.com/2020/04/14/what-is-a-correlation-matrix/
-
-    The algorithm finds a matrix that is:
-    1. A valid correlation matrix (diagonal elements = 1)
-    2. Positive definite (all eigenvalues > eps)
-    3. Closest to the input matrix in weighted Frobenius norm
-
-    Examples
-    --------
-    >>> X = np.array([[1, 1, 0],
-    ...               [1, 1, 1],
-    ...               [0, 1, 1]])
-    >>> nearest_correlation_matrix(X)
-    array([[1.        , 0.76068..., 0.15729...],
-           [0.76068..., 1.        , 0.76068...],
-           [0.15729..., 0.76068..., 1.        ]])
-    >>> H = np.array([[1,   0.5, 0.1],
-    ...               [0.5,   1, 0.5],
-    ...               [0.1, 0.5, 1]])
-    >>> nearest_correlation_matrix(X, weights=H)
-    array([[1.        , 0.94171..., 0.77365...],
-           [0.94171..., 1.        , 0.94171...],
-           [0.77365..., 0.94171..., 1.        ]])
-    """
-    if not isinstance(matrix, np.ndarray):
-        raise TypeError("Input argument `matrix` must be np.ndarray.")
-    if not matrix.ndim == 2 and matrix.shape[0] == matrix.shape[1]:
-        raise ValueError("Input argument `matrix` must be square.")
-
-    # Switch to notation used in the paper
-    G = matrix.copy()
-    H = np.ones_like(G) if weights is None else weights
-
-    if not isinstance(H, np.ndarray):
-        raise TypeError("Input argument `weights` must be np.ndarray.")
-    if not (H.shape == G.shape):
-        raise ValueError("Argument `weights` must have same shape as `matrix`.")
-
-    # To constrain Y to be Positive Semidefinite (PSD), you need to
-    # either set PSD=True here, or add the special constraint 'Y >> 0'. See:
-    # https://www.cvxpy.org/tutorial/constraints/index.html#semidefinite-matrices
-    X = cp.Variable(shape=G.shape, PSD=True)
-
-    # Objective and constraints for minimizing the weighted frobenius norm.
-    # This is equation (3) in the paper. We add (X - eps * I) >> 0 as an extra
-    # constraint to ensure the result is positive definite (all eigenvalues > eps).
-    # This constraint makes X - eps*I positive semidefinite, which means
-    # all eigenvalues of X are > eps, ensuring positive definiteness.
-    objective = cp.norm(cp.multiply(H, X - G), "fro")
-    eps_identity = (eps / G.shape[0]) * 10
-    constraints = [cp.diag(X) == 1.0, (X - eps_identity * np.eye(G.shape[0])) >> 0]
-
-    # For solver options, see:
-    # https://www.cvxpy.org/tutorial/solvers/index.html#setting-solver-options
-    problem = cp.Problem(cp.Minimize(objective), constraints)
-    problem.solve(solver="SCS", verbose=verbose, eps=eps)
-    # Copy over solution
-    X = X.value.copy()  # type: ignore[union-attr, assignment]
-
-    # We might get small eigenvalues due to numerics. Attempt to fix this by
-    # recursively calling the solver with smaller values of epsilon. This is
-    # an extra fail-safe that is very rarely triggered on actual data.
-    is_symmetric = np.allclose(X, X.T)  # type: ignore[arg-type]
-    is_PD = np.linalg.eig(X)[0].min() > 0  # type: ignore[call-overload]
-    if not (is_symmetric and is_PD) and (eps > 1e-14):
-        if verbose:
-            print(f"Recursively calling solver with eps := {eps} / 10")
-        return nearest_correlation_matrix(G, weights=H, eps=eps / 10, verbose=verbose)
-
-    return X  # type: ignore[return-value]
 
 
 SensitivityType: TypeAlias = "SeedSensitivity | MonteCarloSensitivity | ScenarioSensitivity | ExternSensitivity | BackgroundSensitivity | SingleRealisationReference"
@@ -245,7 +120,12 @@ class DesignMatrix:
 
         # If background values used - read or generate
         if "background" in inputdict:
-            self.add_background(inputdict["background"], max_reals, rng)
+            self.add_background(
+                inputdict["background"],
+                max_reals,
+                rng,
+                correlation_iterations=inputdict.get("correlation_iterations", 0),
+            )
 
         sensitivity: SensitivityType
 
@@ -313,6 +193,7 @@ class DesignMatrix:
                     seedvalues=self.seedvalues,
                     corrdict=sens["correlations"],
                     rng=rng,
+                    correlation_iterations=inputdict.get("correlation_iterations", 0),
                 )
                 sensitivity.map_dependencies(sens.get("dependencies", {}))
                 current_real_index += numreal
@@ -471,6 +352,7 @@ class DesignMatrix:
         back_dict: Mapping[str, Any] | None,
         max_values: int,
         rng: np.random.Generator,
+        correlation_iterations: int = 0,
     ) -> None:
         """Adding background as specified in dictionary.
         Either from external file or from distributions in background
@@ -480,13 +362,21 @@ class DesignMatrix:
             back_dict (dict): how to generate background values
             max_values (int): number of background values to generate
             rng (numpy.random.Generator): Random number generator instance
+            correlation_iterations (int): Number of permutations performed
+            on samples after Iman-Conover in an attempt to match observed
+            correlation to desired correlation as well as possible.
         """
         if back_dict is None:
             self.backgroundvalues = None
         elif "extern" in back_dict:
             self.backgroundvalues = _parameters_from_extern(back_dict["extern"])
         elif "parameters" in back_dict:
-            self._add_dist_background(back_dict, max_values, rng)
+            self._add_dist_background(
+                back_dict,
+                max_values,
+                rng,
+                correlation_iterations=correlation_iterations,
+            )
 
     def background_to_excel(
         self, filename: str, backgroundsheet: str = "Background"
@@ -565,7 +455,11 @@ class DesignMatrix:
                 raise LookupError(f"No defaultvalues given for parameter {key} ")
 
     def _add_dist_background(
-        self, back_dict: Mapping[str, Any], numreal: int, rng: np.random.Generator
+        self,
+        back_dict: Mapping[str, Any],
+        numreal: int,
+        rng: np.random.Generator,
+        correlation_iterations: int,
     ) -> None:
         """Drawing background values from distributions
         specified in dictionary
@@ -580,12 +474,14 @@ class DesignMatrix:
         )
         mc_background = MonteCarloSensitivity("background")
         mc_background.generate(
-            range(numreal),
-            back_dict["parameters"],
-            None,
-            back_dict["correlations"],
-            rng,
+            realnums=range(numreal),
+            parameters=back_dict["parameters"],
+            seedvalues=None,
+            corrdict=back_dict["correlations"],
+            rng=rng,
+            correlation_iterations=correlation_iterations,
         )
+
         mc_backgroundvalues = mc_background.sensvalues
         assert (
             mc_backgroundvalues is not None
@@ -898,37 +794,15 @@ class MonteCarloSensitivity(Sensitivity):
         self.sensname: str = sensname
         self.sensvalues: pd.DataFrame
 
-    def _draw_uncorrelated_values(
-        self,
-        param_name: str,
-        dist_name: str,
-        dist_params: Sequence[str],
-        numreals: int,
-        rng: np.random.Generator,
-    ) -> npt.NDArray[Any] | list[str] | str:
-        # Draw samples in [0, 1)
-        quantiles = design_dist.generate_stratified_samples(numreals=numreals, rng=rng)
-
-        try:
-            return design_dist.draw_values(
-                distname=dist_name.lower(),
-                dist_parameters=dist_params,
-                quantiles=quantiles,
-            )
-
-        except ValueError as error:
-            raise ValueError(
-                f"Problem in sensitivity with sensname {self.sensname} "
-                f"for parameter {param_name}: {error.args[0]}"
-            ) from error
-
     def generate(
         self,
+        *,
         realnums: range,
         parameters: dict[str, Any],
         seedvalues: Sequence[int] | None,
         corrdict: Mapping[str, Any] | None,
         rng: np.random.Generator,
+        correlation_iterations: int = 0,
     ) -> None:
         """Generates parameter values by drawing from defined distributions.
 
@@ -948,27 +822,46 @@ class MonteCarloSensitivity(Sensitivity):
         if numreals < 0:
             raise ValueError(f"Got < 0 samples ({numreals=})")
 
-        if corrdict is None:
-            for key in parameters:
-                self.sensvalues[key] = self._draw_uncorrelated_values(
-                    key, parameters[key][0], parameters[key][1], numreals, rng
-                )
-        else:  # Some or all parameters are correlated
-            df_params = pd.DataFrame.from_dict(
-                parameters,
-                orient="index",
-                columns=["dist_name", "dist_params", "corr_sheet"],
+        distr_by_name = {}
+        for param_name, (dist_name, dist_params, _) in parameters.items():
+            # Convert to a probabilit Distribution object
+            distr = design_dist.to_probabilit(
+                distname=dist_name, dist_parameters=dist_params
             )
-            df_params["corr_sheet"] = df_params["corr_sheet"].fillna("nocorr")
-            df_params.reset_index(inplace=True)
-            df_params.rename(columns={"index": "param_name"}, inplace=True)
+            distr_by_name[param_name] = distr
+
+        # Create a dummy NoOp node for sampling each parent distribution
+        expression = probabilit.modeling.NoOp(*distr_by_name.values())
+
+        if corrdict:
+            # Create an iterator over correlation groups from the main sheet
+            df_params = (
+                pd.DataFrame.from_dict(
+                    parameters,
+                    orient="index",
+                    columns=["dist_name", "dist_params", "corr_sheet"],
+                )
+                .reset_index()
+                .rename(columns={"index": "param_name"})
+                .assign(corr_sheet=lambda df: df.corr_sheet.fillna("nocorr"))
+            )
+
             corr_groups = dict(iter(df_params.groupby("corr_sheet")))
-            nocorr = corr_groups.pop("nocorr", pd.DataFrame())
+            corr_groups.pop("nocorr", None)
 
             for corr_group_name, corr_group in corr_groups.items():
                 corr_group_name = cast(str, corr_group_name)
+
+                # Skip nocorr
+                if corr_group_name == "nocorr":
+                    continue
+
+                # A single correlation - print warning and skip it
                 if len(corr_group) == 1:
                     _printwarning(corr_group_name)
+                    continue
+
+                # Read correlation matrix and convert it to a proper matrix
                 df_correlations = design_dist.read_correlations(
                     excel_filename=corrdict["inputfile"], corr_sheet=corr_group_name
                 )
@@ -981,58 +874,66 @@ class MonteCarloSensitivity(Sensitivity):
 
                 if not is_consistent_correlation_matrix(correlations):
                     print(
-                        f"\nWarning: Correlation matrix {corr_group_name!r} is not consistent"
+                        f"\nWarning: Correlation matrix {corr_group_name!r} is invalid"
                     )
                     print("Requirements:")
                     print("  - Ones on the diagonal")
                     print("  - Positive semi-definite matrix")
                     print("\nInput correlation matrix:")
-                    _print_corrmat(df_correlations)
-                    correlations = nearest_correlation_matrix(
+                    print_corrmat(df_correlations)
+                    correlations = probabilit.correlation.nearest_correlation_matrix(
                         correlations, weights=None, eps=1e-6, verbose=False
                     )
                     df_correlations.values[:] = correlations
                     print("\nAdjusted to nearest consistent correlation matrix:")
-                    _print_corrmat(df_correlations)
+                    print_corrmat(df_correlations)
 
-                sampler = qmc.LatinHypercube(d=len(multivariate_parameters), rng=rng)
-                lhs_samples = sampler.random(n=numreals)
-
-                iman_conover = ImanConover(correlation_matrix=correlations)
+                corrvars = [distr_by_name[name] for name in df_correlations.columns]
+                expression.correlate(*corrvars, corr_mat=df_correlations.values)
                 self.correlation_dfs_[corr_group_name] = df_correlations
-                correlated_samples: npt.NDArray[Any] = iman_conover(lhs_samples)
 
-                for idx, row in corr_group.reset_index(drop=True).iterrows():
-                    idx = cast(int, idx)
+        # Either do ImanConover followed by Permutation, or simply ImanConover
+        if correlation_iterations > 0:
+            # TODO: It is possible to let the user set the correlation type
+            # if this is of interest. But for now we assume that users care about
+            # pearson correlation, not spearman (rank) correlation.
+            correlator = probabilit.correlation.Composite(
+                iterations=correlation_iterations,
+                correlation_type="pearson",
+                random_state=rng,
+                verbose=False,
+            )
+        else:
+            correlator = probabilit.correlation.ImanConover()
 
-                    if row["param_name"] in multivariate_parameters:
-                        if row["param_name"].lower().startswith("const"):
-                            raise ValueError(
-                                "Parameter with const distribution was defined in correlation "
-                                "matrix but const distribution cannot be used with correlation."
-                            )
+        # Sample the dummy node - this samples every parent and populates "samples_"
+        expression.sample(
+            size=numreals, random_state=rng, method="lhs", correlator=correlator
+        )
 
-                        self.sensvalues[row["param_name"]] = design_dist.draw_values(
-                            distname=row["dist_name"].lower(),
-                            dist_parameters=row["dist_params"],
-                            quantiles=correlated_samples[:, idx],
-                        )
-                    else:
-                        raise ValueError(
-                            f"Parameter {row['param_name']} specified with correlation "
-                            f"matrix {corr_group_name} but is not listed in that sheet"
-                        )
-
-            # Sample every variable without correlation
-            for _, row in nocorr.iterrows():
-                print(f"Sampling parameter {row['param_name']!r}")
-                self.sensvalues[row["param_name"]] = self._draw_uncorrelated_values(
-                    param_name=row["param_name"],
-                    dist_name=row["dist_name"],
-                    dist_params=row["dist_params"],
-                    numreals=numreals,
-                    rng=rng,
+        for distr_name, distr_obj in distr_by_name.items():
+            samples = distr_obj.samples_
+            is_numeric = issubclass(samples.dtype.type, np.number)
+            if is_numeric and not np.all(np.isfinite(distr_obj.samples_)):
+                raise ValueError(
+                    f"Sampling produced non-finite values in {distr_name}={distr_obj}\n"
+                    "Please review the parameters in the distribution."
                 )
+
+            # Discrete distributions are handled in a special way. We map them
+            # to Uniform distributions, sample in [0, 1), then map those samples
+            # back to the categorical values AFTER sampling. This is so that we
+            # can "induce correlations" between categorical values.
+            if hasattr(distr_obj, "_values"):
+                probabilities = getattr(distr_obj, "_probabilities", None)
+                samples = design_dist.quantiles_to_values(
+                    quantiles=samples,
+                    values=distr_obj._values,
+                    probabilities=probabilities,
+                )
+
+            self.sensvalues = self.sensvalues.assign(**{distr_name: samples})
+            print(f"Wrote {numreals} samples from {distr_name!r}")
 
         if self.sensname != "background":
             self.sensvalues["REAL"] = realnums
@@ -1198,40 +1099,6 @@ def _printwarning(corr_group_name: str) -> None:
         "\n"
         "####################################################\n"
     )
-
-
-def _print_corrmat(df_corrmat: pd.DataFrame) -> None:
-    """Print a correlation matrix.
-
-    Example:
-    >>> values = np.array([[  1, -0,  0.9],
-    ...                    [ -0,  1,    0],
-    ...                    [0.9,  0,    1]])
-    >>> vars_ = ['OWC1', 'OWC2', 'OWC3']
-    >>> df_corrmat = pd.DataFrame(values, index=vars_, columns=vars_)
-    >>> _print_corrmat(df_corrmat)
-    |      |   OWC1 | OWC2   | OWC3   |
-    |:-----|-------:|:-------|:-------|
-    | OWC1 |   1.00 |        |        |
-    | OWC2 |   0.00 | 1.00   |        |
-    | OWC3 |   0.90 | 0.00   | 1.00   |
-    """
-    df_corrmat = df_corrmat.copy()
-    assert np.allclose(df_corrmat.values, df_corrmat.values.T)
-    # Make slightly negative values positive
-    values = df_corrmat.to_numpy()
-    mask = np.isclose(values, 0)
-    values[mask] = np.abs(values[mask])
-    df_corrmat.values[:] = values
-
-    # Remove upper triangular part for prettier printing
-    formatter = lambda x: np.format_float_positional(
-        x, precision=2, unique=True, min_digits=2
-    )
-    mask = np.triu(np.ones_like(df_corrmat, dtype=bool), k=1)
-    df_display = df_corrmat.astype(float).map(formatter)
-    df_display[mask] = ""
-    print(df_display.to_markdown(floatfmt=".2f"))
 
 
 def to_numeric_safe(val: int | float | str) -> int | float | str:

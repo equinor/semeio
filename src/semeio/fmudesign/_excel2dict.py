@@ -198,6 +198,16 @@ def _excel2dict_onebyone(
 
     inputdict["designtype"] = generalinput[1]["designtype"]
 
+    # Extract
+    key = "correlation_iterations"
+    if key in generalinput.index:
+        try:
+            inputdict[key] = int(generalinput.loc[key].iloc[0])
+        except ValueError:
+            inputdict[key] = 0
+    else:
+        inputdict[key] = 0
+
     if "rms_seeds" in generalinput.index:
         rms_seeds = str(generalinput.loc["rms_seeds"].iloc[0])
         if rms_seeds == "None":
