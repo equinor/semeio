@@ -35,7 +35,6 @@ from semeio.fmudesign.iman_conover import ImanConover
 from semeio.fmudesign.quality_report import QualityReporter
 
 import probabilit
-import scipy
 
 import semeio
 from semeio.fmudesign import design_distributions as design_dist
@@ -915,29 +914,6 @@ class MonteCarloSensitivity:
         self.sensname: str = sensname
         self.sensvalues: pd.DataFrame
 
-    def _draw_uncorrelated_values(
-        self,
-        param_name: str,
-        dist_name: str,
-        dist_params: Sequence[str],
-        numreals: int,
-        rng: np.random.Generator,
-    ) -> npt.NDArray[Any] | list[str] | str:
-        # Draw samples in [0, 1)
-        quantiles = design_dist.generate_stratified_samples(numreals=numreals, rng=rng)
-
-        try:
-            return design_dist.draw_values(
-                distname=dist_name.lower(),
-                dist_parameters=dist_params,
-                quantiles=quantiles,
-            )
-
-        except ValueError as error:
-            raise ValueError(
-                f"Problem in sensitivity with sensname {self.sensname} "
-                f"for parameter {param_name}: {error.args[0]}"
-            ) from error
 
     def generate(
         self,
@@ -977,6 +953,7 @@ class MonteCarloSensitivity:
         expression = probabilit.modeling.NoOp(*distr_by_name.values())
 
         if corrdict:
+            # Create an iterator over correlation groups from the main sheet
             df_params = (
                 pd.DataFrame.from_dict(
                     parameters,
@@ -988,16 +965,19 @@ class MonteCarloSensitivity:
                 .assign(corr_sheet=lambda df: df.corr_sheet.fillna("nocorr"))
             )
 
-            df_params["corr_sheet"] = df_params["corr_sheet"].fillna("nocorr")
-            df_params.reset_index(inplace=True)
-            df_params.rename(columns={"index": "param_name"}, inplace=True)
-            corr_groups = dict(iter(df_params.groupby("corr_sheet")))
-            corr_groups.pop("nocorr", pd.DataFrame())
-
-            for corr_group_name, corr_group in corr_groups.items():
+            for corr_group_name, corr_group in corr_groups:
                 corr_group_name = cast(str, corr_group_name)
+
+                # Skip nocorr
+                if corr_group_name == "nocorr":
+                    continue
+
+                # A single correlation - print warning and skip it
                 if len(corr_group) == 1:
                     _printwarning(corr_group_name)
+                    continue
+
+                # Read correlation matrix and convert it to a proper matrix
                 df_correlations = design_dist.read_correlations(
                     excel_filename=corrdict["inputfile"], corr_sheet=corr_group_name
                 )
