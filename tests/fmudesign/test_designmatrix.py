@@ -80,52 +80,62 @@ def test_endpoint(tmpdir, monkeypatch):
     )
 
     expected_output = f"""Generating sensitivity : seed
-    Added sensitivity : seed
-    Generating sensitivity : faults
-    Added sensitivity : faults
-    Generating sensitivity : velmodel
-    Added sensitivity : velmodel
-    Generating sensitivity : contacts
-    Added sensitivity : contacts
-    Generating sensitivity : multz
-    Added sensitivity : multz
-    Generating sensitivity : sens6
-    Added sensitivity : sens6
-    Generating sensitivity : sens7
-    Sampling parameters in 'corr1': ['PARAM9', 'PARAM10', 'PARAM11', 'PARAM12']
+Added sensitivity : seed
+Generating sensitivity : faults
+Added sensitivity : faults
+Generating sensitivity : velmodel
+Added sensitivity : velmodel
+Generating sensitivity : contacts
+Added sensitivity : contacts
+Generating sensitivity : multz
+Wrote 10 samples from 'MULTZ_ILE'
+Added sensitivity : multz
+Generating sensitivity : sens6
+Wrote 10 samples from 'PARAM5'
+Wrote 10 samples from 'PARAM6'
+Wrote 10 samples from 'PARAM7'
+Wrote 10 samples from 'FAULT_SEAL'
+Added sensitivity : sens6
+Generating sensitivity : sens7
+Sampling parameters in 'corr1': ['PARAM9', 'PARAM10', 'PARAM11', 'PARAM12']
 
-    Warning: Correlation matrix 'corr1' is not consistent
-    Requirements:
-      - Ones on the diagonal
-      - Positive semi-definite matrix
+Warning: Correlation matrix 'corr1' is invalid
+Requirements:
+  - Ones on the diagonal
+  - Positive semi-definite matrix
 
-    Input correlation matrix:
-    |         |   PARAM9 | PARAM10   | PARAM11   | PARAM12   |
-    |:--------|---------:|:----------|:----------|:----------|
-    | PARAM9  |     1.00 |           |           |           |
-    | PARAM10 |     0.90 | 1.00      |           |           |
-    | PARAM11 |     0.00 | 0.90      | 1.00      |           |
-    | PARAM12 |     0.00 | 0.00      | 0.00      | 1.00      |
+Input correlation matrix:
+|         |   PARAM9 | PARAM10   | PARAM11   | PARAM12   |
+|:--------|---------:|:----------|:----------|:----------|
+| PARAM9  |     1.00 |           |           |           |
+| PARAM10 |     0.90 | 1.00      |           |           |
+| PARAM11 |     0.00 | 0.90      | 1.00      |           |
+| PARAM12 |     0.00 | 0.00      | 0.00      | 1.00      |
 
-    Adjusted to nearest consistent correlation matrix:
-    |         |   PARAM9 | PARAM10   | PARAM11   | PARAM12   |
-    |:--------|---------:|:----------|:----------|:----------|
-    | PARAM9  |     1.00 |           |           |           |
-    | PARAM10 |     0.74 | 1.00      |           |           |
-    | PARAM11 |     0.11 | 0.74      | 1.00      |           |
-    | PARAM12 |     0.00 | 0.00      | 0.00      | 1.00      |
-    Added sensitivity : sens7
-    Generating sensitivity : sens8
-    Added sensitivity : sens8
-    Provided number of background values (11) is smaller than number of realisations for sensitivity ('sens7', 'p10_p90') and parameter PARAM13. Will be filled with default values.
-    Provided number of background values (11) is smaller than number of realisations for sensitivity ('sens7', 'p10_p90') and parameter PARAM14. Will be filled with default values.
-    Provided number of background values (11) is smaller than number of realisations for sensitivity ('sens7', 'p10_p90') and parameter PARAM15. Will be filled with default values.
-    Provided number of background values (11) is smaller than number of realisations for sensitivity ('sens7', 'p10_p90') and parameter PARAM16. Will be filled with default values.
-    A total of 91 realizations were generated
-    Designmatrix written to generateddesignmatrix.xlsx
-    Thank you for using fmudesign {Version(semeio.__version__).base_version}
-    Documentation: https://equinor.github.io/fmu-tools/fmudesign.html
-    Issues/bugs/feature requests: https://github.com/equinor/semeio/issues"""
+Adjusted to nearest consistent correlation matrix:
+|         |   PARAM9 | PARAM10   | PARAM11   | PARAM12   |
+|:--------|---------:|:----------|:----------|:----------|
+| PARAM9  |     1.00 |           |           |           |
+| PARAM10 |     0.74 | 1.00      |           |           |
+| PARAM11 |     0.11 | 0.74      | 1.00      |           |
+| PARAM12 |     0.00 | 0.00      | 0.00      | 1.00      |
+Wrote 30 samples from 'PARAM9'
+Wrote 30 samples from 'PARAM10'
+Wrote 30 samples from 'PARAM11'
+Wrote 30 samples from 'PARAM12'
+Added sensitivity : sens7
+Generating sensitivity : sens8
+Added sensitivity : sens8
+Provided number of background values (11) is smaller than number of realisations for sensitivity ('sens7', 'p10_p90') and parameter PARAM13. Will be filled with default values.
+Provided number of background values (11) is smaller than number of realisations for sensitivity ('sens7', 'p10_p90') and parameter PARAM14. Will be filled with default values.
+Provided number of background values (11) is smaller than number of realisations for sensitivity ('sens7', 'p10_p90') and parameter PARAM15. Will be filled with default values.
+Provided number of background values (11) is smaller than number of realisations for sensitivity ('sens7', 'p10_p90') and parameter PARAM16. Will be filled with default values.
+A total of 91 realizations were generated
+Designmatrix written to generateddesignmatrix.xlsx
+
+ Thank you for using fmudesign {Version(semeio.__version__).base_version}
+ Documentation: https://equinor.github.io/fmu-tools/fmudesign.html
+ Issues/bugs/feature requests: https://github.com/equinor/semeio/issues"""
 
     assert result.stdout.split() == expected_output.split()
     assert Path("generateddesignmatrix.xlsx").exists  # Default output file
