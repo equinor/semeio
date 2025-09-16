@@ -2,7 +2,6 @@ import datetime
 import logging
 import os
 from collections.abc import Mapping, Sequence
-from typing import Never
 
 import pandas as pd
 from resdata.grid import Grid
@@ -126,7 +125,7 @@ def _populate_trajectory_points(
     ecl_grid: Grid,
     ecl_rft: ResdataRFTFile,
     zonemap: ZoneMap | None = None,
-) -> Trajectory | list[Never]:
+) -> Trajectory | None:
     """
     Populate a list of trajectory points, that only contain UTM coordinates
     for a well-path, with (i,j,k) indices corresponding to a given Eclipse grid,
@@ -153,7 +152,7 @@ def _populate_trajectory_points(
             "Forward model script gendata_rft.py: "
             f"No RFT data found for well {well} at date {date}"
         )
-        return []
+        return None
 
     ijk_guess = None
     for point in trajectory_points:  # type: ignore[attr-defined]
@@ -200,7 +199,7 @@ def run(
         if trajectory_points:
             # Aggregate the same data to a dataframe,
             # each trajectory tagged by well and time:
-            trajectory_df = trajectory_points.to_dataframe( # type: ignore[union-attr]
+            trajectory_df = trajectory_points.to_dataframe(
                 zonemap=zonemap,
             ).assign(
                 well=well,
