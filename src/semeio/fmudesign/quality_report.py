@@ -1,3 +1,4 @@
+import math
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any, cast
@@ -146,7 +147,8 @@ class QualityReporter:
             Tuple of (matplotlib Figure, matplotlib Axes)
         """
         fig, ax = plt.subplots(figsize=(6, 4))
-        sns.histplot(data=series, kde=True, stat="density", bins="auto", ax=ax)
+        bins = max(int(math.sqrt(len(series))), 30)
+        sns.histplot(data=series, kde=True, stat="density", bins=bins, ax=ax)
         ax.set_title(f"{var_name}\n{var_description}", fontsize=10)
 
         # Add rugplot
@@ -311,7 +313,8 @@ class QualityReporter:
 
         pairgrid.map_upper(sns.kdeplot)
         pairgrid.map_upper(add_grid)
-        pairgrid.map_diag(sns.histplot, bins="auto", kde=True)
+        bins = max(int(math.sqrt(len(df))), 30)
+        pairgrid.map_diag(sns.histplot, bins=bins, kde=True)
 
         pairgrid.map_lower(sns.scatterplot, s=10, alpha=0.6)
         pairgrid.map_lower(corrfunc)
