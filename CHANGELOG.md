@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## [2.0.0]
+
+This version of `fmudesign` introduces a few breaking changes as well as new features.
+`RandomState` has been replaced with `Generator` which will lead to different but still statistically valid results.
+The reasons for this change are:
+
+- `RandomState` is deprecated and in maintenance mode only
+- Better performance and statistical properties
+- Thread-safe unlike the legacy `RandomState`
+
 ## [1.18.0]
 
 - Moved `fmudesign` from `fmu-tools` to `semeio` and made major improvements to the sampling engine as documentet below.
