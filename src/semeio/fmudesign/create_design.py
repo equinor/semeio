@@ -25,7 +25,7 @@ with (
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
-import probabilit # type: ignore[import-untyped]
+import probabilit  # type: ignore[import-untyped]
 
 import semeio
 from semeio.fmudesign import design_distributions as design_dist
