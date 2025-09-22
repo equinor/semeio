@@ -3,11 +3,12 @@
 import os
 
 import numpy as np
+import openpyxl
 import pandas as pd
 import pytest
 
 from semeio.fmudesign import excel2dict_design, inputdict_to_yaml
-from semeio.fmudesign._excel2dict import _has_value
+from semeio.fmudesign._excel2dict import _assert_no_merged_cells, _has_value
 
 MOCK_GENERAL_INPUT = pd.DataFrame(
     data=[
@@ -226,3 +227,24 @@ def test_background_sheet(tmpdir, monkeypatch):
     ]
     assert dict_design["repeats"] == 3
     assert dict_design["defaultvalues"]["extraseed"] == 0
+
+
+def test_assert_no_merged_cells(tmpdir, monkeypatch):
+    """Test that assert_no_merged_cells detects merged cells"""
+    monkeypatch.chdir(tmpdir)
+
+    # Create Excel file with merged cells
+    test_data = pd.DataFrame({"A": [1, 2], "B": [3, 4]})
+    writer = pd.ExcelWriter("test_file.xlsx", engine="openpyxl")
+    test_data.to_excel(writer, sheet_name="sheet1", index=False)
+    writer.close()
+
+    # Add merged cells
+    workbook = openpyxl.load_workbook("test_file.xlsx")
+    workbook["sheet1"].merge_cells("A1:B1")
+    workbook.save("test_file.xlsx")
+    workbook.close()
+
+    # Should raise exception
+    with pytest.raises(Exception, match="Merged cells"):
+        _assert_no_merged_cells("test_file.xlsx")
