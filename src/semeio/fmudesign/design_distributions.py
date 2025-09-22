@@ -7,7 +7,7 @@ from typing import Any
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
-import probabilit
+import probabilit # type: ignore[import-untyped]
 
 
 def validate_params(distname: str, parameters: list[str]) -> list[float]:
@@ -39,10 +39,54 @@ def validate_params(distname: str, parameters: list[str]) -> list[float]:
     return new_parameters
 
 
+def quantiles_to_values(
+    *,
+    quantiles: npt.NDArray[Any],
+    values: npt.NDArray[Any],
+    probabilities: npt.NDArray[Any] | None = None,
+) -> npt.NDArray[Any]:
+    """Maps quantiles to values (which can be categorical or not).
+
+    Assume values = [A, B, C], then probabilities = [1, 1, 1] = [1/3, 1/3, 1/3],
+    first we bin the interval [0, 1) into segments matching the probabilities:
+    - A: [0, 1/3)
+    - B: [1/3, 2/3)
+    - C: [2/3, 1)
+    Then we map the quantiles into the ranges back onto the original values.
+
+    Examples
+    --------
+    >>> values = np.array(["A", "B", "C"])
+    >>> quantiles = np.array([0, 1/3, 0.5, 0.8])
+    >>> quantiles_to_values(quantiles=quantiles, values=values)
+    array(['A', 'B', 'B', 'C'], dtype='<U1')
+
+    >>> probabilities = np.array([0.2, 0.3, 0.5])
+    >>> quantiles = (np.arange(1, 10)) / 10
+    >>> quantiles_to_values(quantiles=quantiles, values=values,
+    ...                     probabilities=probabilities) # [0.1, 0.2, ...]
+    array(['A', 'B', 'B', 'B', 'C', 'C', 'C', 'C', 'C'], dtype='<U1')
+    """
+    quantiles = np.array(quantiles)
+    values = np.array(values)
+
+    # If no probabilities are given, assume equal
+    if probabilities is None:
+        probabilities = np.ones(len(values)) / len(values)
+
+    assert np.isclose(np.sum(probabilities), 1.0)
+
+    # Create bin edges
+    edges = np.cumsum([0, *list(probabilities)])
+    # Map to bin indices, then back onto the original values
+    bin_indices = np.digitize(quantiles, edges, right=False) - 1
+    return values[bin_indices]
+
+
 def to_probabilit(
     distname: str,
     dist_parameters: Sequence[str],
-) -> npt.NDArray[Any] | list[str]:
+) -> probabilit.Node:
     """
     Prepare scipy distributions with parameters
     Args:
@@ -56,14 +100,19 @@ def to_probabilit(
     # Special case for discrete
     if distname.lower().startswith("disc"):
         if len(dist_parameters) == 1:
-            values = dist_parameters[0]
-            values = [v.strip() for v in values.split(",")]
-            return probabilit.DiscreteDistribution(values)
+            values_str = dist_parameters[0]
+            values = [v.strip() for v in values_str.split(",")]
+            distr = probabilit.Distribution("uniform")
+            distr._values = np.array(values)
+            return distr
         else:
-            values, probabilities = dist_parameters
-            values = [v.strip() for v in values.split(",")]
-            probabilities = [float(v.strip()) for v in probabilities.split(",")]
-            return probabilit.DiscreteDistribution(values, probabilities)
+            values_str, probabilities_str = dist_parameters
+            values = [v.strip() for v in values_str.split(",")]
+            probabilities = [float(v.strip()) for v in probabilities_str.split(",")]
+            distr = probabilit.Distribution("uniform")
+            distr._values = np.array(values)
+            distr._probabilities = np.array(probabilities)
+            return distr
 
     # Special case for constant
     if distname.lower().startswith("const"):

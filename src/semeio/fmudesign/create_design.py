@@ -25,7 +25,7 @@ with (
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
-import probabilit
+import probabilit # type: ignore[import-untyped]
 
 import semeio
 from semeio.fmudesign import design_distributions as design_dist
@@ -1013,6 +1013,18 @@ class MonteCarloSensitivity:
             if is_numeric and not np.all(np.isfinite(distr_obj.samples_)):
                 raise ValueError(
                     f"Sampling produced non-finite values in {distr_name}={distr_obj}"
+                )
+
+            # Discrete distributions are handled in a special way. We map them
+            # to Uniform distributions, sample in [0, 1), then map those samples
+            # back to the categorical values AFTER sampling. This is so that we
+            # can "induce correlations" between categorical values.
+            if hasattr(distr_obj, "_values"):
+                probabilities = getattr(distr_obj, "_probabilities", None)
+                samples = design_dist.quantiles_to_values(
+                    quantiles=samples,
+                    values=distr_obj._values,
+                    probabilities=probabilities,
                 )
 
             self.sensvalues = self.sensvalues.assign(**{distr_name: samples})
