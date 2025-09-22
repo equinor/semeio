@@ -86,7 +86,7 @@ def quantiles_to_values(
 def to_probabilit(
     distname: str,
     dist_parameters: Sequence[str],
-) -> probabilit.Node:
+) -> probabilit.modeling.AbstractDistribution:
     """
     Prepare scipy distributions with parameters
     Args:
