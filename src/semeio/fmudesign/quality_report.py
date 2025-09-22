@@ -306,7 +306,7 @@ class QualityReporter:
         df = self.df[df_corr.columns].select_dtypes(include="number")
 
         # Do not plot if only a single variable remains
-        if df.shape[1] == 1:
+        if df.shape[1] <= 1:
             return
 
         pairgrid = sns.PairGrid(df)

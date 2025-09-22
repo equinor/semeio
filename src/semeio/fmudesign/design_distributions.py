@@ -156,4 +156,28 @@ def read_correlations(excel_filename: str | Path, corr_sheet: str) -> pd.DataFra
     # Remove any 'Unnamed' columns that Excel/pandas may have automatically added.
     correlations = correlations.loc[:, ~correlations.columns.str.contains("^Unnamed")]
 
+    upper_idx = np.triu_indices_from(correlations.values, k=1)
+    if not np.all(np.isnan(correlations.values[upper_idx])):
+        raise ValueError(
+            f"All upper-triangular elements in matrix in corr sheet {corr_sheet} must be blank."
+        )
+
+    lower_idx = np.tril_indices_from(correlations.values, k=0)
+    lower_entries = correlations.values[lower_idx]
+    if not np.all(np.isfinite(lower_entries)):
+        raise ValueError(
+            f"All lower-triangular elements in matrix in corr sheet {corr_sheet} must be specified."
+        )
+
+    if np.any((lower_entries < -1) | (lower_entries > 1)):
+        raise ValueError(
+            f"All lower-triangular elements in matrix in corr sheet {corr_sheet} must be between 0 and 1."
+        )
+
+    correlations = correlations.fillna(0)
+
+    mat = correlations.values + correlations.values.T
+    np.fill_diagonal(mat, 1.0)
+    correlations.values[:] = mat
+
     return correlations

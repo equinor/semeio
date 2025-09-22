@@ -25,20 +25,12 @@ with (
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
-
-from scipy.stats import qmc
-
-import semeio
-from semeio.fmudesign import design_distributions as design_dist
-from semeio.fmudesign._excel2dict import _raise_if_duplicates
-from semeio.fmudesign.iman_conover import ImanConover
-from semeio.fmudesign.quality_report import QualityReporter
-
 import probabilit
 
 import semeio
 from semeio.fmudesign import design_distributions as design_dist
-
+from semeio.fmudesign._excel2dict import _raise_if_duplicates
+from semeio.fmudesign.quality_report import QualityReporter
 
 
 def is_consistent_correlation_matrix(matrix: npt.NDArray[Any]) -> bool:
@@ -914,7 +906,6 @@ class MonteCarloSensitivity:
         self.sensname: str = sensname
         self.sensvalues: pd.DataFrame
 
-
     def generate(
         self,
         realnums: range,
@@ -965,7 +956,10 @@ class MonteCarloSensitivity:
                 .assign(corr_sheet=lambda df: df.corr_sheet.fillna("nocorr"))
             )
 
-            for corr_group_name, corr_group in corr_groups:
+            corr_groups = dict(iter(df_params.groupby("corr_sheet")))
+            corr_groups.pop("nocorr", None)
+
+            for corr_group_name, corr_group in corr_groups.items():
                 corr_group_name = cast(str, corr_group_name)
 
                 # Skip nocorr
@@ -1003,19 +997,16 @@ class MonteCarloSensitivity:
                     df_correlations.values[:] = correlations
                     print("\nAdjusted to nearest consistent correlation matrix:")
                     _print_corrmat(df_correlations)
-                    
-                    
+
                 corrvars = [distr_by_name[name] for name in df_correlations.columns]
                 expression.correlate(*corrvars, corr_mat=df_correlations.values)
                 self.correlation_dfs_[corr_group_name] = df_correlations
-
-
 
         # Sample the dummy node - this samples every parent and populates "samples_"
         expression.sample(
             size=numreals, random_state=rng, method="lhs", correlator="imanconover"
         )
-        
+
         for distr_name, distr_obj in distr_by_name.items():
             samples = distr_obj.samples_
             is_numeric = issubclass(samples.dtype.type, np.number)
@@ -1023,10 +1014,9 @@ class MonteCarloSensitivity:
                 raise ValueError(
                     f"Sampling produced non-finite values in {distr_name}={distr_obj}"
                 )
-            self.sensvalues = self.sensvalues.assign(**{distr_name: distr_obj.samples_})
-            print(f"Wrote {numreals} samples from distribution {distr_obj}")
-        
 
+            self.sensvalues = self.sensvalues.assign(**{distr_name: samples})
+            print(f"Wrote {numreals} samples from {distr_name!r} {distr_obj}")
 
         if self.sensname != "background":
             self.sensvalues["REAL"] = realnums

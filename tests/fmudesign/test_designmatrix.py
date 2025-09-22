@@ -72,7 +72,6 @@ def test_endpoint(tmpdir, monkeypatch):
         ["fmudesign", str(designfile)], check=True, capture_output=True, text=True
     )
 
-
     expected_output = """
     """
 
