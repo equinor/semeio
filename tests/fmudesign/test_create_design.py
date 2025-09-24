@@ -18,7 +18,8 @@ from semeio.fmudesign.create_design import nearest_correlation_matrix
 TESTDATA = Path(__file__).parent / "data"
 
 
-def test_distribution_statistis(tmpdir, monkeypatch):
+@pytest.mark.parametrize("correlations", [True, False])
+def test_distribution_statistis(tmpdir, monkeypatch, correlations):
     """This test ensures that if any large-sample statistics for any distribution
     changes, we will likely pick it up in the future."""
 
@@ -41,7 +42,7 @@ def test_distribution_statistis(tmpdir, monkeypatch):
             p3,
             p4,
             "",
-            "",
+            "corr1" if correlations else "",
             "",
         ]
 
@@ -103,6 +104,16 @@ def test_distribution_statistis(tmpdir, monkeypatch):
         }
     )
 
+    # Correlation sheet
+    num_vars = len(design_input["param_name"])
+    corr_values = np.zeros(shape=(num_vars, num_vars)) + 0.2
+    np.fill_diagonal(corr_values, val=1.0)
+    corr_sheet = pd.DataFrame(
+        corr_values,
+        columns=list(design_input["param_name"]),
+        index=list(design_input["param_name"]),
+    )
+
     # Create a file to do the save => load roundtrip and test that too
     FILENAME = "designinput.xlsx"
     with pd.ExcelWriter(FILENAME, engine="openpyxl") as writer:
@@ -110,9 +121,8 @@ def test_distribution_statistis(tmpdir, monkeypatch):
             writer, sheet_name="general_input", index=False, header=None
         )
         design_input.to_excel(writer, sheet_name="designinput", index=False)
-        defaultvalues.to_excel(
-            writer, sheet_name="defaultvalues", index=False
-        )  # Write columns
+        defaultvalues.to_excel(writer, sheet_name="defaultvalues", index=False)
+        corr_sheet.to_excel(writer, sheet_name="corr1")
 
     # Read the file and draw samples
     input_dict = excel2dict_design(FILENAME)
@@ -161,6 +171,11 @@ def test_distribution_statistis(tmpdir, monkeypatch):
 
     assert np.isclose(df["LOGUNIFORM"].mean(), 2.485339, atol=atol)
     assert np.isclose(df["LOGUNIFORM"].std(), 1.130975, atol=atol)
+
+    # Check that correlations are close
+    if correlations:
+        obs_corr = df[design_input["param_name"]].corr().to_numpy()
+        assert np.sqrt(np.mean((obs_corr - corr_values) ** 2)) < 0.02
 
 
 def test_generate_onebyone(tmpdir):
