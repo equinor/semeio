@@ -18,6 +18,151 @@ from semeio.fmudesign.create_design import nearest_correlation_matrix
 TESTDATA = Path(__file__).parent / "data"
 
 
+def test_distribution_statistis(tmpdir, monkeypatch):
+    """This test ensures that if any large-sample statistics for any distribution
+    changes, we will likely pick it up in the future."""
+
+    NUM_SAMPLES = 10**5
+
+    def gl(paramname, distname, p1, p2, p3="", p4=""):
+        """GL = Generate Line. Generates a line in the input sheet."""
+        return [
+            "",
+            "",
+            "",
+            paramname,
+            "",
+            "",
+            "",
+            "",
+            distname,
+            p1,
+            p2,
+            p3,
+            p4,
+            "",
+            "",
+            "",
+        ]
+
+    # General input sheet
+    general_input = pd.DataFrame(
+        data=[
+            ["designtype", "onebyone"],
+            ["repeats", 1],
+            ["rms_seeds", "default"],
+            ["background", "None"],
+            ["distribution_seed", "None"],
+        ]
+    )
+
+    # Design input sheet
+    design_input = pd.DataFrame(
+        data=[
+            # Normal has params (mean, std, low=-inf, high=inf)
+            gl("NORMAL", "normal", 0, 2),
+            gl("TRUNCNORM", "normal", 0, 1, -1, 2),
+            # Lognormal has params (mean, sigma)
+            gl("LOGNORMAL", "logn", 1.5, 0.5),
+            # Uniform has params (low, high)
+            gl("UNIFORM", "unif", -5, 0),
+            # Triangular has params (low, mode, high)
+            gl("TRIANG", "triang", -5, 0, 5),
+            # Pert has has params (low, mode, high, scale=4)
+            gl("DEFAULTPERT", "pert", -5, 0, 5),
+            gl("SCALEPERT", "pert", -5, 0, 5, 1),
+            # Loguniform has params (low, high)
+            gl("LOGUNIFORM", "logunif", 1, 5),
+        ],
+        columns=[
+            "sensname",
+            "numreal",
+            "type",
+            "param_name",
+            "senscase1",
+            "value1",
+            "senscase2",
+            "value2",
+            "dist_name",
+            "dist_param1",
+            "dist_param2",
+            "dist_param3",
+            "dist_param4",
+            "decimals",
+            "corr_sheet",
+            "extern_file",
+        ],
+    )
+    design_input.iloc[0, :3] = ["distr_test", (NUM_SAMPLES), "dist"]
+
+    # Default values sheet
+    defaultvalues = pd.DataFrame(
+        {
+            "param_name": list(design_input["param_name"]),
+            "default_value": [0.5] * (len(design_input)),
+        }
+    )
+
+    # Create a file to do the save => load roundtrip and test that too
+    FILENAME = "designinput.xlsx"
+    with pd.ExcelWriter(FILENAME, engine="openpyxl") as writer:
+        general_input.to_excel(
+            writer, sheet_name="general_input", index=False, header=None
+        )
+        design_input.to_excel(writer, sheet_name="designinput", index=False)
+        defaultvalues.to_excel(
+            writer, sheet_name="defaultvalues", index=False
+        )  # Write columns
+
+    # Read the file and draw samples
+    input_dict = excel2dict_design(FILENAME)
+    design = DesignMatrix()
+    design.generate(input_dict)
+    assert len(design.designvalues) == NUM_SAMPLES
+    df = design.designvalues
+
+    # Test statistical properties and boundaries of all variables.
+    # There were either derived using analytical properties, or empirically
+    # by drawing 10 million samples.
+    # Tolerance must be high enough to not pick up on rng differences, but low
+    # enough to pick up meaningful changes.
+    atol = 0.005
+
+    assert np.isclose(df["NORMAL"].mean(), 0.0, atol=atol)
+    assert np.isclose(df["NORMAL"].std(), 2.0, atol=atol)
+
+    assert np.isclose(df["TRUNCNORM"].mean(), 0.229637, atol=atol)
+    assert np.isclose(df["TRUNCNORM"].std(), 0.720945, atol=atol)
+    assert df["TRUNCNORM"].min() >= -1
+    assert df["TRUNCNORM"].max() <= 2
+
+    assert np.isclose(df["LOGNORMAL"].mean(), 5.078418, atol=atol)
+    assert np.isclose(df["LOGNORMAL"].std(), 2.706487, atol=atol)
+
+    assert df["UNIFORM"].min() >= -5
+    assert df["UNIFORM"].max() <= 0
+    assert np.isclose(df["UNIFORM"].mean(), -2.5, atol=atol)
+    assert np.isclose(df["UNIFORM"].std(), 1.443375, atol=atol)
+
+    assert df["TRIANG"].min() >= -5
+    assert df["TRIANG"].max() <= 5
+    assert np.isclose(df["TRIANG"].mean(), 0, atol=atol)
+    assert np.isclose(df["TRIANG"].std(), 2.041241, atol=atol)
+
+    assert df["DEFAULTPERT"].min() >= -5
+    assert df["DEFAULTPERT"].max() <= 5
+    assert np.isclose(df["DEFAULTPERT"].mean(), 0, atol=atol)
+    assert np.isclose(df["DEFAULTPERT"].std(), 1.889822, atol=atol)
+
+    assert df["SCALEPERT"].min() >= -5
+    assert df["SCALEPERT"].max() <= 5
+    assert np.isclose(df["SCALEPERT"].mean(), 0, atol=atol)
+    assert np.isclose(df["SCALEPERT"].std(), 2.5, atol=atol)
+
+    assert np.isclose(df["LOGUNIFORM"].mean(), 2.485339, atol=atol)
+    assert np.isclose(df["LOGUNIFORM"].std(), 1.130975, atol=atol)
+
+
 def test_generate_onebyone(tmpdir):
     """Test generation of onebyone design"""
 
