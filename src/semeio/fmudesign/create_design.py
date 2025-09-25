@@ -25,12 +25,11 @@ with (
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
-from scipy.stats import qmc
+import probabilit  # type: ignore[import-untyped]
 
 import semeio
 from semeio.fmudesign import design_distributions as design_dist
 from semeio.fmudesign._excel2dict import _raise_if_duplicates
-from semeio.fmudesign.iman_conover import ImanConover
 from semeio.fmudesign.quality_report import QualityReporter
 
 
@@ -907,30 +906,6 @@ class MonteCarloSensitivity:
         self.sensname: str = sensname
         self.sensvalues: pd.DataFrame
 
-    def _draw_uncorrelated_values(
-        self,
-        param_name: str,
-        dist_name: str,
-        dist_params: Sequence[str],
-        numreals: int,
-        rng: np.random.Generator,
-    ) -> npt.NDArray[Any] | list[str] | str:
-        # Draw samples in [0, 1)
-        quantiles = design_dist.generate_stratified_samples(numreals=numreals, rng=rng)
-
-        try:
-            return design_dist.draw_values(
-                distname=dist_name.lower(),
-                dist_parameters=dist_params,
-                quantiles=quantiles,
-            )
-
-        except ValueError as error:
-            raise ValueError(
-                f"Problem in sensitivity with sensname {self.sensname} "
-                f"for parameter {param_name}: {error.args[0]}"
-            ) from error
-
     def generate(
         self,
         realnums: range,
@@ -957,27 +932,46 @@ class MonteCarloSensitivity:
         if numreals < 0:
             raise ValueError(f"Got < 0 samples ({numreals=})")
 
-        if corrdict is None:
-            for key in parameters:
-                self.sensvalues[key] = self._draw_uncorrelated_values(
-                    key, parameters[key][0], parameters[key][1], numreals, rng
-                )
-        else:  # Some or all parameters are correlated
-            df_params = pd.DataFrame.from_dict(
-                parameters,
-                orient="index",
-                columns=["dist_name", "dist_params", "corr_sheet"],
+        distr_by_name = {}
+        for param_name, (dist_name, dist_params, _) in parameters.items():
+            # Convert to a probabilit Distribution object
+            distr = design_dist.to_probabilit(
+                distname=dist_name, dist_parameters=dist_params
             )
-            df_params["corr_sheet"] = df_params["corr_sheet"].fillna("nocorr")
-            df_params.reset_index(inplace=True)
-            df_params.rename(columns={"index": "param_name"}, inplace=True)
+            distr_by_name[param_name] = distr
+
+        # Create a dummy NoOp node for sampling each parent distribution
+        expression = probabilit.modeling.NoOp(*distr_by_name.values())
+
+        if corrdict:
+            # Create an iterator over correlation groups from the main sheet
+            df_params = (
+                pd.DataFrame.from_dict(
+                    parameters,
+                    orient="index",
+                    columns=["dist_name", "dist_params", "corr_sheet"],
+                )
+                .reset_index()
+                .rename(columns={"index": "param_name"})
+                .assign(corr_sheet=lambda df: df.corr_sheet.fillna("nocorr"))
+            )
+
             corr_groups = dict(iter(df_params.groupby("corr_sheet")))
-            nocorr = corr_groups.pop("nocorr", pd.DataFrame())
+            corr_groups.pop("nocorr", None)
 
             for corr_group_name, corr_group in corr_groups.items():
                 corr_group_name = cast(str, corr_group_name)
+
+                # Skip nocorr
+                if corr_group_name == "nocorr":
+                    continue
+
+                # A single correlation - print warning and skip it
                 if len(corr_group) == 1:
                     _printwarning(corr_group_name)
+                    continue
+
+                # Read correlation matrix and convert it to a proper matrix
                 df_correlations = design_dist.read_correlations(
                     excel_filename=corrdict["inputfile"], corr_sheet=corr_group_name
                 )
@@ -1004,44 +998,37 @@ class MonteCarloSensitivity:
                     print("\nAdjusted to nearest consistent correlation matrix:")
                     _print_corrmat(df_correlations)
 
-                sampler = qmc.LatinHypercube(d=len(multivariate_parameters), rng=rng)
-                lhs_samples = sampler.random(n=numreals)
-
-                iman_conover = ImanConover(correlation_matrix=correlations)
+                corrvars = [distr_by_name[name] for name in df_correlations.columns]
+                expression.correlate(*corrvars, corr_mat=df_correlations.values)
                 self.correlation_dfs_[corr_group_name] = df_correlations
-                correlated_samples: npt.NDArray[Any] = iman_conover(lhs_samples)
 
-                for idx, row in corr_group.reset_index(drop=True).iterrows():
-                    idx = cast(int, idx)
+        # Sample the dummy node - this samples every parent and populates "samples_"
+        expression.sample(
+            size=numreals, random_state=rng, method="lhs", correlator="imanconover"
+        )
 
-                    if row["param_name"] in multivariate_parameters:
-                        if row["param_name"].lower().startswith("const"):
-                            raise ValueError(
-                                "Parameter with const distribution was defined in correlation "
-                                "matrix but const distribution cannot be used with correlation."
-                            )
-
-                        self.sensvalues[row["param_name"]] = design_dist.draw_values(
-                            distname=row["dist_name"].lower(),
-                            dist_parameters=row["dist_params"],
-                            quantiles=correlated_samples[:, idx],
-                        )
-                    else:
-                        raise ValueError(
-                            f"Parameter {row['param_name']} specified with correlation "
-                            f"matrix {corr_group_name} but is not listed in that sheet"
-                        )
-
-            # Sample every variable without correlation
-            for _, row in nocorr.iterrows():
-                print(f"Sampling parameter {row['param_name']!r}")
-                self.sensvalues[row["param_name"]] = self._draw_uncorrelated_values(
-                    param_name=row["param_name"],
-                    dist_name=row["dist_name"],
-                    dist_params=row["dist_params"],
-                    numreals=numreals,
-                    rng=rng,
+        for distr_name, distr_obj in distr_by_name.items():
+            samples = distr_obj.samples_
+            is_numeric = issubclass(samples.dtype.type, np.number)
+            if is_numeric and not np.all(np.isfinite(distr_obj.samples_)):
+                raise ValueError(
+                    f"Sampling produced non-finite values in {distr_name}={distr_obj}"
                 )
+
+            # Discrete distributions are handled in a special way. We map them
+            # to Uniform distributions, sample in [0, 1), then map those samples
+            # back to the categorical values AFTER sampling. This is so that we
+            # can "induce correlations" between categorical values.
+            if hasattr(distr_obj, "_values"):
+                probabilities = getattr(distr_obj, "_probabilities", None)
+                samples = design_dist.quantiles_to_values(
+                    quantiles=samples,
+                    values=distr_obj._values,
+                    probabilities=probabilities,
+                )
+
+            self.sensvalues = self.sensvalues.assign(**{distr_name: samples})
+            print(f"Wrote {numreals} samples from {distr_name!r} {distr_obj}")
 
         if self.sensname != "background":
             self.sensvalues["REAL"] = realnums

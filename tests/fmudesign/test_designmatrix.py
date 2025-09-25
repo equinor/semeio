@@ -73,49 +73,58 @@ def test_endpoint(tmpdir, monkeypatch):
     )
 
     expected_output = """Generating sensitivity : seed
-    Added sensitivity : seed
-    Generating sensitivity : faults
-    Added sensitivity : faults
-    Generating sensitivity : velmodel
-    Added sensitivity : velmodel
-    Generating sensitivity : contacts
-    Added sensitivity : contacts
-    Generating sensitivity : multz
-    Added sensitivity : multz
-    Generating sensitivity : sens6
-    Added sensitivity : sens6
-    Generating sensitivity : sens7
-    Sampling parameters in 'corr1': ['PARAM9', 'PARAM10', 'PARAM11', 'PARAM12']
+Added sensitivity : seed
+Generating sensitivity : faults
+Added sensitivity : faults
+Generating sensitivity : velmodel
+Added sensitivity : velmodel
+Generating sensitivity : contacts
+Added sensitivity : contacts
+Generating sensitivity : multz
+Wrote 10 samples from 'MULTZ_ILE' Distribution("loguniform", a=0.0001, b=1.0)
+Added sensitivity : multz
+Generating sensitivity : sens6
+Wrote 10 samples from 'PARAM5' Distribution("truncnorm", a=-2.0, b=2.0, loc=3.0, scale=1.0)
+Wrote 10 samples from 'PARAM6' Distribution("uniform", loc=0.0, scale=1.0)
+Wrote 10 samples from 'PARAM7' Distribution("triang", loc=1.0, scale=4.0, c=0.5)
+Wrote 10 samples from 'FAULT_SEAL' Distribution("uniform")
+Added sensitivity : sens6
+Generating sensitivity : sens7
+Sampling parameters in 'corr1': ['PARAM9', 'PARAM10', 'PARAM11', 'PARAM12']
 
-    Warning: Correlation matrix 'corr1' is not consistent
-    Requirements:
-      - Ones on the diagonal
-      - Positive semi-definite matrix
+Warning: Correlation matrix 'corr1' is not consistent
+Requirements:
+  - Ones on the diagonal
+  - Positive semi-definite matrix
 
-    Input correlation matrix:
-    |         |   PARAM9 | PARAM10   | PARAM11   | PARAM12   |
-    |:--------|---------:|:----------|:----------|:----------|
-    | PARAM9  |     1.00 |           |           |           |
-    | PARAM10 |     0.90 | 1.00      |           |           |
-    | PARAM11 |     0.00 | 0.90      | 1.00      |           |
-    | PARAM12 |     0.00 | 0.00      | 0.00      | 1.00      |
+Input correlation matrix:
+|         |   PARAM9 | PARAM10   | PARAM11   | PARAM12   |
+|:--------|---------:|:----------|:----------|:----------|
+| PARAM9  |     1.00 |           |           |           |
+| PARAM10 |     0.90 | 1.00      |           |           |
+| PARAM11 |     0.00 | 0.90      | 1.00      |           |
+| PARAM12 |     0.00 | 0.00      | 0.00      | 1.00      |
 
-    Adjusted to nearest consistent correlation matrix:
-    |         |   PARAM9 | PARAM10   | PARAM11   | PARAM12   |
-    |:--------|---------:|:----------|:----------|:----------|
-    | PARAM9  |     1.00 |           |           |           |
-    | PARAM10 |     0.74 | 1.00      |           |           |
-    | PARAM11 |     0.11 | 0.74      | 1.00      |           |
-    | PARAM12 |     0.00 | 0.00      | 0.00      | 1.00      |
-    Added sensitivity : sens7
-    Generating sensitivity : sens8
-    Added sensitivity : sens8
-    Provided number of background values (11) is smaller than number of realisations for sensitivity ('sens7', 'p10_p90') and parameter PARAM13. Will be filled with default values.
-    Provided number of background values (11) is smaller than number of realisations for sensitivity ('sens7', 'p10_p90') and parameter PARAM14. Will be filled with default values.
-    Provided number of background values (11) is smaller than number of realisations for sensitivity ('sens7', 'p10_p90') and parameter PARAM15. Will be filled with default values.
-    Provided number of background values (11) is smaller than number of realisations for sensitivity ('sens7', 'p10_p90') and parameter PARAM16. Will be filled with default values.
-    A total of 91 realizations were generated
-    Designmatrix written to generateddesignmatrix.xlsx"""
+Adjusted to nearest consistent correlation matrix:
+|         |   PARAM9 | PARAM10   | PARAM11   | PARAM12   |
+|:--------|---------:|:----------|:----------|:----------|
+| PARAM9  |     1.00 |           |           |           |
+| PARAM10 |     0.74 | 1.00      |           |           |
+| PARAM11 |     0.11 | 0.74      | 1.00      |           |
+| PARAM12 |     0.00 | 0.00      | 0.00      | 1.00      |
+Wrote 30 samples from 'PARAM9' Distribution("lognorm", s=1.0, scale=Exp(Constant(0.0)))
+Wrote 30 samples from 'PARAM10' Distribution("uniform", loc=0.0, scale=1.0)
+Wrote 30 samples from 'PARAM11' Distribution("triang", loc=1.0, scale=4.0, c=0.5)
+Wrote 30 samples from 'PARAM12' Distribution("loguniform", a=1.0, b=10.0)
+Added sensitivity : sens7
+Generating sensitivity : sens8
+Added sensitivity : sens8
+Provided number of background values (11) is smaller than number of realisations for sensitivity ('sens7', 'p10_p90') and parameter PARAM13. Will be filled with default values.
+Provided number of background values (11) is smaller than number of realisations for sensitivity ('sens7', 'p10_p90') and parameter PARAM14. Will be filled with default values.
+Provided number of background values (11) is smaller than number of realisations for sensitivity ('sens7', 'p10_p90') and parameter PARAM15. Will be filled with default values.
+Provided number of background values (11) is smaller than number of realisations for sensitivity ('sens7', 'p10_p90') and parameter PARAM16. Will be filled with default values.
+A total of 91 realizations were generated
+Designmatrix written to generateddesignmatrix.xlsx"""
 
     assert result.stdout.split() == expected_output.split()
     assert Path("generateddesignmatrix.xlsx").exists  # Default output file
