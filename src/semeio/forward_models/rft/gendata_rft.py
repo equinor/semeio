@@ -182,7 +182,7 @@ def run(
                 well=well, time=time, report_step=report_step
             )
 
-            # Write trajectory and associated data to ASCII files, one file pr.
+            # Write trajectory and associated data to files, one file pr.
             # datatype, well and time, this is for GEN_DATA to pick up.
             _write_gen_data_files(trajectory_df, outputdirectory, well, report_step)
 
