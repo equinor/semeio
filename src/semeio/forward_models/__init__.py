@@ -149,7 +149,7 @@ In the ert config, after running the Eclipse (or similar) forward model, add::
 
 For assisted history matching, add ``GEN_DATA`` statements to the ert config::
 
-    GEN_DATA A-1 RESULT_FILE:gendata_rft/RFT_A-1_%d INPUT_FORMAT:ASCII REPORT_STEPS:0
+    GEN_DATA A-1 RESULT_FILE:gendata_rft/RFT_A-1_%d REPORT_STEPS:0
 
 """,
             description=gendata_rft_description,
