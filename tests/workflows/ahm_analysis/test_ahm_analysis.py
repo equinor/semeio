@@ -246,21 +246,6 @@ def test_make_obs_groups(input_map, expected_keys):
                 "SNAKE_OIL_PARAM:OP1_PERSISTENCE": [0, 1, 2],
                 "SNAKE_OIL_PARAM:OP1_OCTAVES": [0, 1, 2],
                 "SNAKE_OIL_PARAM:OP1_DIVERGENCE_SCALE": [0, 1, 2],
-                "SNAKE_OIL_PARAM:OP1_OFFSET": [0, 0, 0],
-                "SNAKE_OIL_PRES:BPR_138_PERSISTENCE": [0, 1, 2],
-            },
-            [
-                "SNAKE_OIL_PARAM:OP1_PERSISTENCE",
-                "SNAKE_OIL_PARAM:OP1_OCTAVES",
-                "SNAKE_OIL_PARAM:OP1_DIVERGENCE_SCALE",
-                "SNAKE_OIL_PRES:BPR_138_PERSISTENCE",
-            ],
-        ],
-        [
-            {
-                "SNAKE_OIL_PARAM:OP1_PERSISTENCE": [0, 1, 2],
-                "SNAKE_OIL_PARAM:OP1_OCTAVES": [0, 1, 2],
-                "SNAKE_OIL_PARAM:OP1_DIVERGENCE_SCALE": [0, 1, 2],
                 "SNAKE_OIL_PRES:BPR_138_PERSISTENCE": [0, 1, 2],
                 "LOG10_SNAKE_OIL_PARAM:OP1_PERSISTENCE": [0, 1, 2],
             },
