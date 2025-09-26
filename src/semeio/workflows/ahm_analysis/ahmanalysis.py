@@ -181,20 +181,20 @@ class AhmAnalysisJob(ErtScript):
         if target_name == "<ANALYSIS_CASE_NAME>":
             target_name = "analysis_case"
 
-        prior_data = prior_ensemble.load_all_gen_kw_data()
-        try:
-            raise_if_empty(
-                dataframes=[
-                    prior_data,
-                    LibresFacade.load_all_misfit_data(prior_ensemble),
-                ],
-                messages=[
-                    "Empty prior ensemble",
-                    "Empty parameters set for History Matching",
-                ],
-            )
-        except KeyError as err:
-            raise ValidationError(f"Empty prior ensemble: {err}") from err
+        # prior_data = prior_ensemble.load_all_gen_kw_data()
+        # try:
+        #     raise_if_empty(
+        #         dataframes=[
+        #             prior_data,
+        #             LibresFacade.load_all_misfit_data(prior_ensemble),
+        #         ],
+        #         messages=[
+        #             "Empty prior ensemble",
+        #             "Empty parameters set for History Matching",
+        #         ],
+        #     )
+        # except KeyError as err:
+        #     raise ValidationError(f"Empty prior ensemble: {err}") from err
 
         ahmanalysis_reports_dir = Path(reports_dir) / "AhmAnalysisJob"
         os.makedirs(ahmanalysis_reports_dir, exist_ok=True)
@@ -212,6 +212,7 @@ class AhmAnalysisJob(ErtScript):
             for p in prior_experiment.parameter_configuration.values()
             if isinstance(p, GenKwConfig)
         ]
+
         if field_parameters:
             logger.warning(
                 f"AHM_ANALYSIS will only evaluate scalar parameters, skipping: {field_parameters}"
@@ -221,7 +222,20 @@ class AhmAnalysisJob(ErtScript):
         # identify the set of actual parameters that was updated for now just go
         # through scalar parameters but in future if easier access to field parameter
         # updates should also include field parameters
-        dkeysf = get_updated_parameters(prior_data, scalar_parameters)
+        # dkeysf = get_updated_parameters(prior_data, scalar_parameters)
+        dkeysf = [
+            p.name
+            for p in prior_ensemble.experiment.parameter_configuration.values()
+            if p.update and p.type == "gen_kw"
+        ]
+
+        prior_data = prior_ensemble._load_scalar_keys(dkeysf, transformed=True).drop(
+            "realization"
+        )
+        assert not prior_data.is_empty(), "No scalar parameters found in ensemble"
+        misfit_data = LibresFacade.load_all_misfit_data(prior_ensemble)
+        assert not misfit_data.empty, "No misfit data found in ensemble"
+
         # setup dataframe for calculated data
         kolmogorov_smirnov_data, active_obs, misfitval = (
             pd.DataFrame(sorted(dkeysf), columns=["Parameters"]),
@@ -292,7 +306,9 @@ class AhmAnalysisJob(ErtScript):
                     calc_kolmogorov_smirnov(
                         dkeysf,
                         prior_data,
-                        target_ensemble.load_all_gen_kw_data(),
+                        target_ensemble._load_scalar_keys(
+                            dkeysf, transformed=True
+                        ).drop("realization"),
                     )
                 )
         kolmogorov_smirnov_data.set_index("Parameters", inplace=True)
@@ -420,27 +436,27 @@ def _filter_on_prefix(list_of_strings, prefixes):
     }
 
 
-def get_updated_parameters(prior_data, parameters):
-    """make list of updated parameters
-    (excluding duplicate transformed parameters)
-    """
-    parameter_keys = _filter_on_prefix(
-        list_of_strings=prior_data.keys(), prefixes=parameters
-    )
-    # remove parameters with constant prior distribution
-    p_keysf = []
-    for dkey in parameter_keys:
-        if prior_data[dkey].ndim > 1:
-            warnings.warn(
-                "WARNING: Parameter " + dkey + " defined several times.", stacklevel=1
-            )
-            flatten_arr = np.ravel(prior_data[dkey])
-            result = np.all(prior_data[dkey] == flatten_arr[0])
-            if not result:
-                p_keysf.append(dkey)
-        elif not all(x == prior_data[dkey][0] for x in prior_data[dkey]):
-            p_keysf.append(dkey)
-    return p_keysf
+# def get_updated_parameters(prior_data, parameters):
+#     """make list of updated parameters
+#     (excluding duplicate transformed parameters)
+#     """
+#     parameter_keys = _filter_on_prefix(
+#         list_of_strings=prior_data.keys(), prefixes=parameters
+#     )
+#     # remove parameters with constant prior distribution
+#     p_keysf = []
+#     for dkey in parameter_keys:
+#         if prior_data[dkey].ndim > 1:
+#             warnings.warn(
+#                 "WARNING: Parameter " + dkey + " defined several times.", stacklevel=1
+#             )
+#             flatten_arr = np.ravel(prior_data[dkey])
+#             result = np.all(prior_data[dkey] == flatten_arr[0])
+#             if not result:
+#                 p_keysf.append(dkey)
+#         elif not all(x == prior_data[dkey][0] for x in prior_data[dkey]):
+#             p_keysf.append(dkey)
+#     return p_keysf
 
 
 def calc_kolmogorov_smirnov(columns, prior_data, target_data):
