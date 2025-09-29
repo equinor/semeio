@@ -108,11 +108,13 @@ def test_distribution_statistis(tmpdir, monkeypatch, correlations):
     num_vars = len(design_input["param_name"])
     corr_values = np.zeros(shape=(num_vars, num_vars)) + 0.2
     np.fill_diagonal(corr_values, val=1.0)
+    upper_idx = np.triu_indices_from(corr_values, k=1)
     corr_sheet = pd.DataFrame(
         corr_values,
         columns=list(design_input["param_name"]),
         index=list(design_input["param_name"]),
-    )
+    ).astype(str)
+    corr_sheet.values[upper_idx] = ""  # Set upper triang to blank
 
     # Create a file to do the save => load roundtrip and test that too
     FILENAME = "designinput.xlsx"

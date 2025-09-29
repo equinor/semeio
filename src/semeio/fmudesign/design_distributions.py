@@ -160,7 +160,7 @@ def to_probabilit(
         elif len(parameters) == 4:
             low, mode, high, scale = parameters
             return probabilit.distributions.PERT(
-                minimum=low, mode=mode, maximum=high, scale=scale
+                minimum=low, mode=mode, maximum=high, gamma=scale
             )
         else:
             raise ValueError(f"PERT must have 3 or 4 parameters, got: {parameters}")
