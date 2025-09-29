@@ -5,7 +5,6 @@ import logging
 import os
 import tempfile
 import warnings
-from collections.abc import Iterable
 from copy import deepcopy
 from pathlib import Path
 from typing import Any
@@ -258,14 +257,15 @@ class AhmAnalysisJob(ErtScript):
                         name=target_name,
                         ensemble_size=prior_ensemble.ensemble_size,
                     )
-                    update_log = _run_ministep(
+
+                    update_log = smoother_update(
                         prior_storage=prior_ensemble,
-                        target_storage=target_ensemble,
-                        obs_group=obs_group,
-                        data_parameters=field_parameters + gen_kw_names,
-                        observation_settings=observation_settings,
+                        posterior_storage=target_ensemble,
+                        observations=obs_group,
+                        parameters=field_parameters + gen_kw_names,
+                        update_settings=copy.deepcopy(observation_settings),
                         es_settings=es_settings,
-                        random_seed=random_seed,
+                        rng=np.random.default_rng(random_seed),
                     )
                     # Get the active vs total observation info
                     df_update_log = make_update_log_df(update_log)
@@ -338,28 +338,6 @@ def make_update_log_df(update_log: SmootherSnapshot) -> pd.DataFrame:
             .alias("status")
         )
         .to_pandas()
-    )
-
-
-def _run_ministep(
-    prior_storage: Ensemble,
-    target_storage: Ensemble,
-    obs_group: Iterable[str],
-    data_parameters: Iterable[str],
-    observation_settings: ObservationSettings,
-    es_settings: ESSettings,
-    random_seed: int,
-) -> SmootherSnapshot:
-    rng = np.random.default_rng(random_seed)
-
-    return smoother_update(
-        prior_storage=prior_storage,
-        posterior_storage=target_storage,
-        observations=obs_group,
-        parameters=data_parameters,
-        update_settings=copy.deepcopy(observation_settings),
-        es_settings=es_settings,
-        rng=rng,
     )
 
 

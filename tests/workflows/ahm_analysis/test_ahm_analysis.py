@@ -1,12 +1,14 @@
+import copy
+
 import numpy as np
 import pandas as pd
 import pytest
+from ert.analysis import smoother_update
 from ert.storage import open_storage
 from scipy import stats
 
 from semeio._exceptions.exceptions import ValidationError
 from semeio.workflows.ahm_analysis import ahmanalysis
-from semeio.workflows.ahm_analysis.ahmanalysis import _run_ministep
 
 
 @pytest.mark.integration_test
@@ -25,14 +27,17 @@ def test_make_update_log_df(snake_oil_config, snapshot):
             name="new_ensemble",
             prior_ensemble=prior_ens,
         )
-        log = _run_ministep(
+
+        log = smoother_update(
             prior_storage=prior_ens,
-            target_storage=posterior_ens,
-            obs_group=sorted(prior_ens.experiment.observation_keys),
-            data_parameters=sorted(prior_ens.experiment.parameter_configuration.keys()),
-            observation_settings=snake_oil_config.analysis_config.observation_settings,
+            posterior_storage=posterior_ens,
+            observations=sorted(prior_ens.experiment.observation_keys),
+            parameters=sorted(prior_ens.experiment.parameter_configuration.keys()),
+            update_settings=copy.deepcopy(
+                snake_oil_config.analysis_config.observation_settings
+            ),
             es_settings=snake_oil_config.analysis_config.es_settings,
-            random_seed=snake_oil_config.random_seed,
+            rng=np.random.default_rng(snake_oil_config.random_seed),
         )
     snapshot.assert_match(
         ahmanalysis.make_update_log_df(log).round(4).to_csv(),
