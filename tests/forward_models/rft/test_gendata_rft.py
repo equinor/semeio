@@ -521,7 +521,7 @@ OBS_CONFIG observations.txt
 
 FORWARD_MODEL GENDATA_RFT(<PATH_TO_TRAJECTORY_FILES>=../../rft_input, <WELL_AND_TIME_FILE>=../../rft_input/well_time.txt)
 GEN_KW PARAMS parameter_template parameters.json parameter_prior
-GEN_DATA OP_1_RFT_SIM1 INPUT_FORMAT:ASCII REPORT_STEPS:1 RESULT_FILE:RFT_OP_1_%d
+GEN_DATA OP_1_RFT_SIM1 REPORT_STEPS:1 RESULT_FILE:RFT_OP_1_%d
 """,
         encoding="utf-8",
     )
@@ -650,8 +650,8 @@ def test_ert_setup_one_well_two_points_different_time_and_depth(tmpdir):
     FORWARD_MODEL MAKE_DIRECTORY(<DIRECTORY>=gendata_rft)
     FORWARD_MODEL GENDATA_RFT(<PATH_TO_TRAJECTORY_FILES>=../../rft_input, <WELL_AND_TIME_FILE>=../../rft_input/well_time.txt, <OUTPUTDIRECTORY>=gendata_rft)
 
-    GEN_DATA OP_1_RFT_SIM1 INPUT_FORMAT:ASCII REPORT_STEPS:1 RESULT_FILE:gendata_rft/RFT_OP_1_%d
-    GEN_DATA OP_1_RFT_SIM2 INPUT_FORMAT:ASCII REPORT_STEPS:2 RESULT_FILE:gendata_rft/RFT_OP_1_%d
+    GEN_DATA OP_1_RFT_SIM1 REPORT_STEPS:1 RESULT_FILE:gendata_rft/RFT_OP_1_%d
+    GEN_DATA OP_1_RFT_SIM2 REPORT_STEPS:2 RESULT_FILE:gendata_rft/RFT_OP_1_%d
     GEN_KW PARAMS parameter_template parameters.json parameter_prior
     """
         ),

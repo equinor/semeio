@@ -21,7 +21,7 @@ from ert.analysis import (
     SmootherSnapshot,
     smoother_update,
 )
-from ert.config import ESSettings, Field, GenKwConfig, ObservationSettings
+from ert.config import ESSettings, Field, ObservationSettings
 from ert.storage import Ensemble, Storage, open_storage
 from scipy.stats import ks_2samp
 
@@ -207,21 +207,27 @@ class AhmAnalysisJob(ErtScript):
             for p in prior_experiment.parameter_configuration.values()
             if isinstance(p, Field)
         ]
-        gen_kws = [
+        gen_kw_groups = list(
+            {
+                p.group_name
+                for p in prior_experiment.parameter_configuration.values()
+                if p.type == "gen_kw"
+            }
+        )
+        gen_kw_names = [
             p.name
             for p in prior_experiment.parameter_configuration.values()
-            if isinstance(p, GenKwConfig)
+            if p.type == "gen_kw"
         ]
         if field_parameters:
             logger.warning(
                 f"AHM_ANALYSIS will only evaluate scalar parameters, skipping: {field_parameters}"
             )
 
-        scalar_parameters = sorted(gen_kws)
         # identify the set of actual parameters that was updated for now just go
         # through scalar parameters but in future if easier access to field parameter
         # updates should also include field parameters
-        dkeysf = get_updated_parameters(prior_data, scalar_parameters)
+        dkeysf = get_updated_parameters(prior_data, gen_kw_groups)
         # setup dataframe for calculated data
         kolmogorov_smirnov_data, active_obs, misfitval = (
             pd.DataFrame(sorted(dkeysf), columns=["Parameters"]),
@@ -256,7 +262,7 @@ class AhmAnalysisJob(ErtScript):
                         prior_storage=prior_ensemble,
                         target_storage=target_ensemble,
                         obs_group=obs_group,
-                        data_parameters=field_parameters + scalar_parameters,
+                        data_parameters=field_parameters + gen_kw_names,
                         observation_settings=observation_settings,
                         es_settings=es_settings,
                         random_seed=random_seed,

@@ -36,6 +36,7 @@ def excel2dict_design(
     """
 
     # Find sheets
+    _assert_no_merged_cells(input_filename)
     xlsx = openpyxl.load_workbook(input_filename, read_only=True, keep_links=False)
     gen_input_sheet = find_sheet(gen_input_sheet, names=xlsx.sheetnames)
     design_input_sheet = find_sheet(design_input_sheet, names=xlsx.sheetnames)
@@ -684,3 +685,17 @@ def _raise_if_duplicates(container: Sequence[Hashable]) -> None:
     duplicates = {k: v for (k, v) in Counter(container).items() if v > 1}
     if duplicates:
         raise ValueError(f"Duplicates with counts: {duplicates}")
+
+
+def _assert_no_merged_cells(input_filename: str) -> None:
+    """Raises an exception if any merged cells exist, else returns None."""
+
+    workbook = openpyxl.load_workbook(input_filename)
+    for sheet_name in workbook.sheetnames:
+        worksheet = workbook[sheet_name]
+        merged_ranges = list(worksheet.merged_cells.ranges)
+        if merged_ranges:
+            raise Exception(
+                f"Merged cells are not allowed. Found merged cell in {input_filename} at sheet '{sheet_name}'.\n"
+                f"Found {len(merged_ranges)} merged cell range(s): {merged_ranges}"
+            )
