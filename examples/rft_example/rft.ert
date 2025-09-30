@@ -1,0 +1,39 @@
+QUEUE_SYSTEM LOCAL
+QUEUE_OPTION LOCAL MAX_RUNNING 4
+
+RUNPATH spe1_out/realization-<IENS>/iter-<ITER>
+
+NUM_REALIZATIONS 12
+
+ECLBASE SPE1
+REFCASE <CONFIG_PATH>/resources/refcase/SPE1
+
+SUMMARY WOPT:PROD WWPT:PROD WGPT:PROD WWIT:INJ
+
+OBS_CONFIG obs.txt
+
+GEN_KW FIELD_PROPERTIES field_properties_priors
+
+FORWARD_MODEL TEMPLATE_RENDER( \
+    <INPUT_FILES>=parameters.json, \
+    <TEMPLATE_FILE>=<CONFIG_PATH>/resources/SPE1.DATA.jinja2, \
+    <OUTPUT_FILE>=SPE1.DATA \
+)
+
+FORWARD_MODEL FLOW
+
+FORWARD_MODEL GENDATA_RFT(\
+    <PATH_TO_TRAJECTORY_FILES>=<CONFIG_PATH>/resources/trajectories, \
+    <WELL_AND_TIME_FILE>=<CONFIG_PATH>/resources/well_date_rft.txt, \
+    <ZONEMAP>=<CONFIG_PATH>/resources/layer_zone_table.txt, \
+    <CSVFILE>=<RUNPATH>/gendata_rft.csv \
+)
+GEN_DATA \
+    INJ_RFT \
+    RESULT_FILE:RFT_INJ_%d \
+    REPORT_STEPS:1
+
+GEN_DATA \
+    PROD_RFT \
+    RESULT_FILE:RFT_PROD_%d \
+    REPORT_STEPS:1
