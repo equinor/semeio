@@ -198,9 +198,6 @@ class AhmAnalysisJob(ErtScript):
         ahmanalysis_reports_dir = Path(reports_dir) / "AhmAnalysisJob"
         os.makedirs(ahmanalysis_reports_dir, exist_ok=True)
 
-        # create dataframe with observations vectors (1 by 1 obs and also all_obs)
-        combinations = make_obs_groups(key_map)
-
         field_parameters = [
             p.name
             for p in prior_experiment.parameter_configuration.values()
@@ -233,11 +230,13 @@ class AhmAnalysisJob(ErtScript):
             pd.DataFrame(),
             pd.DataFrame(index=["misfit"]),
         )
+
         # loop over keys and calculate the KS matrix,
         # conditioning one parameter at the time.
-        updated_combinations = deepcopy(combinations)
-        for group_name, obs_group in combinations.items():
-            print("Processing:", group_name)
+        obs_group_to_obs_keys = make_obs_groups(key_map)
+        # iterate over a copy to workaround mutations done to obs_group_to_obs_keys
+        for obs_group, observations in deepcopy(obs_group_to_obs_keys).items():
+            print("Processing:", obs_group)
 
             #  Use localization to evaluate change of parameters for each observation
             # The order of the context managers is important, as we want to create a new
@@ -261,7 +260,7 @@ class AhmAnalysisJob(ErtScript):
                     update_log = smoother_update(
                         prior_storage=prior_ensemble,
                         posterior_storage=target_ensemble,
-                        observations=obs_group,
+                        observations=observations,
                         parameters=field_parameters + gen_kw_names,
                         update_settings=copy.deepcopy(observation_settings),
                         es_settings=es_settings,
@@ -270,29 +269,29 @@ class AhmAnalysisJob(ErtScript):
                     # Get the active vs total observation info
                     df_update_log = make_update_log_df(update_log)
                 except ErtAnalysisError:
-                    logger.error(f"Analysis failed for: {obs_group}")
-                    del updated_combinations[group_name]
+                    logger.error(f"Analysis failed for: {observations}")
+                    del obs_group_to_obs_keys[obs_group]
                     continue
                 # Get the updated scalar parameter distributions
                 target_ensemble.load_all_gen_kw_data().to_csv(
-                    ahmanalysis_reports_dir / f"{group_name}.csv"
+                    ahmanalysis_reports_dir / f"{obs_group}.csv"
                 )
 
-                active_obs.at["ratio", group_name] = (
+                active_obs.at["ratio", obs_group] = (
                     str(count_active_observations(df_update_log))
                     + " active/"
                     + str(len(df_update_log.index))
                 )
                 # Get misfit values
-                misfitval[group_name] = [
+                misfitval[obs_group] = [
                     calc_observationsgroup_misfit(
-                        group_name,
+                        obs_group,
                         df_update_log,
                         LibresFacade.load_all_misfit_data(prior_ensemble),
                     )
                 ]
                 # Calculate Ks matrix for scalar parameters
-                kolmogorov_smirnov_data[group_name] = kolmogorov_smirnov_data[
+                kolmogorov_smirnov_data[obs_group] = kolmogorov_smirnov_data[
                     "Parameters"
                 ].map(
                     calc_kolmogorov_smirnov(
