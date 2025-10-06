@@ -253,16 +253,6 @@ def _excel2dict_onebyone(
 
     designinput["sensname"] = designinput["sensname"].ffill()
 
-    if "dependencies" in designinput:
-        valid_deps = designinput[designinput["dependencies"].notna()]
-        inputdict["dependencies"] = OrderedDict()
-        for row in valid_deps.itertuples():
-            inputdict["dependencies"][row.param_name] = _read_dependencies(
-                input_filename,
-                str(row.dependencies),
-                str(row.param_name),
-            )
-
     if "decimals" in designinput:
         # Convert to numeric, then filter for integers
         numeric_decimals = pd.to_numeric(designinput["decimals"], errors="coerce")
@@ -327,6 +317,23 @@ def _excel2dict_onebyone(
             # 'repeats' from general_input sheet
             sensdict["numreal"] = int(group["numreal"].iloc[0])
 
+        # If this sensitivity has dependencies, then get them from sheet
+        sensdict["dependencies"] = OrderedDict()
+        if "dependencies" in group:
+            # Get all dependencies in this sensitivity
+            valid_deps = group[group["dependencies"].notna()]
+            dependencies_dict = OrderedDict()
+
+            # For each dependency, get the mapping
+            for row in valid_deps.itertuples():
+                dependencies_dict[row.param_name] = _read_dependencies(
+                    filename=input_filename,
+                    sheetname=str(row.dependencies),
+                    from_parameter=str(row.param_name),
+                )
+            sensdict["dependencies"] = dependencies_dict
+
+        # Add this sensitivity to the sensitivities
         inputdict["sensitivities"][str(sensname)] = sensdict
 
     return inputdict
@@ -371,13 +378,14 @@ def _read_defaultvalues(filename: str, sheetname: str) -> OrderedDict[str, Any]:
 
 
 def _read_dependencies(
-    filename: str, sheetname: str, from_parameter: str
+    *, filename: str, sheetname: str, from_parameter: str
 ) -> OrderedDict[str, Any]:
     """Reads parameters that are set from other parameters
 
     Args:
         filename(path): path to excel file
         sheetname (string): name of dependency sheet
+        from_parameter (string): parameter name to map from
 
     Returns:
         OrderedDict with design parameter, dependent parameters

@@ -37,7 +37,12 @@ def test_designmatrix():
         "repeats": 10,
         "defaultvalues": {},
         "sensitivities": {
-            "rms_seed": {"seedname": "RMS_SEED", "senstype": "seed", "parameters": None}
+            "rms_seed": {
+                "seedname": "RMS_SEED",
+                "senstype": "seed",
+                "parameters": None,
+                "dependencies": {},
+            }
         },
     }
 
