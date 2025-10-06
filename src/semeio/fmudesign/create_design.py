@@ -264,6 +264,7 @@ class DesignMatrix:
                 sensitivity.generate(
                     realnums=range(current_real_index, current_real_index + numreal)
                 )
+                sensitivity.map_dependencies(sens.get("dependencies", {}))
                 current_real_index += numreal
                 self._add_sensitivity(sensitivity)
             elif sens["senstype"] == "background":
@@ -271,6 +272,7 @@ class DesignMatrix:
                 sensitivity.generate(
                     realnums=range(current_real_index, current_real_index + numreal)
                 )
+                sensitivity.map_dependencies(sens.get("dependencies", {}))
                 current_real_index += numreal
                 self._add_sensitivity(sensitivity)
             elif sens["senstype"] == "seed":
@@ -285,6 +287,7 @@ class DesignMatrix:
                     seedvalues=self.seedvalues,
                     parameters=sens["parameters"],
                 )
+                sensitivity.map_dependencies(sens.get("dependencies", {}))
                 current_real_index += numreal
                 self._add_sensitivity(sensitivity)
             elif sens["senstype"] == "scenario":
@@ -300,6 +303,7 @@ class DesignMatrix:
                         seedvalues=self.seedvalues,
                     )
                     sensitivity.add_case(temp_case)
+                    sensitivity.map_dependencies(sens.get("dependencies", {}))
                     current_real_index += numreal
                 self._add_sensitivity(sensitivity)
             elif sens["senstype"] == "dist":
@@ -311,6 +315,7 @@ class DesignMatrix:
                     corrdict=sens["correlations"],
                     rng=rng,
                 )
+                sensitivity.map_dependencies(sens.get("dependencies", {}))
                 current_real_index += numreal
                 self._add_sensitivity(sensitivity)
 
@@ -322,6 +327,7 @@ class DesignMatrix:
                     parameters=sens["parameters"],
                     seedvalues=self.seedvalues,
                 )
+                sensitivity.map_dependencies(sens.get("dependencies", {}))
                 current_real_index += numreal
                 self._add_sensitivity(sensitivity)
             print("Added sensitivity :", sensitivity.sensname)
@@ -367,17 +373,18 @@ class DesignMatrix:
             self._fill_with_background_values()
         self._fill_with_defaultvalues()
 
-        if "dependencies" in inputdict:
-            self._fill_derived_params(inputdict["dependencies"])
-
         if "decimals" in inputdict:
             self._set_decimals(inputdict["decimals"])
+
         # Re-order columns
         start_cols = ["REAL", "SENSNAME", "SENSCASE", "RMS_SEED"]
         self.designvalues = self.designvalues[
             [col for col in start_cols if col in self.designvalues]
             + [col for col in self.designvalues if col not in start_cols]
         ]
+
+        # Make all values numerical if possible
+        self.designvalues = self.designvalues.map(to_numeric_safe)
 
     def to_xlsx(
         self,
@@ -558,28 +565,6 @@ class DesignMatrix:
             elif key not in {"REAL", "SENSNAME", "SENSCASE", "RMS_SEED"}:
                 raise LookupError(f"No defaultvalues given for parameter {key} ")
 
-    def _fill_derived_params(self, depend_dict: Mapping[str, Any]) -> None:
-        for from_param in depend_dict:
-            if from_param in self.designvalues:
-                for param in depend_dict[from_param]["to_params"]:
-                    self.designvalues[param] = np.nan
-                    for index in range(len(depend_dict[from_param]["from_values"])):
-                        fill_these = depend_dict[from_param]["from_values"][index]
-                        fill_data = depend_dict[from_param]["to_params"][param][index]
-                        self.designvalues[param] = self.designvalues[param].mask(
-                            self.designvalues[from_param] == fill_these, fill_data
-                        )
-                    if self.designvalues[param].isnull().any():
-                        raise ValueError(
-                            f"Column for derived parameter {param} "
-                            "contains NaN. Check input "
-                            "defining dependencies. "
-                            "Could be Wrong values or that "
-                            "values for input variable  in "
-                            "dependencies sheet "
-                            "should be specified as strings."
-                        )
-
     def _add_dist_background(
         self, back_dict: Mapping[str, Any], numreal: int, rng: np.random.Generator
     ) -> None:
@@ -638,7 +623,14 @@ class DesignMatrix:
                     raise ValueError(f"Cannot round a string parameter {key}")
 
 
-class SeedSensitivity:
+class Sensitivity:
+    def map_dependencies(self, dependencies: Mapping[str, Any]) -> "Sensitivity":
+        """Map the dependencies, mutating the dataframe `self.sensvalues`."""
+        self.sensvalues: pd.DataFrame = map_dependencies(self.sensvalues, dependencies)
+        return self
+
+
+class SeedSensitivity(Sensitivity):
     """
     A seed sensitivity is normally the reference for one by one sensitivities,
     which all other sensitivities are compared to. All parameters will be at
@@ -704,7 +696,7 @@ class SeedSensitivity:
         self.sensvalues["SENSCASE"] = "p10_p90"
 
 
-class SingleRealisationReference:
+class SingleRealisationReference(Sensitivity):
     """
     The class is used in set-ups where one wants a single realisation
     containing only default values as a reference, but the realisation
@@ -740,7 +732,7 @@ class SingleRealisationReference:
         self.sensvalues["SENSCASE"] = "ref"
 
 
-class BackgroundSensitivity:
+class BackgroundSensitivity(Sensitivity):
     """
     The class is used in set-ups where one sensitivities
     are run on top of varying background parameters.
@@ -776,7 +768,7 @@ class BackgroundSensitivity:
         self.sensvalues["SENSCASE"] = "p10_p90"
 
 
-class ScenarioSensitivity:
+class ScenarioSensitivity(Sensitivity):
     """Each design can contain one or several single sensitivities of type
     Seed, MonteCarlo or Scenario.
     Each ScenarioSensitivity can contain 1-2 ScenarioSensitivityCases.
@@ -838,7 +830,7 @@ class ScenarioSensitivity:
             self.sensvalues["SENSNAME"] = self.sensname
 
 
-class ScenarioSensitivityCase:
+class ScenarioSensitivityCase(Sensitivity):
     """Each ScenarioSensitivity can contain one or
     two ScenarioSensitivityCases.
 
@@ -888,7 +880,7 @@ class ScenarioSensitivityCase:
             self.casevalues["RMS_SEED"] = seedvalues[: len(realnums)]
 
 
-class MonteCarloSensitivity:
+class MonteCarloSensitivity(Sensitivity):
     """
     For a MonteCarloSensitivity one or several parameters
     are drawn from specified distributions with or without correlations.
@@ -1056,7 +1048,7 @@ class MonteCarloSensitivity:
             raise ValueError(f"Found NaN values in columns: {cols_w_null}")
 
 
-class ExternSensitivity:
+class ExternSensitivity(Sensitivity):
     """
     Used when reading parameter values from a file
     Assumed to be used with monte carlo type sensitivities and
@@ -1241,3 +1233,94 @@ def _print_corrmat(df_corrmat: pd.DataFrame) -> None:
     df_display = df_corrmat.astype(float).map(formatter)
     df_display[mask] = ""
     print(df_display.to_markdown(floatfmt=".2f"))
+
+
+def to_numeric_safe(val: int | float | str) -> int | float | str:
+    """Convert all values that CAN be converted to numeric. Retain the rest.
+    This used to be pd.to_numeric(..., errors='ignore'), but was deprecated.
+
+    Examples
+    --------
+    >>> df = pd.DataFrame({'a': ['cat', '3.5', '-1', 0, 'dog']})
+    >>> df.map(to_numeric_safe).a.values
+    array(['cat', np.float64(3.5), np.int64(-1), 0, 'dog'], dtype=object)
+
+    >>> [to_numeric_safe(e) for e in [5, '3', 'dog']]
+    [5, np.int64(3), 'dog']
+
+    """
+    assert not isinstance(val, pd.Series | pd.DataFrame | list)
+    try:
+        return pd.to_numeric(val)  # noq
+    except (ValueError, TypeError):
+        return val
+
+
+def map_dependencies(df: pd.DataFrame, dependencies: Mapping[str, Any]) -> pd.DataFrame:
+    """Return a new copy of `df` with dependencies mapped.
+
+    Examples
+    --------
+    >>> df = pd.DataFrame({'a': [1, 2, 3, 4], 'b': ['A', 'B', 'C', 'D']})
+    >>> dependencies = {'a': {'from_values': [1, 2, 3, 4],
+    ...                       'to_params':{'c': [1, 4, 9, 16]}}}
+    >>> map_dependencies(df, dependencies)
+       a  b   c
+    0  1  A   1
+    1  2  B   4
+    2  3  C   9
+    3  4  D  16
+
+    A messy mix of numbers and strings:
+
+    >>> df = pd.DataFrame({'a': ['1', '2', 3, 4], 'b': ['A', 'B', 'C', 'D']})
+    >>> dependencies = {'a': {'from_values': ['1', 2, '3', 4],
+    ...                       'to_params':{'c': [1, 4, 9, '16']}}}
+    >>> map_dependencies(df, dependencies)
+       a  b   c
+    0  1  A   1
+    1  2  B   4
+    2  3  C   9
+    3  4  D  16
+
+    """
+
+    df = df.copy()
+    for from_param, from_dict in dependencies.items():
+        # No column to map from
+        if from_param not in df.columns:
+            continue
+
+        from_values = from_dict["from_values"]
+        from_values = [to_numeric_safe(value) for value in from_values]
+
+        for to_param, to_values in from_dict["to_params"].items():
+            to_values = [to_numeric_safe(value) for value in to_values]
+
+            # At this point we have a mapping 'from_param' - > 'to_param'
+            # defined elementwise by values of 'from_values' -> 'to_values'
+            mapping = dict(zip(from_values, to_values, strict=False))
+
+            # Check that every value will be mapped
+            not_mapped = set(df[from_param].map(to_numeric_safe)) - set(from_values)
+            if not_mapped:
+                msg = (
+                    f"Mapping dependencies {from_param!r} to {to_param!r} using "
+                    f"mapping:\n{mapping!r}\n failed. The following values could "
+                    f"not be mapped:\n{not_mapped!r}"
+                )
+                raise ValueError(msg)
+
+            df = df.assign(
+                **{
+                    # Bind loop variables as default args to the lambda
+                    to_param: lambda df, from_param=from_param, mapping=mapping: df[
+                        from_param
+                    ]
+                    .map(to_numeric_safe)
+                    .map(mapping)
+                }
+            )
+            # print(f"Mapped {from_param!r} to {to_param!r} using {mapping!r}")
+
+    return df
