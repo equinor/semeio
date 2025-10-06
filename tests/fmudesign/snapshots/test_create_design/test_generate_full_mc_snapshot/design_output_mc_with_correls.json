@@ -1,6 +1,8 @@
 {
   "defaultvalues": {
     "DATO": "2018-11-03",
+    "DERIVED_PARAM1": 1,
+    "DERIVED_PARAM2": "a",
     "FAULTSEAL": 0.01,
     "HUM_METHOD": "SIMPLE",
     "HUM_MODE": "PREDICTION",
@@ -19,7 +21,7 @@
   "designvalues": [
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.102,
       "NTG1": 0.86,
@@ -37,7 +39,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.007,
       "NTG1": 0.84,
@@ -55,7 +57,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.078,
       "NTG1": 0.9,
@@ -73,7 +75,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.491,
       "NTG1": 0.86,
@@ -91,7 +93,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.008,
       "NTG1": 0.91,
@@ -109,7 +111,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.004,
       "NTG1": 0.83,
@@ -127,7 +129,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.012,
       "NTG1": 0.83,
@@ -145,7 +147,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.197,
       "NTG1": 0.85,
@@ -163,7 +165,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.032,
       "NTG1": 0.79,
@@ -181,7 +183,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.007,
       "NTG1": 0.89,
@@ -199,7 +201,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.997,
       "NTG1": 0.8,
@@ -217,7 +219,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.078,
       "NTG1": 0.81,
@@ -235,7 +237,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.745,
       "NTG1": 0.8,
@@ -253,7 +255,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.002,
       "NTG1": 0.79,
@@ -271,7 +273,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.16,
       "NTG1": 0.84,
@@ -289,7 +291,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.005,
       "NTG1": 0.86,
@@ -307,7 +309,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.001,
       "NTG1": 0.82,
@@ -325,7 +327,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.002,
       "NTG1": 0.82,
@@ -343,7 +345,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.719,
       "NTG1": 0.93,
@@ -361,7 +363,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.035,
       "NTG1": 0.85,
@@ -379,7 +381,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.063,
       "NTG1": 0.95,
@@ -397,7 +399,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.697,
       "NTG1": 0.78,
@@ -415,7 +417,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.176,
       "NTG1": 0.84,
@@ -433,7 +435,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.002,
       "NTG1": 0.8,
@@ -451,7 +453,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.054,
       "NTG1": 0.86,
@@ -469,7 +471,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.108,
       "NTG1": 0.87,
@@ -487,7 +489,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.314,
       "NTG1": 0.88,
@@ -505,7 +507,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.425,
       "NTG1": 0.83,
@@ -523,7 +525,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.003,
       "NTG1": 0.8,
@@ -541,7 +543,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.287,
       "NTG1": 0.89,
@@ -559,7 +561,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.009,
       "NTG1": 0.86,
@@ -577,7 +579,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.028,
       "NTG1": 0.86,
@@ -595,7 +597,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.223,
       "NTG1": 0.8,
@@ -613,7 +615,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.008,
       "NTG1": 0.81,
@@ -631,7 +633,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.168,
       "NTG1": 0.75,
@@ -649,7 +651,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.526,
       "NTG1": 0.83,
@@ -667,7 +669,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.004,
       "NTG1": 0.96,
@@ -685,7 +687,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.384,
       "NTG1": 0.8,
@@ -703,7 +705,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.018,
       "NTG1": 0.81,
@@ -721,7 +723,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.048,
       "NTG1": 0.96,
@@ -739,7 +741,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.034,
       "NTG1": 0.8,
@@ -757,7 +759,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.132,
       "NTG1": 0.84,
@@ -775,7 +777,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.348,
       "NTG1": 0.85,
@@ -793,7 +795,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.883,
       "NTG1": 0.82,
@@ -811,7 +813,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.014,
       "NTG1": 0.82,
@@ -829,7 +831,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.876,
       "NTG1": 0.87,
@@ -847,7 +849,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.002,
       "NTG1": 0.8,
@@ -865,7 +867,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.365,
       "NTG1": 0.9,
@@ -883,7 +885,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.021,
       "NTG1": 0.78,
@@ -901,7 +903,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.964,
       "NTG1": 0.77,
@@ -919,7 +921,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.011,
       "NTG1": 0.88,
@@ -937,7 +939,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.001,
       "NTG1": 0.96,
@@ -955,7 +957,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.002,
       "NTG1": 0.94,
@@ -973,7 +975,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.334,
       "NTG1": 0.91,
@@ -991,7 +993,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.013,
       "NTG1": 0.83,
@@ -1009,7 +1011,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.003,
       "NTG1": 0.94,
@@ -1027,7 +1029,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.248,
       "NTG1": 0.88,
@@ -1045,7 +1047,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.946,
       "NTG1": 0.87,
@@ -1063,7 +1065,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.002,
       "NTG1": 0.82,
@@ -1081,7 +1083,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.005,
       "NTG1": 0.85,
@@ -1099,7 +1101,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.047,
       "NTG1": 0.83,
@@ -1117,7 +1119,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.271,
       "NTG1": 0.81,
@@ -1135,7 +1137,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.547,
       "NTG1": 0.76,
@@ -1153,7 +1155,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.192,
       "NTG1": 0.93,
@@ -1171,7 +1173,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.007,
       "NTG1": 0.84,
@@ -1189,7 +1191,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.01,
       "NTG1": 0.82,
@@ -1207,7 +1209,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.005,
       "NTG1": 0.81,
@@ -1225,7 +1227,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.014,
       "NTG1": 0.86,
@@ -1243,7 +1245,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.006,
       "NTG1": 0.83,
@@ -1261,7 +1263,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.065,
       "NTG1": 0.84,
@@ -1279,7 +1281,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.356,
       "NTG1": 0.93,
@@ -1297,7 +1299,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.008,
       "NTG1": 0.87,
@@ -1315,7 +1317,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.001,
       "NTG1": 0.82,
@@ -1333,7 +1335,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.001,
       "NTG1": 0.9,
@@ -1351,7 +1353,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.086,
       "NTG1": 0.78,
@@ -1369,7 +1371,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.003,
       "NTG1": 0.83,
@@ -1387,7 +1389,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.4,
       "NTG1": 0.92,
@@ -1405,7 +1407,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.01,
       "NTG1": 0.88,
@@ -1423,7 +1425,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.061,
       "NTG1": 0.83,
@@ -1441,7 +1443,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.003,
       "NTG1": 0.85,
@@ -1459,7 +1461,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.002,
       "NTG1": 0.88,
@@ -1477,7 +1479,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.001,
       "NTG1": 0.91,
@@ -1495,7 +1497,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.004,
       "NTG1": 0.78,
@@ -1513,7 +1515,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.027,
       "NTG1": 0.78,
@@ -1531,7 +1533,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.158,
       "NTG1": 0.89,
@@ -1549,7 +1551,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.012,
       "NTG1": 0.86,
@@ -1567,7 +1569,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.231,
       "NTG1": 0.8,
@@ -1585,7 +1587,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.467,
       "NTG1": 0.78,
@@ -1603,7 +1605,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.514,
       "NTG1": 0.93,
@@ -1621,7 +1623,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.007,
       "NTG1": 0.78,
@@ -1639,7 +1641,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.001,
       "NTG1": 0.79,
@@ -1657,7 +1659,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.022,
       "NTG1": 0.87,
@@ -1675,7 +1677,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.057,
       "NTG1": 0.83,
@@ -1693,7 +1695,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.001,
       "NTG1": 0.8,
@@ -1711,7 +1713,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.7,
       "NTG1": 0.91,
@@ -1729,7 +1731,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.003,
       "NTG1": 0.79,
@@ -1747,7 +1749,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.227,
       "NTG1": 0.82,
@@ -1765,7 +1767,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.002,
       "NTG1": 0.9,
@@ -1783,7 +1785,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.076,
       "NTG1": 0.82,
@@ -1801,7 +1803,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.037,
       "NTG1": 0.79,
@@ -1819,7 +1821,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.009,
       "NTG1": 0.81,
@@ -1837,7 +1839,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.105,
       "NTG1": 0.8,
@@ -1855,7 +1857,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.767,
       "NTG1": 0.89,
@@ -1873,7 +1875,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.147,
       "NTG1": 0.86,
@@ -1891,7 +1893,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.089,
       "NTG1": 0.82,
@@ -1909,7 +1911,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.019,
       "NTG1": 0.84,
@@ -1927,7 +1929,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.114,
       "NTG1": 0.92,
@@ -1945,7 +1947,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.02,
       "NTG1": 0.82,
@@ -1963,7 +1965,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.002,
       "NTG1": 0.81,
@@ -1981,7 +1983,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.004,
       "NTG1": 0.82,
@@ -1999,7 +2001,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.751,
       "NTG1": 0.81,
@@ -2017,7 +2019,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.03,
       "NTG1": 0.85,
@@ -2035,7 +2037,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.113,
       "NTG1": 0.97,
@@ -2053,7 +2055,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.01,
       "NTG1": 0.81,
@@ -2071,7 +2073,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.039,
       "NTG1": 0.81,
@@ -2089,7 +2091,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.003,
       "NTG1": 0.86,
@@ -2107,7 +2109,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.012,
       "NTG1": 0.85,
@@ -2125,7 +2127,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.088,
       "NTG1": 0.97,
@@ -2143,7 +2145,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.043,
       "NTG1": 0.79,
@@ -2161,7 +2163,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.073,
       "NTG1": 0.83,
@@ -2179,7 +2181,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.002,
       "NTG1": 0.86,
@@ -2197,7 +2199,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.067,
       "NTG1": 0.88,
@@ -2215,7 +2217,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.033,
       "NTG1": 0.81,
@@ -2233,7 +2235,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.486,
       "NTG1": 0.93,
@@ -2251,7 +2253,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.302,
       "NTG1": 0.79,
@@ -2269,7 +2271,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.004,
       "NTG1": 0.85,
@@ -2287,7 +2289,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.06,
       "NTG1": 0.96,
@@ -2305,7 +2307,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.004,
       "NTG1": 0.79,
@@ -2323,7 +2325,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.152,
       "NTG1": 0.95,
@@ -2341,7 +2343,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.175,
       "NTG1": 0.87,
@@ -2359,7 +2361,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.218,
       "NTG1": 0.93,
@@ -2377,7 +2379,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.018,
       "NTG1": 0.85,
@@ -2395,7 +2397,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.005,
       "NTG1": 0.81,
@@ -2413,7 +2415,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.005,
       "NTG1": 0.78,
@@ -2431,7 +2433,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.019,
       "NTG1": 0.94,
@@ -2449,7 +2451,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.01,
       "NTG1": 0.8,
@@ -2467,7 +2469,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.343,
       "NTG1": 0.9,
@@ -2485,7 +2487,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.002,
       "NTG1": 0.84,
@@ -2503,7 +2505,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.07,
       "NTG1": 0.93,
@@ -2521,7 +2523,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.455,
       "NTG1": 0.77,
@@ -2539,7 +2541,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.026,
       "NTG1": 0.81,
@@ -2557,7 +2559,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.02,
       "NTG1": 0.77,
@@ -2575,7 +2577,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.469,
       "NTG1": 0.81,
@@ -2593,7 +2595,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.122,
       "NTG1": 0.92,
@@ -2611,7 +2613,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.072,
       "NTG1": 0.82,
@@ -2629,7 +2631,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.098,
       "NTG1": 0.81,
@@ -2647,7 +2649,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.001,
       "NTG1": 0.92,
@@ -2665,7 +2667,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.014,
       "NTG1": 0.95,
@@ -2683,7 +2685,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.777,
       "NTG1": 0.85,
@@ -2701,7 +2703,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.007,
       "NTG1": 0.89,
@@ -2719,7 +2721,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.006,
       "NTG1": 0.83,
@@ -2737,7 +2739,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.173,
       "NTG1": 0.83,
@@ -2755,7 +2757,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.003,
       "NTG1": 0.83,
@@ -2773,7 +2775,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.067,
       "NTG1": 0.86,
@@ -2791,7 +2793,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.003,
       "NTG1": 0.82,
@@ -2809,7 +2811,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.636,
       "NTG1": 0.78,
@@ -2827,7 +2829,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.003,
       "NTG1": 0.78,
@@ -2845,7 +2847,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.001,
       "NTG1": 0.88,
@@ -2863,7 +2865,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.092,
       "NTG1": 0.8,
@@ -2881,7 +2883,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.009,
       "NTG1": 0.84,
@@ -2899,7 +2901,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.002,
       "NTG1": 0.83,
@@ -2917,7 +2919,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.001,
       "NTG1": 0.78,
@@ -2935,7 +2937,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.002,
       "NTG1": 0.96,
@@ -2953,7 +2955,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.003,
       "NTG1": 0.92,
@@ -2971,7 +2973,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.281,
       "NTG1": 0.87,
@@ -2989,7 +2991,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.002,
       "NTG1": 0.85,
@@ -3007,7 +3009,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.001,
       "NTG1": 0.86,
@@ -3025,7 +3027,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.002,
       "NTG1": 0.85,
@@ -3043,7 +3045,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.242,
       "NTG1": 0.85,
@@ -3061,7 +3063,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.11,
       "NTG1": 0.92,
@@ -3079,7 +3081,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.027,
       "NTG1": 0.82,
@@ -3097,7 +3099,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.001,
       "NTG1": 0.89,
@@ -3115,7 +3117,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.056,
       "NTG1": 0.86,
@@ -3133,7 +3135,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.976,
       "NTG1": 0.8,
@@ -3151,7 +3153,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.825,
       "NTG1": 0.9,
@@ -3169,7 +3171,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.069,
       "NTG1": 0.88,
@@ -3187,7 +3189,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.009,
       "NTG1": 0.83,
@@ -3205,7 +3207,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.253,
       "NTG1": 0.76,
@@ -3223,7 +3225,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.004,
       "NTG1": 0.83,
@@ -3241,7 +3243,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.011,
       "NTG1": 0.86,
@@ -3259,7 +3261,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.199,
       "NTG1": 0.78,
@@ -3277,7 +3279,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.029,
       "NTG1": 0.79,
@@ -3295,7 +3297,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.025,
       "NTG1": 0.94,
@@ -3313,7 +3315,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.002,
       "NTG1": 0.95,
@@ -3331,7 +3333,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.017,
       "NTG1": 0.81,
@@ -3349,7 +3351,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.013,
       "NTG1": 0.79,
@@ -3367,7 +3369,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.451,
       "NTG1": 0.82,
@@ -3385,7 +3387,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.289,
       "NTG1": 0.79,
@@ -3403,7 +3405,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.413,
       "NTG1": 0.85,
@@ -3421,7 +3423,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.116,
       "NTG1": 0.79,
@@ -3439,7 +3441,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.027,
       "NTG1": 0.77,
@@ -3457,7 +3459,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.164,
       "NTG1": 0.84,
@@ -3475,7 +3477,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.094,
       "NTG1": 0.85,
@@ -3493,7 +3495,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.735,
       "NTG1": 0.97,
@@ -3511,7 +3513,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.004,
       "NTG1": 0.9,
@@ -3529,7 +3531,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.011,
       "NTG1": 0.77,
@@ -3547,7 +3549,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.022,
       "NTG1": 0.78,
@@ -3565,7 +3567,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.353,
       "NTG1": 0.93,
@@ -3583,7 +3585,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.441,
       "NTG1": 0.82,
@@ -3601,7 +3603,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.311,
       "NTG1": 0.88,
@@ -3619,7 +3621,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.023,
       "NTG1": 0.79,
@@ -3637,7 +3639,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.028,
       "NTG1": 0.88,
@@ -3655,7 +3657,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.584,
       "NTG1": 0.76,
@@ -3673,7 +3675,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.002,
       "NTG1": 0.84,
@@ -3691,7 +3693,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.203,
       "NTG1": 0.79,
@@ -3709,7 +3711,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.002,
       "NTG1": 0.85,
@@ -3727,7 +3729,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.338,
       "NTG1": 0.8,
@@ -3745,7 +3747,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.006,
       "NTG1": 0.82,
@@ -3763,7 +3765,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.002,
       "NTG1": 0.82,
@@ -3781,7 +3783,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.8,
       "NTG1": 0.81,
@@ -3799,7 +3801,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.038,
       "NTG1": 0.84,
@@ -3817,7 +3819,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.004,
       "NTG1": 0.86,
@@ -3835,7 +3837,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.014,
       "NTG1": 0.82,
@@ -3853,7 +3855,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.015,
       "NTG1": 0.8,
@@ -3871,7 +3873,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.919,
       "NTG1": 0.8,
@@ -3889,7 +3891,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.127,
       "NTG1": 0.82,
@@ -3907,7 +3909,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.219,
       "NTG1": 0.79,
@@ -3925,7 +3927,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.021,
       "NTG1": 0.77,
@@ -3943,7 +3945,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.194,
       "NTG1": 0.79,
@@ -3961,7 +3963,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.839,
       "NTG1": 0.82,
@@ -3979,7 +3981,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.002,
       "NTG1": 0.92,
@@ -3997,7 +3999,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.28,
       "NTG1": 0.76,
@@ -4015,7 +4017,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.037,
       "NTG1": 0.8,
@@ -4033,7 +4035,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.001,
       "NTG1": 0.96,
@@ -4051,7 +4053,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.651,
       "NTG1": 0.89,
@@ -4069,7 +4071,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.023,
       "NTG1": 0.96,
@@ -4087,7 +4089,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.003,
       "NTG1": 0.87,
@@ -4105,7 +4107,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.001,
       "NTG1": 0.91,
@@ -4123,7 +4125,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.046,
       "NTG1": 0.79,
@@ -4141,7 +4143,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.506,
       "NTG1": 0.86,
@@ -4159,7 +4161,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.235,
       "NTG1": 0.91,
@@ -4177,7 +4179,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.531,
       "NTG1": 0.91,
@@ -4195,7 +4197,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.179,
       "NTG1": 0.88,
@@ -4213,7 +4215,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.858,
       "NTG1": 0.8,
@@ -4231,7 +4233,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.245,
       "NTG1": 0.88,
@@ -4249,7 +4251,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.126,
       "NTG1": 0.99,
@@ -4267,7 +4269,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.008,
       "NTG1": 0.82,
@@ -4285,7 +4287,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.002,
       "NTG1": 0.8,
@@ -4303,7 +4305,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.007,
       "NTG1": 0.79,
@@ -4321,7 +4323,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.01,
       "NTG1": 0.91,
@@ -4339,7 +4341,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.905,
       "NTG1": 0.8,
@@ -4357,7 +4359,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.053,
       "NTG1": 0.96,
@@ -4375,7 +4377,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.022,
       "NTG1": 0.81,
@@ -4393,7 +4395,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.155,
       "NTG1": 0.9,
@@ -4411,7 +4413,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.058,
       "NTG1": 0.83,
@@ -4429,7 +4431,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.002,
       "NTG1": 0.8,
@@ -4447,7 +4449,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.954,
       "NTG1": 0.87,
@@ -4465,7 +4467,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.068,
       "NTG1": 0.77,
@@ -4483,7 +4485,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.092,
       "NTG1": 0.89,
@@ -4501,7 +4503,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.48,
       "NTG1": 0.94,
@@ -4519,7 +4521,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.003,
       "NTG1": 0.83,
@@ -4537,7 +4539,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.04,
       "NTG1": 0.78,
@@ -4555,7 +4557,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.049,
       "NTG1": 0.93,
@@ -4573,7 +4575,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.393,
       "NTG1": 0.81,
@@ -4591,7 +4593,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.005,
       "NTG1": 0.81,
@@ -4609,7 +4611,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.034,
       "NTG1": 0.9,
@@ -4627,7 +4629,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.002,
       "NTG1": 0.92,
@@ -4645,7 +4647,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.003,
       "NTG1": 0.79,
@@ -4663,7 +4665,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.185,
       "NTG1": 0.8,
@@ -4681,7 +4683,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.001,
       "NTG1": 0.84,
@@ -4699,7 +4701,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.23,
       "NTG1": 0.88,
@@ -4717,7 +4719,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.661,
       "NTG1": 0.85,
@@ -4735,7 +4737,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.03,
       "NTG1": 0.81,
@@ -4753,7 +4755,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.002,
       "NTG1": 0.88,
@@ -4771,7 +4773,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.042,
       "NTG1": 0.92,
@@ -4789,7 +4791,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.808,
       "NTG1": 0.77,
@@ -4807,7 +4809,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.051,
       "NTG1": 0.84,
@@ -4825,7 +4827,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.144,
       "NTG1": 0.81,
@@ -4843,7 +4845,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.007,
       "NTG1": 0.79,
@@ -4861,7 +4863,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.128,
       "NTG1": 0.85,
@@ -4879,7 +4881,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.004,
       "NTG1": 0.87,
@@ -4897,7 +4899,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.005,
       "NTG1": 0.91,
@@ -4915,7 +4917,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.5,
       "NTG1": 0.83,
@@ -4933,7 +4935,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.003,
       "NTG1": 0.83,
@@ -4951,7 +4953,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.044,
       "NTG1": 0.9,
@@ -4969,7 +4971,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.09,
       "NTG1": 0.82,
@@ -4987,7 +4989,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.026,
       "NTG1": 0.92,
@@ -5005,7 +5007,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.015,
       "NTG1": 0.8,
@@ -5023,7 +5025,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.789,
       "NTG1": 0.77,
@@ -5041,7 +5043,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.001,
       "NTG1": 0.87,
@@ -5059,7 +5061,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.001,
       "NTG1": 0.85,
@@ -5077,7 +5079,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.055,
       "NTG1": 0.85,
@@ -5095,7 +5097,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.001,
       "NTG1": 0.83,
@@ -5113,7 +5115,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.019,
       "NTG1": 0.93,
@@ -5131,7 +5133,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.015,
       "NTG1": 0.79,
@@ -5149,7 +5151,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.016,
       "NTG1": 0.9,
@@ -5167,7 +5169,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.005,
       "NTG1": 0.97,
@@ -5185,7 +5187,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.016,
       "NTG1": 0.78,
@@ -5203,7 +5205,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.002,
       "NTG1": 0.76,
@@ -5221,7 +5223,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.204,
       "NTG1": 0.8,
@@ -5239,7 +5241,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.263,
       "NTG1": 0.84,
@@ -5257,7 +5259,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.001,
       "NTG1": 0.86,
@@ -5275,7 +5277,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.607,
       "NTG1": 0.87,
@@ -5293,7 +5295,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.025,
       "NTG1": 0.84,
@@ -5311,7 +5313,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.294,
       "NTG1": 0.88,
@@ -5329,7 +5331,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.425,
       "NTG1": 0.88,
@@ -5347,7 +5349,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.679,
       "NTG1": 0.98,
@@ -5365,7 +5367,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.004,
       "NTG1": 0.8,
@@ -5383,7 +5385,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.156,
       "NTG1": 0.83,
@@ -5401,7 +5403,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.006,
       "NTG1": 0.84,
@@ -5419,7 +5421,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.011,
       "NTG1": 0.81,
@@ -5437,7 +5439,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.003,
       "NTG1": 0.92,
@@ -5455,7 +5457,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.006,
       "NTG1": 0.79,
@@ -5473,7 +5475,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.003,
       "NTG1": 0.95,
@@ -5491,7 +5493,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.002,
       "NTG1": 0.81,
@@ -5509,7 +5511,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.021,
       "NTG1": 0.77,
@@ -5527,7 +5529,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.003,
       "NTG1": 0.87,
@@ -5545,7 +5547,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.044,
       "NTG1": 0.97,
@@ -5563,7 +5565,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.016,
       "NTG1": 0.89,
@@ -5581,7 +5583,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.002,
       "NTG1": 0.88,
@@ -5599,7 +5601,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.819,
       "NTG1": 0.98,
@@ -5617,7 +5619,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.71,
       "NTG1": 0.82,
@@ -5635,7 +5637,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.04,
       "NTG1": 0.76,
@@ -5653,7 +5655,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.036,
       "NTG1": 0.81,
@@ -5671,7 +5673,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.05,
       "NTG1": 0.9,
@@ -5689,7 +5691,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.042,
       "NTG1": 0.78,
@@ -5707,7 +5709,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.261,
       "NTG1": 0.89,
@@ -5725,7 +5727,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.071,
       "NTG1": 0.86,
@@ -5743,7 +5745,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.431,
       "NTG1": 0.91,
@@ -5761,7 +5763,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.13,
       "NTG1": 0.94,
@@ -5779,7 +5781,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.083,
       "NTG1": 0.81,
@@ -5797,7 +5799,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.058,
       "NTG1": 0.82,
@@ -5815,7 +5817,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.212,
       "NTG1": 0.86,
@@ -5833,7 +5835,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.099,
       "NTG1": 0.87,
@@ -5851,7 +5853,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.008,
       "NTG1": 0.82,
@@ -5869,7 +5871,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.004,
       "NTG1": 0.95,
@@ -5887,7 +5889,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.002,
       "NTG1": 0.85,
@@ -5905,7 +5907,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.029,
       "NTG1": 0.88,
@@ -5923,7 +5925,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.007,
       "NTG1": 0.9,
@@ -5941,7 +5943,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.104,
       "NTG1": 0.85,
@@ -5959,7 +5961,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.519,
       "NTG1": 0.8,
@@ -5977,7 +5979,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.568,
       "NTG1": 0.85,
@@ -5995,7 +5997,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.016,
       "NTG1": 0.89,
@@ -6013,7 +6015,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.045,
       "NTG1": 0.85,
@@ -6031,7 +6033,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.008,
       "NTG1": 0.84,
@@ -6049,7 +6051,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.082,
       "NTG1": 0.89,
@@ -6067,7 +6069,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.017,
       "NTG1": 0.97,
@@ -6085,7 +6087,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.86,
       "NTG1": 0.99,
@@ -6103,7 +6105,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.003,
       "NTG1": 0.86,
@@ -6121,7 +6123,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.002,
       "NTG1": 0.92,
@@ -6139,7 +6141,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.001,
       "NTG1": 0.84,
@@ -6157,7 +6159,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.041,
       "NTG1": 0.86,
@@ -6175,7 +6177,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.597,
       "NTG1": 0.83,
@@ -6193,7 +6195,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.018,
       "NTG1": 0.78,
@@ -6211,7 +6213,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.039,
       "NTG1": 0.85,
@@ -6229,7 +6231,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.005,
       "NTG1": 0.93,
@@ -6247,7 +6249,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.033,
       "NTG1": 0.84,
@@ -6265,7 +6267,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.299,
       "NTG1": 0.8,
@@ -6283,7 +6285,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.003,
       "NTG1": 0.82,
@@ -6301,7 +6303,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.214,
       "NTG1": 0.83,
@@ -6319,7 +6321,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.002,
       "NTG1": 0.77,
@@ -6337,7 +6339,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.031,
       "NTG1": 0.83,
@@ -6355,7 +6357,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.137,
       "NTG1": 0.82,
@@ -6373,7 +6375,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.006,
       "NTG1": 0.79,
@@ -6391,7 +6393,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.008,
       "NTG1": 0.79,
@@ -6409,7 +6411,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.006,
       "NTG1": 0.78,
@@ -6427,7 +6429,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.006,
       "NTG1": 0.91,
@@ -6445,7 +6447,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.017,
       "NTG1": 0.8,
@@ -6463,7 +6465,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.006,
       "NTG1": 0.91,
@@ -6481,7 +6483,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.08,
       "NTG1": 0.9,
@@ -6499,7 +6501,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.029,
       "NTG1": 0.89,
@@ -6517,7 +6519,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.002,
       "NTG1": 0.85,
@@ -6535,7 +6537,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.036,
       "NTG1": 0.83,
@@ -6553,7 +6555,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.001,
       "NTG1": 0.95,
@@ -6571,7 +6573,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.003,
       "NTG1": 0.77,
@@ -6589,7 +6591,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.012,
       "NTG1": 0.95,
@@ -6607,7 +6609,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.009,
       "NTG1": 0.91,
@@ -6625,7 +6627,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.075,
       "NTG1": 0.83,
@@ -6643,7 +6645,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.001,
       "NTG1": 0.87,
@@ -6661,7 +6663,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.051,
       "NTG1": 0.83,
@@ -6679,7 +6681,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.001,
       "NTG1": 0.87,
@@ -6697,7 +6699,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.653,
       "NTG1": 0.93,
@@ -6715,7 +6717,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.063,
       "NTG1": 0.94,
@@ -6733,7 +6735,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.001,
       "NTG1": 0.86,
@@ -6751,7 +6753,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.32,
       "NTG1": 0.83,
@@ -6769,7 +6771,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.056,
       "NTG1": 0.84,
@@ -6787,7 +6789,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.059,
       "NTG1": 0.94,
@@ -6805,7 +6807,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.001,
       "NTG1": 0.8,
@@ -6823,7 +6825,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.001,
       "NTG1": 0.8,
@@ -6841,7 +6843,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.004,
       "NTG1": 0.87,
@@ -6859,7 +6861,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.064,
       "NTG1": 0.9,
@@ -6877,7 +6879,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.007,
       "NTG1": 0.84,
@@ -6895,7 +6897,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.013,
       "NTG1": 0.95,
@@ -6913,7 +6915,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.01,
       "NTG1": 0.78,
@@ -6931,7 +6933,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.005,
       "NTG1": 0.86,
@@ -6949,7 +6951,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.241,
       "NTG1": 0.79,
@@ -6967,7 +6969,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.363,
       "NTG1": 0.78,
@@ -6985,7 +6987,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.006,
       "NTG1": 0.81,
@@ -7003,7 +7005,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.01,
       "NTG1": 0.79,
@@ -7021,7 +7023,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.026,
       "NTG1": 0.83,
@@ -7039,7 +7041,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.002,
       "NTG1": 0.78,
@@ -7057,7 +7059,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.267,
       "NTG1": 0.87,
@@ -7075,7 +7077,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.275,
       "NTG1": 0.83,
@@ -7093,7 +7095,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.169,
       "NTG1": 0.76,
@@ -7111,7 +7113,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.002,
       "NTG1": 0.8,
@@ -7129,7 +7131,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.005,
       "NTG1": 0.87,
@@ -7147,7 +7149,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.41,
       "NTG1": 0.81,
@@ -7165,7 +7167,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.004,
       "NTG1": 0.94,
@@ -7183,7 +7185,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.019,
       "NTG1": 0.84,
@@ -7201,7 +7203,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.614,
       "NTG1": 0.81,
@@ -7219,7 +7221,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.009,
       "NTG1": 0.84,
@@ -7237,7 +7239,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.012,
       "NTG1": 0.77,
@@ -7255,7 +7257,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.443,
       "NTG1": 0.79,
@@ -7273,7 +7275,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.555,
       "NTG1": 0.84,
@@ -7291,7 +7293,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.003,
       "NTG1": 0.84,
@@ -7309,7 +7311,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.004,
       "NTG1": 0.82,
@@ -7327,7 +7329,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.001,
       "NTG1": 0.8,
@@ -7345,7 +7347,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.016,
       "NTG1": 0.88,
@@ -7363,7 +7365,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.013,
       "NTG1": 0.82,
@@ -7381,7 +7383,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.024,
       "NTG1": 0.89,
@@ -7399,7 +7401,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.032,
       "NTG1": 0.84,
@@ -7417,7 +7419,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.025,
       "NTG1": 0.78,
@@ -7435,7 +7437,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.006,
       "NTG1": 0.81,
@@ -7453,7 +7455,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.004,
       "NTG1": 0.81,
@@ -7471,7 +7473,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.005,
       "NTG1": 0.87,
@@ -7489,7 +7491,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.008,
       "NTG1": 0.81,
@@ -7507,7 +7509,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.024,
       "NTG1": 0.87,
@@ -7525,7 +7527,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.002,
       "NTG1": 0.77,
@@ -7543,7 +7545,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.576,
       "NTG1": 0.82,
@@ -7561,7 +7563,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.378,
       "NTG1": 0.93,
@@ -7579,7 +7581,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.004,
       "NTG1": 0.89,
@@ -7597,7 +7599,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.004,
       "NTG1": 0.89,
@@ -7615,7 +7617,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.013,
       "NTG1": 0.95,
@@ -7633,7 +7635,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.094,
       "NTG1": 0.77,
@@ -7651,7 +7653,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.923,
       "NTG1": 0.85,
@@ -7669,7 +7671,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.003,
       "NTG1": 0.89,
@@ -7687,7 +7689,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.684,
       "NTG1": 0.81,
@@ -7705,7 +7707,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.022,
       "NTG1": 0.86,
@@ -7723,7 +7725,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.187,
       "NTG1": 0.92,
@@ -7741,7 +7743,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.007,
       "NTG1": 0.8,
@@ -7759,7 +7761,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.034,
       "NTG1": 0.91,
@@ -7777,7 +7779,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.567,
       "NTG1": 0.84,
@@ -7795,7 +7797,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.014,
       "NTG1": 0.85,
@@ -7813,7 +7815,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.62,
       "NTG1": 0.93,
@@ -7831,7 +7833,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.1,
       "NTG1": 0.91,
@@ -7849,7 +7851,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.123,
       "NTG1": 0.86,
@@ -7867,7 +7869,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.045,
       "NTG1": 0.91,
@@ -7885,7 +7887,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.37,
       "NTG1": 0.88,
@@ -7903,7 +7905,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.117,
       "NTG1": 0.76,
@@ -7921,7 +7923,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.053,
       "NTG1": 0.86,
@@ -7939,7 +7941,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.108,
       "NTG1": 0.77,
@@ -7957,7 +7959,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.142,
       "NTG1": 0.87,
@@ -7975,7 +7977,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.079,
       "NTG1": 0.9,
@@ -7993,7 +7995,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.031,
       "NTG1": 0.98,
@@ -8011,7 +8013,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.05,
       "NTG1": 0.9,
@@ -8029,7 +8031,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.009,
       "NTG1": 0.94,
@@ -8047,7 +8049,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.083,
       "NTG1": 0.87,
@@ -8065,7 +8067,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.258,
       "NTG1": 0.93,
@@ -8083,7 +8085,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.017,
       "NTG1": 0.79,
@@ -8101,7 +8103,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.135,
       "NTG1": 0.88,
@@ -8119,7 +8121,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.085,
       "NTG1": 0.82,
@@ -8137,7 +8139,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.048,
       "NTG1": 0.79,
@@ -8155,7 +8157,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.386,
       "NTG1": 0.89,
@@ -8173,7 +8175,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.018,
       "NTG1": 0.89,
@@ -8191,7 +8193,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.001,
       "NTG1": 0.81,
@@ -8209,7 +8211,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.146,
       "NTG1": 0.79,
@@ -8227,7 +8229,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.181,
       "NTG1": 0.79,
@@ -8245,7 +8247,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.135,
       "NTG1": 0.88,
@@ -8263,7 +8265,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.014,
       "NTG1": 0.81,
@@ -8281,7 +8283,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.062,
       "NTG1": 0.8,
@@ -8299,7 +8301,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.406,
       "NTG1": 0.84,
@@ -8317,7 +8319,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.307,
       "NTG1": 0.91,
@@ -8335,7 +8337,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.632,
       "NTG1": 0.82,
@@ -8353,7 +8355,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.032,
       "NTG1": 0.8,
@@ -8371,7 +8373,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.006,
       "NTG1": 0.81,
@@ -8389,7 +8391,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.012,
       "NTG1": 0.8,
@@ -8407,7 +8409,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.042,
       "NTG1": 0.87,
@@ -8425,7 +8427,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.001,
       "NTG1": 0.8,
@@ -8443,7 +8445,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.024,
       "NTG1": 0.84,
@@ -8461,7 +8463,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.189,
       "NTG1": 0.85,
@@ -8479,7 +8481,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.074,
       "NTG1": 0.91,
@@ -8497,7 +8499,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.164,
       "NTG1": 0.87,
@@ -8515,7 +8517,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.008,
       "NTG1": 0.83,
@@ -8533,7 +8535,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.096,
       "NTG1": 0.9,
@@ -8551,7 +8553,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.12,
       "NTG1": 0.82,
@@ -8569,7 +8571,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.021,
       "NTG1": 0.9,
@@ -8587,7 +8589,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.009,
       "NTG1": 0.9,
@@ -8605,7 +8607,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.118,
       "NTG1": 0.87,
@@ -8623,7 +8625,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.002,
       "NTG1": 0.83,
@@ -8641,7 +8643,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.011,
       "NTG1": 0.85,
@@ -8659,7 +8661,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.209,
       "NTG1": 0.92,
@@ -8677,7 +8679,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.012,
       "NTG1": 0.78,
@@ -8695,7 +8697,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.007,
       "NTG1": 0.88,
@@ -8713,7 +8715,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.002,
       "NTG1": 0.89,
@@ -8731,7 +8733,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.54,
       "NTG1": 0.81,
@@ -8749,7 +8751,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.005,
       "NTG1": 0.89,
@@ -8767,7 +8769,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.005,
       "NTG1": 0.89,
@@ -8785,7 +8787,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.02,
       "NTG1": 0.84,
@@ -8803,7 +8805,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.003,
       "NTG1": 0.78,
@@ -8821,7 +8823,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.139,
       "NTG1": 0.95,
@@ -8839,7 +8841,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.002,
       "NTG1": 0.86,
@@ -8857,7 +8859,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.329,
       "NTG1": 0.94,
@@ -8875,7 +8877,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.004,
       "NTG1": 0.81,
@@ -8893,7 +8895,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.011,
       "NTG1": 0.99,
@@ -8911,7 +8913,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.103,
       "NTG1": 0.81,
@@ -8929,7 +8931,7 @@
     },
     {
       "DATO": "2018-11-04",
-      "DERIVED_PARAM1": "3",
+      "DERIVED_PARAM1": 3.0,
       "DERIVED_PARAM2": "c",
       "FAULTSEAL": 0.149,
       "NTG1": 0.92,
@@ -8947,7 +8949,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.015,
       "NTG1": 0.82,
@@ -8965,7 +8967,7 @@
     },
     {
       "DATO": "2018-11-02",
-      "DERIVED_PARAM1": "1",
+      "DERIVED_PARAM1": 1.0,
       "DERIVED_PARAM2": "a",
       "FAULTSEAL": 0.322,
       "NTG1": 0.84,
@@ -8983,7 +8985,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.038,
       "NTG1": 0.79,
@@ -9001,7 +9003,7 @@
     },
     {
       "DATO": "2018-11-03",
-      "DERIVED_PARAM1": "2",
+      "DERIVED_PARAM1": 2.0,
       "DERIVED_PARAM2": "b",
       "FAULTSEAL": 0.001,
       "NTG1": 0.88,
