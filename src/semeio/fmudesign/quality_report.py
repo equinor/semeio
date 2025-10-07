@@ -283,8 +283,9 @@ class QualityReporter:
         else:
             print("The desired correlation matrix is valid")
 
-        print("Correlation in samples:")
-        print(corr.round(2))
+        if not corr.empty:
+            print("Correlation in samples:")
+            print(corr.round(2))
 
     def plot_correlation(
         self,
@@ -323,8 +324,8 @@ class QualityReporter:
 
         df = self.df[df_corr.columns].select_dtypes(include="number")
 
-        # Do not plot if only a single variable remains
-        if df.shape[1] == 1:
+        # Only plot if two or more variables remain
+        if df.shape[1] <= 1:
             return
 
         pairgrid = sns.PairGrid(df)
