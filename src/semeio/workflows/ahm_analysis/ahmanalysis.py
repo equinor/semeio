@@ -180,7 +180,8 @@ class AhmAnalysisJob(ErtScript):
         if target_name == "<ANALYSIS_CASE_NAME>":
             target_name = "analysis_case"
 
-        prior_data = prior_ensemble.load_all_gen_kw_data()
+        prior_data = prior_ensemble.load_scalars().to_pandas()
+
         try:
             raise_if_empty(
                 dataframes=[
@@ -194,7 +195,10 @@ class AhmAnalysisJob(ErtScript):
             )
         except KeyError as err:
             raise ValidationError(f"Empty prior ensemble: {err}") from err
-
+        prior_data.columns.name = None
+        prior_data.index.name = "Realization"
+        prior_data = prior_data.sort_index(axis=1)
+        prior_data = prior_data.set_index("realization")
         ahmanalysis_reports_dir = Path(reports_dir) / "AhmAnalysisJob"
         os.makedirs(ahmanalysis_reports_dir, exist_ok=True)
 
@@ -272,11 +276,16 @@ class AhmAnalysisJob(ErtScript):
                     logger.error(f"Analysis failed for: {observations}")
                     del obs_group_to_obs_keys[obs_group]
                     continue
-                # Get the updated scalar parameter distributions
-                target_ensemble.load_all_gen_kw_data().to_csv(
-                    ahmanalysis_reports_dir / f"{obs_group}.csv"
-                )
 
+                ensemble_data = (
+                    target_ensemble.load_scalars().to_pandas().set_index("realization")
+                )
+                ensemble_data.columns.name = None
+                ensemble_data.index.name = "Realization"
+                ensemble_data = ensemble_data.sort_index(axis=1)
+                # Get the updated scalar parameter distributions
+
+                ensemble_data.to_csv(ahmanalysis_reports_dir / f"{obs_group}.csv")
                 active_obs.at["ratio", obs_group] = (
                     str(count_active_observations(df_update_log))
                     + " active/"
@@ -297,7 +306,7 @@ class AhmAnalysisJob(ErtScript):
                     calc_kolmogorov_smirnov(
                         dkeysf,
                         prior_data,
-                        target_ensemble.load_all_gen_kw_data(),
+                        ensemble_data,
                     )
                 )
         kolmogorov_smirnov_data.set_index("Parameters", inplace=True)
