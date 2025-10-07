@@ -11,6 +11,8 @@ import scipy as sp
 import seaborn as sns
 from matplotlib.patches import Rectangle
 
+COLORS = list(plt.rcParams["axes.prop_cycle"].by_key()["color"])
+
 
 class QualityReporter:
     """This class is responsible for quality reporting a dataframe with samples.
@@ -147,7 +149,7 @@ class QualityReporter:
             Tuple of (matplotlib Figure, matplotlib Axes)
         """
         fig, ax = plt.subplots(figsize=(6, 4))
-        bins = max(int(math.sqrt(len(series))), 30)
+        bins = max(int(math.sqrt(len(series))), 10)
         sns.histplot(data=series, kde=True, stat="density", bins=bins, ax=ax)
         ax.set_title(f"{var_name}\n{var_description}", fontsize=10)
 
@@ -156,16 +158,28 @@ class QualityReporter:
             series.to_numpy(),
             np.zeros(len(series)),
             marker="|",
-            color="black",
-            alpha=0.5,
+            color=COLORS[1],
+            alpha=0.8,
         )
 
         # Add average and quantiles to the plot
-        ax.axvline(x=series.mean(), color="black", ls="-", alpha=0.8)
-        for q_i in series.quantile(q=[0.1, 0.5, 0.9]).values:
-            ax.axvline(x=q_i, color="black", ls="--", alpha=0.8)
+        mean = series.mean()
+        ax.axvline(x=mean, color="black", ls="-", alpha=0.8, label=f"mean={mean:.2e}")
+
+        quantiles = [0.1, 0.5, 0.9]
+        for q in quantiles:
+            quantile_value = series.quantile(q=q)
+            P_label = f"{q * 100:.0f}".zfill(2)  # e.g. 0.05 => '05'
+            ax.axvline(
+                x=quantile_value,
+                color="black",
+                ls="--",
+                alpha=0.8,
+                label=f"P{P_label}={quantile_value:.2e}",
+            )
 
         ax.grid(True, ls="--", alpha=0.5)
+        ax.legend(loc="upper center", ncol=4, fontsize=7, framealpha=0.99)
         fig.tight_layout()
 
         return fig, ax
