@@ -79,8 +79,9 @@ def test_draw_values_pert(seed):
     assert np.isclose(values.mean(), 5, atol=0.55)
 
 
-def test_sample_discrete():
-    rng = np.random.default_rng()
+@pytest.mark.parametrize("seed", range(100))
+def test_sample_discrete(seed):
+    rng = np.random.default_rng(seed)
 
     outcomes = ["foo", "bar.com"]
     # Test basic functionality
@@ -97,16 +98,17 @@ def test_sample_discrete():
 
     # Test weights that don't sum to 1
     weighted_values = dists.sample_discrete(
-        [",".join(outcomes), "2,6"], rng.uniform(size=100)
+        [",".join(outcomes), "2,6"], rng.uniform(size=1000)
     )
     # Should see roughly 25% foo and 75% bar.com
     foo_count = np.sum(weighted_values == "foo")
-    assert 15 <= foo_count <= 35  # Allow some variance due to randomness
+    assert 200 <= foo_count <= 300  # Allow some variance due to randomness
 
 
-def test_draw_values():
+@pytest.mark.parametrize("seed", range(100))
+def test_draw_values(seed):
     """Test the wrapper function for drawing values"""
-    rng = np.random.default_rng()
+    rng = np.random.default_rng(seed)
 
     quantiles = rng.uniform(size=10)
 
