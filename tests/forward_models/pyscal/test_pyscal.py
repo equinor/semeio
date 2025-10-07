@@ -44,6 +44,8 @@ EXAMPLE_WATEROIL = pd.DataFrame(columns=["SATNUM", "Nw", "NOW"], data=[[1, 2, 2]
 )
 def test_fm_pyscal(dframe, runargs, tmpdir):
     """Parametrized test function for fm_pyscal"""
+    random.seed(42)
+
     tmpdir.chdir()
     dframe.to_csv("relperm-input.csv", index=False)
 
