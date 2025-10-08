@@ -10,36 +10,47 @@ from semeio.fmudesign import DesignMatrix, excel2dict_design
 
 def get_parser() -> ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Generate design matrix to be used with ert DESIGN2PARAMS",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        description="Generate design matrix to be used with ERT",
+        epilog=(
+            "Example usage:\n"
+            "  fmudesign input_config_example.xlsx \n"
+            "  fmudesign input_config_example.xlsx output_example.xlsx \n\n"
+            "For more information, refer to the documentation at https://equinor.github.io/fmu-tools/fmudesign.html."
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        add_help=False,
     )
 
     parser.add_argument(
-        "config", type=str, help="Input design config filename in Excel format"
+        "-h", "--help", action="help", help="Show this help message and exit"
+    )
+
+    parser.add_argument(
+        "config", type=str, help="Input design matrix filename in Excel format"
     )
     parser.add_argument(
         "destination",
         type=str,
         nargs="?",
-        help="Destination filename for design matrix",
+        help="Destination filename for design matrix (default: generateddesignmatrix.xlsx)",
         default="generateddesignmatrix.xlsx",
     )
     parser.add_argument(
         "--designinput",
         type=str,
-        help="Alternative sheetname for the worksheet designinput",
+        help="Alternative sheetname for the worksheet designinput (default: designinput)",
         default="designinput",
     )
     parser.add_argument(
         "--defaultvalues",
         type=str,
-        help="Alternative sheetname for worksheet defaultvalues",
+        help="Alternative sheetname for worksheet defaultvalues (default: defaultvalues)",
         default="defaultvalues",
     )
     parser.add_argument(
         "--general_input",
         type=str,
-        help="Alternative sheetname for the worksheet general_input",
+        help="Alternative sheetname for the worksheet general_input (default: general_input)",
         default="general_input",
     )
 
