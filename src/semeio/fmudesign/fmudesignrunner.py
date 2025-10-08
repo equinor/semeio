@@ -10,7 +10,7 @@ from semeio.fmudesign import DesignMatrix, excel2dict_design
 
 def get_parser() -> ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Generate design matrix to be used with ert DESIGN2PARAMS",
+        description="Generate design matrix to be used with ERT",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
 
