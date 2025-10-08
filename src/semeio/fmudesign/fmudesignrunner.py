@@ -1,6 +1,7 @@
 """Script for generating a design matrix from config input"""
 
 import argparse
+import traceback
 import warnings
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
@@ -108,10 +109,16 @@ def main() -> None:
 
     parser = get_parser()
     args = parser.parse_args()
-
     validate_args(parser)
-    generate_design_matrix(args)
-
+    try:
+        generate_design_matrix(args)
+    except Exception:
+        traceback.print_exc()
+        print(
+            "\n \n",
+            "If you think this is a bug, or have any feature requests, please create an issue at https://github.com/equinor/semeio/issues \n",
+        )
+        return
     print(
         "Thank you for using fmudesign, if you find any bugs or have any feature requests, please create an issue at "
         "https://github.com/equinor/semeio/issues"
