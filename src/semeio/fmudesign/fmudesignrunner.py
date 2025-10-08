@@ -2,7 +2,7 @@
 
 import argparse
 import warnings
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
 from pathlib import Path
 
 from semeio.fmudesign import DesignMatrix, excel2dict_design
@@ -58,11 +58,45 @@ def get_parser() -> ArgumentParser:
         "-v",
         "--verbose",
         action="count",
+        help="Verbosity of terminal output and plotting",
         default=0,
-        help="Verbosity of terminal output and plotting.",
     )
 
     return parser
+
+
+def validate_args(parser: ArgumentParser) -> None:
+    args = parser.parse_args()
+    for sheet in ["designinput", "defaultvalues", "general_input"]:
+        default = parser.get_default(sheet)
+        custom = getattr(args, sheet)
+        if default != custom:
+            print(f"Worksheet changed from default: {default!r} -> {custom!r}")
+
+    if not Path(args.config).is_file():
+        raise OSError(f"Input file {args.config} does not exist")
+    if args.config == args.destination:
+        raise OSError(
+            f'Identical name "{args.config}" have been provided for the input'
+            "file and the output file"
+        )
+
+
+def generate_design_matrix(args: Namespace) -> None:
+    input_dict = excel2dict_design(
+        args.config,
+        gen_input_sheet=args.general_input,
+        design_input_sheet=args.designinput,
+        default_val_sheet=args.defaultvalues,
+    )
+
+    # If destination is 'analysis/generateddesignmatrix.xlsx', then plots
+    # will be saved to 'analysis/generateddesignmatrix/<SENSNAME>/<VARNAME>.png'
+    output_dir = Path(args.destination).parent / Path(args.destination).stem
+    design = DesignMatrix(verbosity=args.verbose, output_dir=output_dir)
+
+    design.generate(input_dict)
+    design.to_xlsx(args.destination)
 
 
 def main() -> None:
@@ -75,36 +109,13 @@ def main() -> None:
     parser = get_parser()
     args = parser.parse_args()
 
-    for sheet in ["designinput", "defaultvalues", "general_input"]:
-        default = parser.get_default(sheet)
-        custom = getattr(args, sheet)
-        if default != custom:
-            print(f"Worksheet changed from default: {default!r} -> {custom!r}")
+    validate_args(parser)
+    generate_design_matrix(args)
 
-    if not Path(args.config).is_file():
-        raise OSError(f"Input file {args.config} does not exist")
-
-    input_dict = excel2dict_design(
-        args.config,
-        gen_input_sheet=args.general_input,
-        design_input_sheet=args.designinput,
-        default_val_sheet=args.defaultvalues,
+    print(
+        "Thank you for using fmudesign, if you find any bugs or have any feature requests, please create an issue at "
+        "https://github.com/equinor/semeio/issues"
     )
-
-    if args.config == args.destination:
-        raise OSError(
-            f'Identical name "{args.config}" have been provided for the input'
-            "file and the output file. "
-        )
-
-    # If destination is 'analysis/generateddesignmatrix.xlsx', then plots
-    # will be saved to 'analysis/generateddesignmatrix/<SENSNAME>/<VARNAME>.png'
-    output_dir = Path(args.destination).parent / Path(args.destination).stem
-    design = DesignMatrix(verbosity=args.verbose, output_dir=output_dir)
-
-    design.generate(input_dict)
-
-    design.to_xlsx(args.destination)
 
 
 if __name__ == "__main__":
