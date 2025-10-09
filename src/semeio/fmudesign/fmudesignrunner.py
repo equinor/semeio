@@ -6,6 +6,9 @@ import warnings
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
 
+from packaging.version import Version
+
+import semeio
 from semeio.fmudesign import DesignMatrix, excel2dict_design
 
 
@@ -16,7 +19,7 @@ def get_parser() -> ArgumentParser:
             "Example usage:\n"
             "  fmudesign input_config_example.xlsx \n"
             "  fmudesign input_config_example.xlsx output_example.xlsx \n\n"
-            "For more information, refer to the documentation at https://equinor.github.io/fmu-tools/fmudesign.html."
+            "For more information, refer to the documentation at https://equinor.github.io/fmu-tools/fmudesign.html"
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
         add_help=False,
@@ -116,12 +119,17 @@ def main() -> None:
         traceback.print_exc()
         print(
             "\n \n",
-            "If you think this is a bug, or have any feature requests, please create an issue at https://github.com/equinor/semeio/issues \n",
+            "fmudesign failed. Read the error message above and fix the input file. \n",
+            "Documentation: https://equinor.github.io/fmu-tools/fmudesign.html \n",
+            "Issue tracker: https://github.com/equinor/semeio/issues \n",
+            "If you believe this error is a bug or are unable to fix it, create an issue or contact the scout team \n",
         )
         return
     print(
-        "Thank you for using fmudesign, if you find any bugs or have any feature requests, please create an issue at "
-        "https://github.com/equinor/semeio/issues"
+        "\n",
+        f"Thank you for using fmudesign {Version(semeio.__version__).base_version} \n",
+        "Documentation: https://equinor.github.io/fmu-tools/fmudesign.html \n",
+        "Issues/bugs/feature requests: https://github.com/equinor/semeio/issues \n",
     )
 
 
