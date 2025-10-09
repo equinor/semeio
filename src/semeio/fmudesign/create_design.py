@@ -4,7 +4,6 @@ and DESIGN_KW in FMU/ERT.
 
 import contextlib
 import os
-from collections import OrderedDict
 from collections.abc import Hashable, Mapping, Sequence
 from datetime import datetime
 from pathlib import Path
@@ -186,7 +185,7 @@ class DesignMatrix:
         designvalues (pd.DataFrame): design matrix on standard fmu format
             contains columns 'REAL' (realization number), and if a onebyone
             design, also columns 'SENSNAME' and 'SENSCASE'
-        defaultvalues (OrderedDict): default values for design
+        defaultvalues (dict): default values for design
         backgroundvalues (pd.DataFrame): Used when background parameters are
             not constant. Either a set is sampled from specified distributions
             or they are read from a file.
@@ -204,7 +203,7 @@ class DesignMatrix:
 
         """
         self.designvalues: pd.DataFrame = pd.DataFrame(columns=["REAL"])
-        self.defaultvalues: OrderedDict[Hashable, Any] = OrderedDict()
+        self.defaultvalues: dict[Hashable, Any] = {}
         self.backgroundvalues: pd.DataFrame | None = None
         self.seedvalues: list[int] | None = None
         self.verbosity: int = verbosity
@@ -214,7 +213,7 @@ class DesignMatrix:
         """Resets DesignMatrix to empty. Necessary iin case method generate
         is used several times for same instance of DesignMatrix"""
         self.designvalues = pd.DataFrame(columns=["REAL"])
-        self.defaultvalues = OrderedDict()
+        self.defaultvalues = {}
         self.backgroundvalues = None
         self.seedvalues = None
 
@@ -224,7 +223,7 @@ class DesignMatrix:
         Looping through sensitivities and adding them to designvalues.
 
         Args:
-            inputdict (OrderedDict): input parameters for design
+            inputdict (dict): input parameters for design
         """
 
         if inputdict["designtype"] != "onebyone":
@@ -478,7 +477,7 @@ class DesignMatrix:
         dictionary
 
         Args:
-            back_dict (OrderedDict): how to generate background values
+            back_dict (dict): how to generate background values
             max_values (int): number of background values to generate
             rng (numpy.random.Generator): Random number generator instance
         """
@@ -572,7 +571,7 @@ class DesignMatrix:
         specified in dictionary
 
         Args:
-            back_dict (OrderedDict): parameters and distributions
+            back_dict (dict): parameters and distributions
             numreal (int): Number of samples to generate
             rng (numpy.random.Generator): Random number generator instance
         """
@@ -669,7 +668,7 @@ class SeedSensitivity(Sensitivity):
             realnums (list): list of integers with realization numbers
             seedname (str): name of seed parameter to add
             seedvalues (list): list of integer seedvalues
-            parameters (OrderedDict): parameter names and
+            parameters (dict): parameter names and
                 distributions or values.
         """
         assert isinstance(seedvalues, list), (
@@ -865,7 +864,7 @@ class ScenarioSensitivityCase(Sensitivity):
 
         Args:
             realnums (list): list of realizaton numbers for the case
-            parameters (OrderedDict):
+            parameters (dict):
                 dictionary with parameter names and values
             seeds (str): default or None
         """
@@ -935,9 +934,9 @@ class MonteCarloSensitivity(Sensitivity):
 
         Args:
             realnums (range): range object containing realization numbers
-            parameters (OrderedDict): dictionary of parameters and distributions
+            parameters (dict): dictionary of parameters and distributions
             seeds (str): default or None
-            corrdict (OrderedDict): Configuration for correlated parameters. Contains:
+            corrdict (dict): Configuration for correlated parameters. Contains:
                 - 'inputfile': Path to Excel file with correlation matrices
                 - 'sheetnames': List of sheet names, where each sheet contains a correlation matrix
                 If None, parameters are treated as uncorrelated.
