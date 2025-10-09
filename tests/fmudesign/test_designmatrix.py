@@ -5,7 +5,9 @@ import subprocess
 from pathlib import Path
 
 import pandas as pd
+from packaging.version import Version
 
+import semeio
 from semeio.fmudesign import DesignMatrix
 
 TESTDATA = Path(__file__).parent / "data"
@@ -72,7 +74,7 @@ def test_endpoint(tmpdir, monkeypatch):
         ["fmudesign", str(designfile)], check=True, capture_output=True, text=True
     )
 
-    expected_output = """Generating sensitivity : seed
+    expected_output = f"""Generating sensitivity : seed
     Added sensitivity : seed
     Generating sensitivity : faults
     Added sensitivity : faults
@@ -116,7 +118,9 @@ def test_endpoint(tmpdir, monkeypatch):
     Provided number of background values (11) is smaller than number of realisations for sensitivity ('sens7', 'p10_p90') and parameter PARAM16. Will be filled with default values.
     A total of 91 realizations were generated
     Designmatrix written to generateddesignmatrix.xlsx
-    Thank you for using fmudesign, if you find any bugs or have any feature requests, please create an issue at https://github.com/equinor/semeio/issues"""
+    Thank you for using fmudesign {Version(semeio.__version__).base_version}
+    Documentation: https://equinor.github.io/fmu-tools/fmudesign.html
+    Issues/bugs/feature requests: https://github.com/equinor/semeio/issues"""
 
     assert result.stdout.split() == expected_output.split()
     assert Path("generateddesignmatrix.xlsx").exists  # Default output file
