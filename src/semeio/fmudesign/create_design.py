@@ -2,10 +2,12 @@
 and DESIGN_KW in FMU/ERT.
 """
 
+from __future__ import annotations
+
 from collections.abc import Hashable, Mapping, Sequence
 from datetime import datetime
 from pathlib import Path
-from typing import Any, TypeAlias, cast
+from typing import Any, cast
 
 import numpy as np
 import pandas as pd
@@ -16,8 +18,6 @@ from semeio.fmudesign import design_distributions as design_dist
 from semeio.fmudesign._excel2dict import _raise_if_duplicates
 from semeio.fmudesign.quality_report import QualityReporter, print_corrmat
 from semeio.fmudesign.utils import is_consistent_correlation_matrix
-
-SensitivityType: TypeAlias = "SeedSensitivity | MonteCarloSensitivity | ScenarioSensitivity | ExternSensitivity | BackgroundSensitivity | SingleRealisationReference"
 
 
 class DesignMatrix:
@@ -95,7 +95,7 @@ class DesignMatrix:
                 correlation_iterations=inputdict.get("correlation_iterations", 0),
             )
 
-        sensitivity: SensitivityType
+        sensitivity: Sensitivity
 
         self.designvalues["SENSNAME"] = None
         self.designvalues["SENSCASE"] = None
@@ -367,7 +367,7 @@ class DesignMatrix:
 
     def _add_sensitivity(
         self,
-        sensitivity: SensitivityType,
+        sensitivity: Sensitivity,
     ) -> None:
         """Adding a sensitivity to the design
 
@@ -487,7 +487,16 @@ class DesignMatrix:
 
 
 class Sensitivity:
-    def map_dependencies(self, dependencies: Mapping[str, Any]) -> "Sensitivity":
+    sensvalues: pd.DataFrame
+
+    def __init__(self, sensname: str) -> None:
+        """
+        Args:
+            sensname (str): Name of sensitivity. Defines SENSNAME in design matrix.
+        """
+        self.sensname: str = sensname
+
+    def map_dependencies(self, dependencies: Mapping[str, Any]) -> Sensitivity:
         """Map the dependencies, mutating the dataframe `self.sensvalues`."""
         self.sensvalues: pd.DataFrame = map_dependencies(self.sensvalues, dependencies)
         return self
@@ -509,15 +518,6 @@ class SeedSensitivity(Sensitivity):
         sensvalues (pd.DataFrame):  design values for the sensitivity
 
     """
-
-    def __init__(self, sensname: str) -> None:
-        """Initiate method.
-
-        Args:
-            sensname (str): Name of sensitivity. Defines SENSNAME in design matrix.
-        """
-        self.sensname: str = sensname
-        self.sensvalues: pd.DataFrame
 
     def generate(
         self,
@@ -574,15 +574,6 @@ class SingleRealisationReference(Sensitivity):
 
     """
 
-    def __init__(self, sensname: str) -> None:
-        """Initiate.
-
-        Args:
-            sensname (str): Name of sensitivity. Defines SENSNAME in design matrix.
-        """
-        self.sensname: str = sensname
-        self.sensvalues: pd.DataFrame
-
     def generate(self, realnums: range) -> None:
         """Generates realisation number only
 
@@ -609,15 +600,6 @@ class BackgroundSensitivity(Sensitivity):
         sensvalues (pd.DataFrame):  design values for the sensitivity
 
     """
-
-    def __init__(self, sensname: str) -> None:
-        """Initiate
-
-        Args:
-            sensname (str): Name of sensitivity. Defines SENSNAME in design matrix.
-        """
-        self.sensname: str = sensname
-        self.sensvalues: pd.DataFrame
 
     def generate(self, realnums: range) -> None:
         """Generates realisation number only
@@ -652,18 +634,10 @@ class ScenarioSensitivity(Sensitivity):
            1-2 cases
     """
 
-    def __init__(self, sensname: str) -> None:
-        """
-        Args:
-            sensname (str): Name of sensitivity.
-                Equals SENSNAME in design matrix
-        """
-        self.sensname: str = sensname
-        self.case1: ScenarioSensitivityCase | None = None
-        self.case2: ScenarioSensitivityCase | None = None
-        self.sensvalues: pd.DataFrame
+    case1: ScenarioSensitivityCase | None = None
+    case2: ScenarioSensitivityCase | None = None
 
-    def add_case(self, senscase: "ScenarioSensitivityCase") -> None:
+    def add_case(self, senscase: ScenarioSensitivityCase) -> None:
         """
         Adds a ScenarioSensitivityCase instance
         to a ScenarioSensitivity object.
@@ -674,22 +648,22 @@ class ScenarioSensitivity(Sensitivity):
         """
         if self.case1 is not None:  # Case 1 has been read, this is case2
             if (
-                senscase.casevalues is not None
-                and "REAL" in senscase.casevalues
-                and "SENSCASE" in senscase.casevalues
+                senscase.sensvalues is not None
+                and "REAL" in senscase.sensvalues
+                and "SENSCASE" in senscase.sensvalues
             ):
                 self.case2 = senscase
-                senscase.casevalues["SENSNAME"] = self.sensname
+                senscase.sensvalues["SENSNAME"] = self.sensname
                 self.sensvalues = pd.concat(
-                    [self.sensvalues, senscase.casevalues], sort=True
+                    [self.sensvalues, senscase.sensvalues], sort=True
                 )
         elif (
-            senscase.casevalues is not None
-            and "REAL" in senscase.casevalues
-            and "SENSCASE" in senscase.casevalues
+            senscase.sensvalues is not None
+            and "REAL" in senscase.sensvalues
+            and "SENSCASE" in senscase.sensvalues
         ):
             self.case1 = senscase
-            self.sensvalues = senscase.casevalues.copy()
+            self.sensvalues = senscase.sensvalues.copy()
             self.sensvalues["SENSNAME"] = self.sensname
 
 
@@ -707,16 +681,12 @@ class ScenarioSensitivityCase(Sensitivity):
     ScenarioSensitivity object.
 
     Attributes:
-        casename (str): name of the sensitivity case,
+        sensname (str): name of the sensitivity case,
             equals SENSCASE in design matrix.
-        casevalues (pd.DataFrame): parameters and values
+        sensvalues (pd.DataFrame): parameters and values
             for the sensitivity with realisation numbers as index.
 
     """
-
-    def __init__(self, casename: str) -> None:
-        self.casename: str = casename
-        self.casevalues: pd.DataFrame | None = None
 
     def generate(
         self,
@@ -724,7 +694,7 @@ class ScenarioSensitivityCase(Sensitivity):
         parameters: dict[str, Any],
         seedvalues: Sequence[int] | None,
     ) -> None:
-        """Generate casevalues for the ScenarioSensitivityCase
+        """Generate sensvalues for the ScenarioSensitivityCase
 
         Args:
             realnums (list): list of realizaton numbers for the case
@@ -733,14 +703,14 @@ class ScenarioSensitivityCase(Sensitivity):
             seeds (str): default or None
         """
 
-        self.casevalues = pd.DataFrame(columns=list(parameters.keys()), index=realnums)
+        self.sensvalues = pd.DataFrame(columns=list(parameters.keys()), index=realnums)
         for key, value in parameters.items():
-            self.casevalues[key] = value
-        self.casevalues["REAL"] = realnums
-        self.casevalues["SENSCASE"] = self.casename
+            self.sensvalues[key] = value
+        self.sensvalues["REAL"] = realnums
+        self.sensvalues["SENSCASE"] = self.sensname
 
         if seedvalues:
-            self.casevalues["RMS_SEED"] = seedvalues[: len(realnums)]
+            self.sensvalues["RMS_SEED"] = seedvalues[: len(realnums)]
 
 
 class MonteCarloSensitivity(Sensitivity):
@@ -757,10 +727,6 @@ class MonteCarloSensitivity(Sensitivity):
         sensvalues (pd.DataFrame):  parameters and values for the sensitivity
             with realisation numbers as index.
     """
-
-    def __init__(self, sensname: str) -> None:
-        self.sensname: str = sensname
-        self.sensvalues: pd.DataFrame
 
     def generate(
         self,
@@ -928,10 +894,6 @@ class ExternSensitivity(Sensitivity):
         sensvalues (pd.DataFrame):  design values for the sensitivity
 
     """
-
-    def __init__(self, sensname: str) -> None:
-        self.sensname: str = sensname
-        self.sensvalues: pd.DataFrame
 
     def generate(
         self,
