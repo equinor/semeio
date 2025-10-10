@@ -14,7 +14,7 @@ import probabilit  # type: ignore[import-untyped]
 
 import semeio
 from semeio.fmudesign import design_distributions as design_dist
-from semeio.fmudesign._excel2dict import _raise_if_duplicates
+from semeio.fmudesign._excel_to_dict import _raise_if_duplicates
 from semeio.fmudesign.quality_report import QualityReporter, print_corrmat
 
 

@@ -1,4 +1,4 @@
-"""Testing excel2dict"""
+"""Testing excel_to_dict"""
 
 import os
 
@@ -8,7 +8,7 @@ import pandas as pd
 import pytest
 
 from semeio.fmudesign import excel_to_dict, inputdict_to_yaml
-from semeio.fmudesign._excel2dict import _assert_no_merged_cells, _has_value
+from semeio.fmudesign._excel_to_dict import _assert_no_merged_cells, _has_value
 
 MOCK_GENERAL_INPUT = pd.DataFrame(
     data=[
@@ -25,7 +25,7 @@ MOCK_DESIGNINPUT = pd.DataFrame(
 )
 
 
-def test_excel2dict_design(tmpdir, monkeypatch):
+def test_excel_to_dict(tmpdir, monkeypatch):
     """Test that we can convert an Excelfile to a dictionary"""
     monkeypatch.chdir(tmpdir)
     defaultvalues = pd.DataFrame()

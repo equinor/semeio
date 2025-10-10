@@ -12,7 +12,7 @@ from scipy import stats
 
 import semeio
 from semeio.fmudesign import DesignMatrix, excel_to_dict
-from semeio.fmudesign._excel2dict import _read_defaultvalues
+from semeio.fmudesign._excel_to_dict import _read_defaultvalues
 
 TESTDATA = Path(__file__).parent / "data"
 
