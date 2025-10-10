@@ -1,5 +1,11 @@
 """Module for generating design matrices that can be run by DESIGN2PARAMS
 and DESIGN_KW in FMU/ERT.
+
+
+A DesignMatrix is a "God-object" that contains information about all info
+used to generate design matrices, including one or several Sensitivities.
+
+
 """
 
 from __future__ import annotations
@@ -17,7 +23,15 @@ import semeio
 from semeio.fmudesign import design_distributions as design_dist
 from semeio.fmudesign._excel_to_dict import _raise_if_duplicates
 from semeio.fmudesign.quality_report import QualityReporter, print_corrmat
-from semeio.fmudesign.utils import is_consistent_correlation_matrix
+from semeio.fmudesign.utils import (
+    find_max_realisations,
+    is_consistent_correlation_matrix,
+    map_dependencies,
+    parameters_from_extern,
+    printwarning,
+    seeds_from_extern,
+    to_numeric_safe,
+)
 
 
 class DesignMatrix:
@@ -80,7 +94,7 @@ class DesignMatrix:
 
         self.defaultvalues = inputdict["defaultvalues"]
 
-        max_reals = _find_max_realisations(inputdict)
+        max_reals = find_max_realisations(inputdict)
 
         # Reading or generating rms seed values
         if "seeds" in inputdict:
@@ -306,7 +320,7 @@ class DesignMatrix:
         elif seeds and seeds.lower() == "default":
             self.seedvalues = [item + 1000 for item in range(max_reals)]
         elif seeds and Path(seeds).is_file():
-            self.seedvalues = _seeds_from_extern(seeds, max_reals)
+            self.seedvalues = seeds_from_extern(seeds, max_reals)
         else:
             raise ValueError(
                 "Valid choices for seeds are None, "
@@ -337,7 +351,7 @@ class DesignMatrix:
         if back_dict is None:
             self.backgroundvalues = None
         elif "extern" in back_dict:
-            self.backgroundvalues = _parameters_from_extern(back_dict["extern"])
+            self.backgroundvalues = parameters_from_extern(back_dict["extern"])
         elif "parameters" in back_dict:
             self._add_dist_background(
                 back_dict,
@@ -792,7 +806,7 @@ class MonteCarloSensitivity(Sensitivity):
 
                 # A single correlation - print warning and skip it
                 if len(corr_group) == 1:
-                    _printwarning(corr_group_name)
+                    printwarning(corr_group_name)
                     continue
 
                 # Read correlation matrix and convert it to a proper matrix
@@ -913,7 +927,7 @@ class ExternSensitivity(Sensitivity):
         """
         _raise_if_duplicates(parameters)
         self.sensvalues = pd.DataFrame(columns=parameters, index=realnums)
-        extern_values = _parameters_from_extern(filename)
+        extern_values = parameters_from_extern(filename)
         if len(realnums) > len(extern_values):
             raise ValueError(
                 f"Number of realisations {len(realnums)} specified for "
@@ -931,192 +945,3 @@ class ExternSensitivity(Sensitivity):
 
         if seedvalues:
             self.sensvalues["RMS_SEED"] = seedvalues[: len(realnums)]
-
-
-# Support functions used with several classes
-
-
-def _parameters_from_extern(filename: str) -> pd.DataFrame:
-    """Read parameter values or background values
-    from specified file. Format either Excel ('xlsx')
-    or csv.
-
-    Args:
-        filename (str): path to file
-    """
-    if str(filename).endswith(".xlsx"):
-        parameters = pd.read_excel(filename, engine="openpyxl")
-        parameters.dropna(axis=0, how="all", inplace=True)
-        parameters = parameters.loc[:, ~parameters.columns.str.contains("^Unnamed")]
-    elif str(filename).endswith(".csv"):
-        parameters = pd.read_csv(filename)
-    else:
-        raise ValueError(
-            "External file with parameter values should "
-            "be on Excel or csv format "
-            "and end with .xlsx or .csv"
-        )
-    return parameters
-
-
-def _seeds_from_extern(filename: str, max_reals: int) -> list[int]:
-    """Read parameter values or background values
-    from specified file. Format either Excel ('xlsx')
-    or csv.
-
-    Args:
-        filename (str): path to file
-    """
-    if str(filename).endswith(".xlsx"):
-        df_seeds = pd.read_excel(filename, header=None, engine="openpyxl")
-        df_seeds.dropna(axis=0, how="all", inplace=True)
-        df_seeds.dropna(axis=1, how="all", inplace=True)
-        seed_numbers = df_seeds[df_seeds.columns[0]].tolist()
-    elif str(filename).endswith(".csv") or str(filename).endswith(".txt"):
-        df_seeds = pd.read_csv(filename, header=None)
-        seed_numbers = df_seeds[df_seeds.columns[0]].tolist()
-    else:
-        raise ValueError(
-            "External file with seed values should "
-            "be on Excel or csv format "
-            "and end with .xlsx .csv or .txt"
-        )
-
-    if len(seed_numbers) < max_reals:
-        print(
-            "Provided number of seed values in external file {} "
-            "is lower than the maximum number of realisations "
-            "found for the design {}, and is for those "
-            "sensitivities used repeatedly. "
-        )
-        seed_numbers = [
-            seed_numbers[item % len(seed_numbers)] for item in range(max_reals)
-        ]
-    return seed_numbers
-
-
-def _find_max_realisations(inputdict: Mapping[str, Any]) -> int:
-    """Finds the maximum number of realisations
-    in a sensitivity case"""
-    max_reals = inputdict["repeats"]
-    for key in inputdict["sensitivities"]:
-        sens = inputdict["sensitivities"][key]
-        if "numreal" in sens:
-            max_reals = max(sens["numreal"], max_reals)
-    return max_reals
-
-
-def _printwarning(corr_group_name: str) -> None:
-    print(
-        "#######################################################\n"
-        "semeio.fmudesign Warning:                                     \n"
-        "Using designinput sheets where "
-        "corr_sheet is only specified for one parameter "
-        "will cause non-correlated parameters .\n"
-        f"ONLY ONE PARAMETER WAS SPECIFIED TO USE CORR_SHEET {corr_group_name}\n"
-        "\n"
-        "Note change in how correlated parameters are specified \n"
-        "from fmudeisgn version 1.0.1 in August 2019 :\n"
-        "Name of correlation sheet must be specified for each "
-        "parameter in correlation matrix. \n"
-        "This to enable use of several correlation sheets. "
-        "This also means non-correlated parameters do not "
-        "have to be included in correlation matrix. \n "
-        "See documentation: \n"
-        "https://equinor.github.io/fmu-tools/"
-        "fmudesign.html#create-design-matrix-for-"
-        "one-by-one-sensitivities\n"
-        "\n"
-        "####################################################\n"
-    )
-
-
-def to_numeric_safe(val: int | float | str) -> int | float | str:
-    """Convert all values that CAN be converted to numeric. Retain the rest.
-    This used to be pd.to_numeric(..., errors='ignore'), but was deprecated.
-
-    Examples
-    --------
-    >>> df = pd.DataFrame({'a': ['cat', '3.5', '-1', 0, 'dog']})
-    >>> df.map(to_numeric_safe).a.values
-    array(['cat', np.float64(3.5), np.int64(-1), 0, 'dog'], dtype=object)
-
-    >>> [to_numeric_safe(e) for e in [5, '3', 'dog']]
-    [5, np.int64(3), 'dog']
-
-    """
-    assert not isinstance(val, pd.Series | pd.DataFrame | list)
-    try:
-        return pd.to_numeric(val)  # noq
-    except (ValueError, TypeError):
-        return val
-
-
-def map_dependencies(df: pd.DataFrame, dependencies: Mapping[str, Any]) -> pd.DataFrame:
-    """Return a new copy of `df` with dependencies mapped.
-
-    Examples
-    --------
-    >>> df = pd.DataFrame({'a': [1, 2, 3, 4], 'b': ['A', 'B', 'C', 'D']})
-    >>> dependencies = {'a': {'from_values': [1, 2, 3, 4],
-    ...                       'to_params':{'c': [1, 4, 9, 16]}}}
-    >>> map_dependencies(df, dependencies)
-       a  b   c
-    0  1  A   1
-    1  2  B   4
-    2  3  C   9
-    3  4  D  16
-
-    A messy mix of numbers and strings:
-
-    >>> df = pd.DataFrame({'a': ['1', '2', 3, 4], 'b': ['A', 'B', 'C', 'D']})
-    >>> dependencies = {'a': {'from_values': ['1', 2, '3', 4],
-    ...                       'to_params':{'c': [1, 4, 9, '16']}}}
-    >>> map_dependencies(df, dependencies)
-       a  b   c
-    0  1  A   1
-    1  2  B   4
-    2  3  C   9
-    3  4  D  16
-
-    """
-
-    df = df.copy()
-    for from_param, from_dict in dependencies.items():
-        # No column to map from
-        if from_param not in df.columns:
-            continue
-
-        from_values = from_dict["from_values"]
-        from_values = [to_numeric_safe(value) for value in from_values]
-
-        for to_param, to_values in from_dict["to_params"].items():
-            to_values = [to_numeric_safe(value) for value in to_values]
-
-            # At this point we have a mapping 'from_param' - > 'to_param'
-            # defined elementwise by values of 'from_values' -> 'to_values'
-            mapping = dict(zip(from_values, to_values, strict=False))
-
-            # Check that every value will be mapped
-            not_mapped = set(df[from_param].map(to_numeric_safe)) - set(from_values)
-            if not_mapped:
-                msg = (
-                    f"Mapping dependencies {from_param!r} to {to_param!r} using "
-                    f"mapping:\n{mapping!r}\n failed. The following values could "
-                    f"not be mapped:\n{not_mapped!r}"
-                )
-                raise ValueError(msg)
-
-            df = df.assign(
-                **{
-                    # Bind loop variables as default args to the lambda
-                    to_param: lambda df, from_param=from_param, mapping=mapping: df[
-                        from_param
-                    ]
-                    .map(to_numeric_safe)
-                    .map(mapping)
-                }
-            )
-            # print(f"Mapped {from_param!r} to {to_param!r} using {mapping!r}")
-
-    return df
