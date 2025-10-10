@@ -8,7 +8,7 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from semeio.fmudesign import DesignMatrix, excel2dict_design
+from semeio.fmudesign import DesignMatrix, excel_to_dict
 
 TESTDATA = Path(__file__).parent / "data"
 TEST_FILES = list((TESTDATA / "config").glob("design_input*.xlsx"))
@@ -77,7 +77,7 @@ def test_prediction_rejection_sampled_ensemble(tmpdir, monkeypatch):
     defaultvalues.to_excel(writer, sheet_name="defaultvalues", index=False)
     writer.close()
 
-    dict_design = excel2dict_design("designinput.xlsx")
+    dict_design = excel_to_dict("designinput.xlsx")
     design = DesignMatrix()
     design.generate(dict_design)
 
@@ -149,7 +149,7 @@ def test_constant_distribution(tmpdir, monkeypatch, gen_input_sheet):
     writer.close()
 
     # Generate design matrix
-    dict_design = excel2dict_design("designinput.xlsx", gen_input_sheet="generalinput")
+    dict_design = excel_to_dict("designinput.xlsx", gen_input_sheet="generalinput")
     design = DesignMatrix()
     design.generate(dict_design)
 

@@ -1,4 +1,4 @@
-"""Testing excel2dict"""
+"""Testing excel_to_dict"""
 
 import os
 
@@ -7,8 +7,8 @@ import openpyxl
 import pandas as pd
 import pytest
 
-from semeio.fmudesign import excel2dict_design, inputdict_to_yaml
-from semeio.fmudesign._excel2dict import _assert_no_merged_cells, _has_value
+from semeio.fmudesign import excel_to_dict, inputdict_to_yaml
+from semeio.fmudesign._excel_to_dict import _assert_no_merged_cells, _has_value
 
 MOCK_GENERAL_INPUT = pd.DataFrame(
     data=[
@@ -25,7 +25,7 @@ MOCK_DESIGNINPUT = pd.DataFrame(
 )
 
 
-def test_excel2dict_design(tmpdir, monkeypatch):
+def test_excel_to_dict(tmpdir, monkeypatch):
     """Test that we can convert an Excelfile to a dictionary"""
     monkeypatch.chdir(tmpdir)
     defaultvalues = pd.DataFrame()
@@ -40,7 +40,7 @@ def test_excel2dict_design(tmpdir, monkeypatch):
     defaultvalues.to_excel(writer, sheet_name="defaultvalues", index=False, header=None)
     writer.close()
 
-    dict_design = excel2dict_design("designinput.xlsx")
+    dict_design = excel_to_dict("designinput.xlsx")
     assert isinstance(dict_design, dict)
     assert dict_design["designtype"] == "onebyone"
     assert dict_design["distribution_seed"] is None
@@ -69,7 +69,7 @@ def test_excel2dict_design(tmpdir, monkeypatch):
     defaultvalues.to_excel(writer, sheet_name="DefaultValues", index=False, header=None)
     writer.close()
 
-    dict_design = excel2dict_design("designinput2.xlsx")
+    dict_design = excel_to_dict("designinput2.xlsx")
     assert isinstance(dict_design, dict)
     assert dict_design["sensitivities"]["rms_seed"]["senstype"] == "seed"
 
@@ -109,7 +109,7 @@ def test_duplicate_sensname_exception(tmpdir, monkeypatch):
     with pytest.raises(
         ValueError, match="Two sensitivities can not share the same sensname"
     ):
-        excel2dict_design("designinput3.xlsx")
+        excel_to_dict("designinput3.xlsx")
 
 
 def test_strip_spaces(tmpdir, monkeypatch):
@@ -142,7 +142,7 @@ def test_strip_spaces(tmpdir, monkeypatch):
     )
     writer.close()
 
-    dict_design = excel2dict_design("designinput_spaces.xlsx")
+    dict_design = excel_to_dict("designinput_spaces.xlsx")
     assert next(iter(dict_design["sensitivities"].keys())) == "rms_seed"
 
     # Check default values parameter names:
@@ -174,7 +174,7 @@ def test_mixed_senstype_exception(tmpdir, monkeypatch):
     writer.close()
 
     with pytest.raises(ValueError, match="contains more than one sensitivity type"):
-        excel2dict_design("designinput4.xlsx")
+        excel_to_dict("designinput4.xlsx")
 
 
 def test_has_value():
@@ -217,7 +217,7 @@ def test_background_sheet(tmpdir, monkeypatch):
     background.to_excel(writer, sheet_name="backgroundsheet", index=False, header=None)
     writer.close()
 
-    dict_design = excel2dict_design("designinput.xlsx")
+    dict_design = excel_to_dict("designinput.xlsx")
 
     # Assert it has been interpreted correctly from input files:
     assert dict_design["background"]["parameters"]["extraseed"] == [

@@ -14,7 +14,7 @@ import pandas as pd
 import yaml
 
 
-def excel2dict_design(
+def excel_to_dict(
     input_filename: str,
     *,
     gen_input_sheet: str = "general_input",
@@ -62,7 +62,7 @@ def excel2dict_design(
             "Use 'rms_seeds' instead"
         )
 
-    return _excel2dict_onebyone(
+    return _excel_to_dict_onebyone(
         input_filename=input_filename,
         gen_input_sheet=gen_input_sheet,
         design_input_sheet=design_input_sheet,
@@ -165,7 +165,7 @@ def resolve_path(input_filename: str, reference: str) -> str:
     return str(Path(input_filename).parent / reference_path)
 
 
-def _excel2dict_onebyone(
+def _excel_to_dict_onebyone(
     input_filename: str | Path,
     *,
     gen_input_sheet: str,
@@ -178,7 +178,7 @@ def _excel2dict_onebyone(
         input_filename(str or path): path to excel workbook
         gen_input_sheet (str): name of general input sheet
         design_input_sheet (str): name of design input sheet
-        default_val_sheet (str): name of defaul value sheet
+        default_val_sheet (str): name of default value sheet
         sheetnames (dict): Dictionary of worksheet names to load
             information from. Supported keys: general_input, defaultvalues,
             and designinput.
@@ -535,7 +535,7 @@ def _read_scenario_sensitivity(sensgroup: pd.DataFrame) -> dict[str, Any]:
             )
         if not _has_value(row.value1):
             raise ValueError(
-                f"Parameter {row.param_name} har been input "
+                f"Parameter {row.param_name} has been input "
                 'as type "scenario" but with empty '
                 "value in value1 column "
             )
