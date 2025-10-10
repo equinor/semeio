@@ -1,10 +1,13 @@
 """Script for generating a design matrix from config input"""
 
 import argparse
+import pdb
+import sys
 import traceback
 import warnings
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
+from types import TracebackType
 
 from packaging.version import Version
 
@@ -66,11 +69,30 @@ def get_parser() -> ArgumentParser:
         default=0,
     )
 
+    parser.add_argument(
+        "--pdb",
+        action="store_true",
+        help="Start the Python debugger on exceptions",
+    )
+
     return parser
 
 
-def validate_args(parser: ArgumentParser) -> None:
+def parse_and_validate_args(parser: ArgumentParser) -> Namespace:
+    """Parse arguments and validate them."""
+
     args = parser.parse_args()
+
+    def custom_excepthook(
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        exc_traceback: TracebackType | None,
+    ) -> None:
+        pdb.post_mortem(exc_traceback)
+
+    if args.pdb:
+        sys.excepthook = custom_excepthook
+
     for sheet in ["designinput", "defaultvalues", "general_input"]:
         default = parser.get_default(sheet)
         custom = getattr(args, sheet)
@@ -84,6 +106,8 @@ def validate_args(parser: ArgumentParser) -> None:
             f'Identical name "{args.config}" have been provided for the input'
             "file and the output file"
         )
+
+    return args
 
 
 def generate_design_matrix(args: Namespace) -> None:
@@ -111,11 +135,14 @@ def main() -> None:
     warnings.filterwarnings("ignore", category=FutureWarning)
 
     parser = get_parser()
-    args = parser.parse_args()
-    validate_args(parser)
+    args = parse_and_validate_args(parser)
+
     try:
         generate_design_matrix(args)
-    except Exception:
+    except Exception as e:
+        if args.pdb:
+            raise e
+
         traceback.print_exc()
         print(
             "\n \n",
@@ -124,13 +151,14 @@ def main() -> None:
             "Issue tracker: https://github.com/equinor/semeio/issues \n",
             "If you believe this error is a bug or are unable to fix it, create an issue or contact the scout team \n",
         )
-        return
-    print(
-        "\n",
-        f"Thank you for using fmudesign {Version(semeio.__version__).base_version} \n",
-        "Documentation: https://equinor.github.io/fmu-tools/fmudesign.html \n",
-        "Issues/bugs/feature requests: https://github.com/equinor/semeio/issues \n",
-    )
+
+    else:
+        print(
+            "\n",
+            f"Thank you for using fmudesign {Version(semeio.__version__).base_version} \n",
+            "Documentation: https://equinor.github.io/fmu-tools/fmudesign.html \n",
+            "Issues/bugs/feature requests: https://github.com/equinor/semeio/issues \n",
+        )
 
 
 if __name__ == "__main__":
