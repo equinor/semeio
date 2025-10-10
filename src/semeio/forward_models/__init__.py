@@ -230,14 +230,14 @@ class InsertNoSim(ForwardModelStepPlugin):
                 "sed",
                 "-i",
                 "",
-                "s/^RUNSPEC.*/RUNSPEC\\\\nNOSIM/",
+                r"s/^RUNSPEC.*/RUNSPEC\nNOSIM/",
                 "<ECLBASE>.DATA",
             ]
             if sys.platform == "darwin"
             else [
                 "sed",
                 "-i",
-                "s/^RUNSPEC.*/RUNSPEC\\\\nNOSIM/",
+                r"s/^RUNSPEC.*/RUNSPEC\nNOSIM/",
                 "<ECLBASE>.DATA",
             ],
         )
