@@ -284,7 +284,7 @@ class QualityReporter:
         if corr.empty:
             return
 
-        print("Observed correlation in samples:")
+        print("Observed (Pearson) correlation in samples:")
         print_corrmat(corr)
 
         # Difference between achieved corr in samples and target
