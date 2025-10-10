@@ -2,13 +2,116 @@
 
 ## [2.0.0]
 
+Only the most important changes are described here.
+All changes are listed here: https://github.com/equinor/semeio/releases/tag/2.0.0
+
+### Breaking Changes in `fmudesign`
+
 This version of `fmudesign` introduces a few breaking changes as well as new features.
+
 `RandomState` has been replaced with `Generator` which will lead to different but still statistically valid results.
 The reasons for this change are:
 
 - `RandomState` is deprecated and in maintenance mode only
 - Better performance and statistical properties
 - Thread-safe unlike the legacy `RandomState`
+
+Removed support for setting high=low in triangle.
+
+Raises error on duplicate params in defaultvalues sheet.
+
+### QC of distributions in `fmudesign`
+
+- Adds `--verbose` flag, which can be used as `-v` or even `-v -v` in the future.
+- When verbose is enabled, QC plots are written to disk and more info is printed.
+
+**Example output:**
+
+```
+Added sensitivity : seed
+Added sensitivity : faults
+Added sensitivity : velmodel
+Added sensitivity : contacts
+Added sensitivity : multz
+================ CONTINUOUS PARAMETERS ================
+               mean       std       10%       50%       90%
+MULTZ_ILE  0.123196  0.260831  0.000523  0.009097  0.286256
+================ GENERATING VARIABLE PLOTS ================
+ - Saved file: generateddesignmatrix\multz\MULTZ_ILE.png
+Added sensitivity : sens6
+================ CONTINUOUS PARAMETERS ================
+            mean       std       10%       50%       90%
+PARAM5  2.975302  0.910954  1.919026  3.033521  4.054100
+PARAM6  0.508785  0.302629  0.180202  0.523022  0.900251
+PARAM7  3.090651  0.919048  2.073250  2.958193  4.140698
+================ DISCRETE PARAMETERS ================
+| FAULT_SEAL   |   proportion |
+|:-------------|-------------:|
+| 2018-11-03   |          0.4 |
+| 2018-11-04   |          0.3 |
+| 2018-11-02   |          0.3 |
+================ GENERATING VARIABLE PLOTS ================
+ - Saved file: generateddesignmatrix\sens6\PARAM5.png
+ - Saved file: generateddesignmatrix\sens6\PARAM6.png
+ - Saved file: generateddesignmatrix\sens6\PARAM7.png
+ - Saved file: generateddesignmatrix\sens6\FAULT_SEAL.png
+
+Warning: Correlation matrix is not consistent
+Requirements:
+  - Ones on the diagonal
+  - Positive semi-definite matrix
+
+Input correlation matrix:
+[[1.00 0.90 0.00 0.00]
+ [0.90 1.00 0.90 0.00]
+ [0.00 0.90 1.00 0.00]
+ [0.00 0.00 0.00 1.00]]
+
+Adjusted to nearest consistent correlation matrix:
+[[1.00 0.74 0.11 0.00]
+ [0.74 1.00 0.74 0.00]
+ [0.11 0.74 1.00 0.00]
+ [0.00 0.00 0.00 1.00]]
+
+Added sensitivity : sens7
+================ CONTINUOUS PARAMETERS ================
+             mean       std       10%       50%       90%
+PARAM9   1.507389  1.467581  0.298526  0.990224  3.130466
+PARAM10  0.500069  0.292213  0.112221  0.494485  0.897666
+PARAM11  3.015481  0.835808  2.013407  2.978530  4.039741
+PARAM12  3.919238  2.544375  1.331991  3.277196  7.510845
+================ CORRELATION_GROUP: ['PARAM9', 'PARAM10', 'PARAM11', 'PARAM12'] ================
+Desired correlation:
+         PARAM9  PARAM10  PARAM11  PARAM12
+PARAM9      1.0      0.9      0.0      0.0
+PARAM10     0.9      1.0      0.9      0.0
+PARAM11     0.0      0.9      1.0      0.0
+PARAM12     0.0      0.0      0.0      1.0
+The desired correlation matrix is not valid => corr_rmse=0.10
+Closest valid correlation matrix (used as target):
+         PARAM9  PARAM10  PARAM11  PARAM12
+PARAM9     1.00     0.74     0.11      0.0
+PARAM10    0.74     1.00     0.74      0.0
+PARAM11    0.11     0.74     1.00      0.0
+PARAM12    0.00     0.00     0.00      1.0
+Correlation in samples:
+         PARAM9  PARAM10  PARAM11  PARAM12
+PARAM9     1.00     0.51    -0.15    -0.05
+PARAM10    0.51     1.00     0.69    -0.04
+PARAM11   -0.15     0.69     1.00    -0.06
+PARAM12   -0.05    -0.04    -0.06     1.00
+================ GENERATING VARIABLE PLOTS ================
+ - Saved file: generateddesignmatrix\sens7\PARAM9.png
+ - Saved file: generateddesignmatrix\sens7\PARAM10.png
+ - Saved file: generateddesignmatrix\sens7\PARAM11.png
+ - Saved file: generateddesignmatrix\sens7\PARAM12.png
+ - Saved file: generateddesignmatrix\sens7\PARAM9,PARAM10,PARAM11,PARAM12.png
+Added sensitivity : sens8
+```
+
+<img src="img/fmudesign_qc_plot_hist.png" alt="alt text" width="1000"/>
+
+<img src="img/fmudesign_qc_plot_scatter.png" alt="alt text" width="1000"/>
 
 ## [1.18.0]
 
