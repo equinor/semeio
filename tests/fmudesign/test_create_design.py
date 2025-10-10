@@ -11,7 +11,7 @@ import pytest
 from scipy import stats
 
 import semeio
-from semeio.fmudesign import DesignMatrix, excel2dict_design
+from semeio.fmudesign import DesignMatrix, excel_to_dict
 from semeio.fmudesign._excel2dict import _read_defaultvalues
 
 TESTDATA = Path(__file__).parent / "data"
@@ -126,7 +126,7 @@ def test_distribution_statistis(tmpdir, monkeypatch, correlations):
         corr_sheet.to_excel(writer, sheet_name="corr1")
 
     # Read the file and draw samples
-    input_dict = excel2dict_design(FILENAME)
+    input_dict = excel_to_dict(FILENAME)
     design = DesignMatrix()
     design.generate(input_dict)
     assert len(design.designvalues) == NUM_SAMPLES
@@ -184,7 +184,7 @@ def test_generate_onebyone(tmpdir):
 
     inputfile = TESTDATA / "config/design_input_example1.xlsx"
 
-    input_dict = excel2dict_design(inputfile)
+    input_dict = excel_to_dict(inputfile)
 
     # Note that repeats are set to 10 in general_input sheet.
     # So, there are 10 rows for each senscase of type seed and scenario.
@@ -357,7 +357,7 @@ def test_generate_full_mc_snapshot(snapshot):
     """
     # Setup
     inputfile = TESTDATA / "config/design_input_mc_with_correls.xlsx"
-    input_dict = excel2dict_design(inputfile)
+    input_dict = excel_to_dict(inputfile)
     design = DesignMatrix()
 
     # Generate the design matrix
@@ -388,7 +388,7 @@ def test_generate_full_mc_snapshot(snapshot):
 def test_generate_full_mc(tmpdir):
     """Test generation of full monte carlo"""
     inputfile = TESTDATA / "config/design_input_mc_with_correls.xlsx"
-    input_dict = excel2dict_design(inputfile)
+    input_dict = excel_to_dict(inputfile)
 
     design = DesignMatrix()
     design.generate(input_dict)
@@ -460,7 +460,7 @@ def test_generate_full_mc(tmpdir):
 
 def test_generate_background(tmpdir):
     inputfile = TESTDATA / "config/design_input_background.xlsx"
-    input_dict = excel2dict_design(inputfile)
+    input_dict = excel_to_dict(inputfile)
     source_file = TESTDATA / "config/doe1.xlsx"
     dest_file = tmpdir.join("doe1.xlsx")
     shutil.copy2(source_file, dest_file)

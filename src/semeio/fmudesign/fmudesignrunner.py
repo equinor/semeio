@@ -9,7 +9,7 @@ from pathlib import Path
 from packaging.version import Version
 
 import semeio
-from semeio.fmudesign import DesignMatrix, excel2dict_design
+from semeio.fmudesign import DesignMatrix, excel_to_dict
 
 
 def get_parser() -> ArgumentParser:
@@ -87,7 +87,7 @@ def validate_args(parser: ArgumentParser) -> None:
 
 
 def generate_design_matrix(args: Namespace) -> None:
-    input_dict = excel2dict_design(
+    input_dict = excel_to_dict(
         args.config,
         gen_input_sheet=args.general_input,
         design_input_sheet=args.designinput,
