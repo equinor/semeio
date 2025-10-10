@@ -8,7 +8,6 @@ from pathlib import Path
 from typing import Any, TypeAlias, cast
 
 import numpy as np
-import numpy.typing as npt
 import pandas as pd
 import probabilit  # type: ignore[import-untyped]
 
@@ -16,38 +15,7 @@ import semeio
 from semeio.fmudesign import design_distributions as design_dist
 from semeio.fmudesign._excel_to_dict import _raise_if_duplicates
 from semeio.fmudesign.quality_report import QualityReporter, print_corrmat
-
-
-def is_consistent_correlation_matrix(matrix: npt.NDArray[Any]) -> bool:
-    """
-    Check if a matrix is a consistent correlation matrix.
-
-    A correlation matrix is consistent if it has:
-    1. All diagonal elements equal to 1
-    2. Is positive semidefinite (all eigenvalues ≥ 0)
-
-    Args:
-        matrix: numpy array representing the correlation matrix
-
-    Returns:
-        bool: True if matrix is a consistent correlation matrix, False otherwise
-    """
-    # Check if diagonal elements are 1
-    if not np.allclose(np.diagonal(matrix), 1):
-        return False
-
-    # Check positive semidefiniteness using eigenvalues
-    try:
-        eigenvals = np.linalg.eigvals(matrix)
-        # Matrix is positive semidefinite if all eigenvalues are non-negative
-        # Using small tolerance to account for numerical errors
-        if not np.all(eigenvals > -1e-8):
-            return False
-    except np.linalg.LinAlgError:
-        return False
-
-    return True
-
+from semeio.fmudesign.utils import is_consistent_correlation_matrix
 
 SensitivityType: TypeAlias = "SeedSensitivity | MonteCarloSensitivity | ScenarioSensitivity | ExternSensitivity | BackgroundSensitivity | SingleRealisationReference"
 
