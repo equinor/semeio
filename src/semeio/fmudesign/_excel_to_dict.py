@@ -50,11 +50,7 @@ def excel_to_dict(
         .dropna(axis=1, how="all")
     )
 
-    design_type = str(generalinput.loc["designtype"].iloc[0])
-    if design_type != "onebyone":
-        raise ValueError(
-            f"Generation of DesignMatrix only implemented for type 'onebyone', not {design_type}"
-        )
+    validate_design_type(generalinput)
 
     if "seeds" in generalinput.index:
         raise ValueError(
@@ -68,6 +64,14 @@ def excel_to_dict(
         design_input_sheet=design_input_sheet,
         default_val_sheet=default_val_sheet,
     )
+
+
+def validate_design_type(generalinput: pd.DataFrame) -> None:
+    design_type = str(generalinput.loc["designtype"].iloc[0])
+    if design_type != "onebyone":
+        raise ValueError(
+            f"Generation of DesignMatrix only implemented for type 'onebyone', not {design_type}"
+        )
 
 
 def inputdict_to_yaml(inputdict: Mapping[str, Any], filename: str) -> None:
