@@ -1,6 +1,7 @@
 """Script for generating a design matrix from config input"""
 
 import argparse
+import sys
 import traceback
 import warnings
 from argparse import ArgumentParser, Namespace
@@ -69,7 +70,7 @@ def get_parser() -> ArgumentParser:
     return parser
 
 
-def validate_args(parser: ArgumentParser) -> None:
+def validate_args(parser: ArgumentParser) -> Namespace:
     args = parser.parse_args()
     for sheet in ["designinput", "defaultvalues", "general_input"]:
         default = parser.get_default(sheet)
@@ -84,6 +85,8 @@ def validate_args(parser: ArgumentParser) -> None:
             f'Identical name "{args.config}" have been provided for the input'
             "file and the output file"
         )
+
+    return args
 
 
 def generate_design_matrix(args: Namespace) -> None:
@@ -111,9 +114,8 @@ def main() -> None:
     warnings.filterwarnings("ignore", category=FutureWarning)
 
     parser = get_parser()
-    args = parser.parse_args()
-    validate_args(parser)
     try:
+        args = validate_args(parser)
         generate_design_matrix(args)
     except Exception:
         traceback.print_exc()
@@ -124,7 +126,8 @@ def main() -> None:
             "Issue tracker: https://github.com/equinor/semeio/issues \n",
             "If you believe this error is a bug or are unable to fix it, create an issue or contact the scout team \n",
         )
-        return
+        sys.exit(1)  # Exit with a non-zero status code (required for smoke tests!)
+
     print(
         "\n",
         f"Thank you for using fmudesign {Version(semeio.__version__).base_version} \n",
