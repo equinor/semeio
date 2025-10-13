@@ -103,9 +103,9 @@ class DesignMatrix:
         # If background values used - read or generate
         if "background" in inputdict:
             self.add_background(
-                inputdict["background"],
-                max_reals,
-                rng,
+                back_dict=inputdict["background"],
+                max_values=max_reals,
+                rng=rng,
                 correlation_iterations=inputdict.get("correlation_iterations", 0),
             )
 
@@ -345,8 +345,8 @@ class DesignMatrix:
             max_values (int): number of background values to generate
             rng (numpy.random.Generator): Random number generator instance
             correlation_iterations (int): Number of permutations performed
-            on samples after Iman-Conover in an attempt to match observed
-            correlation to desired correlation as well as possible.
+              on samples after Iman-Conover in an attempt to match observed
+              correlation to desired correlation as well as possible.
         """
         if back_dict is None:
             self.backgroundvalues = None
@@ -452,10 +452,11 @@ class DesignMatrix:
             back_dict (dict): parameters and distributions
             numreal (int): Number of samples to generate
             rng (numpy.random.Generator): Random number generator instance
+            correlation_iterations (int): Number of permutations performed
+              on samples after Iman-Conover in an attempt to match observed
+              correlation to desired correlation as well as possible.
         """
-        assert isinstance(numreal, int), (
-            f"numreal must be an integer, got {type(numreal)} with value {numreal}"
-        )
+
         mc_background = MonteCarloSensitivity("background")
         mc_background.generate(
             realnums=range(numreal),
@@ -551,9 +552,6 @@ class SeedSensitivity(Sensitivity):
             parameters (dict): parameter names and
                 distributions or values.
         """
-        assert isinstance(seedvalues, list), (
-            f"seedvalues must be a list, got {seedvalues}"
-        )
 
         self.sensvalues = pd.DataFrame(index=realnums)
         self.sensvalues[seedname] = seedvalues[0 : len(realnums)]
@@ -764,6 +762,10 @@ class MonteCarloSensitivity(Sensitivity):
                 - 'inputfile': Path to Excel file with correlation matrices
                 - 'sheetnames': List of sheet names, where each sheet contains a correlation matrix
                 If None, parameters are treated as uncorrelated.
+            rng (numpy.random.Generator): Random number generator instance
+            correlation_iterations (int): Number of permutations performed
+              on samples after Iman-Conover in an attempt to match observed
+              correlation to desired correlation as well as possible.
         """
         self.sensvalues = pd.DataFrame(columns=list(parameters.keys()), index=realnums)
         self.correlation_dfs_ = {}  # Store correlation matrices (dataframes)
