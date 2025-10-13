@@ -164,7 +164,9 @@ def to_numeric_safe(val: int | float | str) -> int | float | str:
         return val
 
 
-def map_dependencies(df: pd.DataFrame, dependencies: Mapping[str, Any]) -> pd.DataFrame:
+def map_dependencies(
+    df: pd.DataFrame, *, dependencies: Mapping[str, Any], verbose: bool = False
+) -> pd.DataFrame:
     """Return a new copy of `df` with dependencies mapped.
 
     Examples
@@ -172,7 +174,7 @@ def map_dependencies(df: pd.DataFrame, dependencies: Mapping[str, Any]) -> pd.Da
     >>> df = pd.DataFrame({'a': [1, 2, 3, 4], 'b': ['A', 'B', 'C', 'D']})
     >>> dependencies = {'a': {'from_values': [1, 2, 3, 4],
     ...                       'to_params':{'c': [1, 4, 9, 16]}}}
-    >>> map_dependencies(df, dependencies)
+    >>> map_dependencies(df, dependencies=dependencies)
        a  b   c
     0  1  A   1
     1  2  B   4
@@ -184,13 +186,24 @@ def map_dependencies(df: pd.DataFrame, dependencies: Mapping[str, Any]) -> pd.Da
     >>> df = pd.DataFrame({'a': ['1', '2', 3, 4], 'b': ['A', 'B', 'C', 'D']})
     >>> dependencies = {'a': {'from_values': ['1', 2, '3', 4],
     ...                       'to_params':{'c': [1, 4, 9, '16']}}}
-    >>> map_dependencies(df, dependencies)
+    >>> map_dependencies(df, dependencies=dependencies)
        a  b   c
     0  1  A   1
     1  2  B   4
     2  3  C   9
     3  4  D  16
 
+    If no `to_params` are given, then the `from` column is copied:
+
+    >>> dependencies = {'a': {'from_values': ['1', 2, '3', 4],
+    ...                       'to_params':{'c': [1, 4, 9, '16'],
+    ...                                    'd': []}}}
+    >>> map_dependencies(df, dependencies=dependencies)
+       a  b   c  d
+    0  1  A   1  1
+    1  2  B   4  2
+    2  3  C   9  3
+    3  4  D  16  4
     """
 
     df = df.copy()
@@ -204,6 +217,21 @@ def map_dependencies(df: pd.DataFrame, dependencies: Mapping[str, Any]) -> pd.Da
 
         for to_param, to_values in from_dict["to_params"].items():
             to_values = [to_numeric_safe(value) for value in to_values]
+
+            # No values to map to => to_param = copy(from_param)
+            if not to_values:
+                df = df.assign(**{to_param: df[from_param].map(to_numeric_safe)})
+                if verbose:
+                    print(f"Copied {from_param!r} to {to_param!r}")
+                continue
+
+            if len(from_values) != len(to_values):
+                msg = (
+                    f"Mapping dependencies {from_param!r} to {to_param!r} failed.\n"
+                    f"Length mismatch.\nMapping from values: {from_values!r}"
+                    f"\nMapping to values: {to_values!r}"
+                )
+                raise ValueError(msg)
 
             # At this point we have a mapping 'from_param' - > 'to_param'
             # defined elementwise by values of 'from_values' -> 'to_values'
@@ -229,6 +257,11 @@ def map_dependencies(df: pd.DataFrame, dependencies: Mapping[str, Any]) -> pd.Da
                     .map(mapping)
                 }
             )
-            # print(f"Mapped {from_param!r} to {to_param!r} using {mapping!r}")
+            if verbose:
+                print(
+                    f"Mapping dependency. From {from_param!r} to {to_param!r} using map:"
+                )
+                for from_, to_ in mapping.items():
+                    print(f" {from_} => {to_}")
 
     return df

@@ -10,6 +10,7 @@ used to generate design matrices, including one or several Sensitivities.
 
 from __future__ import annotations
 
+import copy
 from collections.abc import Hashable, Mapping, Sequence
 from datetime import datetime
 from pathlib import Path
@@ -82,6 +83,7 @@ class DesignMatrix:
         Args:
             inputdict (dict): input parameters for design
         """
+        inputdict = copy.deepcopy(inputdict)
 
         if inputdict["designtype"] != "onebyone":
             raise ValueError(
@@ -125,7 +127,9 @@ class DesignMatrix:
                 sensitivity.generate(
                     realnums=range(current_real_index, current_real_index + numreal)
                 )
-                sensitivity.map_dependencies(sens.get("dependencies", {}))
+                sensitivity.map_dependencies(
+                    sens.get("dependencies", {}), verbose=self.verbosity > 0
+                )
                 current_real_index += numreal
                 self._add_sensitivity(sensitivity)
             elif sens["senstype"] == "background":
@@ -133,7 +137,9 @@ class DesignMatrix:
                 sensitivity.generate(
                     realnums=range(current_real_index, current_real_index + numreal)
                 )
-                sensitivity.map_dependencies(sens.get("dependencies", {}))
+                sensitivity.map_dependencies(
+                    sens.get("dependencies", {}), verbose=self.verbosity > 0
+                )
                 current_real_index += numreal
                 self._add_sensitivity(sensitivity)
             elif sens["senstype"] == "seed":
@@ -148,7 +154,9 @@ class DesignMatrix:
                     seedvalues=self.seedvalues,
                     parameters=sens["parameters"],
                 )
-                sensitivity.map_dependencies(sens.get("dependencies", {}))
+                sensitivity.map_dependencies(
+                    sens.get("dependencies", {}), verbose=self.verbosity > 0
+                )
                 current_real_index += numreal
                 self._add_sensitivity(sensitivity)
             elif sens["senstype"] == "scenario":
@@ -164,7 +172,9 @@ class DesignMatrix:
                         seedvalues=self.seedvalues,
                     )
                     sensitivity.add_case(temp_case)
-                    sensitivity.map_dependencies(sens.get("dependencies", {}))
+                    sensitivity.map_dependencies(
+                        sens.get("dependencies", {}), verbose=self.verbosity > 0
+                    )
                     current_real_index += numreal
                 self._add_sensitivity(sensitivity)
             elif sens["senstype"] == "dist":
@@ -177,7 +187,9 @@ class DesignMatrix:
                     rng=rng,
                     correlation_iterations=inputdict.get("correlation_iterations", 0),
                 )
-                sensitivity.map_dependencies(sens.get("dependencies", {}))
+                sensitivity.map_dependencies(
+                    sens.get("dependencies", {}), verbose=self.verbosity > 0
+                )
                 current_real_index += numreal
                 self._add_sensitivity(sensitivity)
 
@@ -189,7 +201,9 @@ class DesignMatrix:
                     parameters=sens["parameters"],
                     seedvalues=self.seedvalues,
                 )
-                sensitivity.map_dependencies(sens.get("dependencies", {}))
+                sensitivity.map_dependencies(
+                    sens.get("dependencies", {}), verbose=self.verbosity > 0
+                )
                 current_real_index += numreal
                 self._add_sensitivity(sensitivity)
             print("Added sensitivity :", sensitivity.sensname)
@@ -235,8 +249,8 @@ class DesignMatrix:
             self._fill_with_background_values()
         self._fill_with_defaultvalues()
 
-        if "decimals" in inputdict:
-            self._set_decimals(inputdict["decimals"])
+        # Round columns in `self.designvalues` to desired precision
+        self._set_decimals(inputdict)
 
         # Re-order columns
         start_cols = ["REAL", "SENSNAME", "SENSCASE", "RMS_SEED"]
@@ -509,12 +523,35 @@ class DesignMatrix:
                     raise ValueError("Cannot round a string parameter")
         self.backgroundvalues = mc_backgroundvalues.copy()
 
-    def _set_decimals(self, dict_decimals: Mapping[Hashable, float]) -> None:
-        """Rounding to specified number of decimals
+    def _set_decimals(self, inputdict: Mapping[str, Any]) -> None:
+        """Round to specified number of decimals.
 
         Args:
-            dict_decimals (dictionary): (key, value)s are (param, decimals)
+            inputdict (dictionary): input diction that might have a sub-dict
+                                    with key "decimals". This sub-dict has
+                                    (key, value)s are (param, decimals)
         """
+        inputdict = copy.deepcopy(inputdict)
+
+        # No decimal information => Nothing to do.
+        if not inputdict.get("decimals", {}):
+            return None
+
+        # If there are dependencies (derived params) that are copies,
+        # like TO := copy(FROM), then the new TO column must be rounded too.
+        for sensdict in inputdict["sensitivities"].values():
+            if not sensdict["dependencies"]:
+                continue
+            for from_param, from_dict in sensdict["dependencies"].items():
+                for to_param in from_dict["to_params"]:
+                    if not inputdict["decimals"].get(from_param, None):
+                        continue
+                    inputdict["decimals"][to_param] = inputdict["decimals"].get(
+                        from_param, ""
+                    )
+
+        # Round each column
+        dict_decimals = inputdict["decimals"]
         for key in self.designvalues:
             if key in dict_decimals:
                 if design_dist.is_number(self.designvalues[key].iloc[0]):
@@ -537,9 +574,13 @@ class Sensitivity:
         """
         self.sensname: str = sensname
 
-    def map_dependencies(self, dependencies: Mapping[str, Any]) -> Sensitivity:
+    def map_dependencies(
+        self, dependencies: Mapping[str, Any], verbose: bool = False
+    ) -> Sensitivity:
         """Map the dependencies, mutating the dataframe `self.sensvalues`."""
-        self.sensvalues: pd.DataFrame = map_dependencies(self.sensvalues, dependencies)
+        self.sensvalues: pd.DataFrame = map_dependencies(
+            self.sensvalues, dependencies=dependencies, verbose=verbose
+        )
         return self
 
 
