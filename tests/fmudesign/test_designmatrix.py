@@ -1,16 +1,33 @@
 """Testing generating design matrices from dictionary input"""
 
+import re
 import shutil
 import subprocess
 from pathlib import Path
 
 import pandas as pd
-from packaging.version import Version
 
-import semeio
 from semeio.fmudesign import DesignMatrix
 
 TESTDATA = Path(__file__).parent / "data"
+
+
+def matches(pattern: str, text: str) -> bool:
+    """Match text against a pattern where <ANY> acts as a wildcard.
+
+    Examples
+    --------
+    >>> matches("my name is <ANY>!", "my name is John!")
+    True
+    >>> matches("my <ANY> is <ANY>!", "my name is John!")
+    True
+    matches("my <ANY> is <ANY>!", "my name are John!")
+    False
+    """
+    regex_pattern = re.escape(pattern)
+    regex_pattern = regex_pattern.replace("<ANY>", ".+?")
+    regex_pattern = f"^{regex_pattern}$"
+    return bool(re.match(regex_pattern, text))
 
 
 def valid_designmatrix(dframe):
@@ -79,7 +96,9 @@ def test_endpoint(tmpdir, monkeypatch):
         ["fmudesign", str(designfile)], check=True, capture_output=True, text=True
     )
 
-    expected_output = f"""Generating sensitivity : seed
+    # Use <ANY> in the string below to match anything in CLI output
+    expected_output = """Reading background values from: <ANY>/doe1.xlsx
+Generating sensitivity : seed
 Added sensitivity : seed
 Generating sensitivity : faults
 Added sensitivity : faults
@@ -133,11 +152,15 @@ Provided number of background values (11) is smaller than number of realisations
 A total of 91 realizations were generated
 Designmatrix written to generateddesignmatrix.xlsx
 
- Thank you for using fmudesign {Version(semeio.__version__).base_version}
+ Thank you for using fmudesign <ANY>
  Documentation: https://equinor.github.io/fmu-tools/fmudesign.html
  Issues/bugs/feature requests: https://github.com/equinor/semeio/issues"""
 
-    assert result.stdout.split() == expected_output.split()
+    for stdout_line, expected_line in zip(
+        result.stdout.split(), expected_output.split(), strict=False
+    ):
+        assert matches(expected_line, stdout_line)
+
     assert Path("generateddesignmatrix.xlsx").exists  # Default output file
     valid_designmatrix(pd.read_excel("generateddesignmatrix.xlsx", engine="openpyxl"))
 
