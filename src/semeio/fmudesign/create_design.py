@@ -351,8 +351,10 @@ class DesignMatrix:
         if back_dict is None:
             self.backgroundvalues = None
         elif "extern" in back_dict:
+            print(f"Reading background values from: {back_dict['extern']}")
             self.backgroundvalues = parameters_from_extern(back_dict["extern"])
         elif "parameters" in back_dict:
+            print("Generating background values from distributions.")
             self._add_dist_background(
                 back_dict,
                 max_values,
