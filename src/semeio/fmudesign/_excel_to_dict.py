@@ -21,57 +21,47 @@ def excel_to_dict(
     design_input_sheet: str = "designinput",
     default_val_sheet: str = "defaultvalues",
 ) -> dict[str, Any]:
-    """Read excel file with input to design setup
-    Currently only specification of
-    onebyone design is implemented
-
-    Args:
-        input_filename (str): Name of excel input file
-        gen_input_sheet (str): Sheet name for general input
-        design_input_sheet (str): Sheet name for design input
-        default_val_sheet (str): Sheet name for default input
-
-    Returns:
-        dict on format for DesignMatrix.generate
     """
-
-    # Find sheets
+    Reads an Excel file and returns a dictionary for DesignMatrix.generate.
+    """
     _assert_no_merged_cells(input_filename)
-    xlsx = openpyxl.load_workbook(input_filename, read_only=True, keep_links=False)
-    gen_input_sheet = find_sheet(gen_input_sheet, names=xlsx.sheetnames)
-    design_input_sheet = find_sheet(design_input_sheet, names=xlsx.sheetnames)
-    default_val_sheet = find_sheet(default_val_sheet, names=xlsx.sheetnames)
-
-    generalinput = (
-        pd.read_excel(
-            input_filename, gen_input_sheet, header=None, index_col=0, engine="openpyxl"
-        )
-        .dropna(axis=0, how="all")
-        .dropna(axis=1, how="all")
-    )
-
-    validate_design_type(generalinput)
-
-    if "seeds" in generalinput.index:
-        raise ValueError(
-            "The 'seeds' parameter has been deprecated and is no longer supported. "
-            "Use 'rms_seeds' instead"
-        )
-
-    return _excel_to_dict_onebyone(
-        input_filename=input_filename,
-        gen_input_sheet=gen_input_sheet,
-        design_input_sheet=design_input_sheet,
-        default_val_sheet=default_val_sheet,
-    )
+    sheet_names = [gen_input_sheet, design_input_sheet, default_val_sheet]
+    available_sheets = _get_sheet_names(input_filename)
+    _validate_sheet_names(sheet_names, available_sheets)
+    matched_sheets = _parse_sheet_names(sheet_names, available_sheets)
+    return _read_and_validate_parsed_input(input_filename, matched_sheets)
 
 
-def validate_design_type(generalinput: pd.DataFrame) -> None:
-    design_type = str(generalinput.loc["designtype"].iloc[0])
-    if design_type != "onebyone":
-        raise ValueError(
-            f"Generation of DesignMatrix only implemented for type 'onebyone', not {design_type}"
-        )
+def _get_sheet_names(input_filename: str) -> list[str]:
+    wb = openpyxl.load_workbook(input_filename, read_only=True, keep_links=False)
+    return wb.sheetnames
+
+
+def _normalize(name: str) -> str:
+    return name.lower().strip().replace("_", "")
+
+
+def _validate_sheet_names(requested: list[str], available: list[str]) -> None:
+    """
+    Validates that each requested sheet name matches exactly one available sheet (soft match).
+    Raises ValueError if zero or more than one match is found.
+    """
+    normalized_available = [_normalize(name) for name in available]
+    for sheet in requested:
+        norm = _normalize(sheet)
+        matches = [name for name in normalized_available if name == norm]
+        if len(matches) > 1:
+            raise ValueError(f"More than one match for '{sheet}' in {available}")
+        elif len(matches) == 0:
+            raise ValueError(f"No match for '{sheet}' in {available}")
+
+
+def _parse_sheet_names(requested: list[str], available: list[str]) -> list[str]:
+    """
+    Returns the actual available sheet names matching the requested ones (soft match).
+    """
+    normalized_available = {_normalize(name): name for name in available}
+    return [normalized_available[_normalize(sheet)] for sheet in requested]
 
 
 def inputdict_to_yaml(inputdict: Mapping[str, Any], filename: str) -> None:
@@ -83,31 +73,6 @@ def inputdict_to_yaml(inputdict: Mapping[str, Any], filename: str) -> None:
     """
     with open(filename, "w", encoding="utf-8") as stream:
         yaml.dump(inputdict, stream)
-
-
-def find_sheet(name: str, names: list[str]) -> str:
-    """Search for Excel sheets with a soft matching. Raises ValueError if zero
-    or more than one match is found.
-
-    Examples:
-    >>> find_sheet('general_input', ['generalinput', 'designinput', 'defaultinput'])
-    'generalinput'
-    >>> find_sheet('variable_input', ['generalinput', 'designinput', 'defaultinput'])
-    Traceback (most recent call last):
-      ...
-    ValueError: No match for variable_input: ['generalinput', 'designinput', 'defaultinput']
-    """
-
-    def sanitize(inputstring: str) -> str:
-        return inputstring.lower().strip().replace("_", "")
-
-    found = [name_i for name_i in names if sanitize(name) == sanitize(name_i)]
-    if len(found) > 1:
-        raise ValueError(f"More than one match for {name}: {found}")
-    elif len(found) == 0:
-        raise ValueError(f"No match for {name}: {names}")
-    else:
-        return found[0]
 
 
 def _check_designinput(dsgn_input: pd.DataFrame) -> None:
@@ -169,12 +134,25 @@ def resolve_path(input_filename: str, reference: str) -> str:
     return str(Path(input_filename).parent / reference_path)
 
 
-def _excel_to_dict_onebyone(
-    input_filename: str | Path,
-    *,
-    gen_input_sheet: str,
-    design_input_sheet: str,
-    default_val_sheet: str,
+def _validate_design_type(generalinput: pd.DataFrame) -> None:
+    design_type = str(generalinput.loc["designtype"].iloc[0])
+    if design_type != "onebyone":
+        raise ValueError(
+            f"Generation of DesignMatrix only implemented for type 'onebyone', not {design_type}"
+        )
+
+
+def _validate_deprecated_type(generalinput: pd.DataFrame) -> None:
+    if "seeds" in generalinput.index:
+        raise ValueError(
+            "The 'seeds' parameter has been deprecated and is no longer supported. "
+            "Use 'rms_seeds' instead"
+        )
+
+
+def _read_and_validate_parsed_input(
+    input_filename: str,
+    parsed_sheets: list[str],
 ) -> dict[str, Any]:
     """Reads specification for onebyone design
 
@@ -190,9 +168,11 @@ def _excel_to_dict_onebyone(
     Returns:
         dict on format for DesignMatrix.generate
     """
-    input_filename = str(input_filename)
     seedname = "RMS_SEED"
     inputdict: dict[str, Any] = {}
+    gen_input_sheet = parsed_sheets[0]
+    design_input_sheet = parsed_sheets[1]
+    default_val_sheet = parsed_sheets[2]
 
     generalinput = pd.read_excel(
         input_filename, gen_input_sheet, header=None, index_col=0, engine="openpyxl"
@@ -200,9 +180,11 @@ def _excel_to_dict_onebyone(
     generalinput.dropna(axis=0, how="all", inplace=True)
     generalinput.dropna(axis=1, how="all", inplace=True)
 
+    _validate_design_type(generalinput)
+    _validate_deprecated_type(generalinput)
+
     inputdict["designtype"] = generalinput[1]["designtype"]
 
-    # Extract
     key = "correlation_iterations"
     if key in generalinput.index:
         try:
