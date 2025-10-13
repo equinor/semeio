@@ -463,11 +463,35 @@ class DesignMatrix:
             rng=rng,
             correlation_iterations=correlation_iterations,
         )
+        mc_backgroundvalues = mc_background.sensvalues.copy()
 
-        mc_backgroundvalues = mc_background.sensvalues
-        assert (
-            mc_backgroundvalues is not None
-        )  # Will always be a dataframe after generate is called
+        # Reporting
+        # Convert to plottable string: {"COSTS": "Normal(loc=0, scale=1)", ...}
+        qr_vars = {
+            pname: f"{plist[0]}~("
+            + ", ".join(f"dist_param{i}={v}" for (i, v) in enumerate(plist[1], 1))
+            + ")"
+            for (pname, plist) in back_dict["parameters"].items()
+        }
+        quality_reporter = QualityReporter(df=mc_backgroundvalues, variables=qr_vars)
+
+        # Print info to terminal
+        if self.verbosity > 0:
+            quality_reporter.print_numeric()
+            quality_reporter.print_discrete()
+            for corr_name, df_corr in mc_background.correlation_dfs_.items():
+                quality_reporter.print_correlation(corr_name, df_corr)
+
+        # Write plots to disk
+        if self.verbosity > 0 and self.output_dir is not None:
+            output_dir = self.output_dir / mc_background.sensname
+            quality_reporter.plot_columns(output_dir=output_dir)
+
+            # Correlations
+            for corr_name, df_corr in mc_background.correlation_dfs_.items():
+                quality_reporter.plot_correlation(
+                    corr_name, df_corr, output_dir=output_dir
+                )
 
         # Rounding of background values as specified
         if "decimals" in back_dict:
