@@ -154,19 +154,16 @@ def _read_and_validate_parsed_input(
     input_filename: str,
     parsed_sheets: list[str],
 ) -> dict[str, Any]:
-    """Reads specification for onebyone design
+    """
+    Reads and validates input from three Excel sheets and returns a dictionary
+    for DesignMatrix.generate.
 
     Args:
-        input_filename(str or path): path to excel workbook
-        gen_input_sheet (str): name of general input sheet
-        design_input_sheet (str): name of design input sheet
-        default_val_sheet (str): name of default value sheet
-        sheetnames (dict): Dictionary of worksheet names to load
-            information from. Supported keys: general_input, defaultvalues,
-            and designinput.
+        input_filename (str): Excel file path.
+        parsed_sheets (list[str]): [general input, design input, default values] sheet names.
 
     Returns:
-        dict on format for DesignMatrix.generate
+        dict[str, Any]: Parsed input data.
     """
     seedname = "RMS_SEED"
     inputdict: dict[str, Any] = {}
