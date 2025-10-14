@@ -118,10 +118,11 @@ Added sensitivity : sens6
 Generating sensitivity : sens7
 Sampling parameters in 'corr1': ['PARAM9', 'PARAM10', 'PARAM11', 'PARAM12']
 
-Warning: Correlation matrix 'corr1' is invalid
+Warning: Correlation matrix 'corr1' is inconsistent
 Requirements:
-  - Ones on the diagonal
-  - Positive semi-definite matrix
+  - All diagonal elements must be 1
+  - All elements must be between -1 and 1
+  - The matrix must be positive semi-definite
 
 Input correlation matrix:
 |         |   PARAM9 | PARAM10   | PARAM11   | PARAM12   |
