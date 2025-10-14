@@ -57,8 +57,7 @@ def excel_to_dict(
         .to_dict()
     )
 
-    design_type = str(generalinput.loc["designtype"].iloc[0])
-    if design_type != "onebyone":
+    if (design_type := generalinput.get("designtype")) != "onebyone":
         raise ValueError(
             f"Generation of DesignMatrix only implemented for type 'onebyone', not {design_type}"
         )
