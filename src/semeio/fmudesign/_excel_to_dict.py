@@ -1,6 +1,6 @@
-"""Module for reading excel file with input for generation of
-a design matrix and converting to a dict that can be
-read by semeio.fmudesign.DesignMatrix.generate
+"""This module contains functions for reading Excel config files.
+These are converted to a dict-of-dicts representation, then they are used
+by the DesignMatrix class to generate design matrices.
 """
 
 from collections import Counter
@@ -22,8 +22,6 @@ def excel_to_dict(
     default_val_sheet: str = "defaultvalues",
 ) -> dict[str, Any]:
     """Read excel file with input to design setup
-    Currently only specification of
-    onebyone design is implemented
 
     Args:
         input_filename (str): Name of excel input file
@@ -34,17 +32,23 @@ def excel_to_dict(
     Returns:
         dict on format for DesignMatrix.generate
     """
+    general_input_sheet = gen_input_sheet
+    default_values_sheet = default_val_sheet
 
     # Find sheets
     _assert_no_merged_cells(input_filename)
     xlsx = openpyxl.load_workbook(input_filename, read_only=True, keep_links=False)
-    gen_input_sheet = find_sheet(gen_input_sheet, names=xlsx.sheetnames)
+    general_input_sheet = find_sheet(general_input_sheet, names=xlsx.sheetnames)
     design_input_sheet = find_sheet(design_input_sheet, names=xlsx.sheetnames)
-    default_val_sheet = find_sheet(default_val_sheet, names=xlsx.sheetnames)
+    default_values_sheet = find_sheet(default_values_sheet, names=xlsx.sheetnames)
 
     generalinput = (
         pd.read_excel(
-            input_filename, gen_input_sheet, header=None, index_col=0, engine="openpyxl"
+            input_filename,
+            general_input_sheet,
+            header=None,
+            index_col=0,
+            engine="openpyxl",
         )
         .dropna(axis=0, how="all")
         .dropna(axis=1, how="all")
@@ -64,9 +68,9 @@ def excel_to_dict(
 
     return _excel_to_dict_onebyone(
         input_filename=input_filename,
-        gen_input_sheet=gen_input_sheet,
+        general_input_sheet=general_input_sheet,
         design_input_sheet=design_input_sheet,
-        default_val_sheet=default_val_sheet,
+        default_values_sheet=default_values_sheet,
     )
 
 
@@ -168,17 +172,17 @@ def resolve_path(input_filename: str, reference: str) -> str:
 def _excel_to_dict_onebyone(
     input_filename: str | Path,
     *,
-    gen_input_sheet: str,
+    general_input_sheet: str,
     design_input_sheet: str,
-    default_val_sheet: str,
+    default_values_sheet: str,
 ) -> dict[str, Any]:
     """Reads specification for onebyone design
 
     Args:
         input_filename(str or path): path to excel workbook
-        gen_input_sheet (str): name of general input sheet
+        general_input_sheet (str): name of general input sheet
         design_input_sheet (str): name of design input sheet
-        default_val_sheet (str): name of default value sheet
+        default_values_sheet (str): name of default value sheet
         sheetnames (dict): Dictionary of worksheet names to load
             information from. Supported keys: general_input, defaultvalues,
             and designinput.
@@ -191,7 +195,7 @@ def _excel_to_dict_onebyone(
     inputdict: dict[str, Any] = {}
 
     generalinput = pd.read_excel(
-        input_filename, gen_input_sheet, header=None, index_col=0, engine="openpyxl"
+        input_filename, general_input_sheet, header=None, index_col=0, engine="openpyxl"
     )
     generalinput.dropna(axis=0, how="all", inplace=True)
     generalinput.dropna(axis=1, how="all", inplace=True)
@@ -243,7 +247,9 @@ def _excel_to_dict_onebyone(
     else:
         inputdict["background"] = None
 
-    inputdict["defaultvalues"] = _read_defaultvalues(input_filename, default_val_sheet)
+    inputdict["defaultvalues"] = _read_defaultvalues(
+        input_filename, default_values_sheet
+    )
 
     inputdict["sensitivities"] = {}
     designinput = pd.read_excel(input_filename, design_input_sheet, engine="openpyxl")
