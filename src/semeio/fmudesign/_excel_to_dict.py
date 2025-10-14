@@ -1,6 +1,6 @@
-"""Module for reading excel file with input for generation of
-a design matrix and converting to a dict that can be
-read by semeio.fmudesign.DesignMatrix.generate
+"""This module contains functions for reading Excel config files.
+These are converted to a dict-of-dicts representation, then they are used
+by the DesignMatrix class to generate design matrices.
 """
 
 from collections import Counter
@@ -22,8 +22,6 @@ def excel_to_dict(
     default_val_sheet: str = "defaultvalues",
 ) -> dict[str, Any]:
     """Read excel file with input to design setup
-    Currently only specification of
-    onebyone design is implemented
 
     Args:
         input_filename (str): Name of excel input file
@@ -34,39 +32,41 @@ def excel_to_dict(
     Returns:
         dict on format for DesignMatrix.generate
     """
+    # To be backwards compatible, we do not change the input arg names
+    general_input_sheet = gen_input_sheet
+    default_values_sheet = default_val_sheet
 
     # Find sheets
     _assert_no_merged_cells(input_filename)
     xlsx = openpyxl.load_workbook(input_filename, read_only=True, keep_links=False)
-    gen_input_sheet = find_sheet(gen_input_sheet, names=xlsx.sheetnames)
+    general_input_sheet = find_sheet(general_input_sheet, names=xlsx.sheetnames)
     design_input_sheet = find_sheet(design_input_sheet, names=xlsx.sheetnames)
-    default_val_sheet = find_sheet(default_val_sheet, names=xlsx.sheetnames)
+    default_values_sheet = find_sheet(default_values_sheet, names=xlsx.sheetnames)
 
     generalinput = (
         pd.read_excel(
-            input_filename, gen_input_sheet, header=None, index_col=0, engine="openpyxl"
+            input_filename,
+            general_input_sheet,
+            header=None,
+            index_col=0,
+            engine="openpyxl",
         )
         .dropna(axis=0, how="all")
         .dropna(axis=1, how="all")
+        .loc[:, 1]
+        .to_dict()
     )
 
-    design_type = str(generalinput.loc["designtype"].iloc[0])
-    if design_type != "onebyone":
+    if (design_type := generalinput.get("designtype")) != "onebyone":
         raise ValueError(
             f"Generation of DesignMatrix only implemented for type 'onebyone', not {design_type}"
         )
 
-    if "seeds" in generalinput.index:
-        raise ValueError(
-            "The 'seeds' parameter has been deprecated and is no longer supported. "
-            "Use 'rms_seeds' instead"
-        )
-
     return _excel_to_dict_onebyone(
         input_filename=input_filename,
-        gen_input_sheet=gen_input_sheet,
+        general_input_sheet=general_input_sheet,
         design_input_sheet=design_input_sheet,
-        default_val_sheet=default_val_sheet,
+        default_values_sheet=default_values_sheet,
     )
 
 
@@ -166,91 +166,101 @@ def resolve_path(input_filename: str, reference: str) -> str:
 
 
 def _excel_to_dict_onebyone(
-    input_filename: str | Path,
+    input_filename: str,
     *,
-    gen_input_sheet: str,
+    general_input_sheet: str,
     design_input_sheet: str,
-    default_val_sheet: str,
+    default_values_sheet: str,
 ) -> dict[str, Any]:
-    """Reads specification for onebyone design
+    """Reads configuration from Excel file for a onebyone design matrix.
 
     Args:
-        input_filename(str or path): path to excel workbook
-        gen_input_sheet (str): name of general input sheet
+        input_filename (str): path to excel workbook
+        general_input_sheet (str): name of general input sheet
         design_input_sheet (str): name of design input sheet
-        default_val_sheet (str): name of default value sheet
-        sheetnames (dict): Dictionary of worksheet names to load
-            information from. Supported keys: general_input, defaultvalues,
-            and designinput.
+        default_values_sheet (str): name of default value sheet
 
     Returns:
         dict on format for DesignMatrix.generate
     """
-    input_filename = str(input_filename)
-    seedname = "RMS_SEED"
-    inputdict: dict[str, Any] = {}
+    output: dict[str, Any] = {}  # This is the config that we read and return
 
-    generalinput = pd.read_excel(
-        input_filename, gen_input_sheet, header=None, index_col=0, engine="openpyxl"
+    # Read the general input sheet to a dictionary
+    generalinput = (
+        pd.read_excel(
+            input_filename,
+            general_input_sheet,
+            header=None,
+            index_col=0,
+            engine="openpyxl",
+        )
+        .dropna(axis=0, how="all")
+        .dropna(axis=1, how="all")
+        .loc[:, 1]
+        .to_dict()
     )
-    generalinput.dropna(axis=0, how="all", inplace=True)
-    generalinput.dropna(axis=1, how="all", inplace=True)
 
-    inputdict["designtype"] = generalinput[1]["designtype"]
+    # Validation
+    if "repeats" not in generalinput:
+        raise LookupError('"repeats" must be specified in general_input sheet')
+
+    if "seeds" in generalinput:
+        raise ValueError(
+            "The 'seeds' parameter has been deprecated and is no longer supported. "
+            "Use 'rms_seeds' instead"
+        )
+
+    output["designtype"] = generalinput["designtype"]
+    output["repeats"] = generalinput["repeats"]
 
     # Extract
     key = "correlation_iterations"
-    if key in generalinput.index:
+    if key in generalinput:
         try:
-            inputdict[key] = int(generalinput.loc[key].iloc[0])
+            output[key] = int(generalinput[key])
         except ValueError:
-            inputdict[key] = 0
+            output[key] = 0
     else:
-        inputdict[key] = 0
+        output[key] = 0
 
-    if "rms_seeds" in generalinput.index:
-        rms_seeds = str(generalinput.loc["rms_seeds"].iloc[0])
+    if "rms_seeds" in generalinput:
+        rms_seeds = str(generalinput["rms_seeds"])
         if rms_seeds == "None":
-            inputdict["seeds"] = None
+            output["seeds"] = None
         else:
-            inputdict["seeds"] = resolve_path(input_filename, rms_seeds)
+            output["seeds"] = resolve_path(input_filename, rms_seeds)
     else:
-        inputdict["seeds"] = None
+        output["seeds"] = None
 
-    if "repeats" not in generalinput.index:
-        raise LookupError('"repeats" must be specified in general_input sheet')
-
-    inputdict["repeats"] = generalinput.loc["repeats"].iloc[0]
-
-    if "distribution_seed" in generalinput.index:
-        distribution_seed = str(generalinput.loc["distribution_seed"].iloc[0])
+    if "distribution_seed" in generalinput:
+        distribution_seed = str(generalinput["distribution_seed"])
         if distribution_seed == "None":
-            inputdict["distribution_seed"] = None
+            output["distribution_seed"] = None
         else:
-            inputdict["distribution_seed"] = int(distribution_seed)
+            output["distribution_seed"] = int(distribution_seed)
     else:
-        inputdict["distribution_seed"] = None
+        output["distribution_seed"] = None
 
-    if "background" in generalinput.index:
-        background = str(generalinput.loc["background"].iloc[0])
-        inputdict["background"] = {}
+    if "background" in generalinput:
+        background = str(generalinput["background"])
+        output["background"] = {}
         if background.endswith(("csv", "xlsx")):
-            inputdict["background"]["extern"] = resolve_path(input_filename, background)
+            output["background"]["extern"] = resolve_path(input_filename, background)
         elif background == "None":
-            inputdict["background"] = None
+            output["background"] = None
         else:
-            inputdict["background"] = _read_background(input_filename, background)
+            output["background"] = _read_background(input_filename, background)
     else:
-        inputdict["background"] = None
+        output["background"] = None
 
-    inputdict["defaultvalues"] = _read_defaultvalues(input_filename, default_val_sheet)
+    output["defaultvalues"] = _read_defaultvalues(input_filename, default_values_sheet)
 
-    inputdict["sensitivities"] = {}
-    designinput = pd.read_excel(input_filename, design_input_sheet, engine="openpyxl")
-    designinput.dropna(axis=0, how="all", inplace=True)
-    designinput = designinput.loc[
-        :, ~designinput.columns.astype(str).str.contains("^Unnamed")
-    ]
+    output["sensitivities"] = {}
+    designinput = (
+        pd.read_excel(input_filename, design_input_sheet, engine="openpyxl")
+        .dropna(axis=0, how="all")
+        .loc[:, lambda df: ~df.columns.astype(str).str.contains("^Unnamed")]
+    )
 
     # First column with parameter names should have spaces stripped,
     # but we need to preserve NaNs:
@@ -269,7 +279,7 @@ def _excel_to_dict_onebyone(
         mask = numeric_decimals.notna() & (numeric_decimals % 1 == 0)
 
         valid_decimals = designinput[mask]
-        inputdict["decimals"] = {
+        output["decimals"] = {
             row.param_name: int(cast(float, row.decimals))
             for row in valid_decimals.itertuples()
         }
@@ -290,7 +300,7 @@ def _excel_to_dict_onebyone(
             sensdict["senstype"] = sens_type
 
         elif sens_type == "seed":
-            sensdict["seedname"] = seedname
+            sensdict["seedname"] = "RMS_SEED"
             sensdict["senstype"] = sens_type
             if _has_value(group["param_name"].iloc[0]):
                 sensdict["parameters"] = _read_constants(group)
@@ -342,9 +352,9 @@ def _excel_to_dict_onebyone(
             sensdict["dependencies"] = dependencies_dict
 
         # Add this sensitivity to the sensitivities
-        inputdict["sensitivities"][str(sensname)] = sensdict
+        output["sensitivities"][str(sensname)] = sensdict
 
-    return inputdict
+    return output
 
 
 def _read_defaultvalues(filename: str, sheetname: str) -> dict[str, Any]:
