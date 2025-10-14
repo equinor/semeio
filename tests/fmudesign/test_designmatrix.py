@@ -97,7 +97,7 @@ def test_endpoint(tmpdir, monkeypatch):
     )
 
     # Use <ANY> in the string below to match anything in CLI output
-    expected_output = """Reading background values from: <ANY>/doe1.xlsx
+    expected_output = """Reading background values from: <ANY>doe1.xlsx
 Generating sensitivity : seed
 Added sensitivity : seed
 Generating sensitivity : faults
