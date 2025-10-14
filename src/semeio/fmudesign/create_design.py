@@ -25,7 +25,6 @@ from semeio.fmudesign._excel_to_dict import _raise_if_duplicates
 from semeio.fmudesign.quality_report import QualityReporter, print_corrmat
 from semeio.fmudesign.utils import (
     find_max_realisations,
-    is_consistent_correlation_matrix,
     map_dependencies,
     parameters_from_extern,
     printwarning,
@@ -848,19 +847,21 @@ class MonteCarloSensitivity(Sensitivity):
                     f"Sampling parameters in {corr_group_name!r}: {multivariate_parameters}"
                 )
 
-                if not is_consistent_correlation_matrix(correlations):
+                # Get the nearest correlation matrix
+                nearest = probabilit.correlation.nearest_correlation_matrix(
+                    correlations, weights=None, eps=1e-6, verbose=False
+                )
+                if not np.allclose(correlations, nearest):
                     print(
-                        f"\nWarning: Correlation matrix {corr_group_name!r} is invalid"
+                        f"\nWarning: Correlation matrix {corr_group_name!r} is inconsistent"
                     )
                     print("Requirements:")
-                    print("  - Ones on the diagonal")
-                    print("  - Positive semi-definite matrix")
+                    print("  - All diagonal elements must be 1")
+                    print("  - All elements must be between -1 and 1")
+                    print("  - The matrix must be positive semi-definite")
                     print("\nInput correlation matrix:")
                     print_corrmat(df_correlations)
-                    correlations = probabilit.correlation.nearest_correlation_matrix(
-                        correlations, weights=None, eps=1e-6, verbose=False
-                    )
-                    df_correlations.values[:] = correlations
+                    df_correlations.values[:] = nearest
                     print("\nAdjusted to nearest consistent correlation matrix:")
                     print_corrmat(df_correlations)
 
