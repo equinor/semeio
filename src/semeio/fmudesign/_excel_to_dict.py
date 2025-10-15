@@ -241,7 +241,7 @@ def _excel_to_dict_onebyone(
     key = "distribution_seed"
     try:
         output[key] = int(generalinput[key])
-    except KeyError:
+    except (KeyError, TypeError):
         output[key] = None
     except ValueError:
         output[key] = generalinput[key]
