@@ -69,6 +69,9 @@ write_to = "src/semeio/version.py"
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+"semeio.fmudesign.examples" = ["*.xlsx", "*.yml", "*.yaml", "*.toml"]
+
 [project.optional-dependencies]
 test = [
     "hypothesis",

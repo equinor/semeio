@@ -1,4 +1,19 @@
-"""Script for generating a design matrix from config input"""
+"""
+This module is responsible for running the 'fmudesign' CLI tool.
+
+It contains argumenting parsing logic, some argument validation and high-level
+functions that delegate to lower-level functions for creating design matrices.
+
+There are two main sub-commands:
+    $ fmudesign init  =>   Create example/demo configuration file for the user
+    $ fmudesign run   =>   Run a configuration file and produce design matrix
+
+Without arguments (init / run), the CLI will execute 'run' to be backwards
+compatible. For more information, look at the code or execute
+
+    $ fmudesign --help
+
+"""
 
 import argparse
 import functools
@@ -6,7 +21,8 @@ import shutil
 import sys
 import traceback
 import warnings
-from argparse import ArgumentParser, Namespace
+from argparse import ArgumentParser, Namespace, _SubParsersAction
+from importlib.resources import as_file, files
 from pathlib import Path
 
 from packaging.version import Version
@@ -14,15 +30,31 @@ from packaging.version import Version
 import semeio
 from semeio.fmudesign import DesignMatrix, excel_to_dict
 
+# These are example files that can be created with the subcommand 'fmudesign init'
+EXAMPLE_FILES = {
+    "design_input_multiple_dependencies.xlsx": "The first example file you should run!",
+    "design_input_onebyone.xlsx": "The second example file you should run!",
+}
 
-def get_parser() -> ArgumentParser:
+
+def get_parser() -> tuple[ArgumentParser, _SubParsersAction]:
+    """Create agument parses and return (parser, subparsers)."""
+
+    # =============== MAIN PARSER ===============
     parser = argparse.ArgumentParser(
-        description="Generate design matrix to be used with ERT",
+        description="Generates design matrices to be used with ERT",
         epilog=(
-            "Example usage:\n"
-            "  fmudesign input_config_example.xlsx \n"
-            "  fmudesign input_config_example.xlsx output_example.xlsx \n\n"
-            "For more information, refer to the documentation at https://equinor.github.io/fmu-tools/fmudesign.html"
+            f"""
+example usage:
+  $ fmudesign --help
+  $ fmudesign init --help
+  $ fmudesign run --help
+  $ fmudesign init {next(iter(EXAMPLE_FILES.keys()))}
+  $ fmudesign run {next(iter(EXAMPLE_FILES.keys()))} output_example.xlsx
+
+getting help:
+  - Documentation: https://equinor.github.io/fmu-tools/fmudesign.html
+  - Issue tracker: https://github.com/equinor/semeio/issues"""
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
         add_help=False,
@@ -34,16 +66,34 @@ def get_parser() -> ArgumentParser:
         action="version",
         version=f"fmudesign {Version(semeio.__version__)}",
     )
-
-    subparsers = parser.add_subparsers(dest="command", help="Available commands")
+    parser.add_argument(
+        "-h", "--help", action="help", help="Show this help message and exit"
+    )
+    subparsers = parser.add_subparsers(dest="command", help="Available subcommands")
 
     # =============== SUBCOMMAND: run ===============
-    parser_run = subparsers.add_parser("run", help="Run fmudesign on an input file")
-    # parser_run.add_argument(
-    #    "-h", "--help", action="help", help="Show this help message and exit"
-    # )
+    description = "Generate a design matrix from a config file."
+    epilog = """example usage:
+  $ fmudesign --help
+  $ fmudesign run input_config_example.xlsx
+  $ fmudesign run input_config_example.xlsx output_example.xlsx """
+
+    parser_run = subparsers.add_parser(
+        "run",
+        help=description,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        add_help=False,
+        epilog=epilog,
+        description=description,
+    )
+
     parser_run.add_argument(
-        "config", type=str, help="Input design matrix filename in Excel format"
+        "-h", "--help", action="help", help="Show this help message and exit"
+    )
+    parser_run.add_argument(
+        "config",
+        type=str,
+        help="Input design matrix filename in Excel format",
     )
     parser_run.add_argument(
         "destination",
@@ -81,10 +131,29 @@ def get_parser() -> ArgumentParser:
     parser_run.set_defaults(func=func)
 
     # =============== SUBCOMMAND: init ===============
+    description = "Initialize a demo file to get started with fmudesign."
+    epilog = "available demo files:\n"
+    ljust = max([len(f) for f in EXAMPLE_FILES])
+    for filename, file_description in EXAMPLE_FILES.items():
+        epilog += f"  - {filename.ljust(ljust)} : {file_description}\n"
+    epilog += "\nexample usage:\n"
+    epilog += f"  $ fmudesign init {next(iter(EXAMPLE_FILES.keys()))}\n"
+    epilog += f"  $ fmudesign run {next(iter(EXAMPLE_FILES.keys()))}"
+
     parser_init = subparsers.add_parser(
-        "init", help="Create an input file (learning/demo)"
+        "init",
+        help=description,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        add_help=False,
+        epilog=epilog,
+        description=description,
     )
-    parser_init.add_argument("files", nargs="*", help="Files to create")
+    parser_init.add_argument(
+        "-h", "--help", action="help", help="Show this help message and exit"
+    )
+    parser_init.add_argument(
+        "file", type=str, nargs="?", help="Name of demo file to create."
+    )
 
     func = functools.partial(subcommand_init, parser=parser_init)
     parser_init.set_defaults(func=func)
@@ -107,7 +176,7 @@ def subcommand_run(args: Namespace, parser: ArgumentParser) -> None:
         raise OSError(f"Input file {args.config} does not exist")
 
     # Check if destination exists
-    if args.config == args.destination:
+    if Path(args.config).resolve() == Path(args.destination).resolve():
         raise OSError(
             f'Identical name "{args.config}" have been provided for the input'
             "file and the output file"
@@ -131,49 +200,32 @@ def subcommand_run(args: Namespace, parser: ArgumentParser) -> None:
     design.to_xlsx(args.destination)
 
 
-def create_example_file(filename: str) -> None:
-    """Copies a file 'filename' (e.g. 'example.xlsx') from the examples
-    directory and creates it in the current directory."""
-
-    examples_dir = Path(__file__).parent / "examples"
-
-    if not (examples_dir / filename).exists():
-        raise OSError(f"Input file {filename!r} does not exist")
-
-    shutil.copy(examples_dir / filename, filename)
-
-
 def subcommand_init(args: Namespace, parser: ArgumentParser) -> None:
     """Handles the 'init' subcommand."""
-    EXAMPLES_dIR = Path(__file__).parent / "examples"
-    FILES = {
-        "example1.xlsx": "The first example file you should run!",
-        "example2.xlsx": "The second example file you should run!",
-        "simple.yaml": "simple be good",
-    }
+    EXAMPLES_DIR = files("semeio.fmudesign.examples")
 
-    for filename in FILES:
-        assert (EXAMPLES_dIR / filename).exists()
+    # Verify that all examples in EXAMPLES_DIR exist on disk
+    for filename in EXAMPLE_FILES:
+        assert (EXAMPLES_DIR / filename).is_file()
 
-    # The user did not specify any demo files
-    if not args.files:
-        print("Available demo input files:")
-        for filename, file_description in FILES.items():
-            print(f" - {filename!r} : {file_description}")
-        print("To create one or more of these files, use commands like:")
-        print(f"$ fmudesign init {next(iter(FILES.keys()))}")
+    # No files were provided
+    if not args.file:
+        parser.print_help()
         sys.exit(0)
 
-    # The user did specify one or more demo files
-    for filename in args.files:
-        if filename not in FILES:
-            print(f"Skipping file {filename!r}. Not found among: {set(FILES.keys())}")
+    filename = args.file.strip()
+    if filename not in EXAMPLE_FILES:
+        print(f"Error on {filename!r}. Not found among: {set(EXAMPLE_FILES.keys())}")
+        sys.exit(1)
 
-        if Path(filename).exists():
-            print(f"Skipping file {filename!r}. Already exists.")
+    if Path(filename).exists():
+        print(f"Error on {filename!r}. Already exists.")
+        sys.exit(1)
 
-        shutil.copy(EXAMPLES_dIR / filename, filename)
-        print(f"Created file {filename!r}.")
+    with as_file(EXAMPLES_DIR / filename) as source_path:
+        shutil.copy(source_path, filename)
+    print(f"Created file {filename!r}.")
+    sys.exit(0)
 
 
 def main() -> None:
@@ -186,10 +238,18 @@ def main() -> None:
     parser, subparsers = get_parser()
 
     # Backwards compatibility. If not a known command and a file, assume "run"
-    if (sys.argv[1] not in subparsers.choices) and (sys.argv[1].endswith((".xlsx",))):
-        sys.argv.insert(1, "run")
+    if len(sys.argv) > 1:
+        unknown_cmnd = sys.argv[1] not in subparsers.choices
+        file_cmd = sys.argv[1].endswith((".xlsx",))
+        if unknown_cmnd and file_cmd:
+            sys.argv.insert(1, "run")
 
     args = parser.parse_args()
+
+    # No subcommand was provided
+    if not hasattr(args, "func"):
+        parser.print_help()
+        sys.exit(0)
 
     try:
         args.func(args)
