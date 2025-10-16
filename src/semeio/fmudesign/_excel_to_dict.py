@@ -409,13 +409,11 @@ def _read_dependencies(
         and values
     """
     depend_dict: dict[str, Any] = {}
-    depend_df = pd.read_excel(
-        filename, sheetname, dtype=str, na_values="", engine="openpyxl"
+    depend_df = (
+        pd.read_excel(filename, sheetname, dtype=str, na_values="", engine="openpyxl")
+        .dropna(axis=0, how="all")
+        .loc[:, lambda df: ~df.columns.astype(str).str.contains("^Unnamed")]
     )
-    depend_df.dropna(axis=0, how="all", inplace=True)
-    depend_df = depend_df.loc[
-        :, ~depend_df.columns.astype(str).str.contains("^Unnamed")
-    ]
 
     if from_parameter in depend_df:
         depend_dict["from_values"] = depend_df[from_parameter].tolist()
@@ -444,11 +442,11 @@ def _read_background(inp_filename: str, bck_sheet: str) -> dict[str, Any]:
     """
     backdict: dict[str, Any] = {}
     paramdict: dict[str, Any] = {}
-    bck_input = pd.read_excel(inp_filename, bck_sheet, engine="openpyxl")
-    bck_input.dropna(axis=0, how="all", inplace=True)
-    bck_input = bck_input.loc[
-        :, ~bck_input.columns.astype(str).str.contains("^Unnamed")
-    ]
+    bck_input = (
+        pd.read_excel(inp_filename, bck_sheet, engine="openpyxl")
+        .dropna(axis=0, how="all")
+        .loc[:, lambda df: ~df.columns.astype(str).str.contains("^Unnamed")]
+    )
 
     backdict["correlations"] = None
     if "corr_sheet" in bck_input:
