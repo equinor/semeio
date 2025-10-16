@@ -192,11 +192,14 @@ def is_number(teststring: str) -> bool:
 
 
 def read_correlations(excel_filename: str | Path, corr_sheet: str) -> pd.DataFrame:
-    """Reading correlation info for a
-    monte carlo sensitivity
+    """Read a correlation matrix from an Excel sheet.
+
+    The sheet must have rows/columns with variable names. They must match.
+    The upper-triangular part must be empty strings. The lower triangular part
+    must be specified.
 
     Args:
-        excel_filename (Path): Path to Excel file containing correlation matrix
+        excel_filename (str or Path): Path to Excel file containing correlation matrix
         corr_sheet (str): name of sheet containing correlation matrix
 
     Returns:
@@ -208,21 +211,24 @@ def read_correlations(excel_filename: str | Path, corr_sheet: str) -> pd.DataFra
             "Correlation matrix filename should be on Excel format and end with .xlsx"
         )
 
-    correlations = pd.read_excel(
-        excel_filename, corr_sheet, index_col=0, engine="openpyxl"
+    correlations = (
+        pd.read_excel(
+            excel_filename, sheet_name=corr_sheet, index_col=0, engine="openpyxl"
+        )
+        .dropna(axis=0, how="all")
+        # Remove any 'Unnamed' columns that Excel/pandas may have automatically added.
+        .loc[:, lambda df: ~df.columns.str.contains("^Unnamed")]
     )
-    correlations.dropna(axis=0, how="all", inplace=True)
-    # Remove any 'Unnamed' columns that Excel/pandas may have automatically added.
-    correlations = correlations.loc[:, ~correlations.columns.str.contains("^Unnamed")]
 
     upper_idx = np.triu_indices_from(correlations.values, k=1)
+    lower_idx = np.tril_indices_from(correlations.values, k=0)  # Include diag
+    lower_entries = correlations.values[lower_idx]
+
     if not np.all(np.isnan(correlations.values[upper_idx])):
         raise ValueError(
             f"All upper-triangular elements in matrix in corr sheet {corr_sheet} must be blank."
         )
 
-    lower_idx = np.tril_indices_from(correlations.values, k=0)
-    lower_entries = correlations.values[lower_idx]
     if not np.all(np.isfinite(lower_entries)):
         raise ValueError(
             f"All lower-triangular elements in matrix in corr sheet {corr_sheet} must be specified."
@@ -233,10 +239,9 @@ def read_correlations(excel_filename: str | Path, corr_sheet: str) -> pd.DataFra
             f"All lower-triangular elements in matrix in corr sheet {corr_sheet} must be between 0 and 1."
         )
 
-    correlations = correlations.fillna(0)
-
+    # Upper triangular part is NaN. Fill it with 0. Copy lower triang over
+    correlations = correlations.astype(float).fillna(0)
     mat = correlations.values + correlations.values.T
     np.fill_diagonal(mat, 1.0)
-    correlations.values[:] = mat
-
+    correlations.loc[:] = mat
     return correlations

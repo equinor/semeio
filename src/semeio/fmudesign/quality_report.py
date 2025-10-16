@@ -394,7 +394,7 @@ def print_corrmat(df_corrmat: pd.DataFrame) -> None:
     values = df_corrmat.to_numpy()
     mask = np.isclose(values, 0)
     values[mask] = np.abs(values[mask])
-    df_corrmat.values[:] = values
+    df_corrmat.loc[:] = values
 
     # Remove upper triangular part for prettier printing
     formatter = lambda x: np.format_float_positional(
