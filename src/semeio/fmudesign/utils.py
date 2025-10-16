@@ -17,18 +17,20 @@ def parameters_from_extern(filename: str) -> pd.DataFrame:
         filename (str): path to file
     """
     if str(filename).endswith(".xlsx"):
-        parameters = pd.read_excel(filename, engine="openpyxl")
-        parameters.dropna(axis=0, how="all", inplace=True)
-        parameters = parameters.loc[:, ~parameters.columns.str.contains("^Unnamed")]
-    elif str(filename).endswith(".csv"):
-        parameters = pd.read_csv(filename)
-    else:
-        raise ValueError(
-            "External file with parameter values should "
-            "be on Excel or csv format "
-            "and end with .xlsx or .csv"
+        return (
+            pd.read_excel(filename, engine="openpyxl")
+            .dropna(axis=0, how="all")
+            .loc[:, lambda df: ~df.columns.str.contains("^Unnamed")]
         )
-    return parameters
+
+    if str(filename).endswith(".csv"):
+        return pd.read_csv(filename)
+
+    raise ValueError(
+        "External file with parameter values should "
+        "be on Excel or csv format "
+        "and end with .xlsx or .csv"
+    )
 
 
 def seeds_from_extern(filename: str, max_reals: int) -> list[int]:
@@ -40,13 +42,15 @@ def seeds_from_extern(filename: str, max_reals: int) -> list[int]:
         filename (str): path to file
     """
     if str(filename).endswith(".xlsx"):
-        df_seeds = pd.read_excel(filename, header=None, engine="openpyxl")
-        df_seeds.dropna(axis=0, how="all", inplace=True)
-        df_seeds.dropna(axis=1, how="all", inplace=True)
-        seed_numbers = df_seeds[df_seeds.columns[0]].tolist()
+        df_seeds = (
+            pd.read_excel(filename, header=None, engine="openpyxl")
+            .dropna(axis=0, how="all")
+            .dropna(axis=1, how="all")
+        )
+        seed_numbers = df_seeds.iloc[:, 0].tolist()
     elif str(filename).endswith(".csv") or str(filename).endswith(".txt"):
         df_seeds = pd.read_csv(filename, header=None)
-        seed_numbers = df_seeds[df_seeds.columns[0]].tolist()
+        seed_numbers = df_seeds.iloc[:, 0].tolist()
     else:
         raise ValueError(
             "External file with seed values should "
