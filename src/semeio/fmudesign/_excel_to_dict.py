@@ -210,6 +210,12 @@ def _excel_to_dict_onebyone(
     if "repeats" not in generalinput:
         raise LookupError('"repeats" must be specified in general_input sheet')
 
+    # Do we need this?
+    # Maybe we should have a more general validation for all
+    # keys that are not used/supported?
+    # Example: someone tries to add the key dog, we could print
+    # "the parameter "dog" in sheet XXXX is not supported,
+    # please revise your input parameters".
     if "seeds" in generalinput:
         raise ValueError(
             "The 'seeds' parameter has been deprecated and is no longer supported. "
@@ -228,35 +234,42 @@ def _excel_to_dict_onebyone(
     except ValueError:
         output[key] = generalinput[key]  # Validation should raise
 
-    if "rms_seeds" in generalinput:
-        if isinstance(generalinput["rms_seeds"], str):
-            output["seeds"] = resolve_path(input_filename, generalinput["rms_seeds"])
-        else:
-            output["seeds"] = generalinput["rms_seeds"]
-    else:
-        output["seeds"] = None
+    # We should look into renaming seed to rms_seed in ERT
+    key = "seed"
+    try:
+        output[key] = resolve_path(input_filename, str(generalinput["rms_seeds"]))
+    except KeyError:
+        output[key] = None
+        # What does it mean that rms-seed is none,
+        # should we look into this too?
+    except (ValueError, TypeError):
+        output[key] = generalinput["rms_seeds"]  # Validatetion done later
 
     key = "distribution_seed"
     try:
         output[key] = int(generalinput[key])
-    except KeyError:
-        output[key] = None  # If key does not exsist, set default seed to None
+    except KeyError as err:
+        raise ValueError(
+            f"Missing key: {key}, please specify a value.\nValid types: None or class int."
+        ) from err
+        # If key does not exsist, raise an error and ask user to input key.
     except (ValueError, TypeError):
         output[key] = generalinput[key]
         # In validation, throw an error if cell is set to something non sensical,
         # Accept None as valid type.
 
-    if "background" in generalinput:
-        background = str(generalinput["background"])
-        output["background"] = {}
-        if background.endswith(("csv", "xlsx")):
-            output["background"]["extern"] = resolve_path(input_filename, background)
-        elif background == "None":
-            output["background"] = None
+    key = "background"
+    output[key] = {}
+    try:
+        value = str(generalinput[key])
+        if value.endswith(("csv", "xlsx")):
+            output[key]["extern"] = resolve_path(input_filename, value)
         else:
-            output["background"] = _read_background(input_filename, background)
-    else:
-        output["background"] = None
+            output[key] = _read_background(input_filename, value)
+    except KeyError:
+        output[key] = None
+    except ValueError:
+        output[key] = generalinput[key]  # Validation should raise
 
     output["defaultvalues"] = _read_defaultvalues(input_filename, default_values_sheet)
 
