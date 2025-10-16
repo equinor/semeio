@@ -9,6 +9,7 @@ import pandas as pd
 import pytest
 
 from semeio.fmudesign import DesignMatrix, excel_to_dict
+from semeio.fmudesign.fmudesignrunner import EXAMPLE_FILES
 
 TESTDATA = Path(__file__).parent / "data"
 TEST_FILES = list((TESTDATA / "config").glob("design_input*.xlsx"))
@@ -175,6 +176,25 @@ def test_all_input_files(tmpdir, monkeypatch, designfile, verbosity):
     verbose = ["--verbose"] * verbosity
     subprocess.run(
         ["fmudesign", designfile, *verbose], check=True, capture_output=True, text=True
+    )
+
+
+@pytest.mark.parametrize("designfile", EXAMPLE_FILES.keys(), ids=EXAMPLE_FILES.keys())
+@pytest.mark.parametrize("verbosity", [0, 1])
+def test_all_example_files_cmd_init(tmpdir, monkeypatch, designfile, verbosity):
+    """Smoketest all files available in fmudesign init subcommand."""
+    monkeypatch.chdir(tmpdir)
+    subprocess.run(
+        ["fmudesign", "init", designfile], check=True, capture_output=True, text=True
+    )
+
+    # Run the CLI tool (test will fail on non-zero status code)
+    verbose = ["--verbose"] * verbosity
+    subprocess.run(
+        ["fmudesign", "run", designfile, *verbose],
+        check=True,
+        capture_output=True,
+        text=True,
     )
 
 
