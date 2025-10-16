@@ -902,7 +902,7 @@ class MonteCarloSensitivity(Sensitivity):
                     print("  - The matrix must be positive semi-definite")
                     print("\nInput correlation matrix:")
                     print_corrmat(df_correlations)
-                    df_correlations.values[:] = nearest
+                    df_correlations.loc[:] = nearest
                     print("\nAdjusted to nearest consistent correlation matrix:")
                     print_corrmat(df_correlations)
 
