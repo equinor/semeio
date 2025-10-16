@@ -191,14 +191,20 @@ def _excel_to_dict_onebyone(
             input_filename,
             general_input_sheet,
             header=None,
-            index_col=0,
             engine="openpyxl",
         )
         .dropna(axis=0, how="all")
         .dropna(axis=1, how="all")
+        .set_index(0)
         .loc[:, 1]
         .to_dict()
     )
+
+    # Convert NaN values to None
+    generalinput = {
+        key: (None if pd.isna(value) else value)
+        for (key, value) in generalinput.items()
+    }
 
     # Validation
     if "repeats" not in generalinput:
@@ -215,31 +221,30 @@ def _excel_to_dict_onebyone(
 
     # Extract
     key = "correlation_iterations"
-    if key in generalinput:
-        try:
-            output[key] = int(generalinput[key])
-        except ValueError:
-            output[key] = 0
-    else:
-        output[key] = 0
+    try:
+        output[key] = int(generalinput[key])
+    except KeyError:
+        output[key] = 0  # Default value
+    except ValueError:
+        output[key] = generalinput[key]  # Validation should raise
 
     if "rms_seeds" in generalinput:
-        rms_seeds = str(generalinput["rms_seeds"])
-        if rms_seeds == "None":
-            output["seeds"] = None
+        if isinstance(generalinput["rms_seeds"], str):
+            output["seeds"] = resolve_path(input_filename, generalinput["rms_seeds"])
         else:
-            output["seeds"] = resolve_path(input_filename, rms_seeds)
+            output["seeds"] = generalinput["rms_seeds"]
     else:
         output["seeds"] = None
 
-    if "distribution_seed" in generalinput:
-        distribution_seed = str(generalinput["distribution_seed"])
-        if distribution_seed == "None":
-            output["distribution_seed"] = None
-        else:
-            output["distribution_seed"] = int(distribution_seed)
-    else:
-        output["distribution_seed"] = None
+    # TODO: If not specified, should we seed with 0 instead of None?
+    # Not reproducible right now since we set default_rng(None)
+    key = "distribution_seed"
+    try:
+        output[key] = int(generalinput[key])
+    except (KeyError, TypeError):
+        output[key] = None
+    except ValueError:
+        output[key] = generalinput[key]
 
     if "background" in generalinput:
         background = str(generalinput["background"])
@@ -262,12 +267,8 @@ def _excel_to_dict_onebyone(
         .loc[:, lambda df: ~df.columns.astype(str).str.contains("^Unnamed")]
     )
 
-    # First column with parameter names should have spaces stripped,
-    # but we need to preserve NaNs:
-    not_nan_sensnames = ~designinput["sensname"].isnull()
-    designinput.loc[not_nan_sensnames, "sensname"] = (
-        designinput.loc[not_nan_sensnames, "sensname"].astype(str).str.strip()
-    )
+    # Strip strings in column 'sensname' while preserving NaN values
+    designinput = designinput.assign(sensname=lambda df: df["sensname"].str.strip())
 
     _check_designinput(designinput)
 
@@ -362,20 +363,18 @@ def _read_defaultvalues(filename: str, sheetname: str) -> dict[str, Any]:
     reference/base case
 
     Args:
-        filename(path): path to excel file
+        filename (str): path to excel file
         sheetname (string): name of defaultsheet
 
     Returns:
         dict with defaultvalues (parameter, value)
     """
-    default_df = pd.read_excel(
-        filename, sheetname, header=0, index_col=0, engine="openpyxl"
+    default_df = (
+        pd.read_excel(filename, sheetname, header=0, index_col=0, engine="openpyxl")
+        .dropna(axis=0, how="all")
+        # Drop all unnamed columns from the df
+        .loc[:, lambda df: ~df.columns.astype(str).str.contains("^Unnamed")]
     )
-
-    default_df.dropna(axis=0, how="all", inplace=True)
-    default_df = default_df.loc[
-        :, ~default_df.columns.astype(str).str.contains("^Unnamed")
-    ]
 
     if default_df.empty:
         return {}
@@ -392,7 +391,7 @@ def _read_defaultvalues(filename: str, sheetname: str) -> dict[str, Any]:
             f"Duplicate parameter names found in sheet '{sheetname}': "
             f"{', '.join(duplicate_names)}. All parameter names must be unique."
         )
-    return dict(default_df.iloc[:, 0].to_dict())
+    return default_df.iloc[:, 0].to_dict()
 
 
 def _read_dependencies(
