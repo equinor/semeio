@@ -241,7 +241,13 @@ def _excel_to_dict_onebyone(
         output[key] = int(generalinput[key])
     except KeyError as err:
         raise ValueError(
-            f"Missing key: {key}, please specify a value.\nValid types: None or class int."
+            "You did not specify a value for 'distribution_seed', which is used to seed "
+            "the random number generator that draws from distributions in Monte Carlo "
+            "sensitivities.\n"
+            "- Specify a number (e.g. a 6 digit integer) to seed the random number "
+            "generator and obtain reproducible results.\n"
+            "- Specify None if you do not want to seed the random number generator. "
+            "Your analysis will not be reproducible."
         ) from err
         # If key does not exsist, raise an error and ask user to input key.
     except (ValueError, TypeError):
