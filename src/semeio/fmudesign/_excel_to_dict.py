@@ -709,7 +709,7 @@ def _read_correlations(
     return correlations
 
 
-def _has_value(value: object) -> bool:
+def _has_value(value: Any) -> bool:  # noqa: ANN401
     """Returns False only if the argument is np.nan"""
     try:
         return not np.isnan(value)
