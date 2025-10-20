@@ -42,11 +42,13 @@ def summarize_design(filename: str, sheetname: str = "DesignSheet01") -> pd.Data
 
     # Read design matrix
     if str(filename).endswith(".xlsx"):
-        dgn = pd.read_excel(filename, sheetname, engine="openpyxl")
         # Drop empty rows or columns that have been read in
         # due to having background colour/formatting
-        dgn.dropna(axis=0, how="all", inplace=True)
-        dgn = dgn.loc[:, ~dgn.columns.str.contains("^Unnamed")]
+        dgn = (
+            pd.read_excel(filename, sheetname, engine="openpyxl")
+            .dropna(axis=0, how="all")
+            .loc[:, lambda df: ~df.columns.str.contains("^Unnamed")]
+        )
     elif str(filename).endswith(".csv"):
         dgn = pd.read_csv(filename)
     else:
