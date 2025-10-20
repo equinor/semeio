@@ -228,13 +228,13 @@ def _excel_to_dict_onebyone(
     except ValueError:
         output[key] = generalinput[key]  # Validation should raise
 
-    if "rms_seeds" in generalinput:
-        if isinstance(generalinput["rms_seeds"], str):
-            output["seeds"] = resolve_path(input_filename, generalinput["rms_seeds"])
-        else:
-            output["seeds"] = generalinput["rms_seeds"]
-    else:
-        output["seeds"] = None
+    key = "seed"
+    try:
+        output[key] = resolve_path(input_filename, str(generalinput["rms_seeds"]))
+    except KeyError:
+        output[key] = None
+    except (ValueError, TypeError):
+        output[key] = generalinput["rms_seeds"]  # Validatetion done later
 
     key = "distribution_seed"
     try:
