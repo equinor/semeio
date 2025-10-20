@@ -228,7 +228,7 @@ def _excel_to_dict_onebyone(
     except ValueError:
         output[key] = generalinput[key]  # Validation should raise
 
-    key = "seed"
+    key = "seeds"
     try:
         output[key] = resolve_path(input_filename, str(generalinput["rms_seeds"]))
     except KeyError:
