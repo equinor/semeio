@@ -218,7 +218,17 @@ def read_correlations(excel_filename: str | Path, corr_sheet: str) -> pd.DataFra
         .dropna(axis=0, how="all")
         # Remove any 'Unnamed' columns that Excel/pandas may have automatically added.
         .loc[:, lambda df: ~df.columns.str.contains("^Unnamed")]
+        # Remove whitespace
+        .rename(columns=str.strip)
+        .rename(index=str.strip)
     )
+
+    if list(correlations.index) != list(correlations.columns):
+        msg = f"Mismatch between column and index in correlation matrix sheet: {corr_sheet!r}\n"
+        msg += f"Column: {correlations.columns.tolist()}\n"
+        msg += f"Index : {correlations.index.tolist()}\n"
+        msg += f"These values must match exactly. Please fix sheet {corr_sheet!r} in file {excel_filename!r}."
+        raise ValueError(msg)
 
     upper_idx = np.triu_indices_from(correlations.values, k=1)
     lower_idx = np.tril_indices_from(correlations.values, k=0)  # Include diag

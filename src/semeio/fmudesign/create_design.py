@@ -908,8 +908,8 @@ class MonteCarloSensitivity(Sensitivity):
                     print("\nAdjusted to nearest consistent correlation matrix:")
                     print_corrmat(df_correlations)
 
-                corrvars = [distr_by_name[name] for name in df_correlations.columns]
-                expression.correlate(*corrvars, corr_mat=df_correlations.values)
+                corrvars = [distr_by_name[name] for name in multivariate_parameters]
+                expression.correlate(*corrvars, corr_mat=df_correlations.to_numpy())
                 self.correlation_dfs_[corr_group_name] = df_correlations
 
         # Either do ImanConover followed by Permutation, or simply ImanConover
