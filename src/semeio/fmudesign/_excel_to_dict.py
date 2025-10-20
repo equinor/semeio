@@ -236,15 +236,18 @@ def _excel_to_dict_onebyone(
     else:
         output["seeds"] = None
 
-    # TODO: If not specified, should we seed with 0 instead of None?
-    # Not reproducible right now since we set default_rng(None)
     key = "distribution_seed"
     try:
         output[key] = int(generalinput[key])
-    except (KeyError, TypeError):
-        output[key] = None
-    except ValueError:
+    except KeyError as err:
+        raise ValueError(
+            f"Missing key: {key}, please specify a value.\nValid types: None or class int."
+        ) from err
+        # If key does not exsist, raise an error and ask user to input key.
+    except (ValueError, TypeError):
         output[key] = generalinput[key]
+        # In validation, throw an error if cell is set to something non sensical,
+        # Accept None as valid type.
 
     if "background" in generalinput:
         background = str(generalinput["background"])
