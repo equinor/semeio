@@ -155,6 +155,7 @@ Designmatrix written to generateddesignmatrix.xlsx
 
  Thank you for using fmudesign <ANY>
  Documentation: https://equinor.github.io/fmu-tools/fmudesign.html
+ Course docs: https://fmu-docs.equinor.com/docs/fmu-coursedocs/fmu-howto/sensitivities/index.html
  Issues/bugs/feature requests: https://github.com/equinor/semeio/issues"""
 
     for stdout_line, expected_line in zip(
