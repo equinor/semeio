@@ -698,7 +698,7 @@ def _read_correlations(
             sensname = sensgroup["sensname"].iloc[0]
             msg = f"Mismatch between parameters in sensitivity group {sensname!r} "
             msg += f"pointing to\ncorrelation sheet {corr_sheet!r} and "
-            msg += "parameters specified that correlation sheet.\n"
+            msg += "parameters specified in that correlation sheet.\n"
             msg += f"Parameters in sensitivity group: {sorted(set(parameters))}\n"
             msg += f"Parameters in correlation sheet: {sorted(set(df_corr.columns))}\n"
             msg += "These parameters must be specified one-to-one."
