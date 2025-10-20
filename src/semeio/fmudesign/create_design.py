@@ -122,23 +122,19 @@ class DesignMatrix:
             print(f"Generating sensitivity : {key}")
 
             if sens["senstype"] == "ref":
-                sensitivity = SingleRealisationReference(key)
+                sensitivity = SingleRealisationReference(key, verbosity=self.verbosity)
                 sensitivity.generate(
                     realnums=range(current_real_index, current_real_index + numreal)
                 )
-                sensitivity.map_dependencies(
-                    sens.get("dependencies", {}), verbose=self.verbosity > 0
-                )
+                sensitivity.map_dependencies(sens.get("dependencies", {}))
                 current_real_index += numreal
                 self._add_sensitivity(sensitivity)
             elif sens["senstype"] == "background":
-                sensitivity = BackgroundSensitivity(key)
+                sensitivity = BackgroundSensitivity(key, verbosity=self.verbosity)
                 sensitivity.generate(
                     realnums=range(current_real_index, current_real_index + numreal)
                 )
-                sensitivity.map_dependencies(
-                    sens.get("dependencies", {}), verbose=self.verbosity > 0
-                )
+                sensitivity.map_dependencies(sens.get("dependencies", {}))
                 current_real_index += numreal
                 self._add_sensitivity(sensitivity)
             elif sens["senstype"] == "seed":
@@ -146,20 +142,18 @@ class DesignMatrix:
                     raise ValueError(
                         "No seed values available to use for seed sensitivity"
                     )
-                sensitivity = SeedSensitivity(key)
+                sensitivity = SeedSensitivity(key, verbosity=self.verbosity)
                 sensitivity.generate(
                     realnums=range(current_real_index, current_real_index + numreal),
                     seedname=sens["seedname"],
                     seedvalues=self.seedvalues,
                     parameters=sens["parameters"],
                 )
-                sensitivity.map_dependencies(
-                    sens.get("dependencies", {}), verbose=self.verbosity > 0
-                )
+                sensitivity.map_dependencies(sens.get("dependencies", {}))
                 current_real_index += numreal
                 self._add_sensitivity(sensitivity)
             elif sens["senstype"] == "scenario":
-                sensitivity = ScenarioSensitivity(key)
+                sensitivity = ScenarioSensitivity(key, verbosity=self.verbosity)
                 for casekey in sens["cases"]:
                     case = sens["cases"][casekey]
                     temp_case = ScenarioSensitivityCase(casekey)
@@ -171,13 +165,11 @@ class DesignMatrix:
                         seedvalues=self.seedvalues,
                     )
                     sensitivity.add_case(temp_case)
-                    sensitivity.map_dependencies(
-                        sens.get("dependencies", {}), verbose=self.verbosity > 0
-                    )
+                    sensitivity.map_dependencies(sens.get("dependencies", {}))
                     current_real_index += numreal
                 self._add_sensitivity(sensitivity)
             elif sens["senstype"] == "dist":
-                sensitivity = MonteCarloSensitivity(key)
+                sensitivity = MonteCarloSensitivity(key, verbosity=self.verbosity)
                 sensitivity.generate(
                     realnums=range(current_real_index, current_real_index + numreal),
                     parameters=sens["parameters"],
@@ -186,23 +178,19 @@ class DesignMatrix:
                     rng=rng,
                     correlation_iterations=inputdict.get("correlation_iterations", 0),
                 )
-                sensitivity.map_dependencies(
-                    sens.get("dependencies", {}), verbose=self.verbosity > 0
-                )
+                sensitivity.map_dependencies(sens.get("dependencies", {}))
                 current_real_index += numreal
                 self._add_sensitivity(sensitivity)
 
             elif sens["senstype"] == "extern":
-                sensitivity = ExternSensitivity(key)
+                sensitivity = ExternSensitivity(key, verbosity=self.verbosity)
                 sensitivity.generate(
                     realnums=range(current_real_index, current_real_index + numreal),
                     filename=sens["extern_file"],
                     parameters=sens["parameters"],
                     seedvalues=self.seedvalues,
                 )
-                sensitivity.map_dependencies(
-                    sens.get("dependencies", {}), verbose=self.verbosity > 0
-                )
+                sensitivity.map_dependencies(sens.get("dependencies", {}))
                 current_real_index += numreal
                 self._add_sensitivity(sensitivity)
             print("Added sensitivity :", sensitivity.sensname)
@@ -566,17 +554,18 @@ class DesignMatrix:
 class Sensitivity:
     sensvalues: pd.DataFrame
 
-    def __init__(self, sensname: str) -> None:
+    def __init__(self, sensname: str, verbosity: int = 0) -> None:
         """
         Args:
             sensname (str): Name of sensitivity. Defines SENSNAME in design matrix.
+            verbosity (int): How much information to print. Non-negative integer.
         """
         self.sensname: str = sensname
+        self.verbosity: int = verbosity
 
-    def map_dependencies(
-        self, dependencies: Mapping[str, Any], verbose: bool = False
-    ) -> Sensitivity:
+    def map_dependencies(self, dependencies: Mapping[str, Any]) -> Sensitivity:
         """Map the dependencies, mutating the dataframe `self.sensvalues`."""
+        verbose = self.verbosity > 0  # Because the function takes a boolean
         self.sensvalues: pd.DataFrame = map_dependencies(
             self.sensvalues, dependencies=dependencies, verbose=verbose
         )
