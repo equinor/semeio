@@ -249,17 +249,18 @@ def _excel_to_dict_onebyone(
         # In validation, throw an error if cell is set to something non sensical,
         # Accept None as valid type.
 
-    if "background" in generalinput:
-        background = str(generalinput["background"])
-        output["background"] = {}
-        if background.endswith(("csv", "xlsx")):
-            output["background"]["extern"] = resolve_path(input_filename, background)
-        elif background == "None":
-            output["background"] = None
+    key = "background"
+    output[key] = {}
+    try:
+        value = str(generalinput[key])
+        if value.endswith(("csv", "xlsx")):
+            output[key]["extern"] = resolve_path(input_filename, value)
         else:
-            output["background"] = _read_background(input_filename, background)
-    else:
-        output["background"] = None
+            output[key] = _read_background(input_filename, value)
+    except KeyError:
+        output[key] = None
+    except ValueError:
+        output[key] = generalinput[key]  # Validation should raise
 
     output["defaultvalues"] = _read_defaultvalues(input_filename, default_values_sheet)
 
