@@ -3,6 +3,7 @@ These are converted to a dict-of-dicts representation, then they are used
 by the DesignMatrix class to generate design matrices.
 """
 
+import collections
 from collections import Counter
 from collections.abc import Hashable, Mapping, Sequence
 from pathlib import Path
@@ -12,6 +13,8 @@ import numpy as np
 import openpyxl
 import pandas as pd
 import yaml
+
+from semeio.fmudesign.design_distributions import read_correlations
 
 
 def excel_to_dict(
@@ -666,21 +669,42 @@ def _read_dist_sensitivity(sensgroup: pd.DataFrame) -> dict[str, Any]:
 def _read_correlations(
     sensgroup: pd.DataFrame, inputfile: str
 ) -> dict[str, Any] | None:
-    if "corr_sheet" in sensgroup:
-        if not sensgroup["corr_sheet"].dropna().empty:
-            correlations: dict[str, Any] = {}
-            correlations["inputfile"] = inputfile
-            correlations["sheetnames"] = []
-            for _index, row in sensgroup.iterrows():
-                if (
-                    _has_value(row["corr_sheet"])
-                    and row["corr_sheet"] not in correlations["sheetnames"]
-                ):
-                    correlations["sheetnames"].append(row["corr_sheet"])
-        else:
-            return None
-    else:
+    """Parse correlation information from a sensitivity group."""
+
+    # No correlation sheet column exists
+    if "corr_sheet" not in sensgroup.columns:
         return None
+
+    # The column exists, but it is all blank
+    if sensgroup["corr_sheet"].dropna().empty:
+        return None
+
+    correlations: dict[str, Any] = {"inputfile": inputfile}
+
+    # Create a mapping 'corr_to_params' like:
+    # {'corr1': ['var_A', 'var_B', ...], ...}
+    corr_to_params = collections.defaultdict(list)
+    for _, row in sensgroup.iterrows():
+        if not _has_value(row["corr_sheet"]):
+            continue
+        corr_to_params[row["corr_sheet"]].append(row["param_name"])
+
+    # Open the correlation sheet and peek at it
+    # We want to verify that if variables ['A', 'B'] point to the corr sheet,
+    # then exactly those variables are also defined in the sheet
+    for corr_sheet, parameters in corr_to_params.items():
+        df_corr = read_correlations(excel_filename=inputfile, corr_sheet=corr_sheet)
+        if set(df_corr.columns) != set(parameters):
+            sensname = sensgroup["sensname"].iloc[0]
+            msg = f"Mismatch between parameters in sensitivity group {sensname!r} "
+            msg += f"pointing to\ncorrelation sheet {corr_sheet!r} and "
+            msg += "parameters specified in that correlation sheet.\n"
+            msg += f"Parameters in sensitivity group: {sorted(set(parameters))}\n"
+            msg += f"Parameters in correlation sheet: {sorted(set(df_corr.columns))}\n"
+            msg += "These parameters must be specified one-to-one."
+            raise ValueError(msg)
+
+    correlations["sheetnames"] = list(set(corr_to_params.keys()))
 
     return correlations
 
