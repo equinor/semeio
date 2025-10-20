@@ -873,9 +873,16 @@ class MonteCarloSensitivity(Sensitivity):
                 multivariate_parameters = list(df_correlations.index.values)
                 correlations = df_correlations.values
 
-                print(
-                    f"Sampling parameters in {corr_group_name!r}: {multivariate_parameters}"
-                )
+                if self.verbosity == 0:
+                    print(
+                        f"Sampling {len(multivariate_parameters)} parameters",
+                        f"in correlation group {corr_group_name!r}",
+                    )
+                else:
+                    print(
+                        f"Sampling {len(multivariate_parameters)} parameters",
+                        f"in correlation group {corr_group_name!r}: {multivariate_parameters}",
+                    )
 
                 # Get the nearest correlation matrix
                 nearest = probabilit.correlation.nearest_correlation_matrix(
@@ -940,7 +947,6 @@ class MonteCarloSensitivity(Sensitivity):
                 )
 
             self.sensvalues = self.sensvalues.assign(**{distr_name: samples})
-            print(f"Wrote {numreals} samples from {distr_name!r}")
 
         if self.sensname != "background":
             self.sensvalues["REAL"] = realnums
