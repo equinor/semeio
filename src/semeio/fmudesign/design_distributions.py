@@ -94,7 +94,7 @@ def to_probabilit(
     Prepare scipy distributions with parameters
     Args:
         distname (str): distribution name 'normal', 'lognormal', 'triang',
-        'uniform', 'logunif', 'discrete', 'pert'
+        'uniform', 'logunif', 'discrete', 'pert', 'beta'
         dist_parameters (list): list with parameters for distribution
     Returns:
         array with sampled values
@@ -163,6 +163,18 @@ def to_probabilit(
         return probabilit.distributions.Triangular(
             low=low, mode=mode, high=high, low_perc=0.0, high_perc=1.0
         )
+    elif distname.lower().startswith("beta"):
+        if len(parameters) == 2:
+            a, b = parameters
+            # Defaults to probabilit.Distribution("beta", a=a, b=b, loc=0, scale=1)
+            return probabilit.Distribution("beta", a=a, b=b)
+        if len(parameters) == 4:
+            a, b, low, high = parameters
+            loc = low
+            scale = high - low
+            return probabilit.Distribution("beta", a=a, b=b, loc=loc, scale=scale)
+        else:
+            raise ValueError(f"Beta must have 2 or 4 parameters, got: {parameters}")
     elif distname.lower().startswith("pert"):
         if len(parameters) == 3:
             low, mode, high = parameters
