@@ -231,35 +231,45 @@ def _excel_to_dict_onebyone(
     except ValueError:
         output[key] = generalinput[key]  # Validation should raise
 
-    if "rms_seeds" in generalinput:
-        if isinstance(generalinput["rms_seeds"], str):
-            output["seeds"] = resolve_path(input_filename, generalinput["rms_seeds"])
-        else:
-            output["seeds"] = generalinput["rms_seeds"]
-    else:
-        output["seeds"] = None
+    key = "seeds"
+    try:
+        output[key] = resolve_path(input_filename, str(generalinput["rms_seeds"]))
+    except KeyError:
+        output[key] = None
+    except (ValueError, TypeError):
+        output[key] = generalinput["rms_seeds"]  # Validatetion done later
 
-    # TODO: If not specified, should we seed with 0 instead of None?
-    # Not reproducible right now since we set default_rng(None)
     key = "distribution_seed"
     try:
         output[key] = int(generalinput[key])
-    except (KeyError, TypeError):
+    except KeyError as err:
+        raise ValueError(
+            "You did not specify a value for 'distribution_seed', which is used to seed "
+            "the random number generator that draws from distributions in Monte Carlo "
+            "sensitivities.\n"
+            "- Specify a number (e.g. a 6 digit integer) to seed the random number "
+            "generator and obtain reproducible results.\n"
+            "- Specify None if you do not want to seed the random number generator. "
+            "Your analysis will not be reproducible."
+        ) from err
+        # If key does not exsist, raise an error and ask user to input key.
+    except (ValueError, TypeError):
+        output[key] = generalinput[key]
+        # In validation, throw an error if cell is set to something non sensical,
+        # Accept None as valid type.
+
+    key = "background"
+    output[key] = {}
+    try:
+        value = str(generalinput[key])
+        if value.endswith(("csv", "xlsx")):
+            output[key]["extern"] = resolve_path(input_filename, value)
+        else:
+            output[key] = _read_background(input_filename, value)
+    except KeyError:
         output[key] = None
     except ValueError:
-        output[key] = generalinput[key]
-
-    if "background" in generalinput:
-        background = str(generalinput["background"])
-        output["background"] = {}
-        if background.endswith(("csv", "xlsx")):
-            output["background"]["extern"] = resolve_path(input_filename, background)
-        elif background == "None":
-            output["background"] = None
-        else:
-            output["background"] = _read_background(input_filename, background)
-    else:
-        output["background"] = None
+        output[key] = generalinput[key]  # Validation should raise
 
     output["defaultvalues"] = _read_defaultvalues(input_filename, default_values_sheet)
 
