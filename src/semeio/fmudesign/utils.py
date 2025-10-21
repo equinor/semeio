@@ -74,7 +74,7 @@ def seeds_from_extern(filename: str, max_reals: int) -> list[int]:
 def find_max_realisations(inputdict: Mapping[str, Any]) -> int:
     """Finds the maximum number of realisations
     in a sensitivity case"""
-    max_reals = inputdict["repeats"]
+    max_reals = inputdict["general_input"]["repeats"]
     for key in inputdict["sensitivities"]:
         sens = inputdict["sensitivities"][key]
         if "numreal" in sens:

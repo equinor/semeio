@@ -13,6 +13,7 @@ from scipy import stats
 import semeio
 from semeio.fmudesign import DesignMatrix, excel_to_dict
 from semeio.fmudesign._excel_to_dict import _read_defaultvalues
+from semeio.fmudesign.config_validation import validate_configuration
 
 TESTDATA = Path(__file__).parent / "data"
 
@@ -127,6 +128,7 @@ def test_distribution_statistis(tmpdir, monkeypatch, correlations):
 
     # Read the file and draw samples
     input_dict = excel_to_dict(FILENAME)
+    input_dict = validate_configuration(input_dict, input_filename=FILENAME)
     design = DesignMatrix()
     design.generate(input_dict)
     assert len(design.designvalues) == NUM_SAMPLES
@@ -185,6 +187,7 @@ def test_generate_onebyone(tmpdir):
     inputfile = TESTDATA / "config/design_input_example1.xlsx"
 
     input_dict = excel_to_dict(inputfile)
+    input_dict = validate_configuration(input_dict, input_filename=inputfile)
 
     # Note that repeats are set to 10 in general_input sheet.
     # So, there are 10 rows for each senscase of type seed and scenario.
@@ -358,6 +361,7 @@ def test_generate_full_mc_snapshot(snapshot):
     # Setup
     inputfile = TESTDATA / "config/design_input_mc_with_correls.xlsx"
     input_dict = excel_to_dict(inputfile)
+    input_dict = validate_configuration(input_dict, input_filename=inputfile)
     design = DesignMatrix()
 
     # Generate the design matrix
@@ -389,6 +393,7 @@ def test_generate_full_mc(tmpdir):
     """Test generation of full monte carlo"""
     inputfile = TESTDATA / "config/design_input_mc_with_correls.xlsx"
     input_dict = excel_to_dict(inputfile)
+    input_dict = validate_configuration(input_dict, input_filename=inputfile)
 
     design = DesignMatrix()
     design.generate(input_dict)
@@ -459,13 +464,19 @@ def test_generate_full_mc(tmpdir):
 
 
 def test_generate_background(tmpdir):
-    inputfile = TESTDATA / "config/design_input_background.xlsx"
-    input_dict = excel_to_dict(inputfile)
-    source_file = TESTDATA / "config/doe1.xlsx"
-    dest_file = tmpdir.join("doe1.xlsx")
-    shutil.copy2(source_file, dest_file)
-
     with tmpdir.as_cwd():
+        # Copy input file
+        input_source = TESTDATA / "config/design_input_background.xlsx"
+        inputfile = tmpdir.join("design_input_background.xlsx")
+        shutil.copy2(input_source, inputfile)
+
+        # Copy
+        source_file = TESTDATA / "config/doe1.xlsx"
+        dest_file = tmpdir.join("doe1.xlsx")
+        shutil.copy2(source_file, dest_file)
+
+        input_dict = excel_to_dict(inputfile)
+        input_dict = validate_configuration(input_dict, input_filename=inputfile)
         design = DesignMatrix()
         design.generate(input_dict)
 

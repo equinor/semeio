@@ -209,67 +209,7 @@ def _excel_to_dict_onebyone(
         for (key, value) in generalinput.items()
     }
 
-    # Validation
-    if "repeats" not in generalinput:
-        raise LookupError('"repeats" must be specified in general_input sheet')
-
-    if "seeds" in generalinput:
-        raise ValueError(
-            "The 'seeds' parameter has been deprecated and is no longer supported. "
-            "Use 'rms_seeds' instead"
-        )
-
-    output["designtype"] = generalinput["designtype"]
-    output["repeats"] = generalinput["repeats"]
-
-    # Extract
-    key = "correlation_iterations"
-    try:
-        output[key] = int(generalinput[key])
-    except KeyError:
-        output[key] = 0  # Default value
-    except ValueError:
-        output[key] = generalinput[key]  # Validation should raise
-
-    key = "seeds"
-    try:
-        output[key] = resolve_path(input_filename, str(generalinput["rms_seeds"]))
-    except KeyError:
-        output[key] = None
-    except (ValueError, TypeError):
-        output[key] = generalinput["rms_seeds"]  # Validatetion done later
-
-    key = "distribution_seed"
-    try:
-        output[key] = int(generalinput[key])
-    except KeyError as err:
-        raise ValueError(
-            "You did not specify a value for 'distribution_seed', which is used to seed "
-            "the random number generator that draws from distributions in Monte Carlo "
-            "sensitivities.\n"
-            "- Specify a number (e.g. a 6 digit integer) to seed the random number "
-            "generator and obtain reproducible results.\n"
-            "- Specify None if you do not want to seed the random number generator. "
-            "Your analysis will not be reproducible."
-        ) from err
-        # If key does not exsist, raise an error and ask user to input key.
-    except (ValueError, TypeError):
-        output[key] = generalinput[key]
-        # In validation, throw an error if cell is set to something non sensical,
-        # Accept None as valid type.
-
-    key = "background"
-    output[key] = {}
-    try:
-        value = str(generalinput[key])
-        if value.endswith(("csv", "xlsx")):
-            output[key]["extern"] = resolve_path(input_filename, value)
-        else:
-            output[key] = _read_background(input_filename, value)
-    except KeyError:
-        output[key] = None
-    except ValueError:
-        output[key] = generalinput[key]  # Validation should raise
+    output["general_input"] = generalinput
 
     output["defaultvalues"] = _read_defaultvalues(input_filename, default_values_sheet)
 

@@ -83,31 +83,32 @@ class DesignMatrix:
             inputdict (dict): input parameters for design
         """
         inputdict = copy.deepcopy(inputdict)
+        general_input = inputdict["general_input"]
 
-        if inputdict["designtype"] != "onebyone":
+        if general_input["designtype"] != "onebyone":
             raise ValueError(
-                f"Generation of DesignMatrix only implemented for type 'onebyone', not {inputdict['designtype']}"
+                f"Generation of DesignMatrix only implemented for type 'onebyone', not {general_input['designtype']}"
             )
 
         self.reset()  # Emptying if regenerating matrix
 
-        rng = np.random.default_rng(seed=inputdict.get("distribution_seed"))
+        rng = np.random.default_rng(seed=general_input["distribution_seed"])
 
         self.defaultvalues = inputdict["defaultvalues"]
 
         max_reals = find_max_realisations(inputdict)
 
         # Reading or generating rms seed values
-        if "seeds" in inputdict:
-            self.add_seeds(inputdict["seeds"], max_reals)
+        if "seeds" in general_input:
+            self.add_seeds(general_input["seeds"], max_reals)
 
         # If background values used - read or generate
-        if "background" in inputdict:
+        if "background" in general_input:
             self.add_background(
-                back_dict=inputdict["background"],
+                back_dict=general_input["background"],
                 max_values=max_reals,
                 rng=rng,
-                correlation_iterations=inputdict.get("correlation_iterations", 0),
+                correlation_iterations=general_input["correlation_iterations"],
             )
 
         sensitivity: Sensitivity
@@ -117,7 +118,7 @@ class DesignMatrix:
         current_real_index = 0
         for key in inputdict["sensitivities"]:
             sens = inputdict["sensitivities"][key]
-            numreal = sens["numreal"] if "numreal" in sens else inputdict["repeats"]
+            numreal = sens["numreal"] if "numreal" in sens else general_input["repeats"]
 
             print(f"Generating sensitivity : {key}")
 

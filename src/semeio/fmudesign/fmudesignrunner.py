@@ -11,6 +11,7 @@ from packaging.version import Version
 
 import semeio
 from semeio.fmudesign import DesignMatrix, excel_to_dict
+from semeio.fmudesign.config_validation import validate_configuration
 
 
 def get_parser() -> ArgumentParser:
@@ -97,6 +98,9 @@ def generate_design_matrix(args: Namespace) -> None:
         design_input_sheet=args.designinput,
         default_val_sheet=args.defaultvalues,
     )
+
+    # Validate the input
+    input_dict = validate_configuration(input_dict, input_filename=args.config)
 
     # If destination is 'analysis/generateddesignmatrix.xlsx', then plots
     # will be saved to 'analysis/generateddesignmatrix/<SENSNAME>/<VARNAME>.png'
