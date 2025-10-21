@@ -72,6 +72,7 @@ def get_parser() -> ArgumentParser:
 
 def validate_args(parser: ArgumentParser) -> Namespace:
     args = parser.parse_args()
+    print(f"Reading file: {args.config!r}")
     for sheet in ["designinput", "defaultvalues", "general_input"]:
         default = parser.get_default(sheet)
         custom = getattr(args, sheet)

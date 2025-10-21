@@ -97,7 +97,8 @@ def test_endpoint(tmpdir, monkeypatch):
     )
 
     # Use <ANY> in the string below to match anything in CLI output
-    expected_output = """Reading background values from: <ANY>doe1.xlsx
+    expected_output = """Reading file: <ANY>design_input_onebyone.xlsx'
+Reading background values from: <ANY>doe1.xlsx
 Generating sensitivity : seed
 Added sensitivity : seed
 Generating sensitivity : faults
@@ -107,16 +108,11 @@ Added sensitivity : velmodel
 Generating sensitivity : contacts
 Added sensitivity : contacts
 Generating sensitivity : multz
-Wrote 10 samples from 'MULTZ_ILE'
 Added sensitivity : multz
 Generating sensitivity : sens6
-Wrote 10 samples from 'PARAM5'
-Wrote 10 samples from 'PARAM6'
-Wrote 10 samples from 'PARAM7'
-Wrote 10 samples from 'FAULT_SEAL'
 Added sensitivity : sens6
 Generating sensitivity : sens7
-Sampling parameters in 'corr1': ['PARAM9', 'PARAM10', 'PARAM11', 'PARAM12']
+Sampling 4 parameters in correlation group 'corr1'
 
 Warning: Correlation matrix 'corr1' is inconsistent
 Requirements:
@@ -139,10 +135,6 @@ Adjusted to nearest consistent correlation matrix:
 | PARAM10 |     0.74 | 1.00      |           |           |
 | PARAM11 |     0.11 | 0.74      | 1.00      |           |
 | PARAM12 |     0.00 | 0.00      | 0.00      | 1.00      |
-Wrote 30 samples from 'PARAM9'
-Wrote 30 samples from 'PARAM10'
-Wrote 30 samples from 'PARAM11'
-Wrote 30 samples from 'PARAM12'
 Added sensitivity : sens7
 Generating sensitivity : sens8
 Added sensitivity : sens8

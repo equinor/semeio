@@ -258,18 +258,22 @@ class QualityReporter:
 
         print(
             "=" * 16,
-            f"CORRELATION_GROUP {corr_name!r}: {list(df_corr.columns)}",
+            f"CORRELATION_GROUP {corr_name!r} (num variables: {len(df_corr.columns)})",
             "=" * 16,
         )
 
-        print("Desired correlation:")
-        print_corrmat(df_corr)
+        if len(df_corr) <= 6:
+            print("Desired correlation:")
+            print_corrmat(df_corr)
+        else:
+            print("Skipping printing desired correlation. Matrix too large.")
 
         nearest_corr = nearest_correlation_matrix(
             df_corr.values, weights=None, eps=1e-6, verbose=False
         )
         diffs = nearest_corr[idx_low_triang] - df_corr.values[idx_low_triang]
         corr_rmse = np.sqrt(np.mean(diffs**2))
+
         if corr_rmse > 1e-2:
             print(f"The desired correlation matrix is not valid => {corr_rmse=:.2f}")
             print("Closest valid correlation matrix (used as target):")
@@ -284,19 +288,27 @@ class QualityReporter:
         if corr.empty:
             return
 
-        print("Observed (Pearson) correlation in samples:")
-        print_corrmat(corr)
+        if len(corr) <= 6:
+            print("Observed (Pearson) correlation in samples:")
+            print_corrmat(corr)
+        else:
+            print("Skipping printing observed (Pearson) correlation. Matrix too large.")
 
         # Difference between achieved corr in samples and target
         diffs = corr.values[idx_low_triang] - nearest_corr[idx_low_triang]
         corr_rmse = np.sqrt(np.mean(diffs**2))
-        if corr_rmse > 0.10:
+        print(
+            "Distance metrics between target correlation matrix and empirical correlation matrix"
+        )
+        print(f" - Root Mean Squared Error    (RMSE): {corr_rmse:.6f}")
+
+        if corr_rmse > 0.05:
             print(
-                "Target correlation matrix and empirical correlation achieved"
-                f" in data does not match well (RMSE: {corr_rmse:.2f} > 0.05).\n"
+                "Target correlation matrix and empirical correlation achieved",
+                " in data does not match well\n"
                 "This is natural with few samples, or very high/low desired correlations, "
                 "or distributions that are far from\nnormal (e.g. lognormal)."
-                " Setting 'correlation_iterations' to 999 in the general input sheet might help."
+                " Setting 'correlation_iterations' to 999 in the general input sheet might help.",
             )
 
     def plot_correlation(
