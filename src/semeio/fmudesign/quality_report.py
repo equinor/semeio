@@ -383,6 +383,80 @@ class QualityReporter:
 
         plt.close(pairgrid.fig)
 
+    def plot_correlation_heatmap(
+        self,
+        corr_name: str,
+        df_corr: pd.DataFrame,
+        output_dir: Path | None = None,
+        show: bool = False,
+    ) -> None:
+        """Plot correlation heapmap of group of variables.
+
+        Args:
+            corr_name: Name of the correlation group
+            df_corr: DataFrame containing the correlation structure to plot
+            output_dir: Optional directory path to save plots
+            show: Whether or not to show the matplotlib figure
+        """
+
+        df = self.df[df_corr.columns].select_dtypes(include="number")
+
+        # Only plot if two or more variables remain
+        if df.shape[1] <= 1:
+            return
+
+        correlation_matrix = df.corr()
+        n_vars = len(correlation_matrix)
+
+        # Roughly try to create a figure of a good size
+        size = 3 + n_vars * 0.15
+        fig, ax = plt.subplots(1, 1, figsize=(size, size))
+
+        # Custom annotation
+        annot_matrix = correlation_matrix.copy().map(str)
+        for (i, j), value in np.ndenumerate(correlation_matrix):
+            if i == j:
+                annot_matrix.iloc[i, j] = "1"
+            else:
+                annot_matrix.iloc[i, j] = f"{value:.2f}".replace("0.", ".")
+
+        # Based on a linear regression
+        annot_fontsize = max(8 - 0.115 * n_vars, 2)
+        sns.heatmap(
+            correlation_matrix,
+            annot=annot_matrix,
+            fmt="",
+            cmap="coolwarm",
+            center=0,
+            square=True,
+            linewidths=0.5,
+            cbar_kws={"shrink": 0.75},
+            vmin=-1,
+            vmax=1,
+            ax=ax,
+            annot_kws={"size": annot_fontsize},
+        )
+        ax.set_title(f"Observed correlation: {corr_name}", fontsize=11)
+
+        # Rotate labels
+        ax.set_xticklabels(ax.get_xticklabels(), rotation=90, ha="center", va="top")
+        ax.set_yticklabels(ax.get_yticklabels(), rotation=0)
+        ax.tick_params(axis="both", which="major", labelsize=6)
+        plt.subplots_adjust(bottom=0.15)
+
+        fig.tight_layout()
+
+        output_path = self._create_output_dir(output_dir)
+        if output_path is not None:
+            filename = output_path / f"{corr_name}_heatmap.png"
+            fig.savefig(filename, dpi=200)
+            print(f" - Saved correlation heatmap: {filename}")
+
+        if show:
+            plt.show()
+
+        plt.close(fig)
+
 
 def print_corrmat(df_corrmat: pd.DataFrame) -> None:
     """Print a correlation matrix.
