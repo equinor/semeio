@@ -326,6 +326,9 @@ class QualityReporter:
             output_dir: Optional directory path to save plots
             show: Whether or not to show the matplotlib figure
         """
+        # Short circuit this case, as there is nothing to do
+        if (not show) and (output_dir is None):
+            return None
 
         def corrfunc(
             x: npt.NDArray[np.float64],
@@ -398,6 +401,9 @@ class QualityReporter:
             output_dir: Optional directory path to save plots
             show: Whether or not to show the matplotlib figure
         """
+        # Short circuit this case, as there is nothing to do
+        if (not show) and (output_dir is None):
+            return None
 
         df = self.df[df_corr.columns].select_dtypes(include="number")
 
