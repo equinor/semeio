@@ -78,7 +78,7 @@ def inputdict_to_yaml(inputdict: Mapping[str, Any], filename: str) -> None:
 
     Args:
         inputdict (dict)
-        filename (str): path for where to write file
+        filename (str): name of output file
     """
     with open(filename, "w", encoding="utf-8") as stream:
         yaml.dump(inputdict, stream)
@@ -148,7 +148,7 @@ def _check_for_mixed_sensitivities(sens_name: str, sens_group: pd.DataFrame) -> 
 
 
 def resolve_path(input_filename: str, reference: str) -> str:
-    """The path `input_filename` is an Excel sheet, and `reference` is a cell
+    """The file `input_filename` is an Excel sheet, and `reference` is a cell
     value that *might* be a reference to another file. Resolve the path to
     `reference` and return.
     """
@@ -178,7 +178,7 @@ def _excel_to_dict_onebyone(
     """Reads configuration from Excel file for a onebyone design matrix.
 
     Args:
-        input_filename (str): path to excel workbook
+        input_filename (str): Name of excel workbook
         general_input_sheet (str): name of general input sheet
         design_input_sheet (str): name of design input sheet
         default_values_sheet (str): name of default value sheet
@@ -366,7 +366,7 @@ def _read_defaultvalues(filename: str, sheetname: str) -> dict[str, Any]:
     reference/base case
 
     Args:
-        filename (str): path to excel file
+        filename (str): Name of excel file
         sheetname (string): name of defaultsheet
 
     Returns:
@@ -403,7 +403,7 @@ def _read_dependencies(
     """Reads parameters that are set from other parameters
 
     Args:
-        filename(path): path to excel file
+        filename(str): name of excel file
         sheetname (string): name of dependency sheet
         from_parameter (string): parameter name to map from
 
@@ -437,7 +437,7 @@ def _read_background(inp_filename: str, bck_sheet: str) -> dict[str, Any]:
     """Reads excel sheet with background parameters and distributions
 
     Args:
-        inp_filename (path): path to Excel workbook
+        inp_filename (str): name of Excel workbook
         bck_sheet (str): name of sheet with background parameters
 
     Returns:
