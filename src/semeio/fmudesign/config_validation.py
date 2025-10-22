@@ -4,9 +4,9 @@ Module for validation of config (typically read from Excel).
 
 import copy
 import numbers
-from pathlib import Path
 
 from semeio.fmudesign._excel_to_dict import resolve_path
+from semeio.fmudesign.utils import seeds_from_extern
 
 
 def validate_configuration(config: dict, verbosity: int = 0) -> dict:
@@ -64,12 +64,17 @@ def validate_configuration(config: dict, verbosity: int = 0) -> dict:
     # - 'None'    => seed number not added
     # - a path to a file
     key = "seeds"
-    config[key] = resolve_path(config.get("input_file"), config[key])
-    if not (
-        (config[key] is None) or config[key] == "default" or Path(config[key]).exists()
-    ):
-        raise ValueError(
-            f"'rms_seeds' must be 'None', 'default' or a file, got: {config[key]}"
-        )
+    if key not in config:
+        config[key] = "default"
+        if verbosity > 0:
+            print("'rms_seeds' not set in general input sheet. Setting to 'default'.")
+    if not ((config[key] == "default") or (config[key] is None)):
+        # It must be a path to a file with seed values
+        try:
+            path = resolve_path(config.get("input_file"), config[key])
+            config[key] = seeds_from_extern(path)
+        except Exception as exception:
+            msg = f"'rms_seeds' must be 'None', 'default' or a file, got: {config[key]}"
+            raise ValueError(msg) from exception
 
     return config

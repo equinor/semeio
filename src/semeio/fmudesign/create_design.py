@@ -30,7 +30,6 @@ from semeio.fmudesign.utils import (
     map_dependencies,
     parameters_from_extern,
     printwarning,
-    seeds_from_extern,
     to_numeric_safe,
 )
 
@@ -307,7 +306,7 @@ class DesignMatrix:
         )
         print(f"Designmatrix written to {filename}")
 
-    def add_seeds(self, seeds: str | None, max_reals: int) -> None:
+    def add_seeds(self, seeds: list | str | None, max_reals: int) -> None:
         """Set RMS seed values.
 
         Configures seed values either by loading from an external file, generating
@@ -320,20 +319,25 @@ class DesignMatrix:
                 - str: Name of file that contains seeds
             max_reals: Maximum number of seed values to generate or load
         """
-        if seeds in {None, "None"}:
+        if seeds is None:
             self.seedvalues = None
-            print("seeds is set to None in general_input")
-        elif seeds and seeds.lower() == "default":
+            return
+
+        if seeds == "default":
             self.seedvalues = [item + 1000 for item in range(max_reals)]
-        elif seeds and Path(seeds).is_file():
-            self.seedvalues = seeds_from_extern(seeds, max_reals)
-        else:
-            raise ValueError(
-                "Valid choices for seeds are None, "
-                '"default" or an existing filename. '
-                "Neither was found in this case. seeds "
-                f"had been specified as {seeds} ."
-            )
+            return
+
+        if isinstance(seeds, list):
+            self.seedvalues = [seeds[item % len(seeds)] for item in range(max_reals)]
+            if len(self.seedvalues) > len(seeds):
+                print(
+                    "Provided number of seed values in external file "
+                    "is lower than the maximum number of realisations.\n"
+                    "Seeds will be repeated, e.g. [1, 2, 3] => [1, 2, 3, 1, 2, ...]"
+                )
+            return
+
+        raise ValueError(f"Must be None, 'default' or list: {seeds=}")
 
     def add_background(
         self,
