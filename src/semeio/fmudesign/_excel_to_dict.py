@@ -147,15 +147,15 @@ def _check_for_mixed_sensitivities(sens_name: str, sens_group: pd.DataFrame) -> 
         )
 
 
-def resolve_path(input_filename: str, reference: str) -> str:
-    """The file `input_filename` is an Excel sheet, and `reference` is a cell
+def resolve_path(input_filename: str | None, reference: str | None) -> str:
+    """The path `input_filename` is an Excel sheet, and `reference` is a cell
     value that *might* be a reference to another file. Resolve the path to
     `reference` and return.
     """
-    assert str(input_filename).endswith(("xlsx", "csv"))
+    assert (input_filename is None) or str(input_filename).endswith(("xlsx", "csv"))
 
     # It's not a reference to another file
-    if not reference.endswith(("xlsx", "csv")):
+    if not str(reference).endswith(("xlsx", "csv")):
         return reference
 
     reference_path = Path(reference)
@@ -186,7 +186,9 @@ def _excel_to_dict_onebyone(
     Returns:
         dict on format for DesignMatrix.generate
     """
-    output: dict[str, Any] = {}  # This is the config that we read and return
+    output: dict[str, Any] = {
+        "input_file": input_filename
+    }  # This is the config that we read and return
 
     # Read the general input sheet to a dictionary
     generalinput = (
@@ -222,13 +224,7 @@ def _excel_to_dict_onebyone(
             "Use 'rms_seeds' instead"
         )
 
-    key = "seeds"
-    try:
-        output[key] = resolve_path(input_filename, str(generalinput["rms_seeds"]))
-    except KeyError:
-        output[key] = None
-    except (ValueError, TypeError):
-        output[key] = generalinput["rms_seeds"]  # Validatetion done later
+    output["seeds"] = generalinput.get("rms_seeds", "default")
 
     key = "background"
     output[key] = {}
