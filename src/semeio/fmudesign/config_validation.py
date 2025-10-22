@@ -65,9 +65,9 @@ def validate_configuration(config: dict, verbosity: int = 0) -> dict:
     # - a path to a file
     key = "seeds"
     if key not in config:
-        config[key] = "default"
-        if verbosity > 0:
-            print("'rms_seeds' not set in general input sheet. Setting to 'default'.")
+        msg = '"rms_seeds" must be specified in general input sheet\n'
+        msg += ' - Set to "None", "default" or path to a file.'
+        raise LookupError(msg)
     if not ((config[key] == "default") or (config[key] is None)):
         # It must be a path to a file with seed values
         try:
