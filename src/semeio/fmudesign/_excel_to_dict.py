@@ -4,6 +4,7 @@ by the DesignMatrix class to generate design matrices.
 """
 
 import collections
+import contextlib
 from collections import Counter
 from collections.abc import Hashable, Mapping, Sequence
 from pathlib import Path
@@ -147,7 +148,7 @@ def _check_for_mixed_sensitivities(sens_name: str, sens_group: pd.DataFrame) -> 
         )
 
 
-def resolve_path(input_filename: str | None, reference: str | None) -> str:
+def resolve_path(input_filename: str | None, reference: str | None) -> str | None:
     """The path `input_filename` is an Excel sheet, and `reference` is a cell
     value that *might* be a reference to another file. Resolve the path to
     `reference` and return.
@@ -205,26 +206,44 @@ def _excel_to_dict_onebyone(
         .to_dict()
     )
 
-    # Convert NaN values to None
+    def process_value(value: object) -> object:
+        if pd.isna(value):
+            return None
+        elif isinstance(value, str):
+            return value.strip()
+        return value
+
+    # Convert NaN values to None and strip other values
     generalinput = {
-        key: (None if pd.isna(value) else value)
-        for (key, value) in generalinput.items()
+        key.strip(): process_value(value) for (key, value) in generalinput.items()
     }
 
-    # Copy keys over
+    # Check that there are no wrong keys or typos, e.g. 'repets'
+    ALLOWED_KEYS = {
+        "designtype",
+        "repeats",
+        "correlation_iterations",
+        "distribution_seed",
+        "rms_seeds",
+        "background",
+    }
+    extra_keys = set(generalinput.keys()) - set(ALLOWED_KEYS)
+    if extra_keys:
+        msg = "In the general input sheet, the following parameter(s) are not"
+        msg += f"recognized:\n{extra_keys!r}\nAllowed keys:{ALLOWED_KEYS!r}"
+        raise LookupError(msg)
+
+    # Copy keys over if they exist
     keys = ["designtype", "repeats", "correlation_iterations", "distribution_seed"]
     for key in keys:
         if key not in generalinput:
             continue
         output[key] = generalinput[key]
 
-    if "seeds" in generalinput:
-        raise ValueError(
-            "The 'seeds' parameter has been deprecated and is no longer supported. "
-            "Use 'rms_seeds' instead"
-        )
-
-    output["seeds"] = generalinput.get("rms_seeds", "default")
+    # Copy the 'rms_seeds' key over. It is called 'seeds' further down in
+    # the code for historical reasons.
+    with contextlib.suppress(KeyError):
+        output["seeds"] = generalinput["rms_seeds"]
 
     key = "background"
     output[key] = {}
