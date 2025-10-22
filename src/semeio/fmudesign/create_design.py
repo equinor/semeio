@@ -23,6 +23,7 @@ import probabilit  # type: ignore[import-untyped]
 import semeio
 from semeio.fmudesign import design_distributions as design_dist
 from semeio.fmudesign._excel_to_dict import _raise_if_duplicates
+from semeio.fmudesign.config_validation import validate_configuration
 from semeio.fmudesign.quality_report import QualityReporter, print_corrmat
 from semeio.fmudesign.utils import (
     find_max_realisations,
@@ -82,7 +83,7 @@ class DesignMatrix:
         Args:
             inputdict (dict): input parameters for design
         """
-        inputdict = copy.deepcopy(inputdict)
+        inputdict = validate_configuration(inputdict, verbosity=self.verbosity)
 
         if inputdict["designtype"] != "onebyone":
             raise ValueError(

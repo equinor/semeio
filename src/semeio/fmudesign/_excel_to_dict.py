@@ -209,27 +209,18 @@ def _excel_to_dict_onebyone(
         for (key, value) in generalinput.items()
     }
 
-    # Validation
-    if "repeats" not in generalinput:
-        raise LookupError('"repeats" must be specified in general_input sheet')
+    # Copy keys over
+    keys = ["designtype", "repeats", "correlation_iterations", "distribution_seed"]
+    for key in keys:
+        if key not in generalinput:
+            continue
+        output[key] = generalinput[key]
 
     if "seeds" in generalinput:
         raise ValueError(
             "The 'seeds' parameter has been deprecated and is no longer supported. "
             "Use 'rms_seeds' instead"
         )
-
-    output["designtype"] = generalinput["designtype"]
-    output["repeats"] = generalinput["repeats"]
-
-    # Extract
-    key = "correlation_iterations"
-    try:
-        output[key] = int(generalinput[key])
-    except KeyError:
-        output[key] = 0  # Default value
-    except ValueError:
-        output[key] = generalinput[key]  # Validation should raise
 
     key = "seeds"
     try:
@@ -238,25 +229,6 @@ def _excel_to_dict_onebyone(
         output[key] = None
     except (ValueError, TypeError):
         output[key] = generalinput["rms_seeds"]  # Validatetion done later
-
-    key = "distribution_seed"
-    try:
-        output[key] = int(generalinput[key])
-    except KeyError as err:
-        raise ValueError(
-            "You did not specify a value for 'distribution_seed', which is used to seed "
-            "the random number generator that draws from distributions in Monte Carlo "
-            "sensitivities.\n"
-            "- Specify a number (e.g. a 6 digit integer) to seed the random number "
-            "generator and obtain reproducible results.\n"
-            "- Specify None if you do not want to seed the random number generator. "
-            "Your analysis will not be reproducible."
-        ) from err
-        # If key does not exist, raise an error and ask user to input key.
-    except (ValueError, TypeError):
-        output[key] = generalinput[key]
-        # In validation, throw an error if cell is set to something non sensical,
-        # Accept None as valid type.
 
     key = "background"
     output[key] = {}
@@ -383,8 +355,9 @@ def _read_defaultvalues(filename: str, sheetname: str) -> dict[str, Any]:
         dict with defaultvalues (parameter, value)
     """
     default_df = (
-        pd.read_excel(filename, sheetname, header=0, index_col=0, engine="openpyxl")
-        .dropna(axis=0, how="all")
+        pd.read_excel(
+            filename, sheetname, header=0, index_col=0, engine="openpyxl"
+        ).dropna(axis=0, how="all")
         # Drop all unnamed columns from the df
         .loc[:, lambda df: ~df.columns.astype(str).str.contains("^Unnamed")]
     )

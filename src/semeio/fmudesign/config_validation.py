@@ -1,0 +1,59 @@
+"""
+Module for validation of config (typically read from Excel).
+"""
+
+import copy
+import numbers
+
+
+def validate_configuration(config: dict, verbosity: int = 0) -> dict:
+    """Main function for config validation.
+
+    This function is responsible for:
+        - Checking that required keys exist
+        - Checking that values are set to valid types
+        - Setting default values if keys are not set
+
+    """
+    config = copy.deepcopy(config)
+
+    if "repeats" not in config:
+        raise LookupError('"repeats" must be specified in general input sheet')
+
+    key = "correlation_iterations"
+    if key not in config:
+        if verbosity > 0:
+            print(f"{key!r} not set in general input sheet. Setting to default 0.")
+            print("  - When set to 0 Iman Conover is used to induce correlations.")
+            print(
+                "  - When set to a posotive integer, Iman Conover is followed by a heuristic algorithm."
+            )
+            print(
+                f"  If desired correlation does not match observed, try setting {key!r}=999 or higher."
+            )
+        config[key] = 0
+    else:
+        try:
+            config[key] = int(config[key])
+        except (ValueError, TypeError) as err:
+            raise ValueError(
+                f"{key!r} must be a non-negative integer, got: {config[key]}"
+            ) from err
+
+    key = "distribution_seed"
+    if key not in config:
+        raise ValueError(
+            "You did not specify a value for 'distribution_seed', which is used to seed "
+            "the random number generator that draws from distributions in Monte Carlo "
+            "sensitivities.\n"
+            "- Specify a number (e.g. a 6 digit integer) to seed the random number "
+            "generator and obtain reproducible results.\n"
+            "- Specify None if you do not want to seed the random number generator. "
+            "Your analysis will not be reproducible."
+        )
+    if not (isinstance(config[key], numbers.Integral) or (config[key] is None)):
+        raise ValueError(
+            f"{key!r} must be a non-negative integer or None, got: {config[key]}"
+        )
+
+    return config
