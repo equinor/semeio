@@ -25,13 +25,9 @@ from semeio.fmudesign import design_distributions as design_dist
 from semeio.fmudesign._excel_to_dict import _raise_if_duplicates
 from semeio.fmudesign.config_validation import validate_configuration
 from semeio.fmudesign.quality_report import QualityReporter, print_corrmat
-from semeio.fmudesign.utils import (
-    find_max_realisations,
-    map_dependencies,
-    parameters_from_extern,
-    printwarning,
-    to_numeric_safe,
-)
+from semeio.fmudesign.utils import (find_max_realisations, map_dependencies,
+                                    parameters_from_extern, printwarning,
+                                    to_numeric_safe)
 
 
 class DesignMatrix:
@@ -98,8 +94,8 @@ class DesignMatrix:
         max_reals = find_max_realisations(inputdict)
 
         # Reading or generating rms seed values
-        if "seeds" in inputdict:
-            self.add_seeds(inputdict["seeds"], max_reals)
+        # if "seeds" in inputdict:
+        self.seedvalues = self.add_seeds(inputdict["seeds"], max_reals)
 
         # If background values used - read or generate
         if "background" in inputdict:
@@ -306,7 +302,7 @@ class DesignMatrix:
         )
         print(f"Designmatrix written to {filename}")
 
-    def add_seeds(self, seeds: list | str | None, max_reals: int) -> None:
+    def add_seeds(self, seeds: list | str | None, max_reals: int) -> list | None:
         """Set RMS seed values.
 
         Configures seed values either by loading from an external file, generating
@@ -314,28 +310,26 @@ class DesignMatrix:
 
         Args:
             seeds: Seed configuration. Can be:
-                - "None" or None: Sets seedvalues to None
+                - "None: Sets seedvalues to None
                 - "default": Generates sequential seeds starting from 1000
-                - str: Name of file that contains seeds
+                - list of seeds
             max_reals: Maximum number of seed values to generate or load
         """
         if seeds is None:
-            self.seedvalues = None
-            return
+            return None
 
         if seeds == "default":
-            self.seedvalues = [item + 1000 for item in range(max_reals)]
-            return
+            return [item + 1000 for item in range(max_reals)]
 
         if isinstance(seeds, list):
-            self.seedvalues = [seeds[item % len(seeds)] for item in range(max_reals)]
-            if len(self.seedvalues) > len(seeds):
+            if max_reals > len(seeds):
                 print(
                     "Provided number of seed values in external file "
                     "is lower than the maximum number of realisations.\n"
                     "Seeds will be repeated, e.g. [1, 2, 3] => [1, 2, 3, 1, 2, ...]"
                 )
-            return
+
+            return [seeds[item % len(seeds)] for item in range(max_reals)]
 
         raise ValueError(f"Must be None, 'default' or list: {seeds=}")
 
