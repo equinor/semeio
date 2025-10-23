@@ -86,9 +86,7 @@ class DesignMatrix:
             )
 
         self.reset()  # Emptying if regenerating matrix
-
-        rng = np.random.default_rng(seed=inputdict.get("distribution_seed"))
-
+        self.rng = np.random.default_rng(seed=inputdict.get("distribution_seed"))
         self.defaultvalues = inputdict["defaultvalues"]
 
         # Reading or generating rms seed values
@@ -100,7 +98,6 @@ class DesignMatrix:
             self.add_background(
                 back_dict=inputdict["background"],
                 max_values=max_reals,
-                rng=rng,
                 correlation_iterations=inputdict.get("correlation_iterations", 0),
             )
 
@@ -159,7 +156,7 @@ class DesignMatrix:
                     parameters=sens["parameters"],
                     seedvalues=self.seedvalues,
                     corrdict=sens["correlations"],
-                    rng=rng,
+                    rng=self.rng,
                     correlation_iterations=inputdict.get("correlation_iterations", 0),
                 )
                 sensitivity.map_dependencies(sens.get("dependencies", {}))
@@ -336,7 +333,6 @@ class DesignMatrix:
         self,
         back_dict: dict[str, Any] | None,
         max_values: int,
-        rng: np.random.Generator,
         correlation_iterations: int = 0,
     ) -> None:
         """Adding background as specified in dictionary.
@@ -346,7 +342,6 @@ class DesignMatrix:
         Args:
             back_dict (dict): how to generate background values
             max_values (int): number of background values to generate
-            rng (numpy.random.Generator): Random number generator instance
             correlation_iterations (int): Number of permutations performed
               on samples after Iman-Conover in an attempt to match observed
               correlation to desired correlation as well as possible.
@@ -359,9 +354,8 @@ class DesignMatrix:
         elif "parameters" in back_dict:
             print("Generating background values from distributions.")
             self._add_dist_background(
-                back_dict,
-                max_values,
-                rng,
+                back_dict=back_dict,
+                numreal=max_values,
                 correlation_iterations=correlation_iterations,
             )
 
@@ -468,7 +462,7 @@ class DesignMatrix:
             parameters=back_dict["parameters"],
             seedvalues=None,
             corrdict=back_dict["correlations"],
-            rng=rng,
+            rng=self.rng,
             correlation_iterations=correlation_iterations,
         )
         mc_backgroundvalues = mc_background.sensvalues.copy()

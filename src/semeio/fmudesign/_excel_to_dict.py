@@ -251,15 +251,17 @@ def _excel_to_dict_onebyone(
 
     # Copy the 'rms_seeds' key over. It is called 'seeds' further down in
     # the code for historical reasons.
+    key = "seeds"
     with contextlib.suppress(KeyError):
-        output["seeds"] = generalinput["rms_seeds"]
+        output[key] = generalinput["rms_seeds"]
 
     # If 'seeds' / 'rms_seed' is a file, then read it
-    if "seeds" in output:
-        maybe_path = resolve_path(input_filename, output["seeds"])
+    if key in output:
+        maybe_path = resolve_path(input_filename, output[key])
         if isinstance(maybe_path, str) and Path(maybe_path).exists():
-            output["seeds"] = seeds_from_extern(maybe_path)
+            output[key] = seeds_from_extern(maybe_path)
 
+    # If 'background' is a file, then read it
     key = "background"
     output[key] = {}
     try:
@@ -271,7 +273,7 @@ def _excel_to_dict_onebyone(
     except KeyError:
         output[key] = None
     except ValueError:
-        output[key] = generalinput[key]  # Validation should raise
+        output[key] = generalinput[key]
 
     output["defaultvalues"] = _read_defaultvalues(input_filename, default_values_sheet)
 
