@@ -32,8 +32,7 @@ from semeio.fmudesign import DesignMatrix, excel_to_dict
 
 # These are example files that can be created with the subcommand 'fmudesign init'
 EXAMPLE_FILES = {
-    "design_input_multiple_dependencies.xlsx": "The first example file you should run!",
-    "design_input_onebyone.xlsx": "The second example file you should run!",
+    "fmudesign_ex_montecarlo.xlsx": "Shows all statistical parameter distributions, how to correlate samples, etc.",
 }
 
 
