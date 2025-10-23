@@ -4,12 +4,12 @@ Module for validation of config (typically read from Excel).
 
 import copy
 import numbers
-
-from semeio.fmudesign._excel_to_dict import resolve_path
-from semeio.fmudesign.utils import seeds_from_extern
+from typing import Any
 
 
-def validate_configuration(config: dict, verbosity: int = 0) -> dict:
+def validate_configuration(
+    config: dict[str, Any], verbosity: int = 0
+) -> dict[str, Any]:
     """Main function for config validation.
 
     This function is responsible for:
@@ -68,13 +68,11 @@ def validate_configuration(config: dict, verbosity: int = 0) -> dict:
         msg = '"rms_seeds" must be specified in general input sheet\n'
         msg += ' - Set to "None", "default" or path to a file.'
         raise LookupError(msg)
-    if not ((config[key] == "default") or (config[key] is None)):
-        # It must be a path to a file with seed values
-        try:
-            path = resolve_path(config.get("input_file"), config[key])
-            config[key] = seeds_from_extern(path)
-        except Exception as exception:
-            msg = f"'rms_seeds' must be 'None', 'default' or a file, got: {config[key]}"
-            raise ValueError(msg) from exception
+    is_default = config[key] == "default"
+    is_none = config[key] is None
+    is_list = isinstance(config[key], list) and config[key]
+    if not any([is_default, is_none, is_list]):
+        msg = f"'rms_seeds' must be 'None', 'default' or a file, got: {config[key]}"
+        raise ValueError(msg)
 
     return config
