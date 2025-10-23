@@ -11,7 +11,7 @@ used to generate design matrices, including one or several Sensitivities.
 from __future__ import annotations
 
 import copy
-from collections.abc import Hashable, Mapping, Sequence
+from collections.abc import Hashable, Sequence
 from datetime import datetime
 from pathlib import Path
 from typing import Any, cast
@@ -70,7 +70,7 @@ class DesignMatrix:
         self.backgroundvalues = None
         self.seedvalues = None
 
-    def generate(self, inputdict: Mapping[str, Any]) -> None:
+    def generate(self, inputdict: dict[str, Any]) -> None:
         """Generating design matrix from input dictionary in specific
         format. Adding default values and background values if existing.
         Looping through sensitivities and adding them to designvalues.
@@ -91,11 +91,9 @@ class DesignMatrix:
 
         self.defaultvalues = inputdict["defaultvalues"]
 
-        max_reals = find_max_realisations(inputdict)
-
         # Reading or generating rms seed values
-        # if "seeds" in inputdict:
-        self.seedvalues = self.add_seeds(inputdict["seeds"], max_reals)
+        max_reals = find_max_realisations(inputdict)
+        self.seedvalues = DesignMatrix.create_rms_seeds(inputdict["seeds"], max_reals)
 
         # If background values used - read or generate
         if "background" in inputdict:
@@ -130,10 +128,6 @@ class DesignMatrix:
                 sensitivity.map_dependencies(sens.get("dependencies", {}))
                 self._add_sensitivity(sensitivity)
             elif sens["senstype"] == "seed":
-                if self.seedvalues is None:
-                    raise ValueError(
-                        "No seed values available to use for seed sensitivity"
-                    )
                 sensitivity = SeedSensitivity(key, verbosity=self.verbosity)
                 sensitivity.generate(
                     size=size,
@@ -302,18 +296,23 @@ class DesignMatrix:
         )
         print(f"Designmatrix written to {filename}")
 
-    def add_seeds(self, seeds: list | str | None, max_reals: int) -> list | None:
-        """Set RMS seed values.
-
-        Configures seed values either by loading from an external file, generating
-        default sequential seeds, or setting to None based on the input parameter.
+    @staticmethod
+    def create_rms_seeds(seeds: list | str | None, max_reals: int) -> list | None:
+        """Create RMS seems from 'seeds' argument.
 
         Args:
             seeds: Seed configuration. Can be:
-                - "None: Sets seedvalues to None
-                - "default": Generates sequential seeds starting from 1000
-                - list of seeds
+                - None: returns None
+                - "default": Generates sequential seeds 1001, 1002, 1003, ...
+                - list of seeds, e.g. [1, 2, 3]
             max_reals: Maximum number of seed values to generate or load
+
+        Examples
+        --------
+        >>> DesignMatrix.create_rms_seeds([1, 2, 3], max_reals=5)
+        Provided number of seed values (3) in external file is lower than the maximum number of realisations (5).
+         Seeds will be repeated, e.g. [1, 2, 3] => [1, 2, 3, 1, 2, ...]
+        [1, 2, 3, 1, 2]
         """
         if seeds is None:
             return None
@@ -324,9 +323,9 @@ class DesignMatrix:
         if isinstance(seeds, list):
             if max_reals > len(seeds):
                 print(
-                    "Provided number of seed values in external file "
-                    "is lower than the maximum number of realisations.\n"
-                    "Seeds will be repeated, e.g. [1, 2, 3] => [1, 2, 3, 1, 2, ...]"
+                    f"Provided number of seed values ({len(seeds)}) in external file "
+                    f"is lower than the maximum number of realisations ({max_reals}).\n"
+                    " Seeds will be repeated, e.g. [1, 2, 3] => [1, 2, 3, 1, 2, ...]"
                 )
 
             return [seeds[item % len(seeds)] for item in range(max_reals)]
@@ -335,7 +334,7 @@ class DesignMatrix:
 
     def add_background(
         self,
-        back_dict: Mapping[str, Any] | None,
+        back_dict: dict[str, Any] | None,
         max_values: int,
         rng: np.random.Generator,
         correlation_iterations: int = 0,
@@ -515,7 +514,7 @@ class DesignMatrix:
                     raise ValueError("Cannot round a string parameter")
         self.backgroundvalues = mc_backgroundvalues.copy()
 
-    def _set_decimals(self, inputdict: Mapping[str, Any]) -> None:
+    def _set_decimals(self, inputdict: dict[str, Any]) -> None:
         """Round to specified number of decimals.
 
         Args:
@@ -568,7 +567,7 @@ class Sensitivity:
         self.sensname: str = sensname
         self.verbosity: int = verbosity
 
-    def map_dependencies(self, dependencies: Mapping[str, Any]) -> Sensitivity:
+    def map_dependencies(self, dependencies: dict[str, Any]) -> Sensitivity:
         """Map the dependencies, mutating the dataframe `self.sensvalues`."""
         verbose = self.verbosity > 0  # Because the function takes a boolean
         self.sensvalues: pd.DataFrame = map_dependencies(
@@ -598,8 +597,8 @@ class SeedSensitivity(Sensitivity):
         self,
         size: int,
         seedname: str,
-        seedvalues: Sequence[int],
-        parameters: Mapping[str, Any] | None,
+        seedvalues: Sequence[int] | None,
+        parameters: dict[str, Any] | None,
     ) -> None:
         """Generates parameter values for a seed sensitivity
 
@@ -610,6 +609,9 @@ class SeedSensitivity(Sensitivity):
             parameters (dict): parameter names and
                 distributions or values.
         """
+        if seedvalues is None:
+            msg = "No seed values available to use for seed sensitivity"
+            raise ValueError(msg)
 
         self.sensvalues = pd.DataFrame(index=range(size))
         self.sensvalues[seedname] = seedvalues[0:size]
@@ -799,7 +801,7 @@ class MonteCarloSensitivity(Sensitivity):
         size: int,
         parameters: dict[str, Any],
         seedvalues: Sequence[int] | None,
-        corrdict: Mapping[str, Any] | None,
+        corrdict: dict[str, Any] | None,
         rng: np.random.Generator,
         correlation_iterations: int = 0,
     ) -> None:

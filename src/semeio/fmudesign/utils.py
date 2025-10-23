@@ -2,7 +2,6 @@
 Module for utility functions that do not belong elsewhere.
 """
 
-from collections.abc import Mapping
 from typing import Any
 
 import pandas as pd
@@ -60,7 +59,7 @@ def seeds_from_extern(filename: str) -> list[int]:
     )
 
 
-def find_max_realisations(config: Mapping[str, Any]) -> int:
+def find_max_realisations(config: dict[str, Any]) -> int:
     """Finds the maximum number of realisations over all sensitivity cases."""
     max_reals = config.get("repeats", 0)
     for sens_info in config["sensitivities"].values():
@@ -116,7 +115,7 @@ def to_numeric_safe(val: int | float | str) -> int | float | str:
 
 
 def map_dependencies(
-    df: pd.DataFrame, *, dependencies: Mapping[str, Any], verbose: bool = False
+    df: pd.DataFrame, *, dependencies: dict[str, Any], verbose: bool = False
 ) -> pd.DataFrame:
     """Return a new copy of `df` with dependencies mapped.
 

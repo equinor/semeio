@@ -6,7 +6,7 @@ by the DesignMatrix class to generate design matrices.
 import collections
 import contextlib
 from collections import Counter
-from collections.abc import Hashable, Mapping, Sequence
+from collections.abc import Hashable, Sequence
 from pathlib import Path
 from typing import Any, cast
 
@@ -16,6 +16,7 @@ import pandas as pd
 import yaml
 
 from semeio.fmudesign.design_distributions import read_correlations
+from semeio.fmudesign.utils import seeds_from_extern
 
 
 def excel_to_dict(
@@ -74,7 +75,7 @@ def excel_to_dict(
     )
 
 
-def inputdict_to_yaml(inputdict: Mapping[str, Any], filename: str) -> None:
+def inputdict_to_yaml(inputdict: dict[str, Any], filename: str) -> None:
     """Write inputdict to yaml format
 
     Args:
@@ -148,25 +149,33 @@ def _check_for_mixed_sensitivities(sens_name: str, sens_group: pd.DataFrame) -> 
         )
 
 
-def resolve_path(input_filename: str | None, reference: str | None) -> str | None:
+def resolve_path(input_filename: str, reference: str | None) -> str | None:
     """The path `input_filename` is an Excel sheet, and `reference` is a cell
     value that *might* be a reference to another file. Resolve the path to
-    `reference` and return.
+    `reference` and return. If no such file exists, return `reference`.
     """
-    assert (input_filename is None) or str(input_filename).endswith(("xlsx", "csv"))
+    # The reference is None, so just return it back
+    if reference is None:
+        return reference
 
-    # It's not a reference to another file
+    # It's a string but not a reference to another file
     if not str(reference).endswith(("xlsx", "csv")):
         return reference
 
+    # If the reference is e.g. 'C:/Users/USER/files/doe1.xlsx'
     reference_path = Path(reference)
-
-    # If the reference is e.g. 'C:/Users/USER/files/doe1.xlsx' => full path
-    if reference_path.is_absolute():
+    if reference_path.is_absolute() and reference_path.exists():
         return str(reference_path.resolve())
 
-    # If the reference is 'doe1.xlsx', then assume the file is in same dir
-    return str(Path(input_filename).parent / reference_path)
+    # If the reference is e.g. 'doe1.xlsx'
+    full_path = Path(input_filename).parent / reference_path
+    if full_path.exists():
+        return str(full_path.resolve())
+
+    if reference_path.exists():
+        return str(reference_path.resolve())
+
+    raise ValueError(f"Failed to resolve path for file: {reference}")
 
 
 def _excel_to_dict_onebyone(
@@ -207,7 +216,7 @@ def _excel_to_dict_onebyone(
     )
 
     def process_value(value: object) -> object:
-        if pd.isna(value):
+        if pd.isna(value):  # type: ignore[call-overload]
             return None
         elif isinstance(value, str):
             return value.strip()
@@ -244,6 +253,12 @@ def _excel_to_dict_onebyone(
     # the code for historical reasons.
     with contextlib.suppress(KeyError):
         output["seeds"] = generalinput["rms_seeds"]
+
+    # If 'seeds' / 'rms_seed' is a file, then read it
+    if "seeds" in output:
+        maybe_path = resolve_path(input_filename, output["seeds"])
+        if isinstance(maybe_path, str) and Path(maybe_path).exists():
+            output["seeds"] = seeds_from_extern(maybe_path)
 
     key = "background"
     output[key] = {}
