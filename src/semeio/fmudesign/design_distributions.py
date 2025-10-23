@@ -1,7 +1,6 @@
 """Module for random sampling of parameter values from distributions."""
 
 from collections.abc import Sequence
-from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -203,7 +202,7 @@ def is_number(teststring: str) -> bool:
         return False
 
 
-def read_correlations(excel_filename: str | Path, corr_sheet: str) -> pd.DataFrame:
+def read_correlations(excel_filename: str, corr_sheet: str) -> pd.DataFrame:
     """Read a correlation matrix from an Excel sheet.
 
     The sheet must have rows/columns with variable names. They must match.
@@ -211,7 +210,7 @@ def read_correlations(excel_filename: str | Path, corr_sheet: str) -> pd.DataFra
     must be specified.
 
     Args:
-        excel_filename (str or Path): Path to Excel file containing correlation matrix
+        excel_filename (str): name of Excel file containing correlation matrix
         corr_sheet (str): name of sheet containing correlation matrix
 
     Returns:

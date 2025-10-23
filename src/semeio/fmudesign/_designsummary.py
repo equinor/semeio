@@ -15,7 +15,7 @@ def summarize_design(filename: str, sheetname: str = "DesignSheet01") -> pd.Data
      specified in a design matrix on standard fmu format.
 
     Args:
-        filename (str): Path to excel or csv file containing designmatrix
+        filename (str): Name of excel or csv file containing designmatrix
             for one by one sensitivities on standard FMU format.
         sheetname (str): Name of sheet in excel workbook which
             contains the designmatrix (only for excel input). Defaults to

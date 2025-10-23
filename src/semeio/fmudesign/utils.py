@@ -14,7 +14,7 @@ def parameters_from_extern(filename: str) -> pd.DataFrame:
     or csv.
 
     Args:
-        filename (str): path to file
+        filename (str): name of file
     """
     if str(filename).endswith(".xlsx"):
         return (
@@ -39,7 +39,7 @@ def seeds_from_extern(filename: str, max_reals: int) -> list[int]:
     or csv.
 
     Args:
-        filename (str): path to file
+        filename (str): name of file
     """
     if str(filename).endswith(".xlsx"):
         df_seeds = (

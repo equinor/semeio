@@ -275,8 +275,8 @@ class DesignMatrix:
         # Create folder for output file
         Path(filename).parent.mkdir(exist_ok=True, parents=True)
 
-        if Path(filename).suffix != ".xlsx":
-            filename = Path(filename).stem + ".xlsx"
+        if not filename.endswith(".xlsx"):
+            filename = filename + ".xlsx"
             print(f"Warning: Missing .xlsx suffix. Changed to: {filename}")
 
         xlsxwriter = pd.ExcelWriter(filename, engine="openpyxl")
@@ -319,7 +319,7 @@ class DesignMatrix:
             seeds: Seed configuration. Can be:
                 - "None" or None: Sets seedvalues to None
                 - "default": Generates sequential seeds starting from 1000
-                - str that represents a path to an existing file
+                - str: Name of file that cointains seeds
             max_reals: Maximum number of seed values to generate or load
         """
         if seeds in {None, "None"}:
@@ -821,7 +821,7 @@ class MonteCarloSensitivity(Sensitivity):
             parameters (dict): dictionary of parameters and distributions
             seeds (str): default or None
             corrdict (dict): Configuration for correlated parameters. Contains:
-                - 'inputfile': Path to Excel file with correlation matrices
+                - 'inputfile': Name of Excel file with correlation matrices
                 - 'sheetnames': List of sheet names, where each sheet contains a correlation matrix
                 If None, parameters are treated as uncorrelated.
             rng (numpy.random.Generator): Random number generator instance
@@ -995,7 +995,7 @@ class ExternSensitivity(Sensitivity):
 
         Args:
             realnums (list): list of integers with realization numbers
-            filename (str): path where to read values from
+            filename (str): file to read values from
             parameters (list): list with parameter names
             seeds (str): default or None
         """
