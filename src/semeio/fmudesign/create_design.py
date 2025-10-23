@@ -114,28 +114,24 @@ class DesignMatrix:
 
         self.designvalues["SENSNAME"] = None
         self.designvalues["SENSCASE"] = None
-        current_real_index = 0
+
         for key in inputdict["sensitivities"]:
             sens = inputdict["sensitivities"][key]
-            numreal = sens["numreal"] if "numreal" in sens else inputdict["repeats"]
+
+            # Numer of realization (rows) to use for each sensitivity
+            size = sens["numreal"] if "numreal" in sens else inputdict["repeats"]
 
             print(f"Generating sensitivity : {key}")
 
             if sens["senstype"] == "ref":
                 sensitivity = SingleRealisationReference(key, verbosity=self.verbosity)
-                sensitivity.generate(
-                    realnums=range(current_real_index, current_real_index + numreal)
-                )
+                sensitivity.generate(size=size)
                 sensitivity.map_dependencies(sens.get("dependencies", {}))
-                current_real_index += numreal
                 self._add_sensitivity(sensitivity)
             elif sens["senstype"] == "background":
                 sensitivity = BackgroundSensitivity(key, verbosity=self.verbosity)
-                sensitivity.generate(
-                    realnums=range(current_real_index, current_real_index + numreal)
-                )
+                sensitivity.generate(size=size)
                 sensitivity.map_dependencies(sens.get("dependencies", {}))
-                current_real_index += numreal
                 self._add_sensitivity(sensitivity)
             elif sens["senstype"] == "seed":
                 if self.seedvalues is None:
@@ -144,13 +140,13 @@ class DesignMatrix:
                     )
                 sensitivity = SeedSensitivity(key, verbosity=self.verbosity)
                 sensitivity.generate(
-                    realnums=range(current_real_index, current_real_index + numreal),
+                    size=size,
                     seedname=sens["seedname"],
                     seedvalues=self.seedvalues,
                     parameters=sens["parameters"],
                 )
                 sensitivity.map_dependencies(sens.get("dependencies", {}))
-                current_real_index += numreal
+
                 self._add_sensitivity(sensitivity)
             elif sens["senstype"] == "scenario":
                 sensitivity = ScenarioSensitivity(key, verbosity=self.verbosity)
@@ -158,20 +154,18 @@ class DesignMatrix:
                     case = sens["cases"][casekey]
                     temp_case = ScenarioSensitivityCase(casekey)
                     temp_case.generate(
-                        realnums=range(
-                            current_real_index, current_real_index + numreal
-                        ),
+                        size=size,
                         parameters=case,
                         seedvalues=self.seedvalues,
                     )
                     sensitivity.add_case(temp_case)
                     sensitivity.map_dependencies(sens.get("dependencies", {}))
-                    current_real_index += numreal
+
                 self._add_sensitivity(sensitivity)
             elif sens["senstype"] == "dist":
                 sensitivity = MonteCarloSensitivity(key, verbosity=self.verbosity)
                 sensitivity.generate(
-                    realnums=range(current_real_index, current_real_index + numreal),
+                    size=size,
                     parameters=sens["parameters"],
                     seedvalues=self.seedvalues,
                     corrdict=sens["correlations"],
@@ -179,19 +173,19 @@ class DesignMatrix:
                     correlation_iterations=inputdict.get("correlation_iterations", 0),
                 )
                 sensitivity.map_dependencies(sens.get("dependencies", {}))
-                current_real_index += numreal
+
                 self._add_sensitivity(sensitivity)
 
             elif sens["senstype"] == "extern":
                 sensitivity = ExternSensitivity(key, verbosity=self.verbosity)
                 sensitivity.generate(
-                    realnums=range(current_real_index, current_real_index + numreal),
+                    size=size,
                     filename=sens["extern_file"],
                     parameters=sens["parameters"],
                     seedvalues=self.seedvalues,
                 )
                 sensitivity.map_dependencies(sens.get("dependencies", {}))
-                current_real_index += numreal
+
                 self._add_sensitivity(sensitivity)
             print("Added sensitivity :", sensitivity.sensname)
 
@@ -245,6 +239,9 @@ class DesignMatrix:
 
         # Round columns in `self.designvalues` to desired precision
         self._set_decimals(inputdict)
+
+        # Create REAL column (realization number)
+        self.designvalues = self.designvalues.assign(REAL=lambda df: np.arange(len(df)))
 
         # Re-order columns
         start_cols = ["REAL", "SENSNAME", "SENSCASE", "RMS_SEED"]
@@ -451,7 +448,7 @@ class DesignMatrix:
     def _add_dist_background(
         self,
         back_dict: Mapping[str, Any],
-        numreal: int,
+        size: int,
         rng: np.random.Generator,
         correlation_iterations: int,
     ) -> None:
@@ -460,7 +457,7 @@ class DesignMatrix:
 
         Args:
             back_dict (dict): parameters and distributions
-            numreal (int): Number of samples to generate
+            size (int): Number of samples to generate
             rng (numpy.random.Generator): Random number generator instance
             correlation_iterations (int): Number of permutations performed
               on samples after Iman-Conover in an attempt to match observed
@@ -469,7 +466,7 @@ class DesignMatrix:
 
         mc_background = MonteCarloSensitivity("background")
         mc_background.generate(
-            realnums=range(numreal),
+            size=size,
             parameters=back_dict["parameters"],
             seedvalues=None,
             corrdict=back_dict["correlations"],
@@ -600,7 +597,7 @@ class SeedSensitivity(Sensitivity):
 
     def generate(
         self,
-        realnums: range,
+        size: int,
         seedname: str,
         seedvalues: Sequence[int],
         parameters: Mapping[str, Any] | None,
@@ -608,15 +605,15 @@ class SeedSensitivity(Sensitivity):
         """Generates parameter values for a seed sensitivity
 
         Args:
-            realnums (list): list of integers with realization numbers
+            size (int): number of rows to generate
             seedname (str): name of seed parameter to add
             seedvalues (list): list of integer seedvalues
             parameters (dict): parameter names and
                 distributions or values.
         """
 
-        self.sensvalues = pd.DataFrame(index=realnums)
-        self.sensvalues[seedname] = seedvalues[0 : len(realnums)]
+        self.sensvalues = pd.DataFrame(index=range(size))
+        self.sensvalues[seedname] = seedvalues[0:size]
 
         if parameters is not None:
             for key in parameters:
@@ -630,7 +627,6 @@ class SeedSensitivity(Sensitivity):
                     )
                 self.sensvalues[key] = constant
 
-        self.sensvalues["REAL"] = realnums
         self.sensvalues["SENSNAME"] = self.sensname
         self.sensvalues["SENSCASE"] = "p10_p90"
 
@@ -650,14 +646,16 @@ class SingleRealisationReference(Sensitivity):
 
     """
 
-    def generate(self, realnums: range) -> None:
+    def generate(
+        self,
+        size: int,
+    ) -> None:
         """Generates realisation number only
 
         Args:
             realnums (list): list of integers with realization numbers
         """
-        self.sensvalues = pd.DataFrame(index=realnums)
-        self.sensvalues["REAL"] = realnums
+        self.sensvalues = pd.DataFrame(index=range(size))
         self.sensvalues["SENSNAME"] = self.sensname
         self.sensvalues["SENSCASE"] = "ref"
 
@@ -677,14 +675,13 @@ class BackgroundSensitivity(Sensitivity):
 
     """
 
-    def generate(self, realnums: range) -> None:
+    def generate(self, size: int) -> None:
         """Generates realisation number only
 
         Args:
-            realnums (list): list of integers with realization numbers
+            size (int): number of rows to generate
         """
-        self.sensvalues = pd.DataFrame(index=realnums)
-        self.sensvalues["REAL"] = realnums
+        self.sensvalues = pd.DataFrame(index=range(size))
         self.sensvalues["SENSNAME"] = self.sensname
         self.sensvalues["SENSCASE"] = "p10_p90"
 
@@ -723,21 +720,13 @@ class ScenarioSensitivity(Sensitivity):
                 Equals SENSCASE in design matrix.
         """
         if self.case1 is not None:  # Case 1 has been read, this is case2
-            if (
-                senscase.sensvalues is not None
-                and "REAL" in senscase.sensvalues
-                and "SENSCASE" in senscase.sensvalues
-            ):
+            if senscase.sensvalues is not None and "SENSCASE" in senscase.sensvalues:
                 self.case2 = senscase
                 senscase.sensvalues["SENSNAME"] = self.sensname
                 self.sensvalues = pd.concat(
                     [self.sensvalues, senscase.sensvalues], sort=True
                 )
-        elif (
-            senscase.sensvalues is not None
-            and "REAL" in senscase.sensvalues
-            and "SENSCASE" in senscase.sensvalues
-        ):
+        elif senscase.sensvalues is not None and "SENSCASE" in senscase.sensvalues:
             self.case1 = senscase
             self.sensvalues = senscase.sensvalues.copy()
             self.sensvalues["SENSNAME"] = self.sensname
@@ -766,27 +755,28 @@ class ScenarioSensitivityCase(Sensitivity):
 
     def generate(
         self,
-        realnums: range,
+        size: int,
         parameters: dict[str, Any],
         seedvalues: Sequence[int] | None,
     ) -> None:
         """Generate sensvalues for the ScenarioSensitivityCase
 
         Args:
-            realnums (list): list of realizaton numbers for the case
+            size (int): number of rows to generate
             parameters (dict):
                 dictionary with parameter names and values
             seeds (str): default or None
         """
 
-        self.sensvalues = pd.DataFrame(columns=list(parameters.keys()), index=realnums)
+        self.sensvalues = pd.DataFrame(
+            columns=list(parameters.keys()), index=range(size)
+        )
         for key, value in parameters.items():
             self.sensvalues[key] = value
-        self.sensvalues["REAL"] = realnums
         self.sensvalues["SENSCASE"] = self.sensname
 
         if seedvalues:
-            self.sensvalues["RMS_SEED"] = seedvalues[: len(realnums)]
+            self.sensvalues["RMS_SEED"] = seedvalues[:size]
 
 
 class MonteCarloSensitivity(Sensitivity):
@@ -807,7 +797,7 @@ class MonteCarloSensitivity(Sensitivity):
     def generate(
         self,
         *,
-        realnums: range,
+        size: int,
         parameters: dict[str, Any],
         seedvalues: Sequence[int] | None,
         corrdict: Mapping[str, Any] | None,
@@ -817,9 +807,9 @@ class MonteCarloSensitivity(Sensitivity):
         """Generates parameter values by drawing from defined distributions.
 
         Args:
-            realnums (range): range object containing realization numbers
+            size (int): number of rows to generate
             parameters (dict): dictionary of parameters and distributions
-            seeds (str): default or None
+            values (list): a list of seed values or None
             corrdict (dict): Configuration for correlated parameters. Contains:
                 - 'inputfile': Name of Excel file with correlation matrices
                 - 'sheetnames': List of sheet names, where each sheet contains a correlation matrix
@@ -829,12 +819,13 @@ class MonteCarloSensitivity(Sensitivity):
               on samples after Iman-Conover in an attempt to match observed
               correlation to desired correlation as well as possible.
         """
-        self.sensvalues = pd.DataFrame(columns=list(parameters.keys()), index=realnums)
+        self.sensvalues = pd.DataFrame(
+            columns=list(parameters.keys()), index=range(size)
+        )
         self.correlation_dfs_ = {}  # Store correlation matrices (dataframes)
-        numreals = len(realnums)
 
-        if numreals < 0:
-            raise ValueError(f"Got < 0 samples ({numreals=})")
+        if size < 0:
+            raise ValueError(f"Got < 0 samples ({size=})")
 
         distr_by_name = {}
         for param_name, (dist_name, dist_params, _) in parameters.items():
@@ -931,7 +922,7 @@ class MonteCarloSensitivity(Sensitivity):
 
         # Sample the dummy node - this samples every parent and populates "samples_"
         expression.sample(
-            size=numreals, random_state=rng, method="lhs", correlator=correlator
+            size=size, random_state=rng, method="lhs", correlator=correlator
         )
 
         for distr_name, distr_obj in distr_by_name.items():
@@ -958,11 +949,10 @@ class MonteCarloSensitivity(Sensitivity):
             self.sensvalues = self.sensvalues.assign(**{distr_name: samples})
 
         if self.sensname != "background":
-            self.sensvalues["REAL"] = realnums
             self.sensvalues["SENSNAME"] = self.sensname
             self.sensvalues["SENSCASE"] = "p10_p90"
             if "RMS_SEED" not in self.sensvalues and seedvalues:
-                self.sensvalues["RMS_SEED"] = seedvalues[: len(realnums)]
+                self.sensvalues["RMS_SEED"] = seedvalues[:size]
 
         null_columns = self.sensvalues.isnull().any(axis=0)
         if null_columns.any():
@@ -985,7 +975,7 @@ class ExternSensitivity(Sensitivity):
 
     def generate(
         self,
-        realnums: range,
+        size: int,
         filename: str,
         parameters: list[str],
         seedvalues: Sequence[int] | None,
@@ -994,28 +984,28 @@ class ExternSensitivity(Sensitivity):
         from file
 
         Args:
-            realnums (list): list of integers with realization numbers
+            size (int): number of samples to generate
             filename (str): file to read values from
             parameters (list): list with parameter names
             seeds (str): default or None
         """
         _raise_if_duplicates(parameters)
-        self.sensvalues = pd.DataFrame(columns=parameters, index=realnums)
+        self.sensvalues = pd.DataFrame(columns=parameters, index=range(size))
         extern_values = parameters_from_extern(filename)
-        if len(realnums) > len(extern_values):
+        if size > len(extern_values):
             raise ValueError(
-                f"Number of realisations {len(realnums)} specified for "
+                f"Number of realisations {size} specified for "
                 f"sensitivity {self.sensname} is larger than rows in "
                 f"file {filename}"
             )
         for param in parameters:
             if param in extern_values:
-                self.sensvalues[param] = list(extern_values[param][: len(realnums)])
+                self.sensvalues[param] = list(extern_values[param][:size])
             else:
                 raise ValueError(f"Parameter {param} not in external file")
-        self.sensvalues["REAL"] = realnums
+
         self.sensvalues["SENSNAME"] = self.sensname
         self.sensvalues["SENSCASE"] = "p10_p90"
 
         if seedvalues:
-            self.sensvalues["RMS_SEED"] = seedvalues[: len(realnums)]
+            self.sensvalues["RMS_SEED"] = seedvalues[:size]
