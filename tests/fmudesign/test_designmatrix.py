@@ -54,6 +54,7 @@ def test_designmatrix():
         "designtype": "onebyone",
         "seeds": "default",
         "repeats": 10,
+        "distribution_seed": 42,
         "defaultvalues": {},
         "sensitivities": {
             "rms_seed": {
