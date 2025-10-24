@@ -33,6 +33,7 @@ from semeio.fmudesign import DesignMatrix, excel_to_dict
 # These are example files that can be created with the subcommand 'fmudesign init'
 EXAMPLE_FILES = {
     "fmudesign_ex_montecarlo.xlsx": "Shows all statistical parameter distributions, how to correlate samples, etc.",
+    "design_input_template.xlsx": "The example file used in fmu-coursedocs",
 }
 
 
