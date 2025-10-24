@@ -232,7 +232,7 @@ class DesignMatrix:
                 for corr_name, df_corr in sensitivity.correlation_dfs_.items():
                     quality_reporter.print_correlation(corr_name, df_corr)
 
-            if is_montecarlo and self.verbosity > 0 and self.output_dir is not None:
+            if is_montecarlo and self.verbosity > 1 and self.output_dir is not None:
                 sensitivity = cast(MonteCarloSensitivity, sensitivity)
                 output_dir = self.output_dir / key
                 quality_reporter.plot_columns(output_dir=output_dir)
