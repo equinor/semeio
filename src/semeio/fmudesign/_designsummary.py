@@ -5,7 +5,7 @@ import pandas as pd
 
 def _get_sensitivity_type(senscase: str) -> str:
     """Determine sensitivity type based on the case name"""
-    sensitivity_types = {"p10_p90": "mc", "ref": "ref", "skip": "skip"}
+    sensitivity_types = {"p10_p90": "mc", "ref": "ref"}
     return sensitivity_types.get(senscase.lower(), "scalar")
 
 
@@ -75,24 +75,10 @@ def summarize_design(filename: str, sheetname: str = "DesignSheet01") -> pd.Data
     # Get unique sensitivity names in order of appearance
     sensnames = dgn["SENSNAME"].unique()
 
-    sensno = 0
-    for sensname in sensnames:
+    for sensno, sensname in enumerate(sensnames):
         sens_group = dgn[dgn["SENSNAME"] == sensname].copy()
         # Get cases in order of appearance
         cases = sens_group.drop_duplicates("SENSCASE")[["SENSCASE"]].values.flatten()
-
-        # Skip if first case type is 'skip'
-        # The "skip" option was added when creating tornado plots
-        # with calc_tornadoinput.
-        # It allowed manual exclusion of sensitivities from tornado plots by changing
-        # SENSCASE to "skip" in the design matrix after running the experiment.
-        # This would exclude the sensitivity from both the
-        # *designsummary table and the tornado plot.
-        # calc_tornadoinput is deprecated so this can be removed once
-        # calc_tornadoinput is removed.
-        senstype = _get_sensitivity_type(cases[0])
-        if senstype == "skip":
-            continue
 
         # First case
         case1_data = sens_group[sens_group["SENSCASE"] == cases[0]]
@@ -111,6 +97,7 @@ def summarize_design(filename: str, sheetname: str = "DesignSheet01") -> pd.Data
             startreal2 = None
             endreal2 = None
 
+        senstype = _get_sensitivity_type(cases[0])
         # Add row to results
         designsummary.loc[sensno] = [
             sensno,
@@ -123,7 +110,5 @@ def summarize_design(filename: str, sheetname: str = "DesignSheet01") -> pd.Data
             startreal2,
             endreal2,
         ]
-
-        sensno += 1
 
     return designsummary
