@@ -72,7 +72,7 @@ def _write_simdata(fname: str, dataname: str, trajectory_df: pd.DataFrame) -> No
     """Write pressure value, one pr line for all points, -1 is used where
     there is no pressure information.
     """
-    with open(fname + "", "w+", encoding="utf-8") as file_handle:
+    with open(fname, "w+", encoding="utf-8") as file_handle:
         if dataname in trajectory_df:
             file_handle.write(
                 "\n".join(
