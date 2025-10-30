@@ -1,7 +1,6 @@
 import os
 import shutil
 import subprocess
-import sys
 from pathlib import Path
 from textwrap import dedent
 
@@ -19,23 +18,22 @@ EXPECTED_RESULTS_PATH_NORNE = conftest.get_expected_results_path_norne()
 
 
 @pytest.mark.usefixtures("norne_data")
-def test_gendata_rft_csv(tmpdir, monkeypatch):
+def test_gendata_rft_csv(tmpdir):
     csv_filename = "gendata_rft.csv"
-    arguments = [
-        "script_name",
-        "-e",
-        ECLBASE_NORNE,
-        "-w",
-        "well_and_time.txt",
-        "-t",
-        tmpdir.strpath,
-        "-z",
-        "zonemap.txt",
-        "-c",
-        csv_filename,
-    ]
-    monkeypatch.setattr(sys, "argv", arguments)
-    main_entry_point()
+    main_entry_point(
+        [
+            "-e",
+            ECLBASE_NORNE,
+            "-w",
+            "well_and_time.txt",
+            "-t",
+            tmpdir.strpath,
+            "-z",
+            "zonemap.txt",
+            "-c",
+            csv_filename,
+        ]
+    )
     assert os.path.exists(csv_filename)
     dframe = pd.read_csv(csv_filename)
     assert not dframe.empty
@@ -71,19 +69,18 @@ def test_gendata_rft_csv(tmpdir, monkeypatch):
 
 
 @pytest.mark.usefixtures("reek_data")
-def test_gendata_rft_csv_reek(tmpdir, monkeypatch):
+def test_gendata_rft_csv_reek(tmpdir):
     csv_filename = "gendata_rft.csv"
-    arguments = [
-        "script_name",
-        "-e",
-        ECLBASE_REEK,
-        "-w",
-        "well_and_time.txt",
-        "-t",
-        tmpdir.strpath,
-    ]
-    monkeypatch.setattr(sys, "argv", arguments)
-    main_entry_point()
+    main_entry_point(
+        [
+            "-e",
+            ECLBASE_REEK,
+            "-w",
+            "well_and_time.txt",
+            "-t",
+            tmpdir.strpath,
+        ]
+    )
     assert os.path.exists(csv_filename)
     dframe = pd.read_csv(csv_filename)
     assert not dframe.empty
@@ -100,26 +97,25 @@ def test_gendata_rft_csv_reek(tmpdir, monkeypatch):
 
 
 @pytest.mark.usefixtures("norne_data")
-def test_gendata_rft_directory(tmpdir, monkeypatch):
+def test_gendata_rft_directory(tmpdir):
     outputdirectory = "rft_output_dir"
     tmpdir.mkdir(outputdirectory)
-    arguments = [
-        "script_name",
-        "-e",
-        ECLBASE_NORNE,
-        "-w",
-        "well_and_time.txt",
-        "-t",
-        tmpdir.strpath,
-        "-z",
-        "zonemap.txt",
-        "-c",
-        "csvfile.csv",
-        "-o",
-        outputdirectory,
-    ]
-    monkeypatch.setattr(sys, "argv", arguments)
-    main_entry_point()
+    main_entry_point(
+        [
+            "-e",
+            ECLBASE_NORNE,
+            "-w",
+            "well_and_time.txt",
+            "-t",
+            tmpdir.strpath,
+            "-z",
+            "zonemap.txt",
+            "-c",
+            "csvfile.csv",
+            "-o",
+            outputdirectory,
+        ]
+    )
     well_count = 6
     files_pr_well = 3
     assert len(next(iter(os.walk(outputdirectory)))[2]) == well_count * files_pr_well
@@ -127,40 +123,38 @@ def test_gendata_rft_directory(tmpdir, monkeypatch):
 
 
 @pytest.mark.usefixtures("norne_data")
-def test_gendata_rft_entry_point_wrong_well_file(tmpdir, monkeypatch):
-    arguments = [
-        "script_name",
-        "-e",
-        ECLBASE_NORNE,
-        "-w",
-        "well_and_time.txt",
-        "-t",
-        tmpdir.strpath,
-        "-z",
-        "zonemap.txt",
-    ]
+def test_gendata_rft_entry_point_wrong_well_file(tmpdir):
     with open("well_and_time.txt", "w+", encoding="utf-8") as file:
         file.write("NO_FILE_HERE 2005-12-01 0\n")
-    monkeypatch.setattr(sys, "argv", arguments)
     with pytest.raises(SystemExit, match="NO_FILE_HERE.txt not found"):
-        main_entry_point()
+        main_entry_point(
+            [
+                "-e",
+                ECLBASE_NORNE,
+                "-w",
+                "well_and_time.txt",
+                "-t",
+                tmpdir.strpath,
+                "-z",
+                "zonemap.txt",
+            ]
+        )
 
 
 @pytest.mark.usefixtures("norne_data")
-def test_gendata_rft_entry_point(tmpdir, monkeypatch):
-    arguments = [
-        "script_name",
-        "-e",
-        ECLBASE_NORNE,
-        "-w",
-        "well_and_time.txt",
-        "-t",
-        tmpdir.strpath,
-        "-z",
-        "zonemap.txt",
-    ]
-    monkeypatch.setattr(sys, "argv", arguments)
-    main_entry_point()
+def test_gendata_rft_entry_point(tmpdir):
+    main_entry_point(
+        [
+            "-e",
+            ECLBASE_NORNE,
+            "-w",
+            "well_and_time.txt",
+            "-t",
+            tmpdir.strpath,
+            "-z",
+            "zonemap.txt",
+        ]
+    )
     expected_results_dir = os.path.join(tmpdir.strpath, "expected_results")
 
     expected_files = [
@@ -186,22 +180,21 @@ def test_gendata_rft_entry_point(tmpdir, monkeypatch):
 
 
 @pytest.mark.usefixtures("reek_data")
-def test_multiple_report_steps(tmpdir, monkeypatch):
+def test_multiple_report_steps(tmpdir):
     with open("well_and_time.txt", "w+", encoding="utf-8") as file:
         file.write("OP_1 2000-02-01 0\n")
         file.write("OP_1 2001-01-01 1\n")
 
-    arguments = [
-        "script_name",
-        "-e",
-        ECLBASE_REEK,
-        "-w",
-        "well_and_time.txt",
-        "-t",
-        tmpdir.strpath,
-    ]
-    monkeypatch.setattr(sys, "argv", arguments)
-    main_entry_point()
+    main_entry_point(
+        [
+            "-e",
+            ECLBASE_REEK,
+            "-w",
+            "well_and_time.txt",
+            "-t",
+            tmpdir.strpath,
+        ]
+    )
     csvdata = pd.read_csv("gendata_rft.csv")
     assert (csvdata["report_step"].to_numpy() == [0, 1]).all()
     assert (csvdata["time"].to_numpy() == ["2000-02-01", "2001-01-01"]).all()
@@ -221,26 +214,25 @@ def test_multiple_report_steps(tmpdir, monkeypatch):
 
 
 @pytest.mark.usefixtures("norne_data")
-def test_gendata_inactive_info_point_not_in_grid(tmpdir, monkeypatch):
+def test_gendata_inactive_info_point_not_in_grid(tmpdir):
     with open("B-1AH.txt", "a+", encoding="utf-8") as file:
         file.write("0 1 2 3\n")
 
     with open("well_and_time.txt", "w+", encoding="utf-8") as file:
         file.write("B-1AH 2005-12-01 0\n")
 
-    arguments = [
-        "script_name",
-        "-e",
-        ECLBASE_NORNE,
-        "-w",
-        "well_and_time.txt",
-        "-t",
-        tmpdir.strpath,
-        "-z",
-        "zonemap.txt",
-    ]
-    monkeypatch.setattr(sys, "argv", arguments)
-    main_entry_point()
+    main_entry_point(
+        [
+            "-e",
+            ECLBASE_NORNE,
+            "-w",
+            "well_and_time.txt",
+            "-t",
+            tmpdir.strpath,
+            "-z",
+            "zonemap.txt",
+        ]
+    )
 
     with open("RFT_B-1AH_0_inactive_info", encoding="utf-8") as file:
         result = file.read()
@@ -250,7 +242,7 @@ def test_gendata_inactive_info_point_not_in_grid(tmpdir, monkeypatch):
 
 
 @pytest.mark.usefixtures("norne_data")
-def test_gendata_inactive_info_zone_mismatch(tmpdir, monkeypatch):
+def test_gendata_inactive_info_zone_mismatch(tmpdir):
     with open("well_and_time.txt", "w+", encoding="utf-8") as file:
         file.write("B-1AH 2005-12-01 0\n")
 
@@ -265,19 +257,18 @@ def test_gendata_inactive_info_zone_mismatch(tmpdir, monkeypatch):
     with open("B-1AH.txt", "w+", encoding="utf-8") as file:
         file.write(line)
 
-    arguments = [
-        "script_name",
-        "-e",
-        ECLBASE_NORNE,
-        "-w",
-        "well_and_time.txt",
-        "-t",
-        tmpdir.strpath,
-        "-z",
-        "zonemap.txt",
-    ]
-    monkeypatch.setattr(sys, "argv", arguments)
-    main_entry_point()
+    main_entry_point(
+        [
+            "-e",
+            ECLBASE_NORNE,
+            "-w",
+            "well_and_time.txt",
+            "-t",
+            tmpdir.strpath,
+            "-z",
+            "zonemap.txt",
+        ]
+    )
 
     with open("RFT_B-1AH_0_inactive_info", encoding="utf-8") as file:
         result = file.read()
@@ -285,7 +276,7 @@ def test_gendata_inactive_info_zone_mismatch(tmpdir, monkeypatch):
 
 
 @pytest.mark.usefixtures("norne_data")
-def test_gendata_inactive_info_not_in_rft(tmpdir, monkeypatch):
+def test_gendata_inactive_info_not_in_rft(tmpdir):
     with open("well_and_time.txt", "w+", encoding="utf-8") as file:
         file.write("B-1AH 2005-12-01 0\n")
 
@@ -300,19 +291,18 @@ def test_gendata_inactive_info_not_in_rft(tmpdir, monkeypatch):
     with open("B-1AH.txt", "w+", encoding="utf-8") as file:
         file.write(line)
 
-    arguments = [
-        "script_name",
-        "-e",
-        ECLBASE_NORNE,
-        "-w",
-        "well_and_time.txt",
-        "-t",
-        tmpdir.strpath,
-        "-z",
-        "zonemap.txt",
-    ]
-    monkeypatch.setattr(sys, "argv", arguments)
-    main_entry_point()
+    main_entry_point(
+        [
+            "-e",
+            ECLBASE_NORNE,
+            "-w",
+            "well_and_time.txt",
+            "-t",
+            tmpdir.strpath,
+            "-z",
+            "zonemap.txt",
+        ]
+    )
 
     with open("RFT_B-1AH_0_inactive_info", encoding="utf-8") as file:
         result = file.read()
@@ -320,26 +310,25 @@ def test_gendata_inactive_info_not_in_rft(tmpdir, monkeypatch):
 
 
 @pytest.mark.usefixtures("norne_data")
-def test_gendata_inactive_info_zone_missing_value(tmpdir, monkeypatch):
+def test_gendata_inactive_info_zone_missing_value(tmpdir):
     with open("well_and_time.txt", "w+", encoding="utf-8") as file:
         file.write("B-1AH 2005-12-01 0\n")
 
     with open("zonemap.txt", "w+", encoding="utf-8") as file:
         file.write("1 zone1\n")
 
-    arguments = [
-        "script_name",
-        "-e",
-        ECLBASE_NORNE,
-        "-w",
-        "well_and_time.txt",
-        "-t",
-        tmpdir.strpath,
-        "-z",
-        "zonemap.txt",
-    ]
-    monkeypatch.setattr(sys, "argv", arguments)
-    main_entry_point()
+    main_entry_point(
+        [
+            "-e",
+            ECLBASE_NORNE,
+            "-w",
+            "well_and_time.txt",
+            "-t",
+            tmpdir.strpath,
+            "-z",
+            "zonemap.txt",
+        ]
+    )
 
     with open("RFT_B-1AH_0_inactive_info", encoding="utf-8") as file:
         result = file.read()
@@ -347,7 +336,7 @@ def test_gendata_inactive_info_zone_missing_value(tmpdir, monkeypatch):
 
 
 @pytest.mark.usefixtures("norne_data")
-def test_partial_rft_file(tmpdir, monkeypatch, caplog):
+def test_partial_rft_file(tmpdir, caplog):
     """Test how the code behaves when some report steps are missing, e.g.
     a Eclipse simulation that has crashed midway.
 
@@ -363,22 +352,21 @@ def test_partial_rft_file(tmpdir, monkeypatch, caplog):
         file_h.write("B-1AH 2045-12-01 0")
 
     csv_filename = "gendata_rft.csv"
-    arguments = [
-        "script_name",
-        "-e",
-        ECLBASE_NORNE,
-        "-w",
-        "well_and_time.txt",
-        "-t",
-        tmpdir.strpath,
-        "-z",
-        "zonemap.txt",
-        "-c",
-        csv_filename,
-    ]
-    monkeypatch.setattr(sys, "argv", arguments)
     with pytest.raises(SystemExit):
-        main_entry_point()
+        main_entry_point(
+            [
+                "-e",
+                ECLBASE_NORNE,
+                "-w",
+                "well_and_time.txt",
+                "-t",
+                tmpdir.strpath,
+                "-z",
+                "zonemap.txt",
+                "-c",
+                csv_filename,
+            ]
+        )
 
     assert "Failed to extract all requested RFT data" in caplog.text
 
@@ -388,27 +376,26 @@ def test_partial_rft_file(tmpdir, monkeypatch, caplog):
 
 
 @pytest.mark.usefixtures("norne_data")
-def test_one_wrong_date(tmpdir, monkeypatch, caplog):
+def test_one_wrong_date(tmpdir, caplog):
     with open("well_wrongtime.txt", "w", encoding="utf-8") as file_h:
         file_h.write("B-1AH 2045-12-01 0")
 
     csv_filename = "gendata_rft.csv"
-    arguments = [
-        "script_name",
-        "-e",
-        ECLBASE_NORNE,
-        "-w",
-        "well_wrongtime.txt",
-        "-t",
-        tmpdir.strpath,
-        "-z",
-        "zonemap.txt",
-        "-c",
-        csv_filename,
-    ]
-    monkeypatch.setattr(sys, "argv", arguments)
     with pytest.raises(SystemExit):
-        main_entry_point()
+        main_entry_point(
+            [
+                "-e",
+                ECLBASE_NORNE,
+                "-w",
+                "well_wrongtime.txt",
+                "-t",
+                tmpdir.strpath,
+                "-z",
+                "zonemap.txt",
+                "-c",
+                csv_filename,
+            ]
+        )
 
     assert "Failed to extract all requested RFT data" in caplog.text
 
@@ -417,31 +404,29 @@ def test_one_wrong_date(tmpdir, monkeypatch, caplog):
 
 
 @pytest.mark.usefixtures("norne_data")
-def test_empty_well_and_time(tmpdir, monkeypatch, caplog):
+def test_empty_well_and_time(tmpdir, caplog):
     def file_count_cwd():
         return len(next(iter(os.walk(".")))[2])
 
     with open("empty.txt", "w", encoding="utf-8") as file_h:
         file_h.write("")
 
-    arguments = [
-        "script_name",
-        "-e",
-        ECLBASE_NORNE,
-        "-w",
-        "empty.txt",
-        "-t",
-        tmpdir.strpath,
-        "-z",
-        "zonemap.txt",
-        "-c",
-        "notwritten.csv",
-    ]
-
     pre_file_count = file_count_cwd()
-    monkeypatch.setattr(sys, "argv", arguments)
     with pytest.raises(SystemExit):
-        main_entry_point()
+        main_entry_point(
+            [
+                "-e",
+                ECLBASE_NORNE,
+                "-w",
+                "empty.txt",
+                "-t",
+                tmpdir.strpath,
+                "-z",
+                "zonemap.txt",
+                "-c",
+                "notwritten.csv",
+            ]
+        )
     assert "No RFT data requested" in caplog.text
 
     # Empty file is seen as an error, we should not write the OK file, and
