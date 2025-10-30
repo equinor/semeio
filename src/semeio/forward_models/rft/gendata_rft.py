@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 def _write_gen_data_files(
-    trajectory_df: pd.DataFrame, directory: str, well: str, report_step: int
+    trajectory_df: pd.DataFrame, output_directory: str, well_name: str, report_step: int
 ) -> None:
     """Generate three files with the information GEN_DATA needs
     from the trajectory dataframe.
@@ -40,7 +40,7 @@ def _write_gen_data_files(
             hold pressure data, but will be defaulted if not present. "is_active"
             should be a boolean column, and "inactive_info" should contain
             strings with information on why points are inactive.
-        directory: Directory name, for where to dump files.
+        output_directory: Directory name, for where to dump files.
         well: Name of well, to be used to construct filenames.
         report_step: The RFT report step, used to construct filenames
     """
@@ -50,18 +50,19 @@ def _write_gen_data_files(
     ):
         _write_simdata(
             os.path.join(
-                directory,
-                f"RFT_{data2fname[dataname]}{well}_{report_step}",
+                output_directory,
+                f"RFT_{data2fname[dataname]}{well_name}_{report_step}",
             ),
             dataname,
             trajectory_df,
         )
     _write_active(
-        os.path.join(directory, f"RFT_{well}_{report_step}") + "_active",
+        os.path.join(output_directory, f"RFT_{well_name}_{report_step}") + "_active",
         trajectory_df,
     )
     _write_inactive_info(
-        os.path.join(directory, f"RFT_{well}_{report_step}") + "_inactive_info",
+        os.path.join(output_directory, f"RFT_{well_name}_{report_step}")
+        + "_inactive_info",
         trajectory_df,
     )
 
