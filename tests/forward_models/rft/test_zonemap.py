@@ -14,6 +14,10 @@ def test_zonemap():
     assert zone_map.has_relationship("Zone3", 3)
 
 
+def test_that_the_zonemap_not_provided_filename_means_no_zonemap():
+    assert ZoneMap.load_and_parse_zonemap_file("ZONEMAP_NOT_PROVIDED") is None
+
+
 @pytest.fixture()
 def initdir(tmpdir):
     tmpdir.chdir()
