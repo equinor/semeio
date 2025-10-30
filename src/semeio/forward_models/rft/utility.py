@@ -23,8 +23,7 @@ def existing_directory(path: str) -> str:
 def load_and_parse_well_time_file(
     filename: str,
 ) -> list[tuple[str, datetime.date, int]]:
-    """
-    Reads and parses a file from disk, supporting 2 formats:
+    """Reads and parses a file from disk, supporting 2 formats:
 
       <wellname : str> <date : isostring> <report_step : int>
 
