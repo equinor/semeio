@@ -137,9 +137,9 @@ a specific pressure point is valid
     return parser
 
 
-def main_entry_point() -> None:
+def main_entry_point(argv: list[str] | None = None) -> None:
     arg_parser = _build_parser()
-    options = arg_parser.parse_args()
+    options = arg_parser.parse_args(argv)
     logger.setLevel(options.log_level)
 
     context_errors = []
