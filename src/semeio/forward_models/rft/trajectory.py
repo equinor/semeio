@@ -7,7 +7,7 @@ from resdata.rft import ResdataRFT, ResdataRFTCell
 from semeio.forward_models.rft.utility import strip_comments
 from semeio.forward_models.rft.zonemap import ZoneMap
 
-IJKPoint: TypeAlias = tuple[int, int, int]
+IJKCoordinates: TypeAlias = tuple[int, int, int]
 
 
 class TrajectoryPoint:
@@ -43,15 +43,15 @@ class TrajectoryPoint:
         self.measured_depth: float = measured_depth
         self.true_vertical_depth: float = true_vertical_depth
         self.zone: str | None = zone
-        self.grid_ijk: IJKPoint | None = None  # tuple
+        self.grid_ijk: IJKCoordinates | None = None  # tuple
         self.pressure: float | None = None
         self.swat: float | None = None
         self.sgas: float | None = None
         self.soil: float | None = None
         self.valid_zone: bool = False
 
-    def set_ijk(self, point: IJKPoint | None) -> None:
-        """Set the ijk-tuple for the point, relating the UTM-coordinates to
+    def set_ijk(self, point: IJKCoordinates | None) -> None:
+        """Set the ijk-coordinates for the point, relating the UTM-coordinates to
         ijk-coordinates in a specific Eclipse grid.
         """
         self.grid_ijk = point
@@ -105,7 +105,7 @@ class TrajectoryPoint:
 
     def update_simdata_from_rft(self, rftfile: ResdataRFT) -> None:
         """Fetch simulated data from an Eclipse simulation by looking up
-        binary RFT files. This requires the point to have the ijk-tuple
+        binary RFT files. This requires the point to have the ijk-coordinates
         set upfront.
         """
         if self.grid_ijk:
