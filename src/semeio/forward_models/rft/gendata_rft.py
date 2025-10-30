@@ -35,16 +35,16 @@ def _write_gen_data_files(
     string SWAT injected in the emitted filename.
 
     Args:
-        trajectory_df (pd.DataFrame): The column "order" should contain
+        trajectory_df: The column "order" should contain
             the original row order from input text files. "pressure" should
             hold pressure data, but will be defaulted if not present. "is_active"
             should be a boolean column, and "inactive_info" should contain
             strings with information on why points are inactive.
-        datanames (list): Which datanames to dump. Must be among pressure, swat,
+        datanames: Which datanames to dump. Must be among pressure, swat,
             sgas and soil.
-        directory (str): Directory name, for where to dump files.
-        well (str): Name of well, to be used to construct filenames.
-        report_step (int): The RFT report step, used to construct filenames
+        directory: Directory name, for where to dump files.
+        well: Name of well, to be used to construct filenames.
+        report_step: The RFT report step, used to construct filenames
     """
     data2fname = {"pressure": "", "swat": "SWAT_", "sgas": "SGAS_", "soil": "SOIL_"}
     for dataname in {"pressure"}.union(
@@ -132,14 +132,15 @@ def _populate_trajectory_points(
     and simulated pressure at the given date in the cells.
 
     Args:
-        well (str): Eclipse-name of well
-        date (datetime.date): Date for which the RFT observation should be taken,
+        well: Eclipse-name of well
+        date: Date for which the RFT observation should be taken,
             must correspond to a date in the Eclipse RFT binary output
-        trajectory_points (list of points): Representing the wellpath in UTM at which
+        trajectory_points: Representing the wellpath in UTM at which
             the real life RFT observations points are valid.
-        ecl_grid (libecl Grid object):
-        ecl_rft (libecl RFT object):
-        zonemap (dict):
+        ecl_grid: The grid where the (i,j,k) are looked up
+        ecl_rft: THe rft file where pressure for the point is found
+        zonemap: The mapping of k indices to zones, used to validate
+            that the found ijk value is in the correct zone.
 
     Returns:
         The list of trajectory points, augmented with i,j,k, simulated pressure
