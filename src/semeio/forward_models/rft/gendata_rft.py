@@ -69,7 +69,7 @@ def _write_gen_data_files(
 
 
 def _write_simdata(fname: str, dataname: str, trajectory_df: pd.DataFrame) -> None:
-    """Write pressure value, one pr line for all points, -1 is used where
+    """Write pressure value, one per line for all points, -1 is used where
     there is no pressure information.
     """
     with open(fname, "w+", encoding="utf-8") as file_handle:
