@@ -44,7 +44,7 @@ class ZoneMap:
         zonemap_lines = [
             (strip_comments(line), idx + 1) for idx, line in enumerate(_zonemap_lines)
         ]
-        basic_err_msg = (
+        base_err_msg = (
             "Line {line_number} in ZoneMap file {filename} "
             "not on proper format: 'k zonename <zonename> ...'. "
         )
@@ -56,19 +56,19 @@ class ZoneMap:
 
             if len(zonemap_line) < 2:
                 raise argparse.ArgumentTypeError(
-                    basic_err_msg.format(line_number=line_number, filename=filename)
+                    base_err_msg.format(line_number=line_number, filename=filename)
                     + "Number of zonenames must be 1 or more",
                 )
             try:
                 raw_k = int(zonemap_line[0])
             except ValueError as err:
                 raise argparse.ArgumentTypeError(
-                    basic_err_msg.format(line_number=line_number, filename=filename)
+                    base_err_msg.format(line_number=line_number, filename=filename)
                     + f"k must be integer, was {zonemap_line[0]}"
                 ) from err
             if raw_k == 0:
                 raise argparse.ArgumentTypeError(
-                    basic_err_msg.format(line_number=line_number, filename=filename)
+                    base_err_msg.format(line_number=line_number, filename=filename)
                     + "k values cannot be 0, must start at 1. "
                 )
 
