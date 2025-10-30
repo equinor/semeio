@@ -53,22 +53,15 @@ def norne_data(tmpdir):
     )
     shutil.copytree(data_dir, tmpdir.strpath, dirs_exist_ok=True)
 
-    cwd = os.getcwd()
-    tmpdir.chdir()
+    with tmpdir.as_cwd():
+        expected_results_dir = os.path.join(tmpdir.strpath, "expected_results")
+        os.mkdir(expected_results_dir)
 
-    expected_results_dir = os.path.join(tmpdir.strpath, "expected_results")
-    os.mkdir(expected_results_dir)
-
-    shutil.copytree(
-        EXPECTED_RESULTS_PATH_NORNE, expected_results_dir, dirs_exist_ok=True
-    )
-    _generate_mock_data_norne(expected_results_dir)
-
-    try:
+        shutil.copytree(
+            EXPECTED_RESULTS_PATH_NORNE, expected_results_dir, dirs_exist_ok=True
+        )
+        _generate_mock_data_norne(expected_results_dir)
         yield
-
-    finally:
-        os.chdir(cwd)
 
 
 @pytest.fixture
