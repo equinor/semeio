@@ -117,16 +117,6 @@ def valid_eclbase(file_path: str) -> tuple[Grid, ResdataRFTFile]:
     The filename is assumed to be without extension and two files
     must be present, <filename>.RFT and <filename>.EGRID.
     Loads both files with respective loaders and returns them
-
-    Parameters
-    ----------
-    filename : string
-        Filename to open
-
-    Returns
-    -------
-    Tuple
-        Returns a tuple with an ecl grid instance and an rft instance
     """
     rft_filepath = file_path + ".RFT"
     if not os.path.isfile(rft_filepath):

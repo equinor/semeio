@@ -22,12 +22,12 @@ class TrajectoryPoint:
     RKB for MD must match MD in Eclipse RFT data.
 
     Args:
-        utm_x (float)
-        utm_y (float)
-        measured_depth (float): Depth along wellpath. RKB (rotary kelly bushing)
+        utm_x: The utm coordinate in x direction
+        utm_y: The utm coordinate in y direction
+        measured_depth: Depth along wellpath. RKB (rotary kelly bushing)
             must be compatible with Eclipse setup.
-        true_vertical_depth (float)
-        zone (str)
+        true_vertical_depth: Depth in distance from surface.
+        zone: The name of the zone the point belongs to.
     """
 
     def __init__(
@@ -53,9 +53,6 @@ class TrajectoryPoint:
     def set_ijk(self, point: IJKPoint | None) -> None:
         """Set the ijk-tuple for the point, relating the UTM-coordinates to
         ijk-coordinates in a specific Eclipse grid.
-
-        Args:
-            point (tuple): 3-tuple with ijk-integers, zero-indexed.
         """
         self.grid_ijk = point
 
@@ -64,9 +61,6 @@ class TrajectoryPoint:
         the point can be validated. If the point is not initialized
         to be in a specific zone and has a well-defined k-index, the
         validation always succeeds.
-
-        Args:
-            zonemap (Zonemap)
         """
         if self.zone is None:
             self.valid_zone = True
@@ -87,12 +81,6 @@ class TrajectoryPoint:
         """Provides a string explaining why a point is not active.
 
         Returns None for active points.
-
-        Args:
-            zonemap (Zonemap)
-
-        Returns:
-            str
         """
         if self.grid_ijk is None:
             return f"TRAJECTORY_POINT_NOT_IN_GRID {self!s}"
@@ -110,9 +98,6 @@ class TrajectoryPoint:
     def get_pressure(self) -> float | None:
         """Returns the simulated pressure for the point, or -1 if
         no simulated pressure is available
-
-        Returns:
-            float
         """
         if self.is_active():
             return self.pressure
@@ -122,9 +107,6 @@ class TrajectoryPoint:
         """Fetch simulated data from an Eclipse simulation by looking up
         binary RFT files. This requires the point to have the ijk-tuple
         set upfront.
-
-        Args:
-            rftfile (EclRFTFile)
         """
         if self.grid_ijk:
             rftcell = rftfile.ijkget(self.grid_ijk)
@@ -181,12 +163,6 @@ class Trajectory:
         The dataframe is sorted first by measured_depth, if not available
         it is sorted by true_vertical_depth. The original order from the
         input files is conserved in the column "order".
-
-        Args:
-            zonemap (Zonemap)
-
-        Returns:
-            pd.DataFrame
         """
         dframe = pd.DataFrame(data=[vars(point) for point in self.trajectory_points])
         dframe["is_active"] = [point.is_active() for point in self.trajectory_points]
@@ -224,10 +200,9 @@ class Trajectory:
         datatype, split the tuple into the components [I, J, K] as new columns.
 
         Args:
-            dframe (pd.DataFrame): A dataframe with a tuple column
-            tuplecolumn (str): Column name with tuples. Defaults "grid_ijk"
-            components (list of str): Name of components in tuple, default
-                ["i", "j", "k"]
+            dframe: A dataframe with a tuple column
+            tuplecolumn : Column name with tuples. Defaults "grid_ijk"
+            components: Name of components in tuple, default ["i", "j", "k"]
         Returns:
             pd.DataFrame, one column removed, and 3 (if defaults) new columns added.
                 Column order is undefined.
