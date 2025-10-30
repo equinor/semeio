@@ -11,9 +11,10 @@ IJKCoordinates: TypeAlias = tuple[int, int, int]
 
 
 class TrajectoryPoint:
-    """Represents a point along a wellpath. The point is
-    determined by UTM x and y, measured depth along the wellpath, and
-    true vertical depth.
+    """Represents a point along a wellpath.
+
+    The point is determined by UTM x and y, measured depth along the wellpath,
+    and true vertical depth.
 
     Points can be *active*, which means that (i,j,k) (zero-indexed) in a given
     grid is determined, there is simulated pressure available in that cell, and
