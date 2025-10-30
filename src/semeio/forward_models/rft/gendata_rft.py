@@ -40,8 +40,6 @@ def _write_gen_data_files(
             hold pressure data, but will be defaulted if not present. "is_active"
             should be a boolean column, and "inactive_info" should contain
             strings with information on why points are inactive.
-        datanames: Which datanames to dump. Must be among pressure, swat,
-            sgas and soil.
         directory: Directory name, for where to dump files.
         well: Name of well, to be used to construct filenames.
         report_step: The RFT report step, used to construct filenames
