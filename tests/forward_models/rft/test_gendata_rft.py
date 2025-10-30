@@ -470,6 +470,54 @@ def test_that_nonexisting_trajectory_path_is_an_invalid_cli_option(tmp_path, cap
     assert file_count_cwd() == pre_file_count
 
 
+@pytest.mark.usefixtures("norne_data")
+@pytest.mark.parametrize(
+    "eclbase_file_factories,error_msg",
+    [
+        ([], "BASE.RFT does not exist"),
+        (
+            [lambda: shutil.copy(ECLBASE_NORNE + ".RFT", "BASE.RFT")],
+            "BASE.EGRID does not exist",
+        ),
+    ],
+)
+def test_that_missing_files_in_eclbase_is_invalid_cli_option(
+    tmp_path: Path, capsys, eclbase_file_factories, error_msg
+):
+    def file_count_cwd():
+        return len(next(iter(os.walk(".")))[2])
+
+    (tmp_path / "well_and_time.txt").write_text("B-1AH 2005-12-01 0\n")
+
+    for file_factory in eclbase_file_factories:
+        file_factory()
+
+    pre_file_count = file_count_cwd()
+    with pytest.raises(SystemExit):
+        main_entry_point(
+            [
+                "-e",
+                "BASE",
+                "-w",
+                "well_and_time.txt",
+                "-t",
+                str(tmp_path),
+                "-z",
+                "zonemap.txt",
+                "-c",
+                "notwritten.csv",
+            ]
+        )
+    assert error_msg in capsys.readouterr().err
+
+    # Because of error, we should not write the OK file, and
+    # there should be no CSV file.
+
+    assert not os.path.exists("notwritten.csv")
+    assert not os.path.exists("GENDATA_RFT.OK")
+    assert file_count_cwd() == pre_file_count
+
+
 @pytest.mark.ert_integration
 def test_ert_setup_one_well_one_rft_point(tmpdir):
     """Test a simple ERT integration of GENDATA_RFT with one RFT point at one
