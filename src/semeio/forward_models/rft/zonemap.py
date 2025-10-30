@@ -1,6 +1,6 @@
 import argparse
 import os
-from collections.abc import Mapping
+from collections.abc import Container, Mapping
 from typing import Any, Self
 
 from semeio.forward_models.rft.utility import strip_comments
@@ -19,18 +19,10 @@ class ZoneMap:
             of strings with zone names.
     """
 
-    def __init__(self, zones_at_k_value: Mapping[int, Any] | None = None) -> None:
-        self._zones_at_k_value: Mapping[int, Any] = zones_at_k_value or {}
-        self._k_values_at_zone: Mapping[str, Any] = {}
-
-        # Construct a reverse dictionary for the reverse
-        # lookup _k_values_at_zone
-        for k_value, zone_names in self._zones_at_k_value.items():
-            for zone_name in zone_names:
-                if zone_name not in self._k_values_at_zone:
-                    self._k_values_at_zone[zone_name] = []
-
-                self._k_values_at_zone[zone_name].append(k_value)
+    def __init__(
+        self, zones_at_k_value: Mapping[int, Container[str]] | None = None
+    ) -> None:
+        self._zones_at_k_value = zones_at_k_value or {}
 
     @classmethod
     def load_and_parse_zonemap_file(cls, filename: str) -> Self | None:
@@ -87,19 +79,11 @@ class ZoneMap:
 
         return cls(zones_at_k_value)
 
-    def __contains__(self, item: Any) -> bool:  # noqa: ANN401
-        if isinstance(item, int):
-            return item in self._zones_at_k_value
-        if isinstance(item, str):
-            return item in self._k_values_at_zone
-        return False
+    def __contains__(self, item: int) -> bool:
+        return item in self._zones_at_k_value
 
-    def __getitem__(self, item: Any) -> Any:  # noqa: ANN401
-        if isinstance(item, int):
-            return self._zones_at_k_value[item]
-        if isinstance(item, str):
-            return self._k_values_at_zone[item]
-        raise KeyError(f"{item} is neither a k value nor a zone")
+    def __getitem__(self, item: int) -> Container[str]:
+        return self._zones_at_k_value[item]
 
     def has_relationship(self, zone: str, k: int) -> bool:
-        return k in self._k_values_at_zone.get(zone, [])
+        return zone in self._zones_at_k_value.get(k, [])
