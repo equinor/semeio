@@ -112,7 +112,8 @@ def load_and_parse_well_time_file(
 
 
 def valid_eclbase(file_path: str) -> tuple[Grid, ResdataRFTFile]:
-    """
+    """Checks whether file_path is a eclbase with an .EGRID and .RFT file.
+
     The filename is assumed to be without extension and two files
     must be present, <filename>.RFT and <filename>.EGRID.
     Loads both files with respective loaders and returns them
