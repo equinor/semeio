@@ -240,6 +240,9 @@ class Trajectory:
 
         Returns:
             List of four floats or a list of four floats and a string.
+
+        Raises:
+            ValueError: For invalid lines (too few/many values or non-float values).
         """
         point = line.split()
         if len(point) < 4 or len(point) > 5:
