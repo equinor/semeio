@@ -67,11 +67,13 @@ def _write_gen_data_files(
     )
 
 
-def _write_simdata(fname: str, dataname: str, trajectory_df: pd.DataFrame) -> None:
+def _write_simdata(
+    output_file: str, dataname: str, trajectory_df: pd.DataFrame
+) -> None:
     """Write pressure value, one per line for all points, -1 is used where
     there is no pressure information.
     """
-    with open(fname, "w+", encoding="utf-8") as file_handle:
+    with open(output_file, "w+", encoding="utf-8") as file_handle:
         if dataname in trajectory_df:
             file_handle.write(
                 "\n".join(
@@ -85,12 +87,12 @@ def _write_simdata(fname: str, dataname: str, trajectory_df: pd.DataFrame) -> No
         else:
             file_handle.write("\n".join(["-1"] * len(trajectory_df)) + "\n")
 
-    logger.info(f"Forward model script gendata_rft.py: Wrote file {fname}")
+    logger.info(f"Forward model script gendata_rft.py: Wrote file {output_file}")
 
 
-def _write_active(fname: str, trajectory_df: pd.DataFrame) -> None:
+def _write_active(output_file: str, trajectory_df: pd.DataFrame) -> None:
     """Write a file with "1" pr row if a point is active, "0" if not"""
-    with open(fname, "w+", encoding="utf-8") as file_handle:
+    with open(output_file, "w+", encoding="utf-8") as file_handle:
         file_handle.write(
             "\n".join(
                 trajectory_df.sort_values("order")["is_active"]
@@ -101,9 +103,9 @@ def _write_active(fname: str, trajectory_df: pd.DataFrame) -> None:
         )
 
 
-def _write_inactive_info(fname: str, trajectory_df: pd.DataFrame) -> None:
+def _write_inactive_info(output_file: str, trajectory_df: pd.DataFrame) -> None:
     """Write a file with explanations to users for inactive points"""
-    with open(fname, "w+", encoding="utf-8") as file_handle:
+    with open(output_file, "w+", encoding="utf-8") as file_handle:
         if "inactive_info" not in trajectory_df:
             file_handle.write("")
         else:
