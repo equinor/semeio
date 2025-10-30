@@ -437,6 +437,39 @@ def test_empty_well_and_time(tmpdir, caplog):
     assert file_count_cwd() == pre_file_count
 
 
+@pytest.mark.usefixtures("norne_data")
+def test_that_nonexisting_trajectory_path_is_an_invalid_cli_option(tmp_path, capsys):
+    def file_count_cwd():
+        return len(next(iter(os.walk(".")))[2])
+
+    (tmp_path / "well_and_time.txt").write_text("B-1AH 2005-12-01 0\n")
+
+    pre_file_count = file_count_cwd()
+    with pytest.raises(SystemExit):
+        main_entry_point(
+            [
+                "-e",
+                ECLBASE_NORNE,
+                "-w",
+                "well_and_time.txt",
+                "-t",
+                "DOES_NOT_EXIST",
+                "-z",
+                "zonemap.txt",
+                "-c",
+                "notwritten.csv",
+            ]
+        )
+    assert "is not an existing directory" in capsys.readouterr().err
+
+    # Because of error, we should not write the OK file, and
+    # there should be no CSV file.
+
+    assert not os.path.exists("notwritten.csv")
+    assert not os.path.exists("GENDATA_RFT.OK")
+    assert file_count_cwd() == pre_file_count
+
+
 @pytest.mark.ert_integration
 def test_ert_setup_one_well_one_rft_point(tmpdir):
     """Test a simple ERT integration of GENDATA_RFT with one RFT point at one
