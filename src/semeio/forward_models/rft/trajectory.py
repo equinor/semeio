@@ -17,7 +17,7 @@ class TrajectoryPoint:
 
     Points can be *active*, which means that (i,j,k) (zero-indexed) in a given
     grid is determined, there is simulated pressure available in that cell, and
-    the cell in in the correct zone (mostly important for long horizontals).
+    the cell in the correct zone (mostly important for long horizontals).
 
     RKB for MD must match MD in Eclipse RFT data.
 
