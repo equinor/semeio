@@ -140,7 +140,7 @@ def _populate_trajectory_points(
         ecl_grid: The grid where the (i,j,k) are looked up
         ecl_rft: THe rft file where pressure for the point is found
         zonemap: The mapping of k indices to zones, used to validate
-            that the found ijk value is in the correct zone.
+            that the found ijk-coordinates is in the correct zone.
 
     Returns:
         The list of trajectory points, augmented with i,j,k, simulated pressure
