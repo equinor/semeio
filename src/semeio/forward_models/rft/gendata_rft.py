@@ -21,11 +21,11 @@ def _write_gen_data_files(
 
     See https://github.com/equinor/ert/blob/0dc96c49ca8eafee54a06227530b5a47b094e2bc/docs/tips.txt#L87
 
-    One main file (fname) will always be produced with pressure values, and
-    two auxiliary files will be produced with the suffixes "_active" and
-    "_inactive_info". The _active file tells ERT if some of the values in the
-    base file should be ignored, and _inactive_info will give an explanation
-    for why it should be ignored.
+    One main file (RFT_{well_name}_{report_step}) will always be produced with
+    pressure values, and two auxiliary files will be produced with the suffixes
+    "_active" and "_inactive_info". The _active file tells ERT if some of the
+    values in the base file should be ignored, and _inactive_info will give an
+    explanation for why it should be ignored.
 
     The pressure file will always be written. If there is no pressure
     data, a file with -1 values will be written for each point pr. line.
