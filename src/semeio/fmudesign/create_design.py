@@ -25,9 +25,13 @@ from semeio.fmudesign import design_distributions as design_dist
 from semeio.fmudesign._excel_to_dict import _raise_if_duplicates
 from semeio.fmudesign.config_validation import validate_configuration
 from semeio.fmudesign.quality_report import QualityReporter, print_corrmat
-from semeio.fmudesign.utils import (find_max_realisations, map_dependencies,
-                                    parameters_from_extern, printwarning,
-                                    to_numeric_safe)
+from semeio.fmudesign.utils import (
+    find_max_realisations,
+    map_dependencies,
+    parameters_from_extern,
+    printwarning,
+    to_numeric_safe,
+)
 
 
 class DesignMatrix:
@@ -355,7 +359,7 @@ class DesignMatrix:
             print("Generating background values from distributions.")
             self._add_dist_background(
                 back_dict=back_dict,
-                numreal=max_values,
+                size=max_values,
                 correlation_iterations=correlation_iterations,
             )
 
@@ -439,9 +443,8 @@ class DesignMatrix:
 
     def _add_dist_background(
         self,
-        back_dict: Mapping[str, Any],
+        back_dict: str[str, Any],
         size: int,
-        rng: np.random.Generator,
         correlation_iterations: int,
     ) -> None:
         """Drawing background values from distributions
@@ -450,7 +453,6 @@ class DesignMatrix:
         Args:
             back_dict (dict): parameters and distributions
             size (int): Number of samples to generate
-            rng (numpy.random.Generator): Random number generator instance
             correlation_iterations (int): Number of permutations performed
               on samples after Iman-Conover in an attempt to match observed
               correlation to desired correlation as well as possible.
