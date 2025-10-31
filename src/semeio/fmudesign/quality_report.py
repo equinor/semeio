@@ -168,7 +168,13 @@ class QualityReporter:
 
         # Add average and quantiles to the plot
         mean = series.mean()
-        ax.axvline(x=mean, color="black", ls="-", alpha=0.8, label=f"mean={mean:.2f}")
+        ax.axvline(
+            x=mean,
+            color="black",
+            ls="-",
+            alpha=0.8,
+            label=f"mean={mean:.2e}",
+        )
 
         quantiles = [0.1, 0.5, 0.9]
         for q in quantiles:
@@ -179,20 +185,12 @@ class QualityReporter:
                 color="black",
                 ls="--",
                 alpha=0.8,
-                label=f"P{P_label}={quantile_value:.2f}",
+                label=f"P{P_label}={quantile_value:.2e}",
             )
 
         ax.grid(True, ls="--", alpha=0.5)
-        ax.legend(
-            loc="upper left",  # or "upper right", etc.
-            bbox_to_anchor=(1.05, 1),  # (x, y) coordinates outside the axes
-            ncol=1,  # number of columns
-            fontsize=7,
-            framealpha=0.99,
-        )
+        ax.legend(loc="upper left", bbox_to_anchor=(1.05, 1))
         fig.tight_layout()
-        # ax.legend(loc="upper center", ncol=4, fontsize=7, framealpha=0.99)
-        # fig.tight_layout()
 
         return fig, ax
 
