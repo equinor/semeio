@@ -157,7 +157,8 @@ def _populate_trajectory_points(
         return None
 
     ijk_guess = None
-    for point in trajectory_points:  # type: ignore[attr-defined]
+
+    for point in iter(trajectory_points):
         ijk = ecl_grid.find_cell(
             point.utm_x, point.utm_y, point.true_vertical_depth, start_ijk=ijk_guess
         )
