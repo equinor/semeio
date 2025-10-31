@@ -1,4 +1,5 @@
 import math
+import re
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any, cast
@@ -13,6 +14,8 @@ from matplotlib.patches import Rectangle
 from probabilit.correlation import (  # type: ignore[import-untyped]
     nearest_correlation_matrix,
 )
+
+from semeio.fmudesign.design_distributions import to_probabilit
 
 COLORS = list(plt.rcParams["axes.prop_cycle"].by_key()["color"])
 
@@ -155,7 +158,15 @@ class QualityReporter:
         bins = max(int(math.sqrt(len(series))), 10)
         sns.histplot(data=series, stat="density", bins=bins, ax=ax)
         sns.kdeplot(series, ax=ax, color="blue", label="KDE")
-        ax.set_title(f"{var_name}\n{var_description}", fontsize=10)
+        ax.set_title(f"{var_name}\n{var_description}", fontsize=7)
+
+        # Add plot of expected PDF
+        dist_name = var_description[: var_description.find("~")]
+        dist_parameters = list(map(str, re.findall(r"=(.*?)[,\)]", var_description)))
+        dist = to_probabilit(dist_name, dist_parameters)
+        x = np.linspace(series.min(), series.max(), 100)
+        pdf = dist.to_scipy().pdf(x)
+        ax.plot(x, pdf, color="red", lw=2, label="expected PDF")
 
         # Add rugplot
         ax.scatter(
@@ -168,13 +179,7 @@ class QualityReporter:
 
         # Add average and quantiles to the plot
         mean = series.mean()
-        ax.axvline(
-            x=mean,
-            color="black",
-            ls="-",
-            alpha=0.8,
-            label=f"mean={mean:.2e}",
-        )
+        ax.axvline(x=mean, color="black", ls="-", alpha=0.8, label=f"mean={mean:.2e}")
 
         quantiles = [0.1, 0.5, 0.9]
         for q in quantiles:
@@ -189,7 +194,7 @@ class QualityReporter:
             )
 
         ax.grid(True, ls="--", alpha=0.5)
-        ax.legend(loc="upper left", bbox_to_anchor=(1.05, 1))
+        ax.legend(loc="upper left", bbox_to_anchor=(1.05, 1), fontsize=7)
         fig.tight_layout()
 
         return fig, ax
