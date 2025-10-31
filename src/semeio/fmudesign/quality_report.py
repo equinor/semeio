@@ -1,4 +1,5 @@
 import math
+import re
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any, cast
@@ -13,6 +14,8 @@ from matplotlib.patches import Rectangle
 from probabilit.correlation import (  # type: ignore[import-untyped]
     nearest_correlation_matrix,
 )
+
+from semeio.fmudesign.design_distributions import to_probabilit
 
 COLORS = list(plt.rcParams["axes.prop_cycle"].by_key()["color"])
 
@@ -153,8 +156,17 @@ class QualityReporter:
         """
         fig, ax = plt.subplots(figsize=(6, 4))
         bins = max(int(math.sqrt(len(series))), 10)
-        sns.histplot(data=series, kde=True, stat="density", bins=bins, ax=ax)
-        ax.set_title(f"{var_name}\n{var_description}", fontsize=10)
+        sns.histplot(data=series, stat="density", bins=bins, ax=ax)
+        sns.kdeplot(series, ax=ax, color="blue", label="KDE")
+        ax.set_title(f"{var_name}\n{var_description}", fontsize=7)
+
+        # Add plot of expected PDF
+        dist_name = var_description[: var_description.find("~")]
+        dist_parameters = map(float, re.findall(r"=(.*?)[,\)]", var_description))
+        dist = to_probabilit(dist_name, dist_parameters)
+        x = np.linspace(series.min(), series.max(), 100)
+        pdf = dist.to_scipy().pdf(x)
+        ax.plot(x, pdf, color="red", lw=2, label="expected PDF")
 
         # Add rugplot
         ax.scatter(
@@ -182,7 +194,7 @@ class QualityReporter:
             )
 
         ax.grid(True, ls="--", alpha=0.5)
-        ax.legend(loc="upper center", ncol=4, fontsize=7, framealpha=0.99)
+        ax.legend(loc="upper left", bbox_to_anchor=(1.05, 1), fontsize=7)
         fig.tight_layout()
 
         return fig, ax
