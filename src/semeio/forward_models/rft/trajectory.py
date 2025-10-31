@@ -1,4 +1,5 @@
 import os
+from collections.abc import Iterator
 from typing import Any, Self, TypeAlias
 
 import pandas as pd
@@ -153,6 +154,9 @@ class Trajectory:
 
     def __len__(self) -> int:
         return len(self.trajectory_points)
+
+    def __iter__(self) -> Iterator[TrajectoryPoint]:
+        return iter(self.trajectory_points)
 
     def to_dataframe(self, zonemap: ZoneMap | None = None) -> pd.DataFrame:
         """Expose the trajectory data as a Pandas DataFrame.
