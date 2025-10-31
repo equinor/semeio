@@ -2,7 +2,6 @@
 Module for utility functions that do not belong elsewhere.
 """
 
-from collections.abc import Mapping
 from typing import Any
 
 import pandas as pd
@@ -33,7 +32,7 @@ def parameters_from_extern(filename: str) -> pd.DataFrame:
     )
 
 
-def seeds_from_extern(filename: str, max_reals: int) -> list[int]:
+def seeds_from_extern(filename: str) -> list[int]:
     """Read parameter values or background values
     from specified file. Format either Excel ('xlsx')
     or csv.
@@ -47,38 +46,25 @@ def seeds_from_extern(filename: str, max_reals: int) -> list[int]:
             .dropna(axis=0, how="all")
             .dropna(axis=1, how="all")
         )
-        seed_numbers = df_seeds.iloc[:, 0].tolist()
-    elif str(filename).endswith(".csv") or str(filename).endswith(".txt"):
+        return df_seeds.iloc[:, 0].tolist()
+
+    if str(filename).endswith(".csv") or str(filename).endswith(".txt"):
         df_seeds = pd.read_csv(filename, header=None)
-        seed_numbers = df_seeds.iloc[:, 0].tolist()
-    else:
-        raise ValueError(
-            "External file with seed values should "
-            "be on Excel or csv format "
-            "and end with .xlsx .csv or .txt"
-        )
+        return df_seeds.iloc[:, 0].tolist()
 
-    if len(seed_numbers) < max_reals:
-        print(
-            "Provided number of seed values in external file {} "
-            "is lower than the maximum number of realisations "
-            "found for the design {}, and is for those "
-            "sensitivities used repeatedly. "
-        )
-        seed_numbers = [
-            seed_numbers[item % len(seed_numbers)] for item in range(max_reals)
-        ]
-    return seed_numbers
+    raise ValueError(
+        "External file with seed values should "
+        "be on Excel or csv format "
+        "and end with .xlsx .csv or .txt"
+    )
 
 
-def find_max_realisations(inputdict: Mapping[str, Any]) -> int:
-    """Finds the maximum number of realisations
-    in a sensitivity case"""
-    max_reals = inputdict["repeats"]
-    for key in inputdict["sensitivities"]:
-        sens = inputdict["sensitivities"][key]
-        if "numreal" in sens:
-            max_reals = max(sens["numreal"], max_reals)
+def find_max_realisations(config: dict[str, Any]) -> int:
+    """Finds the maximum number of realisations over all sensitivity cases."""
+    max_reals = config.get("repeats", 0)
+    for sens_info in config["sensitivities"].values():
+        max_reals = max(sens_info.get("numreal", 0), max_reals)
+    assert max_reals > 0
     return max_reals
 
 
@@ -129,7 +115,7 @@ def to_numeric_safe(val: int | float | str) -> int | float | str:
 
 
 def map_dependencies(
-    df: pd.DataFrame, *, dependencies: Mapping[str, Any], verbose: bool = False
+    df: pd.DataFrame, *, dependencies: dict[str, Any], verbose: bool = False
 ) -> pd.DataFrame:
     """Return a new copy of `df` with dependencies mapped.
 
