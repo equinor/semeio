@@ -38,7 +38,7 @@ EXAMPLE_FILES = {
 
 
 def get_parser() -> tuple[ArgumentParser, _SubParsersAction]:
-    """Create agument parses and return (parser, subparsers)."""
+    """Create argument parser and return (parser, subparsers)."""
 
     # =============== MAIN PARSER ===============
     parser = argparse.ArgumentParser(

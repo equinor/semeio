@@ -316,7 +316,7 @@ class DesignMatrix:
             seeds: Seed configuration. Can be:
                 - "None" or None: Sets seedvalues to None
                 - "default": Generates sequential seeds starting from 1000
-                - str: Name of file that cointains seeds
+                - str: Name of file that contains seeds
             max_reals: Maximum number of seed values to generate or load
         """
         if seeds in {None, "None"}:

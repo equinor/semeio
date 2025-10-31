@@ -380,7 +380,7 @@ class OverburdenTimeshift:
             # Observations (even though they are few) indicate that time shifts
             # linked with compaction are smaller than when linked with stretch.
             # This is also reported by e.g. Hatchel and Bourne (2005)
-            # Approximatelly R_comp = R_stretch / 5 was chosen
+            # Approximately R_comp = R_stretch / 5 was chosen
             self._divide_negative_shift(ts, div_val=5.0)
 
             ts *= self._convention

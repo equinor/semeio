@@ -252,7 +252,7 @@ def _excel_to_dict_onebyone(
             "- Specify None if you do not want to seed the random number generator. "
             "Your analysis will not be reproducible."
         ) from err
-        # If key does not exsist, raise an error and ask user to input key.
+        # If key does not exist, raise an error and ask user to input key.
     except (ValueError, TypeError):
         output[key] = generalinput[key]
         # In validation, throw an error if cell is set to something non sensical,
