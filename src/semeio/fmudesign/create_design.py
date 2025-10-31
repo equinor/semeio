@@ -55,7 +55,7 @@ class DesignMatrix:
         output_dir: where to write debugging output and QC plots
 
         """
-        self.designvalues: pd.DataFrame = pd.DataFrame(columns=["REAL"])
+        self.designvalues: pd.DataFrame
         self.defaultvalues: dict[Hashable, Any] = {}
         self.backgroundvalues: pd.DataFrame | None = None
         self.seedvalues: list[int] | None = None
@@ -65,7 +65,7 @@ class DesignMatrix:
     def reset(self) -> None:
         """Resets DesignMatrix to empty. Necessary iin case method generate
         is used several times for same instance of DesignMatrix"""
-        self.designvalues = pd.DataFrame(columns=["REAL"])
+        self.designvalues = pd.DataFrame()
         self.defaultvalues = {}
         self.backgroundvalues = None
         self.seedvalues = None
@@ -112,7 +112,7 @@ class DesignMatrix:
             # Numer of realization (rows) to use for each sensitivity
             size = sens["numreal"] if "numreal" in sens else inputdict["repeats"]
 
-            print(f"Generating sensitivity : {key}")
+            print(f" Generating sensitivity : {key}")
 
             if sens["senstype"] == "ref":
                 sensitivity = SingleRealisationReference(key, verbosity=self.verbosity)
@@ -174,7 +174,9 @@ class DesignMatrix:
                 sensitivity.map_dependencies(sens.get("dependencies", {}))
 
                 self._add_sensitivity(sensitivity)
-            print("Added sensitivity :", sensitivity.sensname)
+
+            else:
+                raise ValueError(f"Unknown sensitivity type: {sens['senstype']!r}")
 
             # MonteCarloSensitivity is special - it can produce debugging outputs
             is_montecarlo = isinstance(sensitivity, MonteCarloSensitivity)
@@ -263,35 +265,33 @@ class DesignMatrix:
             filename = filename + ".xlsx"
             print(f"Warning: Missing .xlsx suffix. Changed to: {filename}")
 
-        xlsxwriter = pd.ExcelWriter(filename, engine="openpyxl")
-        self.designvalues.to_excel(
-            xlsxwriter, sheet_name=designsheet, index=False, header=True
-        )
-        # Default values from OrderdDictionay to pandas dataframe
-        defaults = pd.DataFrame(
-            data=list(self.defaultvalues.items()),
-            columns=["defaultparameters", "defaultvalue"],
-        )
-        defaults.to_excel(
-            xlsxwriter, sheet_name=defaultsheet, index=False, header=False
-        )
+        with pd.ExcelWriter(filename, engine="openpyxl") as writer:
+            self.designvalues.to_excel(
+                writer, sheet_name=designsheet, index=False, header=True
+            )
+            # Default values
+            defaults = pd.DataFrame(
+                data=list(self.defaultvalues.items()),
+                columns=["defaultparameters", "defaultvalue"],
+            )
+            defaults.to_excel(
+                writer, sheet_name=defaultsheet, index=False, header=False
+            )
 
-        version_info = pd.DataFrame(
-            {
-                "Description": ["Created using semeio version:", "Created on:"],
-                "Value": [
-                    semeio.__version__,
-                    datetime.now().isoformat(sep=" ", timespec="seconds"),
-                ],
-            }
-        )
-        version_info.to_excel(xlsxwriter, sheet_name="Metadata", index=False)
+            version_info = pd.DataFrame(
+                {
+                    "Description": ["Created using semeio version:", "Created on:"],
+                    "Value": [
+                        semeio.__version__,
+                        datetime.now().isoformat(sep=" ", timespec="seconds"),
+                    ],
+                }
+            )
+            version_info.to_excel(writer, sheet_name="Metadata", index=False)
 
-        xlsxwriter.close()
         print(
-            f"A total of {len(self.designvalues['REAL'])} realizations were generated"
+            f"Design matrix of shape {self.designvalues.shape} written to: {filename!r}"
         )
-        print(f"Designmatrix written to {filename}")
 
     @staticmethod
     def create_rms_seeds(seeds: list | str | None, max_reals: int) -> list | None:
