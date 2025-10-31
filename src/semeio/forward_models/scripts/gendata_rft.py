@@ -141,6 +141,7 @@ def main_entry_point(argv: list[str] | None = None) -> None:
     arg_parser = _build_parser()
     options = arg_parser.parse_args(argv)
     logger.setLevel(options.log_level)
+    logging.getLogger("semeio.forward_models.rft").setLevel(options.log_level)
 
     context_errors = []
     trajectories: MutableMapping[str, Trajectory] = {}
