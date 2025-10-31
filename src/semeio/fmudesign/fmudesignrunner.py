@@ -124,7 +124,7 @@ getting help:
         "-v",
         "--verbose",
         action="count",
-        help="Verbosity of terminal output and plotting",
+        help="Verbosity of terminal output and plotting, run with increased verbosity level\n-v -v to include more information",
         default=0,
     )
     func = functools.partial(subcommand_run, parser=parser_run)
