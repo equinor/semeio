@@ -215,7 +215,7 @@ def _excel_to_dict_onebyone(
         .to_dict()
     )
 
-    def process_value(value: object) -> object:
+    def parse_value(value: object) -> object:
         if pd.isna(value):  # type: ignore[call-overload]
             return None
         elif isinstance(value, str):
@@ -224,7 +224,7 @@ def _excel_to_dict_onebyone(
 
     # Convert NaN values to None and strip other values
     generalinput = {
-        key.strip(): process_value(value) for (key, value) in generalinput.items()
+        key.strip(): parse_value(value) for (key, value) in generalinput.items()
     }
 
     # Check that there are no wrong keys or typos, e.g. 'repets'
@@ -239,7 +239,7 @@ def _excel_to_dict_onebyone(
     extra_keys = set(generalinput.keys()) - set(ALLOWED_KEYS)
     if extra_keys:
         msg = "In the general input sheet, the following parameter(s) are not"
-        msg += f"recognized:\n{extra_keys!r}\nAllowed keys:{ALLOWED_KEYS!r}"
+        msg += f"recognized and cannot be parsed:\n{extra_keys!r}\nAllowed keys:{ALLOWED_KEYS!r}"
         raise LookupError(msg)
 
     # Copy keys over if they exist

@@ -20,6 +20,11 @@ def validate_configuration(
     """
     config = copy.deepcopy(config)
 
+    if config["designtype"] != "onebyone":
+        raise ValueError(
+            f"Generation of DesignMatrix only implemented for type 'onebyone', not {config['designtype']}"
+        )
+
     if "repeats" not in config:
         raise LookupError('"repeats" must be specified in general input sheet')
 
@@ -27,9 +32,11 @@ def validate_configuration(
     if key not in config:
         if verbosity > 0:
             print(f"{key!r} not set in general input sheet. Setting to default 0.")
-            print("  - When set to 0 Iman Conover is used to induce correlations.")
+            print("  - When set to 0, Iman Conover is used to induce correlations.")
             print(
-                "  - When set to a posotive integer, Iman Conover is followed by a heuristic algorithm."
+                "  - When set to a positive integer N, Iman Conover is followed by N iterations\n"
+                + "    of random permutations (swaps). This leads to results that are never worse, and often better.\n"
+                + "    It is especially useful for skewed distributions like lognormal and high dimensional problems."
             )
             print(
                 f"  If desired correlation does not match observed, try setting {key!r}=999 or higher."
@@ -72,7 +79,7 @@ def validate_configuration(
     is_none = config[key] is None
     is_list = isinstance(config[key], list) and config[key]
     if not any([is_default, is_none, is_list]):
-        msg = f"'rms_seeds' must be 'None', 'default' or a file, got: {config[key]}"
+        msg = f"'rms_seeds' must be 'None', 'default' or a list, got: {config[key]}"
         raise ValueError(msg)
 
     return config
