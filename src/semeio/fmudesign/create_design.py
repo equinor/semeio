@@ -84,11 +84,6 @@ class DesignMatrix:
         """
         inputdict = validate_configuration(inputdict, verbosity=self.verbosity)
 
-        if inputdict["designtype"] != "onebyone":
-            raise ValueError(
-                f"Generation of DesignMatrix only implemented for type 'onebyone', not {inputdict['designtype']}"
-            )
-
         self.reset()  # Emptying if regenerating matrix
         self.rng = np.random.default_rng(seed=inputdict.get("distribution_seed"))
         self.defaultvalues = inputdict["defaultvalues"]
@@ -331,6 +326,8 @@ class DesignMatrix:
 
             return [seeds[item % len(seeds)] for item in range(max_reals)]
 
+        # Raise if none of the cases above apply. We do this because if we did not we
+        # would return None, which is a valid case in itsself.
         raise ValueError(f"Must be None, 'default' or list: {seeds=}")
 
     def add_background(
@@ -606,7 +603,7 @@ class SeedSensitivity(Sensitivity):
                 distributions or values.
         """
         if seedvalues is None:
-            msg = "No seed values available to use for seed sensitivity"
+            msg = "Seed values must be set when running sensitivity type 'seed'. Got seed: {seedvalues}"
             raise ValueError(msg)
 
         self.sensvalues = pd.DataFrame(index=range(size))
