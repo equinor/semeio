@@ -153,7 +153,8 @@ class QualityReporter:
         """
         fig, ax = plt.subplots(figsize=(6, 4))
         bins = max(int(math.sqrt(len(series))), 10)
-        sns.histplot(data=series, kde=True, stat="density", bins=bins, ax=ax)
+        sns.histplot(data=series, stat="density", bins=bins, ax=ax)
+        sns.kdeplot(series, ax=ax, color="blue", label="KDE")
         ax.set_title(f"{var_name}\n{var_description}", fontsize=10)
 
         # Add rugplot
@@ -167,7 +168,7 @@ class QualityReporter:
 
         # Add average and quantiles to the plot
         mean = series.mean()
-        ax.axvline(x=mean, color="black", ls="-", alpha=0.8, label=f"mean={mean:.2e}")
+        ax.axvline(x=mean, color="black", ls="-", alpha=0.8, label=f"mean={mean:.2f}")
 
         quantiles = [0.1, 0.5, 0.9]
         for q in quantiles:
@@ -178,12 +179,20 @@ class QualityReporter:
                 color="black",
                 ls="--",
                 alpha=0.8,
-                label=f"P{P_label}={quantile_value:.2e}",
+                label=f"P{P_label}={quantile_value:.2f}",
             )
 
         ax.grid(True, ls="--", alpha=0.5)
-        ax.legend(loc="upper center", ncol=4, fontsize=7, framealpha=0.99)
+        ax.legend(
+            loc="upper left",  # or "upper right", etc.
+            bbox_to_anchor=(1.05, 1),  # (x, y) coordinates outside the axes
+            ncol=1,  # number of columns
+            fontsize=7,
+            framealpha=0.99,
+        )
         fig.tight_layout()
+        # ax.legend(loc="upper center", ncol=4, fontsize=7, framealpha=0.99)
+        # fig.tight_layout()
 
         return fig, ax
 
