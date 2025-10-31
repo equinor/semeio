@@ -129,7 +129,7 @@ a specific pressure point is valid
         "--log-level",
         "-l",
         required=False,
-        default="WARNING",
+        default="INFO",
         type=logging.getLevelName,
         help="Sets the log level",
     )
