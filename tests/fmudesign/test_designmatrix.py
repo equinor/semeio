@@ -121,20 +121,20 @@ Requirements:
   - The matrix must be positive semi-definite
 
 Input correlation matrix:
-|         |   PARAM9 | PARAM10   | PARAM11   | PARAM12   |
-|:--------|---------:|:----------|:----------|:----------|
-| PARAM9  |     1.00 |           |           |           |
-| PARAM10 |     0.90 | 1.00      |           |           |
-| PARAM11 |     0.00 | 0.90      | 1.00      |           |
-| PARAM12 |     0.00 | 0.00      | 0.00      | 1.00      |
+|             |   (1) |   (2) |   (3) |   (4) |
+|:------------|------:|------:|------:|------:|
+| (1) PARAM9  |  1.00 |       |       |       |
+| (2) PARAM10 |  0.90 |  1.00 |       |       |
+| (3) PARAM11 |  0.00 |  0.90 |  1.00 |       |
+| (4) PARAM12 |  0.00 |  0.00 |  0.00 |  1.00 |
 
 Adjusted to nearest consistent correlation matrix:
-|         |   PARAM9 | PARAM10   | PARAM11   | PARAM12   |
-|:--------|---------:|:----------|:----------|:----------|
-| PARAM9  |     1.00 |           |           |           |
-| PARAM10 |     0.74 | 1.00      |           |           |
-| PARAM11 |     0.11 | 0.74      | 1.00      |           |
-| PARAM12 |     0.00 | 0.00      | 0.00      | 1.00      |
+|             |   (1) |   (2) |   (3) |   (4) |
+|:------------|------:|------:|------:|------:|
+| (1) PARAM9  |  1.00 |       |       |       |
+| (2) PARAM10 |  0.74 |  1.00 |       |       |
+| (3) PARAM11 |  0.11 |  0.74 |  1.00 |       |
+| (4) PARAM12 |  0.00 |  0.00 |  0.00 |  1.00 |
 Added sensitivity : sens7
 Generating sensitivity : sens8
 Added sensitivity : sens8
