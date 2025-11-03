@@ -11,7 +11,7 @@ used to generate design matrices, including one or several Sensitivities.
 from __future__ import annotations
 
 import copy
-from collections.abc import Hashable, Mapping, Sequence
+from collections.abc import Hashable, Sequence
 from datetime import datetime
 from pathlib import Path
 from typing import Any, cast
@@ -23,13 +23,13 @@ import probabilit  # type: ignore[import-untyped]
 import semeio
 from semeio.fmudesign import design_distributions as design_dist
 from semeio.fmudesign._excel_to_dict import _raise_if_duplicates
+from semeio.fmudesign.config_validation import validate_configuration
 from semeio.fmudesign.quality_report import QualityReporter, print_corrmat
 from semeio.fmudesign.utils import (
     find_max_realisations,
     map_dependencies,
     parameters_from_extern,
     printwarning,
-    seeds_from_extern,
     to_numeric_safe,
 )
 
@@ -59,7 +59,7 @@ class DesignMatrix:
         output_dir: where to write debugging output and QC plots
 
         """
-        self.designvalues: pd.DataFrame = pd.DataFrame(columns=["REAL"])
+        self.designvalues: pd.DataFrame
         self.defaultvalues: dict[Hashable, Any] = {}
         self.backgroundvalues: pd.DataFrame | None = None
         self.seedvalues: list[int] | None = None
@@ -69,12 +69,12 @@ class DesignMatrix:
     def reset(self) -> None:
         """Resets DesignMatrix to empty. Necessary iin case method generate
         is used several times for same instance of DesignMatrix"""
-        self.designvalues = pd.DataFrame(columns=["REAL"])
+        self.designvalues = pd.DataFrame()
         self.defaultvalues = {}
         self.backgroundvalues = None
         self.seedvalues = None
 
-    def generate(self, inputdict: Mapping[str, Any]) -> None:
+    def generate(self, inputdict: dict[str, Any]) -> None:
         """Generating design matrix from input dictionary in specific
         format. Adding default values and background values if existing.
         Looping through sensitivities and adding them to designvalues.
@@ -82,31 +82,21 @@ class DesignMatrix:
         Args:
             inputdict (dict): input parameters for design
         """
-        inputdict = copy.deepcopy(inputdict)
-
-        if inputdict["designtype"] != "onebyone":
-            raise ValueError(
-                f"Generation of DesignMatrix only implemented for type 'onebyone', not {inputdict['designtype']}"
-            )
+        inputdict = validate_configuration(inputdict, verbosity=self.verbosity)
 
         self.reset()  # Emptying if regenerating matrix
-
-        rng = np.random.default_rng(seed=inputdict.get("distribution_seed"))
-
+        self.rng = np.random.default_rng(seed=inputdict.get("distribution_seed"))
         self.defaultvalues = inputdict["defaultvalues"]
 
-        max_reals = find_max_realisations(inputdict)
-
         # Reading or generating rms seed values
-        if "seeds" in inputdict:
-            self.add_seeds(inputdict["seeds"], max_reals)
+        max_reals = find_max_realisations(inputdict)
+        self.seedvalues = DesignMatrix.create_rms_seeds(inputdict["seeds"], max_reals)
 
         # If background values used - read or generate
         if "background" in inputdict:
             self.add_background(
                 back_dict=inputdict["background"],
                 max_values=max_reals,
-                rng=rng,
                 correlation_iterations=inputdict.get("correlation_iterations", 0),
             )
 
@@ -121,7 +111,7 @@ class DesignMatrix:
             # Numer of realization (rows) to use for each sensitivity
             size = sens["numreal"] if "numreal" in sens else inputdict["repeats"]
 
-            print(f"Generating sensitivity : {key}")
+            print(f" Generating sensitivity : {key}")
 
             if sens["senstype"] == "ref":
                 sensitivity = SingleRealisationReference(key, verbosity=self.verbosity)
@@ -134,10 +124,6 @@ class DesignMatrix:
                 sensitivity.map_dependencies(sens.get("dependencies", {}))
                 self._add_sensitivity(sensitivity)
             elif sens["senstype"] == "seed":
-                if self.seedvalues is None:
-                    raise ValueError(
-                        "No seed values available to use for seed sensitivity"
-                    )
                 sensitivity = SeedSensitivity(key, verbosity=self.verbosity)
                 sensitivity.generate(
                     size=size,
@@ -169,7 +155,7 @@ class DesignMatrix:
                     parameters=sens["parameters"],
                     seedvalues=self.seedvalues,
                     corrdict=sens["correlations"],
-                    rng=rng,
+                    rng=self.rng,
                     correlation_iterations=inputdict.get("correlation_iterations", 0),
                 )
                 sensitivity.map_dependencies(sens.get("dependencies", {}))
@@ -187,7 +173,9 @@ class DesignMatrix:
                 sensitivity.map_dependencies(sens.get("dependencies", {}))
 
                 self._add_sensitivity(sensitivity)
-            print("Added sensitivity :", sensitivity.sensname)
+
+            else:
+                raise ValueError(f"Unknown sensitivity type: {sens['senstype']!r}")
 
             # MonteCarloSensitivity is special - it can produce debugging outputs
             is_montecarlo = isinstance(sensitivity, MonteCarloSensitivity)
@@ -276,69 +264,76 @@ class DesignMatrix:
             filename = filename + ".xlsx"
             print(f"Warning: Missing .xlsx suffix. Changed to: {filename}")
 
-        xlsxwriter = pd.ExcelWriter(filename, engine="openpyxl")
-        self.designvalues.to_excel(
-            xlsxwriter, sheet_name=designsheet, index=False, header=True
-        )
-        # Default values from OrderdDictionay to pandas dataframe
-        defaults = pd.DataFrame(
-            data=list(self.defaultvalues.items()),
-            columns=["defaultparameters", "defaultvalue"],
-        )
-        defaults.to_excel(
-            xlsxwriter, sheet_name=defaultsheet, index=False, header=False
-        )
+        with pd.ExcelWriter(filename, engine="openpyxl") as writer:
+            self.designvalues.to_excel(
+                writer, sheet_name=designsheet, index=False, header=True
+            )
+            # Default values
+            defaults = pd.DataFrame(
+                data=list(self.defaultvalues.items()),
+                columns=["defaultparameters", "defaultvalue"],
+            )
+            defaults.to_excel(
+                writer, sheet_name=defaultsheet, index=False, header=False
+            )
 
-        version_info = pd.DataFrame(
-            {
-                "Description": ["Created using semeio version:", "Created on:"],
-                "Value": [
-                    semeio.__version__,
-                    datetime.now().isoformat(sep=" ", timespec="seconds"),
-                ],
-            }
-        )
-        version_info.to_excel(xlsxwriter, sheet_name="Metadata", index=False)
+            version_info = pd.DataFrame(
+                {
+                    "Description": ["Created using semeio version:", "Created on:"],
+                    "Value": [
+                        semeio.__version__,
+                        datetime.now().isoformat(sep=" ", timespec="seconds"),
+                    ],
+                }
+            )
+            version_info.to_excel(writer, sheet_name="Metadata", index=False)
 
-        xlsxwriter.close()
         print(
-            f"A total of {len(self.designvalues['REAL'])} realizations were generated"
+            f"Design matrix of shape {self.designvalues.shape} written to: {filename!r}"
         )
-        print(f"Designmatrix written to {filename}")
 
-    def add_seeds(self, seeds: str | None, max_reals: int) -> None:
-        """Set RMS seed values.
-
-        Configures seed values either by loading from an external file, generating
-        default sequential seeds, or setting to None based on the input parameter.
+    @staticmethod
+    def create_rms_seeds(seeds: list | str | None, max_reals: int) -> list | None:
+        """Create RMS seems from 'seeds' argument.
 
         Args:
             seeds: Seed configuration. Can be:
-                - "None" or None: Sets seedvalues to None
-                - "default": Generates sequential seeds starting from 1000
-                - str: Name of file that contains seeds
+                - None: returns None
+                - "default": Generates sequential seeds 1001, 1002, 1003, ...
+                - list of seeds, e.g. [1, 2, 3]
             max_reals: Maximum number of seed values to generate or load
+
+        Examples
+        --------
+        >>> DesignMatrix.create_rms_seeds([1, 2, 3], max_reals=5)
+        Provided number of seed values (3) in external file is lower than the maximum number of realisations (5).
+         Seeds will be repeated, e.g. [1, 2, 3] => [1, 2, 3, 1, 2, ...]
+        [1, 2, 3, 1, 2]
         """
-        if seeds in {None, "None"}:
-            self.seedvalues = None
-            print("seeds is set to None in general_input")
-        elif seeds and seeds.lower() == "default":
-            self.seedvalues = [item + 1000 for item in range(max_reals)]
-        elif seeds and Path(seeds).is_file():
-            self.seedvalues = seeds_from_extern(seeds, max_reals)
-        else:
-            raise ValueError(
-                "Valid choices for seeds are None, "
-                '"default" or an existing filename. '
-                "Neither was found in this case. seeds "
-                f"had been specified as {seeds} ."
-            )
+        if seeds is None:
+            return None
+
+        if seeds == "default":
+            return [item + 1000 for item in range(max_reals)]
+
+        if isinstance(seeds, list):
+            if max_reals > len(seeds):
+                print(
+                    f"Provided number of seed values ({len(seeds)}) in external file "
+                    f"is lower than the maximum number of realisations ({max_reals}).\n"
+                    " Seeds will be repeated, e.g. [1, 2, 3] => [1, 2, 3, 1, 2, ...]"
+                )
+
+            return [seeds[item % len(seeds)] for item in range(max_reals)]
+
+        # Raise if none of the cases above apply. We do this because if we did not we
+        # would return None, which is a valid case in itsself.
+        raise ValueError(f"Must be None, 'default' or list: {seeds=}")
 
     def add_background(
         self,
-        back_dict: Mapping[str, Any] | None,
+        back_dict: dict[str, Any] | None,
         max_values: int,
-        rng: np.random.Generator,
         correlation_iterations: int = 0,
     ) -> None:
         """Adding background as specified in dictionary.
@@ -348,7 +343,6 @@ class DesignMatrix:
         Args:
             back_dict (dict): how to generate background values
             max_values (int): number of background values to generate
-            rng (numpy.random.Generator): Random number generator instance
             correlation_iterations (int): Number of permutations performed
               on samples after Iman-Conover in an attempt to match observed
               correlation to desired correlation as well as possible.
@@ -361,9 +355,8 @@ class DesignMatrix:
         elif "parameters" in back_dict:
             print("Generating background values from distributions.")
             self._add_dist_background(
-                back_dict,
-                max_values,
-                rng,
+                back_dict=back_dict,
+                size=max_values,
                 correlation_iterations=correlation_iterations,
             )
 
@@ -447,9 +440,8 @@ class DesignMatrix:
 
     def _add_dist_background(
         self,
-        back_dict: Mapping[str, Any],
+        back_dict: dict[str, Any],
         size: int,
-        rng: np.random.Generator,
         correlation_iterations: int,
     ) -> None:
         """Drawing background values from distributions
@@ -458,7 +450,6 @@ class DesignMatrix:
         Args:
             back_dict (dict): parameters and distributions
             size (int): Number of samples to generate
-            rng (numpy.random.Generator): Random number generator instance
             correlation_iterations (int): Number of permutations performed
               on samples after Iman-Conover in an attempt to match observed
               correlation to desired correlation as well as possible.
@@ -470,7 +461,7 @@ class DesignMatrix:
             parameters=back_dict["parameters"],
             seedvalues=None,
             corrdict=back_dict["correlations"],
-            rng=rng,
+            rng=self.rng,
             correlation_iterations=correlation_iterations,
         )
         mc_backgroundvalues = mc_background.sensvalues.copy()
@@ -516,7 +507,7 @@ class DesignMatrix:
                     raise ValueError("Cannot round a string parameter")
         self.backgroundvalues = mc_backgroundvalues.copy()
 
-    def _set_decimals(self, inputdict: Mapping[str, Any]) -> None:
+    def _set_decimals(self, inputdict: dict[str, Any]) -> None:
         """Round to specified number of decimals.
 
         Args:
@@ -569,7 +560,7 @@ class Sensitivity:
         self.sensname: str = sensname
         self.verbosity: int = verbosity
 
-    def map_dependencies(self, dependencies: Mapping[str, Any]) -> Sensitivity:
+    def map_dependencies(self, dependencies: dict[str, Any]) -> Sensitivity:
         """Map the dependencies, mutating the dataframe `self.sensvalues`."""
         verbose = self.verbosity > 0  # Because the function takes a boolean
         self.sensvalues: pd.DataFrame = map_dependencies(
@@ -599,8 +590,8 @@ class SeedSensitivity(Sensitivity):
         self,
         size: int,
         seedname: str,
-        seedvalues: Sequence[int],
-        parameters: Mapping[str, Any] | None,
+        seedvalues: Sequence[int] | None,
+        parameters: dict[str, Any] | None,
     ) -> None:
         """Generates parameter values for a seed sensitivity
 
@@ -611,6 +602,9 @@ class SeedSensitivity(Sensitivity):
             parameters (dict): parameter names and
                 distributions or values.
         """
+        if seedvalues is None:
+            msg = "Seed values must be set when running sensitivity type 'seed'. Got seed: {seedvalues}"
+            raise ValueError(msg)
 
         self.sensvalues = pd.DataFrame(index=range(size))
         self.sensvalues[seedname] = seedvalues[0:size]
@@ -800,7 +794,7 @@ class MonteCarloSensitivity(Sensitivity):
         size: int,
         parameters: dict[str, Any],
         seedvalues: Sequence[int] | None,
-        corrdict: Mapping[str, Any] | None,
+        corrdict: dict[str, Any] | None,
         rng: np.random.Generator,
         correlation_iterations: int = 0,
     ) -> None:

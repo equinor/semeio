@@ -1,5 +1,4 @@
 import math
-from collections.abc import Mapping
 from pathlib import Path
 from typing import Any, cast
 
@@ -43,7 +42,7 @@ class QualityReporter:
     | a   |          0.1 |
     """
 
-    def __init__(self, df: pd.DataFrame, variables: Mapping[str, str]) -> None:
+    def __init__(self, df: pd.DataFrame, variables: dict[str, str]) -> None:
         """Initialize QualityReporter with dataframe and variable descriptions.
 
         Args:
