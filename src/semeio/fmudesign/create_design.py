@@ -440,7 +440,7 @@ class DesignMatrix:
 
     def _add_dist_background(
         self,
-        back_dict: str[str, Any],
+        back_dict: dict[str, Any],
         size: int,
         correlation_iterations: int,
     ) -> None:
