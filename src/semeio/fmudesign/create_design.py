@@ -180,6 +180,7 @@ class DesignMatrix:
             # MonteCarloSensitivity is special - it can produce debugging outputs
             is_montecarlo = isinstance(sensitivity, MonteCarloSensitivity)
             if is_montecarlo and self.verbosity > 0:
+                sensitivity = cast(MonteCarloSensitivity, sensitivity)
                 quality_reporter = QualityReporter(
                     df=sensitivity.sensvalues, variables=sens["parameters"]
                 )

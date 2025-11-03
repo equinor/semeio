@@ -215,7 +215,7 @@ class QualityReporter:
 
     @staticmethod
     def plot_discrete(
-        series: pd.Series, var_name: str, var_description: str
+        series: pd.Series, var_name: str, var_description: list[Any]
     ) -> tuple[plt.Figure, plt.Axes]:
         """Create a plot for a single discrete column, returning (fig, ax).
 
@@ -241,7 +241,16 @@ class QualityReporter:
         # Use seaborn barplot with normalized values
         sns.barplot(data=plot_data, x=var_name, y="proportion", ax=ax)
 
-        ax.set_title(f"{var_name}\n{var_description}", fontsize=10)
+        # Create string to describe distiribution
+        var_string = (
+            f"{var_description[0]}~("
+            + ", ".join(
+                f"dist_param{i + 1}={v}" for i, v in enumerate(var_description[1])
+            )
+            + ")"
+        )
+
+        ax.set_title(f"{var_name}\n{var_string}", fontsize=7)
         ax.set_ylabel("Proportion")
 
         # Add percentage labels on bars
@@ -566,7 +575,7 @@ if __name__ == "__main__":
         }
     )
 
-    variables = {
+    variables: dict[str, list[Any]] = {
         "COST": ["Normal", [1000, 100]],
         "EFFICIENCY": ["Normal", [0.8, 0.1]],
         "MATERIAL": ["Discrete", ["Steel", "Aluminum", "Titanium"]],
