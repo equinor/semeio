@@ -227,7 +227,7 @@ def test_generate_onebyone(tmpdir):
         + ["multz"] * 20
     )
     assert (diskdesign["SENSNAME"] == sensname).all()
-    # Sensitivites of type seed like rms_seed automatically get senscase p10_p90,
+    # Sensitivities of type seed like rms_seed automatically get senscase p10_p90,
     # so that P10/P90 is calculated for the tornado plot.
     assert (
         diskdesign[diskdesign["SENSNAME"] == "rms_seed"]["SENSCASE"] == "p10_p90"
@@ -469,7 +469,7 @@ def test_generate_background(tmpdir):
         design = DesignMatrix()
         design.generate(input_dict)
 
-        # Check that background parameters have same values in different sensitivies.
+        # Check that background parameters have same values in different sensitivities.
         background_params = ["PARAM17", "PARAM18", "PARAM19"]
 
         background_vals = design.designvalues.loc[

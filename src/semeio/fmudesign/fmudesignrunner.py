@@ -38,7 +38,7 @@ EXAMPLE_FILES = {
 
 
 def get_parser() -> tuple[ArgumentParser, _SubParsersAction]:
-    """Create agument parses and return (parser, subparsers)."""
+    """Create argument parser and return (parser, subparsers)."""
 
     # =============== MAIN PARSER ===============
     parser = argparse.ArgumentParser(
@@ -124,7 +124,7 @@ getting help:
         "-v",
         "--verbose",
         action="count",
-        help="Verbosity of terminal output and plotting",
+        help="Verbosity of terminal output and plotting, run with increased verbosity level -v -v to include more information",
         default=0,
     )
     func = functools.partial(subcommand_run, parser=parser_run)
@@ -258,9 +258,9 @@ def main() -> None:
         print(
             "\n \n",
             "fmudesign failed. Read the error message above and fix the input file. \n",
-            "Documentation: https://equinor.github.io/fmu-tools/fmudesign.html \n",
-            "Course docs: https://fmu-docs.equinor.com/docs/fmu-coursedocs/fmu-howto/sensitivities/index.html \n",
-            "Issue tracker: https://github.com/equinor/semeio/issues \n",
+            " - Documentation:           https://equinor.github.io/fmu-tools/fmudesign.html \n",
+            " - Course docs:             https://fmu-docs.equinor.com/docs/fmu-coursedocs/fmu-howto/sensitivities/index.html \n",
+            " - Issues/feature requests: https://github.com/equinor/semeio/issues \n",
             "If you believe this error is a bug or are unable to fix it, create an issue or contact the scout team \n",
         )
         sys.exit(1)  # Exit with a non-zero status code (required for smoke tests!)
@@ -268,9 +268,9 @@ def main() -> None:
     print(
         "\n",
         f"Thank you for using fmudesign {Version(semeio.__version__).base_version} \n",
-        "Documentation: https://equinor.github.io/fmu-tools/fmudesign.html \n",
-        "Course docs: https://fmu-docs.equinor.com/docs/fmu-coursedocs/fmu-howto/sensitivities/index.html \n",
-        "Issues/bugs/feature requests: https://github.com/equinor/semeio/issues \n",
+        " - Documentation:           https://equinor.github.io/fmu-tools/fmudesign.html \n",
+        " - Course docs:             https://fmu-docs.equinor.com/docs/fmu-coursedocs/fmu-howto/sensitivities/index.html \n",
+        " - Issues/feature requests: https://github.com/equinor/semeio/issues \n",
     )
 
 

@@ -54,6 +54,7 @@ def test_designmatrix():
         "designtype": "onebyone",
         "seeds": "default",
         "repeats": 10,
+        "distribution_seed": 42,
         "defaultvalues": {},
         "sensitivities": {
             "rms_seed": {
@@ -98,57 +99,48 @@ def test_endpoint(tmpdir, monkeypatch):
 
     # Use <ANY> in the string below to match anything in CLI output
     expected_output = """Reading file: <ANY>design_input_onebyone.xlsx'
-Reading background values from: <ANY>doe1.xlsx
-Generating sensitivity : seed
-Added sensitivity : seed
-Generating sensitivity : faults
-Added sensitivity : faults
-Generating sensitivity : velmodel
-Added sensitivity : velmodel
-Generating sensitivity : contacts
-Added sensitivity : contacts
-Generating sensitivity : multz
-Added sensitivity : multz
-Generating sensitivity : sens6
-Added sensitivity : sens6
-Generating sensitivity : sens7
-Sampling 4 parameters in correlation group 'corr1'
+    Reading background values from: <ANY>doe1.xlsx
+     Generating sensitivity : seed
+     Generating sensitivity : faults
+     Generating sensitivity : velmodel
+     Generating sensitivity : contacts
+     Generating sensitivity : multz
+     Generating sensitivity : sens6
+     Generating sensitivity : sens7
+    Sampling 4 parameters in correlation group 'corr1'
 
-Warning: Correlation matrix 'corr1' is inconsistent
-Requirements:
-  - All diagonal elements must be 1
-  - All elements must be between -1 and 1
-  - The matrix must be positive semi-definite
+    Warning: Correlation matrix 'corr1' is inconsistent
+    Requirements:
+      - All diagonal elements must be 1
+      - All elements must be between -1 and 1
+      - The matrix must be positive semi-definite
 
-Input correlation matrix:
-|         |   PARAM9 | PARAM10   | PARAM11   | PARAM12   |
-|:--------|---------:|:----------|:----------|:----------|
-| PARAM9  |     1.00 |           |           |           |
-| PARAM10 |     0.90 | 1.00      |           |           |
-| PARAM11 |     0.00 | 0.90      | 1.00      |           |
-| PARAM12 |     0.00 | 0.00      | 0.00      | 1.00      |
+    Input correlation matrix:
+    |             |   (1) |   (2) |   (3) |   (4) |
+    |:------------|------:|------:|------:|------:|
+    | (1) PARAM9  |  1.00 |       |       |       |
+    | (2) PARAM10 |  0.90 |  1.00 |       |       |
+    | (3) PARAM11 |  0.00 |  0.90 |  1.00 |       |
+    | (4) PARAM12 |  0.00 |  0.00 |  0.00 |  1.00 |
 
-Adjusted to nearest consistent correlation matrix:
-|         |   PARAM9 | PARAM10   | PARAM11   | PARAM12   |
-|:--------|---------:|:----------|:----------|:----------|
-| PARAM9  |     1.00 |           |           |           |
-| PARAM10 |     0.74 | 1.00      |           |           |
-| PARAM11 |     0.11 | 0.74      | 1.00      |           |
-| PARAM12 |     0.00 | 0.00      | 0.00      | 1.00      |
-Added sensitivity : sens7
-Generating sensitivity : sens8
-Added sensitivity : sens8
+    Adjusted to nearest consistent correlation matrix:
+    |             |   (1) |   (2) |   (3) |   (4) |
+    |:------------|------:|------:|------:|------:|
+    | (1) PARAM9  |  1.00 |       |       |       |
+    | (2) PARAM10 |  0.74 |  1.00 |       |       |
+    | (3) PARAM11 |  0.11 |  0.74 |  1.00 |       |
+    | (4) PARAM12 |  0.00 |  0.00 |  0.00 |  1.00 |
+    Generating sensitivity : sens8
 Provided number of background values (11) is smaller than number of realisations for sensitivity ('sens7', 'p10_p90') and parameter PARAM13. Will be filled with default values.
 Provided number of background values (11) is smaller than number of realisations for sensitivity ('sens7', 'p10_p90') and parameter PARAM14. Will be filled with default values.
 Provided number of background values (11) is smaller than number of realisations for sensitivity ('sens7', 'p10_p90') and parameter PARAM15. Will be filled with default values.
 Provided number of background values (11) is smaller than number of realisations for sensitivity ('sens7', 'p10_p90') and parameter PARAM16. Will be filled with default values.
-A total of 91 realizations were generated
-Designmatrix written to generateddesignmatrix.xlsx
+Design matrix of shape (91, 22) written to: 'generateddesignmatrix.xlsx'
 
  Thank you for using fmudesign <ANY>
- Documentation: https://equinor.github.io/fmu-tools/fmudesign.html
- Course docs: https://fmu-docs.equinor.com/docs/fmu-coursedocs/fmu-howto/sensitivities/index.html
- Issues/bugs/feature requests: https://github.com/equinor/semeio/issues"""
+  - Documentation:           https://equinor.github.io/fmu-tools/fmudesign.html
+  - Course docs:             https://fmu-docs.equinor.com/docs/fmu-coursedocs/fmu-howto/sensitivities/index.html
+  - Issues/feature requests: https://github.com/equinor/semeio/issues"""
 
     for stdout_line, expected_line in zip(
         result.stdout.split(), expected_output.split(), strict=False

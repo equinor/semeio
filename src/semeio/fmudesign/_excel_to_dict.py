@@ -4,8 +4,9 @@ by the DesignMatrix class to generate design matrices.
 """
 
 import collections
+import contextlib
 from collections import Counter
-from collections.abc import Hashable, Mapping, Sequence
+from collections.abc import Hashable, Sequence
 from pathlib import Path
 from typing import Any, cast
 
@@ -15,6 +16,7 @@ import pandas as pd
 import yaml
 
 from semeio.fmudesign.design_distributions import read_correlations
+from semeio.fmudesign.utils import seeds_from_extern
 
 
 def excel_to_dict(
@@ -73,7 +75,7 @@ def excel_to_dict(
     )
 
 
-def inputdict_to_yaml(inputdict: Mapping[str, Any], filename: str) -> None:
+def inputdict_to_yaml(inputdict: dict[str, Any], filename: str) -> None:
     """Write inputdict to yaml format
 
     Args:
@@ -147,25 +149,33 @@ def _check_for_mixed_sensitivities(sens_name: str, sens_group: pd.DataFrame) -> 
         )
 
 
-def resolve_path(input_filename: str, reference: str) -> str:
-    """The file `input_filename` is an Excel sheet, and `reference` is a cell
+def resolve_path(input_filename: str, reference: str | None) -> str | None:
+    """The path `input_filename` is an Excel sheet, and `reference` is a cell
     value that *might* be a reference to another file. Resolve the path to
-    `reference` and return.
+    `reference` and return. If no such file exists, return `reference`.
     """
-    assert str(input_filename).endswith(("xlsx", "csv"))
-
-    # It's not a reference to another file
-    if not reference.endswith(("xlsx", "csv")):
+    # The reference is None, so just return it back
+    if reference is None:
         return reference
 
-    reference_path = Path(reference)
+    # It's a string but not a reference to another file
+    if not str(reference).endswith(("xlsx", "csv")):
+        return reference
 
-    # If the reference is e.g. 'C:/Users/USER/files/doe1.xlsx' => full path
-    if reference_path.is_absolute():
+    # If the reference is e.g. 'C:/Users/USER/files/doe1.xlsx'
+    reference_path = Path(reference)
+    if reference_path.is_absolute() and reference_path.exists():
         return str(reference_path.resolve())
 
-    # If the reference is 'doe1.xlsx', then assume the file is in same dir
-    return str(Path(input_filename).parent / reference_path)
+    # If the reference is e.g. 'doe1.xlsx'
+    full_path = Path(input_filename).parent / reference_path
+    if full_path.exists():
+        return str(full_path.resolve())
+
+    if reference_path.exists():
+        return str(reference_path.resolve())
+
+    raise ValueError(f"Failed to resolve path for file: {reference}")
 
 
 def _excel_to_dict_onebyone(
@@ -186,7 +196,9 @@ def _excel_to_dict_onebyone(
     Returns:
         dict on format for DesignMatrix.generate
     """
-    output: dict[str, Any] = {}  # This is the config that we read and return
+    output: dict[str, Any] = {
+        "input_file": input_filename
+    }  # This is the config that we read and return
 
     # Read the general input sheet to a dictionary
     generalinput = (
@@ -203,61 +215,53 @@ def _excel_to_dict_onebyone(
         .to_dict()
     )
 
-    # Convert NaN values to None
+    def parse_value(value: object) -> object:
+        if pd.isna(value):  # type: ignore[call-overload]
+            return None
+        elif isinstance(value, str):
+            return value.strip()
+        return value
+
+    # Convert NaN values to None and strip other values
     generalinput = {
-        key: (None if pd.isna(value) else value)
-        for (key, value) in generalinput.items()
+        key.strip(): parse_value(value) for (key, value) in generalinput.items()
     }
 
-    # Validation
-    if "repeats" not in generalinput:
-        raise LookupError('"repeats" must be specified in general_input sheet')
+    # Check that there are no wrong keys or typos, e.g. 'repets'
+    ALLOWED_KEYS = {
+        "designtype",
+        "repeats",
+        "correlation_iterations",
+        "distribution_seed",
+        "rms_seeds",
+        "background",
+    }
+    extra_keys = set(generalinput.keys()) - set(ALLOWED_KEYS)
+    if extra_keys:
+        msg = "In the general input sheet, the following parameter(s) are not"
+        msg += f"recognized and cannot be parsed:\n{extra_keys!r}\nAllowed keys:{ALLOWED_KEYS!r}"
+        raise LookupError(msg)
 
-    if "seeds" in generalinput:
-        raise ValueError(
-            "The 'seeds' parameter has been deprecated and is no longer supported. "
-            "Use 'rms_seeds' instead"
-        )
-
-    output["designtype"] = generalinput["designtype"]
-    output["repeats"] = generalinput["repeats"]
-
-    # Extract
-    key = "correlation_iterations"
-    try:
-        output[key] = int(generalinput[key])
-    except KeyError:
-        output[key] = 0  # Default value
-    except ValueError:
-        output[key] = generalinput[key]  # Validation should raise
-
-    key = "seeds"
-    try:
-        output[key] = resolve_path(input_filename, str(generalinput["rms_seeds"]))
-    except KeyError:
-        output[key] = None
-    except (ValueError, TypeError):
-        output[key] = generalinput["rms_seeds"]  # Validatetion done later
-
-    key = "distribution_seed"
-    try:
-        output[key] = int(generalinput[key])
-    except KeyError as err:
-        raise ValueError(
-            "You did not specify a value for 'distribution_seed', which is used to seed "
-            "the random number generator that draws from distributions in Monte Carlo "
-            "sensitivities.\n"
-            "- Specify a number (e.g. a 6 digit integer) to seed the random number "
-            "generator and obtain reproducible results.\n"
-            "- Specify None if you do not want to seed the random number generator. "
-            "Your analysis will not be reproducible."
-        ) from err
-        # If key does not exsist, raise an error and ask user to input key.
-    except (ValueError, TypeError):
+    # Copy keys over if they exist
+    keys = ["designtype", "repeats", "correlation_iterations", "distribution_seed"]
+    for key in keys:
+        if key not in generalinput:
+            continue
         output[key] = generalinput[key]
-        # In validation, throw an error if cell is set to something non sensical,
-        # Accept None as valid type.
 
+    # Copy the 'rms_seeds' key over. It is called 'seeds' further down in
+    # the code for historical reasons.
+    key = "seeds"
+    with contextlib.suppress(KeyError):
+        output[key] = generalinput["rms_seeds"]
+
+    # If 'seeds' / 'rms_seed' is a file, then read it
+    if key in output:
+        maybe_path = resolve_path(input_filename, output[key])
+        if isinstance(maybe_path, str) and Path(maybe_path).exists():
+            output[key] = seeds_from_extern(maybe_path)
+
+    # If 'background' is a file, then read it
     key = "background"
     output[key] = {}
     try:
@@ -269,7 +273,7 @@ def _excel_to_dict_onebyone(
     except KeyError:
         output[key] = None
     except ValueError:
-        output[key] = generalinput[key]  # Validation should raise
+        output[key] = generalinput[key]
 
     output["defaultvalues"] = _read_defaultvalues(input_filename, default_values_sheet)
 

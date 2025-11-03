@@ -113,7 +113,7 @@ def test_duplicate_sensname_exception(tmpdir, monkeypatch):
 
 
 def test_strip_spaces(tmpdir, monkeypatch):
-    """Spaces before and after parameter names are probabaly
+    """Spaces before and after parameter names are probably
     invisible user errors in Excel sheets. Remove them."""
     # pylint: disable=abstract-class-instantiated
     mock_spacious_designinput = pd.DataFrame(

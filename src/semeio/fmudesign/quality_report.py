@@ -187,7 +187,13 @@ class QualityReporter:
 
         # Add average and quantiles to the plot
         mean = series.mean()
-        ax.axvline(x=mean, color="black", ls="-", alpha=0.8, label=f"mean={mean:.2e}")
+        ax.axvline(
+            x=mean,
+            color="black",
+            ls="-",
+            alpha=0.8,
+            label=f"mean={mean:.2e}",
+        )
 
         quantiles = [0.1, 0.5, 0.9]
         for q in quantiles:
@@ -282,7 +288,7 @@ class QualityReporter:
             "=" * 16,
         )
 
-        if len(df_corr) <= 6:
+        if len(df_corr) <= 12:
             print("Desired correlation:")
             print_corrmat(df_corr)
         else:
@@ -308,7 +314,7 @@ class QualityReporter:
         if corr.empty:
             return
 
-        if len(corr) <= 6:
+        if len(corr) <= 12:
             print("Observed (Pearson) correlation in samples:")
             print_corrmat(corr)
         else:
@@ -494,11 +500,11 @@ def print_corrmat(df_corrmat: pd.DataFrame) -> None:
     >>> vars_ = ['OWC1', 'OWC2', 'OWC3']
     >>> df_corrmat = pd.DataFrame(values, index=vars_, columns=vars_)
     >>> print_corrmat(df_corrmat)
-    |      |   OWC1 | OWC2   | OWC3   |
-    |:-----|-------:|:-------|:-------|
-    | OWC1 |   1.00 |        |        |
-    | OWC2 |   0.00 | 1.00   |        |
-    | OWC3 |   0.90 | 0.00   | 1.00   |
+    |          |   (1) |   (2) |   (3) |
+    |:---------|------:|------:|------:|
+    | (1) OWC1 |  1.00 |       |       |
+    | (2) OWC2 |  0.00 |  1.00 |       |
+    | (3) OWC3 |  0.90 |  0.00 |  1.00 |
     """
     df_corrmat = df_corrmat.copy()
     assert np.allclose(df_corrmat.values, df_corrmat.values.T)
@@ -508,6 +514,16 @@ def print_corrmat(df_corrmat: pd.DataFrame) -> None:
     values[mask] = np.abs(values[mask])
     df_corrmat.loc[:] = values
 
+    # Compress columns into integers so we can show more on the screen
+    assert list(df_corrmat.columns) == list(df_corrmat.index)
+    varnames = list(df_corrmat.columns)
+    df_corrmat = df_corrmat.set_axis(
+        [f"({i})" for i, _ in enumerate(varnames, 1)], axis=1
+    )
+    df_corrmat = df_corrmat.set_axis(
+        [f"({i}) {varname}" for i, varname in enumerate(varnames, 1)], axis=0
+    )
+
     # Remove upper triangular part for prettier printing
     formatter = lambda x: np.format_float_positional(
         x, precision=2, unique=True, min_digits=2
@@ -515,7 +531,15 @@ def print_corrmat(df_corrmat: pd.DataFrame) -> None:
     mask = np.triu(np.ones_like(df_corrmat, dtype=bool), k=1)
     df_display = df_corrmat.astype(float).map(formatter)
     df_display[mask] = ""
-    print(df_display.to_markdown(floatfmt=".2f"))
+    print(
+        df_display.to_markdown(
+            floatfmt=".2f",
+            disable_numparse=True,
+            numalign="right",
+            stralign="right",
+            colalign=("left",),
+        )
+    )
 
 
 if __name__ == "__main__":
