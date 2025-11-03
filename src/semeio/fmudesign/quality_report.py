@@ -27,7 +27,7 @@ class QualityReporter:
     >>> df = pd.DataFrame({"a": [2, 4, 2, 3, 4, 3, 2, 3, 4, 5],
     ...                    "b": [2, 4, 2, 4, 2, 4, 2, 3, 2, 3],
     ...                    "c": list("asdfsdfsdf")})
-    >>> variables = {"a": "Normal(0, 1)", "b": "Expon(1)", "c":"Discrete()"}
+    >>> variables = {"a": ["Normal",[0, 1]], "b": ["Expon",[1]], "c":["Discrete"]}
     >>> quality_reporter = QualityReporter(df, variables=variables)
     >>> quality_reporter.print_numeric()
     ================ CONTINUOUS PARAMETERS ================
