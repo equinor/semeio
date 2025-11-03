@@ -1,3 +1,4 @@
+import copy
 import math
 from pathlib import Path
 from typing import Any, cast
@@ -53,7 +54,7 @@ class QualityReporter:
                       e.g., {"COST": ["normal", [0.0, 1.0]]}
         """
         self.df: pd.DataFrame = df.loc[:, list(variables.keys())]
-        self.variables: dict[str, list[Any]] = variables
+        self.variables: dict[str, list[Any]] = copy.deepcopy(variables)
         assert not self.df.empty
 
     def print_numeric(self) -> None:
