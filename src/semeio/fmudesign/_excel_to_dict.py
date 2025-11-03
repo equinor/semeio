@@ -387,9 +387,8 @@ def _read_defaultvalues(filename: str, sheetname: str) -> dict[str, Any]:
         dict with defaultvalues (parameter, value)
     """
     default_df = (
-        pd.read_excel(
-            filename, sheetname, header=0, index_col=0, engine="openpyxl"
-        ).dropna(axis=0, how="all")
+        pd.read_excel(filename, sheetname, header=0, index_col=0, engine="openpyxl")
+        .dropna(axis=0, how="all")
         # Drop all unnamed columns from the df
         .loc[:, lambda df: ~df.columns.astype(str).str.contains("^Unnamed")]
     )
