@@ -1,6 +1,4 @@
 import math
-import re
-from collections.abc import Mapping
 from pathlib import Path
 from typing import Any, cast
 
@@ -46,16 +44,16 @@ class QualityReporter:
     | a   |          0.1 |
     """
 
-    def __init__(self, df: pd.DataFrame, variables: Mapping[str, str]) -> None:
+    def __init__(self, df: pd.DataFrame, variables: dict[str, list[Any]]) -> None:
         """Initialize QualityReporter with dataframe and variable descriptions.
 
         Args:
             df: DataFrame containing the samples
             variables: Dictionary mapping variable names to their distribution descriptions
-                      e.g., {"COST": "normal(0, 1)", ...}
+                      e.g., {"COST": ["normal", [0.0, 1.0]]}
         """
         self.df: pd.DataFrame = df.loc[:, list(variables.keys())]
-        self.variables: dict[str, str] = dict(variables)
+        self.variables: dict[str, list[Any]] = variables
         assert not self.df.empty
 
     def print_numeric(self) -> None:
@@ -142,7 +140,7 @@ class QualityReporter:
 
     @staticmethod
     def plot_numeric(
-        series: pd.Series, var_name: str, var_description: str
+        series: pd.Series, var_name: str, var_description: list[Any]
     ) -> tuple[plt.Figure, plt.Axes]:
         """Create a plot for a single numeric column, returning (fig, ax).
 
@@ -158,15 +156,24 @@ class QualityReporter:
         bins = max(int(math.sqrt(len(series))), 10)
         sns.histplot(data=series, stat="density", bins=bins, ax=ax)
         sns.kdeplot(series, ax=ax, color="blue", label="KDE")
-        ax.set_title(f"{var_name}\n{var_description}", fontsize=7)
+
+        # Create string to describe distiribution
+        var_string = (
+            f"{var_description[0]}~("
+            + ", ".join(
+                f"dist_param{i + 1}={v}" for i, v in enumerate(var_description[1])
+            )
+            + ")"
+        )
+
+        ax.set_title(f"{var_name}\n{var_string}", fontsize=7)
 
         # Add plot of expected PDF
-        dist_name = var_description[: var_description.find("~")]
-        dist_parameters = list(map(str, re.findall(r"=(.*?)[,\)]", var_description)))
+        dist_name, dist_parameters = var_description[:2]
         dist = to_probabilit(dist_name, dist_parameters)
-        x = np.linspace(series.min(), series.max(), 100)
+        x = np.linspace(series.min(), series.max(), 1000)
         pdf = dist.to_scipy().pdf(x)
-        ax.plot(x, pdf, color="red", lw=2, label="expected PDF")
+        ax.plot(x, pdf, color="red", lw=2, ls="--", label="expected PDF")
 
         # Add rugplot
         ax.scatter(
@@ -535,9 +542,9 @@ if __name__ == "__main__":
     )
 
     variables = {
-        "COST": "Normal(1000, 100²)",
-        "EFFICIENCY": "Normal(0.8, 0.1²)",
-        "MATERIAL": "Discrete([Steel, Aluminum, Titanium])",
+        "COST": ["Normal", [1000, 100]],
+        "EFFICIENCY": ["Normal", [0.8, 0.1]],
+        "MATERIAL": ["Discrete", ["Steel", "Aluminum", "Titanium"]],
     }
 
     # Create QualityReporter
