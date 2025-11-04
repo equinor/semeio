@@ -161,7 +161,7 @@ def test_constant_distribution(tmpdir, monkeypatch, gen_input_sheet):
 
 
 @pytest.mark.parametrize("designfile", TEST_FILES, ids=[p.stem for p in TEST_FILES])
-@pytest.mark.parametrize("verbosity", [0, 1])
+@pytest.mark.parametrize("verbosity", [0, 1, 2])
 def test_all_input_files(tmpdir, monkeypatch, designfile, verbosity):
     """Smoketest all files."""
 
