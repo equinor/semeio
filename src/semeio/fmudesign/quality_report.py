@@ -111,6 +111,10 @@ class QualityReporter:
 
         # Plot numeric columns
         for column in df_numeric.columns:
+            # We do not plot constant distributions
+            if self.variables[column][0].lower().startswith("const"):
+                continue
+
             fig, ax = self.plot_numeric(
                 series=self.df[column],
                 var_name=column,
@@ -171,6 +175,7 @@ class QualityReporter:
 
         # Add plot of expected PDF
         dist_name, dist_parameters = var_description[:2]
+
         dist = to_probabilit(dist_name, dist_parameters)
         x = np.linspace(series.min(), series.max(), 1000)
         pdf = dist.to_scipy().pdf(x)
@@ -236,7 +241,7 @@ class QualityReporter:
         # Create DataFrame for seaborn
         plot_data = pd.DataFrame(
             {var_name: proportions.index, "proportion": proportions.values}
-        )
+        ).sort_values(by=var_name)
 
         # Use seaborn barplot with normalized values
         sns.barplot(data=plot_data, x=var_name, y="proportion", ax=ax)
