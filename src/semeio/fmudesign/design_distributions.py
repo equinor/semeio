@@ -7,6 +7,7 @@ import numpy as np
 import numpy.typing as npt
 import pandas as pd
 import probabilit  # type: ignore[import-untyped]
+from scipy import stats
 
 
 def validate_params(distname: str, parameters: list[str]) -> list[float]:
@@ -141,7 +142,7 @@ def to_probabilit(
             # We use the equations
             # p10 = mu - z*sigma and p90 = mu + z*sigma
             # to find mu and sigma
-            z_score = 1.282
+            z_score = stats.norm.ppf(0.9)
             mean = (p10 + p90) / 2
             stddev = (p90 - p10) / (2 * z_score)
         else:
