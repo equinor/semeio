@@ -134,16 +134,25 @@ def to_probabilit(
 
     # Normal distribution
     if distname.lower().startswith("norm"):
+        if len(parameters) not in (2, 4):
+            raise ValueError(f"Normal must have 2 or 4 parameters, got: {parameters}")
+        if distname.lower().startswith("normal_p10_p90"):
+            p10, p90 = parameters[:2]
+            # We use the equations
+            # p10 = mu - z*sigma and p90 = mu + z*sigma
+            # to find mu and sigma
+            z_score = 1.282
+            mean = (p10 + p90) / 2
+            stddev = (p90 - p10) / (2 * z_score)
+        else:
+            mean, stddev = parameters[:2]
         if len(parameters) == 2:
-            mean, stddev = parameters
             return probabilit.distributions.Normal(loc=mean, scale=stddev)
         elif len(parameters) == 4:
-            mean, stddev, low, high = parameters
+            low, high = parameters[2:]
             return probabilit.distributions.TruncatedNormal(
                 loc=mean, scale=stddev, low=low, high=high
             )
-        else:
-            raise ValueError(f"Normal must have 2 or 4 parameters, got: {parameters}")
 
     elif distname.lower().startswith("logn"):
         if len(parameters) != 2:
