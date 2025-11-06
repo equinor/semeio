@@ -162,7 +162,13 @@ def to_probabilit(
     elif distname.lower().startswith("unif"):
         if len(parameters) != 2:
             raise ValueError(f"Uniform must have 2 parameters, got: {parameters}")
-        low, high = parameters
+        if distname.lower().startswith("uniform_p10_p90"):
+            p10, p90 = parameters
+            length = (p90 - p10) / 0.8
+            low = p10 - 0.1 * length
+            high = p90 + 0.1 * length
+        else:
+            low, high = parameters
         return probabilit.distributions.Uniform(min=low, max=high)
     elif distname.lower().startswith("triang"):
         if len(parameters) != 3:
