@@ -174,9 +174,14 @@ def to_probabilit(
         if len(parameters) != 3:
             raise ValueError(f"Triangular must have 3 parameters, got: {parameters}")
         low, mode, high = parameters
-        return probabilit.distributions.Triangular(
-            low=low, mode=mode, high=high, low_perc=0.0, high_perc=1.0
-        )
+        if distname.lower().startswith("triangular_p10_p90"):
+            return probabilit.distributions.Triangular(
+                low=low, mode=mode, high=high, low_perc=0.1, high_perc=0.9
+            )
+        else:
+            return probabilit.distributions.Triangular(
+                low=low, mode=mode, high=high, low_perc=0.0, high_perc=1.0
+            )
     elif distname.lower().startswith("beta"):
         if len(parameters) == 2:
             a, b = parameters
