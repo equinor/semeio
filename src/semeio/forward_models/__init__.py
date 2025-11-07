@@ -91,17 +91,17 @@ class GenDataRFT(ForwardModelStepPlugin):
             name="GENDATA_RFT",
             command=[
                 "gendata_rft",
-                "-e",
+                "--eclbase",
                 "<ECLBASE>",
-                "-t",
+                "--trajectory_path",
                 "<PATH_TO_TRAJECTORY_FILES>",
-                "-w",
+                "--well_and_time_file",
                 "<WELL_AND_TIME_FILE>",
-                "-z",
+                "--zonemap",
                 "<ZONEMAP>",
-                "-c",
+                "--csvfile",  # output
                 "<CSVFILE>",
-                "-o",
+                "--outputdirectory",
                 "<OUTPUTDIRECTORY>",
             ],
             default_mapping={
