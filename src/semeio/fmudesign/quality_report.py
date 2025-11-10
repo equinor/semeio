@@ -115,7 +115,7 @@ class QualityReporter:
             if self.variables[column][0].lower().startswith("const"):
                 continue
 
-            fig, ax = self.plot_numeric(
+            fig, _ax = self.plot_numeric(
                 series=self.df[column],
                 var_name=column,
                 var_description=self.variables[column],
@@ -130,7 +130,7 @@ class QualityReporter:
 
         # Plot discrete columns
         for column in df_non_numeric.columns:
-            fig, ax = self.plot_discrete(
+            fig, _ax = self.plot_discrete(
                 series=self.df[column],
                 var_name=column,
                 var_description=self.variables[column],
