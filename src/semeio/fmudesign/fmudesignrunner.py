@@ -48,7 +48,7 @@ EXAMPLES = [
         description="Shows all statistical parameter distributions, how to correlate samples, etc.",
     ),
     Example(
-        "design_input_template.xlsx",
+        "fmudesign_ex_onebyone.xlsx",
         description="The example file used in fmu-coursedocs. Extensively documented.",
     ),
     Example(
