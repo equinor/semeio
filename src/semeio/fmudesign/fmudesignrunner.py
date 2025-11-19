@@ -16,6 +16,7 @@ compatible. For more information, look at the code or execute
 """
 
 import argparse
+import dataclasses
 import functools
 import shutil
 import sys
@@ -30,11 +31,59 @@ from packaging.version import Version
 import semeio
 from semeio.fmudesign import DesignMatrix, excel_to_dict
 
-# These are example files that can be created with the subcommand 'fmudesign init'
-EXAMPLE_FILES = {
-    "fmudesign_ex_montecarlo.xlsx": "Shows all statistical parameter distributions, how to correlate samples, etc.",
-    "fmudesign_ex_onebyone.xlsx": "The example file used in fmu-coursedocs",
-}
+
+@dataclasses.dataclass
+class Example:
+    # Examples used in the 'fmudesign init' subcommand
+
+    filename: str
+    description: str
+    # Auxiliary files that the main file depend on (external params, seeds, etc.)
+    other_files: list[str] = dataclasses.field(default_factory=list)
+
+
+EXAMPLES = [
+    Example(
+        "fmudesign_ex_montecarlo.xlsx",
+        description="Shows all statistical parameter distributions, how to correlate samples, etc.",
+    ),
+    Example(
+        "fmudesign_ex_onebyone.xlsx",
+        description="The example file used in fmu-coursedocs. Extensively documented.",
+    ),
+    Example(
+        "ex1_onebyone_rms_repeat.xlsx",
+        description="One by one sensitivities with repeating RMS seeds",
+    ),
+    Example(
+        "ex2_correlations.xlsx",
+        description="Sensitivities with group of (correlated) parameters sampled from distributions",
+        other_files=["ex2_doe1.xlsx"],
+    ),
+    Example(
+        "ex3_velocities.xlsx",
+        description="Testing different velocity models with uncertainty",
+    ),
+    Example(
+        "ex4_background_parameters.xlsx",
+        description="Sensitivities with background parameters",
+        other_files=["ex4_doe1.xlsx"],
+    ),
+    Example(
+        "ex5_single_reference.xlsx",
+        description="Sensitivities with a single reference realisation",
+    ),
+    Example(
+        "ex6_singlereference_and_seed.xlsx",
+        description="Sensitivities with a single reference realisation and seed sensitivity",
+    ),
+    Example(
+        "ex7_background_no_seed.xlsx",
+        description="Sensitivities with background but without RMS seed",
+        other_files=["ex7_doe1.xlsx"],
+    ),
+    Example("ex8_mc_with_correls.xlsx", description="Full Monte Carlo sensitivity"),
+]
 
 
 def get_parser() -> tuple[ArgumentParser, _SubParsersAction]:
@@ -49,8 +98,8 @@ example usage:
   $ fmudesign --help
   $ fmudesign init --help
   $ fmudesign run --help
-  $ fmudesign init {next(iter(EXAMPLE_FILES.keys()))}
-  $ fmudesign run {next(iter(EXAMPLE_FILES.keys()))} output_example.xlsx
+  $ fmudesign init {next(iter(EXAMPLES)).filename}
+  $ fmudesign run {next(iter(EXAMPLES)).filename} output_example.xlsx
 
 getting help:
   - Documentation: https://equinor.github.io/fmu-tools/fmudesign.html
@@ -133,12 +182,14 @@ getting help:
     # =============== SUBCOMMAND: init ===============
     description = "Initialize a demo file to get started with fmudesign."
     epilog = "available demo files:\n"
-    ljust = max([len(f) for f in EXAMPLE_FILES])
-    for filename, file_description in EXAMPLE_FILES.items():
-        epilog += f"  - {filename.ljust(ljust)} : {file_description}\n"
+    ljust = max([len(f.filename) for f in EXAMPLES])
+    for example in EXAMPLES:
+        epilog += f"  - {example.filename.ljust(ljust)} : {example.description}\n"
+
+    ex_filename = next(iter(EXAMPLES)).filename
     epilog += "\nexample usage:\n"
-    epilog += f"  $ fmudesign init {next(iter(EXAMPLE_FILES.keys()))}\n"
-    epilog += f"  $ fmudesign run {next(iter(EXAMPLE_FILES.keys()))}"
+    epilog += f"  $ fmudesign init {ex_filename}\n"
+    epilog += f"  $ fmudesign run {ex_filename}"
 
     parser_init = subparsers.add_parser(
         "init",
@@ -205,8 +256,8 @@ def subcommand_init(args: Namespace, parser: ArgumentParser) -> None:
     EXAMPLES_DIR = files("semeio.fmudesign.examples")
 
     # Verify that all examples in EXAMPLES_DIR exist on disk
-    for filename in EXAMPLE_FILES:
-        assert (EXAMPLES_DIR / filename).is_file()
+    for example in EXAMPLES:
+        assert (EXAMPLES_DIR / example.filename).is_file()
 
     # No files were provided
     if not args.file:
@@ -214,8 +265,9 @@ def subcommand_init(args: Namespace, parser: ArgumentParser) -> None:
         sys.exit(0)
 
     filename = args.file.strip()
-    if filename not in EXAMPLE_FILES:
-        print(f"Error on {filename!r}. Not found among: {set(EXAMPLE_FILES.keys())}")
+    valid_names = {ex.filename for ex in EXAMPLES}
+    if filename not in valid_names:
+        print(f"Error on {filename!r}. Not found among: {valid_names}")
         sys.exit(1)
 
     if Path(filename).exists():
@@ -224,7 +276,14 @@ def subcommand_init(args: Namespace, parser: ArgumentParser) -> None:
 
     with as_file(EXAMPLES_DIR / filename) as source_path:
         shutil.copy(source_path, filename)
-    print(f"Created file {filename!r}.")
+        print(f"Created file {filename!r}.")
+
+    examples_by_filename = {example.filename: example for example in EXAMPLES}
+    for other_file in examples_by_filename[filename].other_files:
+        with as_file(EXAMPLES_DIR / other_file) as source_path:
+            shutil.copy(source_path, other_file)
+            print(f"  Created auxiliary file {other_file!r}.")
+
     sys.exit(0)
 
 
