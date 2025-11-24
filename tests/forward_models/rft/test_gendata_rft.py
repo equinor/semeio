@@ -126,7 +126,7 @@ def test_gendata_rft_directory(tmpdir):
 def test_gendata_rft_entry_point_wrong_well_file(tmpdir):
     with open("well_and_time.txt", "w+", encoding="utf-8") as file:
         file.write("NO_FILE_HERE 2005-12-01 0\n")
-    with pytest.raises(SystemExit, match="NO_FILE_HERE.txt not found"):
+    with pytest.raises(SystemExit, match=r"NO_FILE_HERE\.txt not found"):
         main_entry_point(
             [
                 "-e",

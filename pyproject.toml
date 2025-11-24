@@ -10,12 +10,11 @@ authors = [
 description = "Forward models and workflows for Ert."
 requires-python = ">=3.11"
 readme = "README.md"
-license = { text = "GPL-3.0" }
+license = "GPL-3.0-or-later"
 classifiers = [
     "Environment :: Plugins",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
     "Natural Language :: English",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3.11",
