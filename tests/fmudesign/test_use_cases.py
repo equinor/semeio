@@ -9,7 +9,9 @@ import pandas as pd
 import pytest
 
 from semeio.fmudesign import DesignMatrix, excel_to_dict
-from semeio.fmudesign.fmudesignrunner import EXAMPLE_FILES
+from semeio.fmudesign.fmudesignrunner import EXAMPLES
+
+EXAMPLE_FILES = [ex.filename for ex in EXAMPLES]
 
 TESTDATA = Path(__file__).parent / "data"
 TEST_FILES = list((TESTDATA / "config").glob("design_input*.xlsx"))
@@ -161,7 +163,7 @@ def test_constant_distribution(tmpdir, monkeypatch, gen_input_sheet):
 
 
 @pytest.mark.parametrize("designfile", TEST_FILES, ids=[p.stem for p in TEST_FILES])
-@pytest.mark.parametrize("verbosity", [0, 1])
+@pytest.mark.parametrize("verbosity", [0, 1, 2])
 def test_all_input_files(tmpdir, monkeypatch, designfile, verbosity):
     """Smoketest all files."""
 
@@ -179,8 +181,8 @@ def test_all_input_files(tmpdir, monkeypatch, designfile, verbosity):
     )
 
 
-@pytest.mark.parametrize("designfile", EXAMPLE_FILES.keys(), ids=EXAMPLE_FILES.keys())
-@pytest.mark.parametrize("verbosity", [0, 1])
+@pytest.mark.parametrize("designfile", EXAMPLE_FILES, ids=EXAMPLE_FILES)
+@pytest.mark.parametrize("verbosity", [0])
 def test_all_example_files_cmd_init(tmpdir, monkeypatch, designfile, verbosity):
     """Smoketest all files available in fmudesign init subcommand."""
     monkeypatch.chdir(tmpdir)

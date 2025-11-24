@@ -181,19 +181,8 @@ class DesignMatrix:
             is_montecarlo = isinstance(sensitivity, MonteCarloSensitivity)
             if is_montecarlo and self.verbosity > 0:
                 sensitivity = cast(MonteCarloSensitivity, sensitivity)
-
-                # Convert parameteters to a plottable string, e.g.
-                # {"COSTS": "Normal(loc=0, scale=1)", ...}
-                qr_vars = {
-                    pname: f"{plist[0]}~("
-                    + ", ".join(
-                        f"dist_param{i}={v}" for (i, v) in enumerate(plist[1], 1)
-                    )
-                    + ")"
-                    for (pname, plist) in sens["parameters"].items()
-                }
                 quality_reporter = QualityReporter(
-                    df=sensitivity.sensvalues, variables=qr_vars
+                    df=sensitivity.sensvalues, variables=sens["parameters"]
                 )
 
                 # Print to terminal
@@ -465,16 +454,9 @@ class DesignMatrix:
             correlation_iterations=correlation_iterations,
         )
         mc_backgroundvalues = mc_background.sensvalues.copy()
-
-        # Reporting
-        # Convert to plottable string: {"COSTS": "Normal(loc=0, scale=1)", ...}
-        qr_vars = {
-            pname: f"{plist[0]}~("
-            + ", ".join(f"dist_param{i}={v}" for (i, v) in enumerate(plist[1], 1))
-            + ")"
-            for (pname, plist) in back_dict["parameters"].items()
-        }
-        quality_reporter = QualityReporter(df=mc_backgroundvalues, variables=qr_vars)
+        quality_reporter = QualityReporter(
+            df=mc_backgroundvalues, variables=back_dict["parameters"]
+        )
 
         # Print info to terminal
         if self.verbosity > 0:

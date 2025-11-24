@@ -1,3 +1,4 @@
+import copy
 import math
 from pathlib import Path
 from typing import Any, cast
@@ -13,6 +14,8 @@ from probabilit.correlation import (  # type: ignore[import-untyped]
     nearest_correlation_matrix,
 )
 
+from semeio.fmudesign.design_distributions import to_probabilit
+
 COLORS = list(plt.rcParams["axes.prop_cycle"].by_key()["color"])
 
 
@@ -25,7 +28,7 @@ class QualityReporter:
     >>> df = pd.DataFrame({"a": [2, 4, 2, 3, 4, 3, 2, 3, 4, 5],
     ...                    "b": [2, 4, 2, 4, 2, 4, 2, 3, 2, 3],
     ...                    "c": list("asdfsdfsdf")})
-    >>> variables = {"a": "Normal(0, 1)", "b": "Expon(1)", "c":"Discrete()"}
+    >>> variables = {"a": ["Normal",[0, 1]], "b": ["Expon",[1]], "c":["Discrete"]}
     >>> quality_reporter = QualityReporter(df, variables=variables)
     >>> quality_reporter.print_numeric()
     ================ CONTINUOUS PARAMETERS ================
@@ -42,16 +45,16 @@ class QualityReporter:
     | a   |          0.1 |
     """
 
-    def __init__(self, df: pd.DataFrame, variables: dict[str, str]) -> None:
+    def __init__(self, df: pd.DataFrame, variables: dict[str, list[Any]]) -> None:
         """Initialize QualityReporter with dataframe and variable descriptions.
 
         Args:
             df: DataFrame containing the samples
             variables: Dictionary mapping variable names to their distribution descriptions
-                      e.g., {"COST": "normal(0, 1)", ...}
+                      e.g., {"COST": ["normal", [0.0, 1.0]]}
         """
         self.df: pd.DataFrame = df.loc[:, list(variables.keys())]
-        self.variables: dict[str, str] = dict(variables)
+        self.variables: dict[str, list[Any]] = copy.deepcopy(variables)
         assert not self.df.empty
 
     def print_numeric(self) -> None:
@@ -108,7 +111,11 @@ class QualityReporter:
 
         # Plot numeric columns
         for column in df_numeric.columns:
-            fig, ax = self.plot_numeric(
+            # We do not plot constant distributions
+            if self.variables[column][0].lower().startswith("const"):
+                continue
+
+            fig, _ax = self.plot_numeric(
                 series=self.df[column],
                 var_name=column,
                 var_description=self.variables[column],
@@ -123,7 +130,7 @@ class QualityReporter:
 
         # Plot discrete columns
         for column in df_non_numeric.columns:
-            fig, ax = self.plot_discrete(
+            fig, _ax = self.plot_discrete(
                 series=self.df[column],
                 var_name=column,
                 var_description=self.variables[column],
@@ -138,7 +145,7 @@ class QualityReporter:
 
     @staticmethod
     def plot_numeric(
-        series: pd.Series, var_name: str, var_description: str
+        series: pd.Series, var_name: str, var_description: list[Any]
     ) -> tuple[plt.Figure, plt.Axes]:
         """Create a plot for a single numeric column, returning (fig, ax).
 
@@ -154,7 +161,25 @@ class QualityReporter:
         bins = max(int(math.sqrt(len(series))), 10)
         sns.histplot(data=series, stat="density", bins=bins, ax=ax)
         sns.kdeplot(series, ax=ax, color="blue", label="KDE")
-        ax.set_title(f"{var_name}\n{var_description}", fontsize=10)
+
+        # Create string to describe distiribution
+        var_string = (
+            f"{var_description[0]}~("
+            + ", ".join(
+                f"dist_param{i + 1}={v}" for i, v in enumerate(var_description[1])
+            )
+            + ")"
+        )
+
+        ax.set_title(f"{var_name}\n{var_string}", fontsize=7)
+
+        # Add plot of expected PDF
+        dist_name, dist_parameters = var_description[:2]
+
+        dist = to_probabilit(dist_name, dist_parameters)
+        x = np.linspace(series.min(), series.max(), 1000)
+        pdf = dist.to_scipy().pdf(x)
+        ax.plot(x, pdf, color="red", lw=2, ls="--", label="expected PDF")
 
         # Add rugplot
         ax.scatter(
@@ -188,14 +213,14 @@ class QualityReporter:
             )
 
         ax.grid(True, ls="--", alpha=0.5)
-        ax.legend(loc="upper left", bbox_to_anchor=(1.05, 1))
+        ax.legend(loc="upper left", bbox_to_anchor=(1.05, 1), fontsize=7)
         fig.tight_layout()
 
         return fig, ax
 
     @staticmethod
     def plot_discrete(
-        series: pd.Series, var_name: str, var_description: str
+        series: pd.Series, var_name: str, var_description: list[Any]
     ) -> tuple[plt.Figure, plt.Axes]:
         """Create a plot for a single discrete column, returning (fig, ax).
 
@@ -216,12 +241,21 @@ class QualityReporter:
         # Create DataFrame for seaborn
         plot_data = pd.DataFrame(
             {var_name: proportions.index, "proportion": proportions.values}
-        )
+        ).sort_values(by=var_name)
 
         # Use seaborn barplot with normalized values
         sns.barplot(data=plot_data, x=var_name, y="proportion", ax=ax)
 
-        ax.set_title(f"{var_name}\n{var_description}", fontsize=10)
+        # Create string to describe distiribution
+        var_string = (
+            f"{var_description[0]}~("
+            + ", ".join(
+                f"dist_param{i + 1}={v}" for i, v in enumerate(var_description[1])
+            )
+            + ")"
+        )
+
+        ax.set_title(f"{var_name}\n{var_string}", fontsize=7)
         ax.set_ylabel("Proportion")
 
         # Add percentage labels on bars
@@ -546,10 +580,10 @@ if __name__ == "__main__":
         }
     )
 
-    variables = {
-        "COST": "Normal(1000, 100²)",
-        "EFFICIENCY": "Normal(0.8, 0.1²)",
-        "MATERIAL": "Discrete([Steel, Aluminum, Titanium])",
+    variables: dict[str, list[Any]] = {
+        "COST": ["Normal", [1000, 100]],
+        "EFFICIENCY": ["Normal", [0.8, 0.1]],
+        "MATERIAL": ["Discrete", ["Steel", "Aluminum", "Titanium"]],
     }
 
     # Create QualityReporter
