@@ -148,11 +148,11 @@ def to_probabilit(
         else:
             mean, stddev = parameters[:2]
         if len(parameters) == 2:
-            return probabilit.distributions.Normal(loc=mean, scale=stddev)
+            return probabilit.distributions.Normal(mean, stddev)
         elif len(parameters) == 4:
             low, high = parameters[2:]
             return probabilit.distributions.TruncatedNormal(
-                loc=mean, scale=stddev, low=low, high=high
+                mean, stddev, low=low, high=high
             )
 
     elif distname.lower().startswith("logn"):
@@ -170,7 +170,7 @@ def to_probabilit(
             high = p90 + 0.1 * length
         else:
             low, high = parameters
-        return probabilit.distributions.Uniform(min=low, max=high)
+        return probabilit.distributions.Uniform(minimum=low, maximum=high)
     elif distname.lower().startswith("triang"):
         if len(parameters) != 3:
             raise ValueError(f"Triangular must have 3 parameters, got: {parameters}")
@@ -198,7 +198,7 @@ def to_probabilit(
     elif distname.lower().startswith("pert"):
         if len(parameters) not in (3, 4):
             raise ValueError(f"PERT must have 3 or 4 parameters, got: {parameters}")
-        if distname.lower().startswith("normal_p10_p90"):
+        if distname.lower().startswith("pert_p10_p90"):
             if len(parameters) == 3:
                 low, mode, high = parameters
                 return probabilit.distributions.PERT(
