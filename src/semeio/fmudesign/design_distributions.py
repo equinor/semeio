@@ -136,7 +136,9 @@ def to_probabilit(
     # Normal distribution
     if distname.lower().startswith("norm"):
         if len(parameters) not in (2, 4):
-            raise ValueError(f"Normal must have 2 or 4 parameters, got: {parameters}")
+            raise ValueError(
+                f"Normal must have 2 or 4 parameters, got: {len(parameters)} ({parameters})"
+            )
         if distname.lower().startswith("normal_p10_p90"):
             p10, p90 = parameters[:2]
             # We use the equations
@@ -157,12 +159,16 @@ def to_probabilit(
 
     elif distname.lower().startswith("logn"):
         if len(parameters) != 2:
-            raise ValueError(f"Lognormal must have 2 parameters, got: {parameters}")
+            raise ValueError(
+                f"Lognormal must have 2 parameters, got: {len(parameters)} ({parameters})"
+            )
         mean, sigma = parameters
         return probabilit.distributions.Lognormal.from_log_params(mu=mean, sigma=sigma)
     elif distname.lower().startswith("unif"):
         if len(parameters) != 2:
-            raise ValueError(f"Uniform must have 2 parameters, got: {parameters}")
+            raise ValueError(
+                f"Uniform must have 2 parameters, got: {len(parameters)} ({parameters})"
+            )
         if distname.lower().startswith("uniform_p10_p90"):
             p10, p90 = parameters
             length = (p90 - p10) / 0.8
@@ -173,7 +179,9 @@ def to_probabilit(
         return probabilit.distributions.Uniform(minimum=low, maximum=high)
     elif distname.lower().startswith("triang"):
         if len(parameters) != 3:
-            raise ValueError(f"Triangular must have 3 parameters, got: {parameters}")
+            raise ValueError(
+                f"Triangular must have 3 parameters, got: {len(parameters)} ({parameters})"
+            )
         low, mode, high = parameters
         if distname.lower().startswith("triangular_p10_p90"):
             return probabilit.distributions.Triangular(
@@ -194,10 +202,14 @@ def to_probabilit(
             scale = high - low
             return probabilit.Distribution("beta", a=a, b=b, loc=loc, scale=scale)
         else:
-            raise ValueError(f"Beta must have 2 or 4 parameters, got: {parameters}")
+            raise ValueError(
+                f"Beta must have 2 or 4 parameters, got: {len(parameters)} ({parameters})"
+            )
     elif distname.lower().startswith("pert"):
         if len(parameters) not in (3, 4):
-            raise ValueError(f"PERT must have 3 or 4 parameters, got: {parameters}")
+            raise ValueError(
+                f"PERT must have 3 or 4 parameters, got: {len(parameters)} ({parameters})"
+            )
         if distname.lower().startswith("pert_p10_p90"):
             if len(parameters) == 3:
                 low, mode, high = parameters
@@ -231,7 +243,9 @@ def to_probabilit(
             )
     elif distname.lower().startswith("logunif"):
         if len(parameters) != 2:
-            raise ValueError(f"Loguniform must have 2 parameters, got: {parameters}")
+            raise ValueError(
+                f"Loguniform must have 2 parameters, got: {len(parameters)} ({parameters})"
+            )
         low, high = parameters
         return probabilit.Distribution("loguniform", a=low, b=high)
     else:
