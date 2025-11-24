@@ -7,6 +7,7 @@ import numpy as np
 import numpy.typing as npt
 import pandas as pd
 import probabilit  # type: ignore[import-untyped]
+from scipy import stats
 
 
 def validate_params(distname: str, parameters: list[str]) -> list[float]:
@@ -134,16 +135,25 @@ def to_probabilit(
 
     # Normal distribution
     if distname.lower().startswith("norm"):
-        if len(parameters) == 2:
-            mean, stddev = parameters
-            return probabilit.distributions.Normal(loc=mean, scale=stddev)
-        elif len(parameters) == 4:
-            mean, stddev, low, high = parameters
-            return probabilit.distributions.TruncatedNormal(
-                loc=mean, scale=stddev, low=low, high=high
-            )
-        else:
+        if len(parameters) not in (2, 4):
             raise ValueError(f"Normal must have 2 or 4 parameters, got: {parameters}")
+        if distname.lower().startswith("normal_p10_p90"):
+            p10, p90 = parameters[:2]
+            # We use the equations
+            # p10 = mu - z*sigma and p90 = mu + z*sigma
+            # to find mu and sigma
+            z_score = stats.norm.ppf(0.9)
+            mean = (p10 + p90) / 2
+            stddev = (p90 - p10) / (2 * z_score)
+        else:
+            mean, stddev = parameters[:2]
+        if len(parameters) == 2:
+            return probabilit.distributions.Normal(mean, stddev)
+        elif len(parameters) == 4:
+            low, high = parameters[2:]
+            return probabilit.distributions.TruncatedNormal(
+                mean, stddev, low=low, high=high
+            )
 
     elif distname.lower().startswith("logn"):
         if len(parameters) != 2:
@@ -153,15 +163,26 @@ def to_probabilit(
     elif distname.lower().startswith("unif"):
         if len(parameters) != 2:
             raise ValueError(f"Uniform must have 2 parameters, got: {parameters}")
-        low, high = parameters
-        return probabilit.distributions.Uniform(min=low, max=high)
+        if distname.lower().startswith("uniform_p10_p90"):
+            p10, p90 = parameters
+            length = (p90 - p10) / 0.8
+            low = p10 - 0.1 * length
+            high = p90 + 0.1 * length
+        else:
+            low, high = parameters
+        return probabilit.distributions.Uniform(minimum=low, maximum=high)
     elif distname.lower().startswith("triang"):
         if len(parameters) != 3:
             raise ValueError(f"Triangular must have 3 parameters, got: {parameters}")
         low, mode, high = parameters
-        return probabilit.distributions.Triangular(
-            low=low, mode=mode, high=high, low_perc=0.0, high_perc=1.0
-        )
+        if distname.lower().startswith("triangular_p10_p90"):
+            return probabilit.distributions.Triangular(
+                low=low, mode=mode, high=high, low_perc=0.1, high_perc=0.9
+            )
+        else:
+            return probabilit.distributions.Triangular(
+                low=low, mode=mode, high=high, low_perc=0.0, high_perc=1.0
+            )
     elif distname.lower().startswith("beta"):
         if len(parameters) == 2:
             a, b = parameters
@@ -175,16 +196,39 @@ def to_probabilit(
         else:
             raise ValueError(f"Beta must have 2 or 4 parameters, got: {parameters}")
     elif distname.lower().startswith("pert"):
-        if len(parameters) == 3:
+        if len(parameters) not in (3, 4):
+            raise ValueError(f"PERT must have 3 or 4 parameters, got: {parameters}")
+        if distname.lower().startswith("pert_p10_p90"):
+            if len(parameters) == 3:
+                low, mode, high = parameters
+                return probabilit.distributions.PERT(
+                    low=low, mode=mode, high=high, low_perc=0.1, high_perc=0.9
+                )
+            elif len(parameters) == 4:
+                low, mode, high, scale = parameters
+                return probabilit.distributions.PERT(
+                    low=low,
+                    mode=mode,
+                    high=high,
+                    low_perc=0.1,
+                    high_perc=0.9,
+                    gamma=scale,
+                )
+        elif len(parameters) == 3:
             low, mode, high = parameters
-            return probabilit.distributions.PERT(minimum=low, mode=mode, maximum=high)
+            return probabilit.distributions.PERT(
+                low=low, mode=mode, high=high, low_perc=0.0, high_perc=1.0
+            )
         elif len(parameters) == 4:
             low, mode, high, scale = parameters
             return probabilit.distributions.PERT(
-                minimum=low, mode=mode, maximum=high, gamma=scale
+                low=low,
+                mode=mode,
+                high=high,
+                low_perc=0.0,
+                high_perc=1.0,
+                gamma=scale,
             )
-        else:
-            raise ValueError(f"PERT must have 3 or 4 parameters, got: {parameters}")
     elif distname.lower().startswith("logunif"):
         if len(parameters) != 2:
             raise ValueError(f"Loguniform must have 2 parameters, got: {parameters}")
