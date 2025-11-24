@@ -27,7 +27,7 @@ classifiers = [
 dynamic = ["version"]
 dependencies = [
     "cvxpy",
-    "ert>=14.3.0b0",
+    "ert>=17.0.0",
     "fmu-ensemble>1.6.5",
     "importlib_metadata",
     "importlib_resources",
@@ -42,8 +42,8 @@ dependencies = [
     "xlrd",
     "xtgeo>=2.15",
     "seaborn",
-    "probabilit==0.3.0",
-    "resfo-utilities==0.1.1",
+    "probabilit>=0.3.0",
+    "resfo-utilities>=0.1.1",
 ]
 
 [project.urls]
