@@ -42,7 +42,7 @@ dependencies = [
     "xlrd",
     "xtgeo>=2.15",
     "seaborn",
-    "probabilit==0.1.0",
+    "probabilit==0.3.0",
     "resfo-utilities==0.1.1",
 ]
 
