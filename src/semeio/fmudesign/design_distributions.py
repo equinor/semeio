@@ -196,16 +196,39 @@ def to_probabilit(
         else:
             raise ValueError(f"Beta must have 2 or 4 parameters, got: {parameters}")
     elif distname.lower().startswith("pert"):
-        if len(parameters) == 3:
+        if len(parameters) not in (3, 4):
+            raise ValueError(f"PERT must have 3 or 4 parameters, got: {parameters}")
+        if distname.lower().startswith("normal_p10_p90"):
+            if len(parameters) == 3:
+                low, mode, high = parameters
+                return probabilit.distributions.PERT(
+                    low=low, mode=mode, high=high, low_perc=0.1, high_perc=0.9
+                )
+            elif len(parameters) == 4:
+                low, mode, high, scale = parameters
+                return probabilit.distributions.PERT(
+                    low=low,
+                    mode=mode,
+                    high=high,
+                    low_perc=0.1,
+                    high_perc=0.9,
+                    gamma=scale,
+                )
+        elif len(parameters) == 3:
             low, mode, high = parameters
-            return probabilit.distributions.PERT(minimum=low, mode=mode, maximum=high)
+            return probabilit.distributions.PERT(
+                low=low, mode=mode, high=high, low_perc=0.0, high_perc=1.0
+            )
         elif len(parameters) == 4:
             low, mode, high, scale = parameters
             return probabilit.distributions.PERT(
-                minimum=low, mode=mode, maximum=high, gamma=scale
+                low=low,
+                mode=mode,
+                high=high,
+                low_perc=0.0,
+                high_perc=1.0,
+                gamma=scale,
             )
-        else:
-            raise ValueError(f"PERT must have 3 or 4 parameters, got: {parameters}")
     elif distname.lower().startswith("logunif"):
         if len(parameters) != 2:
             raise ValueError(f"Loguniform must have 2 parameters, got: {parameters}")
