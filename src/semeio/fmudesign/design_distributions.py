@@ -135,10 +135,10 @@ def to_probabilit(
         distname=distname, parameters=list(dist_parameters)
     )
 
-    match [distname, parameters]:
+    match (distname, parameters):
         # ================== NORMAL ==================
 
-        case [distname, (p10, p90)] if distname.startswith("normal_p10_p90"):
+        case [_, (p10, p90)] if distname.startswith("normal_p10_p90"):
             # We use the equations
             # p10 = mu - z*sigma and p90 = mu + z*sigma
             # to find mu and sigma
@@ -147,7 +147,7 @@ def to_probabilit(
             std = (p90 - p10) / (2 * z_score)
             return probabilit.distributions.Normal(mean=mean, std=std)
 
-        case [distname, (p10, p90, low, high)] if distname.startswith("normal_p10_p90"):
+        case [_, (p10, p90, low, high)] if distname.startswith("normal_p10_p90"):
             z_score = stats.norm.ppf(0.9)
             mean = (p10 + p90) / 2
             std = (p90 - p10) / (2 * z_score)
@@ -155,100 +155,98 @@ def to_probabilit(
                 mean=mean, std=std, low=low, high=high
             )
 
-        case [distname, (mean, std)] if distname.startswith("norm"):
+        case [_, (mean, std)] if distname.startswith("norm"):
             return probabilit.distributions.Normal(mean=mean, std=std)
 
-        case [distname, (mean, std, low, high)] if distname.startswith("norm"):
+        case [_, (mean, std, low, high)] if distname.startswith("norm"):
             return probabilit.distributions.TruncatedNormal(
                 mean=mean, std=std, low=low, high=high
             )
 
-        case [distname, parameters] if distname.startswith("norm"):
+        case [_, parameters] if distname.startswith("norm"):
             raise ValueError(
                 f"Normal must have 2 or 4 parameters, got: {len(parameters)} ({parameters})"
             )
 
         # ================== LOGNORMAL ==================
 
-        case [distname, (mu, sigma)] if distname.startswith("logn"):
+        case [_, (mu, sigma)] if distname.startswith("logn"):
             return probabilit.distributions.Lognormal.from_log_params(
                 mu=mu, sigma=sigma
             )
 
-        case [distname, parameters] if distname.startswith("logn"):
+        case [_, parameters] if distname.startswith("logn"):
             raise ValueError(
                 f"Lognormal must have 2 parameters, got: {len(parameters)} ({parameters})"
             )
 
         # ================== UNIFORM ==================
 
-        case [distname, (p10, p90)] if distname.startswith("uniform_p10_p90"):
+        case [_, (p10, p90)] if distname.startswith("uniform_p10_p90"):
             length = (p90 - p10) / 0.8
             minimum = p10 - 0.1 * length
             maximum = p90 + 0.1 * length
             return probabilit.distributions.Uniform(minimum=minimum, maximum=maximum)
 
-        case [distname, (minimum, maximum)] if distname.startswith("unif"):
+        case [_, (minimum, maximum)] if distname.startswith("unif"):
             return probabilit.distributions.Uniform(minimum=minimum, maximum=maximum)
 
-        case [distname, parameters] if distname.startswith("unif"):
+        case [_, parameters] if distname.startswith("unif"):
             raise ValueError(
                 f"Uniform must have 2 parameters, got: {len(parameters)} ({parameters})"
             )
 
         # ================== TRIANGULAR ==================
 
-        case [distname, (low, mode, high)] if distname.startswith("triangular_p10_p90"):
+        case [_, (low, mode, high)] if distname.startswith("triangular_p10_p90"):
             return probabilit.distributions.Triangular(
                 low=low, mode=mode, high=high, low_perc=0.1, high_perc=0.9
             )
 
-        case [distname, (minimum, mode, maximum)] if distname.startswith("triang"):
+        case [_, (minimum, mode, maximum)] if distname.startswith("triang"):
             return probabilit.distributions.Triangular(
                 low=minimum, mode=mode, high=maximum, low_perc=0.0, high_perc=1.0
             )
 
-        case [distname, parameters] if distname.startswith("triang"):
+        case [_, parameters] if distname.startswith("triang"):
             raise ValueError(
                 f"Triangular must have 3 parameters, got: {len(parameters)} ({parameters})"
             )
 
         # ================== BETA ==================
 
-        case [distname, (a, b)] if distname.startswith("beta"):
+        case [_, (a, b)] if distname.startswith("beta"):
             # Defaults to probabilit.Distribution("beta", a=a, b=b, loc=0, scale=1)
             return probabilit.Distribution("beta", a=a, b=b)
 
-        case [distname, (a, b, low, high)] if distname.startswith("beta"):
+        case [_, (a, b, low, high)] if distname.startswith("beta"):
             loc = low
             scale = high - low
             return probabilit.Distribution("beta", a=a, b=b, loc=loc, scale=scale)
 
-        case [distname, parameters] if distname.startswith("beta"):
+        case [_, parameters] if distname.startswith("beta"):
             raise ValueError(
                 f"Beta must have 2 or 4 parameters, got: {len(parameters)} ({parameters})"
             )
 
         # ================== PERT ==================
 
-        case [distname, (low, mode, high)] if distname.startswith("pert_p10_p90"):
+        case [_, (low, mode, high)] if distname.startswith("pert_p10_p90"):
             return probabilit.distributions.PERT(
                 low=low, mode=mode, high=high, low_perc=0.1, high_perc=0.9
             )
 
-        case [distname, (low, mode, high, scale)] if distname.startswith(
-            "pert_p10_p90"
-        ):
+        case [_, (low, mode, high, scale)] if distname.startswith("pert_p10_p90"):
             return probabilit.distributions.PERT(
                 low=low, mode=mode, high=high, low_perc=0.1, high_perc=0.9, gamma=scale
             )
 
-        case [distname, (minimum, mode, maximum)] if distname.startswith("pert"):
+        case [_, (minimum, mode, maximum)] if distname.startswith("pert"):
             return probabilit.distributions.PERT(
                 low=minimum, mode=mode, high=maximum, low_perc=0.0, high_perc=1.0
             )
 
-        case [distname, (minimum, mode, maximum, scale)] if distname.startswith("pert"):
+        case [_, (minimum, mode, maximum, scale)] if distname.startswith("pert"):
             return probabilit.distributions.PERT(
                 low=minimum,
                 mode=mode,
@@ -258,17 +256,17 @@ def to_probabilit(
                 gamma=scale,
             )
 
-        case [distname, parameters] if distname.startswith("pert"):
+        case [_, parameters] if distname.startswith("pert"):
             raise ValueError(
                 f"PERT must have 3 or 4 parameters, got: {len(parameters)} ({parameters})"
             )
 
         # ================== LOGUNIFORM ==================
 
-        case [distname, (low, high)] if distname.startswith("logunif"):
+        case [_, (low, high)] if distname.startswith("logunif"):
             return probabilit.Distribution("loguniform", low, high)
 
-        case [distname, parameters] if distname.startswith("logunif"):
+        case [_, parameters] if distname.startswith("logunif"):
             raise ValueError(
                 f"Loguniform must have 2 parameters, got: {len(parameters)} ({parameters})"
             )
