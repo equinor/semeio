@@ -100,6 +100,8 @@ def to_probabilit(
         array with sampled values
     """
 
+    distname = distname.lower().strip()
+
     # A discrete variable is a distribution over categoricals, e.g. ('A', 'B', 'C')
     # with weights (0.5, 0.3, 0.2). The way we deal with them is that we sample uniform
     # values, then assign the interval [0, 0.5) to A, [0.5, 0.8) to B and [0.8, 1) to C.
@@ -108,7 +110,7 @@ def to_probabilit(
     # To accomplish all of this we assign _values and _probabilities to the distribution
     # instances below. This "correlation" only exists in a narrow specific sense of course.
 
-    if distname.lower().startswith("disc"):
+    if distname.startswith("disc"):
         if len(dist_parameters) == 1:
             values_str = dist_parameters[0]
             values = [v.strip() for v in values_str.split(",")]
@@ -125,7 +127,7 @@ def to_probabilit(
             return distr
 
     # Special case for constant
-    if distname.lower().startswith("const"):
+    if distname.startswith("const"):
         return probabilit.Constant(dist_parameters[0])
 
     # Convert parameters
@@ -134,7 +136,7 @@ def to_probabilit(
     )
 
     # Normal distribution
-    if distname.lower().startswith("norm"):
+    if distname.startswith("norm"):
         if len(parameters) not in (2, 4):
             raise ValueError(
                 f"Normal must have 2 or 4 parameters, got: {len(parameters)} ({parameters})"
@@ -157,19 +159,19 @@ def to_probabilit(
                 mean, stddev, low=low, high=high
             )
 
-    elif distname.lower().startswith("logn"):
+    elif distname.startswith("logn"):
         if len(parameters) != 2:
             raise ValueError(
                 f"Lognormal must have 2 parameters, got: {len(parameters)} ({parameters})"
             )
         mean, sigma = parameters
         return probabilit.distributions.Lognormal.from_log_params(mu=mean, sigma=sigma)
-    elif distname.lower().startswith("unif"):
+    elif distname.startswith("unif"):
         if len(parameters) != 2:
             raise ValueError(
                 f"Uniform must have 2 parameters, got: {len(parameters)} ({parameters})"
             )
-        if distname.lower().startswith("uniform_p10_p90"):
+        if distname.startswith("uniform_p10_p90"):
             p10, p90 = parameters
             length = (p90 - p10) / 0.8
             low = p10 - 0.1 * length
@@ -177,13 +179,13 @@ def to_probabilit(
         else:
             low, high = parameters
         return probabilit.distributions.Uniform(minimum=low, maximum=high)
-    elif distname.lower().startswith("triang"):
+    elif distname.startswith("triang"):
         if len(parameters) != 3:
             raise ValueError(
                 f"Triangular must have 3 parameters, got: {len(parameters)} ({parameters})"
             )
         low, mode, high = parameters
-        if distname.lower().startswith("triangular_p10_p90"):
+        if distname.startswith("triangular_p10_p90"):
             return probabilit.distributions.Triangular(
                 low=low, mode=mode, high=high, low_perc=0.1, high_perc=0.9
             )
@@ -191,7 +193,7 @@ def to_probabilit(
             return probabilit.distributions.Triangular(
                 low=low, mode=mode, high=high, low_perc=0.0, high_perc=1.0
             )
-    elif distname.lower().startswith("beta"):
+    elif distname.startswith("beta"):
         if len(parameters) == 2:
             a, b = parameters
             # Defaults to probabilit.Distribution("beta", a=a, b=b, loc=0, scale=1)
@@ -205,12 +207,12 @@ def to_probabilit(
             raise ValueError(
                 f"Beta must have 2 or 4 parameters, got: {len(parameters)} ({parameters})"
             )
-    elif distname.lower().startswith("pert"):
+    elif distname.startswith("pert"):
         if len(parameters) not in (3, 4):
             raise ValueError(
                 f"PERT must have 3 or 4 parameters, got: {len(parameters)} ({parameters})"
             )
-        if distname.lower().startswith("pert_p10_p90"):
+        if distname.startswith("pert_p10_p90"):
             if len(parameters) == 3:
                 low, mode, high = parameters
                 return probabilit.distributions.PERT(
@@ -241,7 +243,7 @@ def to_probabilit(
                 high_perc=1.0,
                 gamma=scale,
             )
-    elif distname.lower().startswith("logunif"):
+    elif distname.startswith("logunif"):
         if len(parameters) != 2:
             raise ValueError(
                 f"Loguniform must have 2 parameters, got: {len(parameters)} ({parameters})"
