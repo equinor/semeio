@@ -284,7 +284,13 @@ def read_correlations(excel_filename: str, corr_sheet: str) -> pd.DataFrame:
 
     correlations = (
         pd.read_excel(
-            excel_filename, sheet_name=corr_sheet, index_col=0, engine="openpyxl"
+            excel_filename,
+            sheet_name=corr_sheet,
+            index_col=0,
+            # A user reported failures when a single space ' ' was present
+            # in the upper triangular part. Therefore we add spaces as NaN too.
+            na_values=[" " * i for i in range(10)],
+            engine="openpyxl",
         )
         .dropna(axis=0, how="all")
         # Remove any 'Unnamed' columns that Excel/pandas may have automatically added.
