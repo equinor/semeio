@@ -176,10 +176,13 @@ class QualityReporter:
         # Add plot of expected PDF
         dist_name, dist_parameters = var_description[:2]
 
-        dist = to_probabilit(dist_name, dist_parameters)
-        x = np.linspace(series.min(), series.max(), 1000)
-        pdf = dist.to_scipy().pdf(x)
-        ax.plot(x, pdf, color="red", lw=2, ls="--", label="expected PDF")
+        try:
+            dist = to_probabilit(dist_name, dist_parameters)
+            x = np.linspace(series.min(), series.max(), 1000)
+            pdf = dist.to_scipy().pdf(x)
+            ax.plot(x, pdf, color="red", lw=2, ls="--", label="expected PDF")
+        except AttributeError:
+            print(f" - Plot warning: PDF not plotted for {var_name}")
 
         # Add rugplot
         ax.scatter(
