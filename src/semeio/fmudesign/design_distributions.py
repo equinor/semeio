@@ -158,14 +158,23 @@ def to_probabilit(
             return probabilit.distributions.TruncatedNormal(
                 mean, stddev, low=low, high=high
             )
-
     elif distname.startswith("logn"):
-        if len(parameters) != 2:
+        if len(parameters) not in (2, 4):
             raise ValueError(
-                f"Lognormal must have 2 parameters, got: {len(parameters)} ({parameters})"
+                f"Lognormal must have 2 or 4 parameters, got: {len(parameters)} ({parameters})"
             )
-        mean, sigma = parameters
-        return probabilit.distributions.Lognormal.from_log_params(mu=mean, sigma=sigma)
+        mean, sigma = parameters[:2]
+        if len(parameters) == 2:
+            return probabilit.distributions.Lognormal.from_log_params(
+                mu=mean, sigma=sigma
+            )
+        elif len(parameters) == 4:
+            low, high = parameters[2:]
+            return probabilit.modeling.Exp(
+                probabilit.distributions.TruncatedNormal(
+                    mean, sigma, low=np.log(low), high=np.log(high)
+                )
+            )
     elif distname.startswith("unif"):
         if len(parameters) != 2:
             raise ValueError(
