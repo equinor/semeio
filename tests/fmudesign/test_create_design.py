@@ -73,7 +73,7 @@ def test_distribution_statistis(tmpdir, monkeypatch, correlations):
             gl("SCALEPERT", "pert", -5, 0, 5, 1),
             # Loguniform has params (low, high)
             gl("LOGUNIFORM", "logunif", 1, 5),
-            # P10/P90 verions
+            # P10/P90 versions
             gl("NORMALP10P90", "normal_p10_p90", -2, 3),
             gl("UNIFORMP10P90", "uniform_p10_p90", -2, 3),
             gl("TRIANGULARP10P90", "triangular_p10_p90", -2, 2, 3),
