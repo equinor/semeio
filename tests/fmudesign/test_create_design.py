@@ -73,6 +73,11 @@ def test_distribution_statistis(tmpdir, monkeypatch, correlations):
             gl("SCALEPERT", "pert", -5, 0, 5, 1),
             # Loguniform has params (low, high)
             gl("LOGUNIFORM", "logunif", 1, 5),
+            # P10/P90 verions
+            gl("NORMALP10P90", "normal_p10_p90", -2, 3),
+            gl("UNIFORMP10P90", "uniform_p10_p90", -2, 3),
+            gl("TRIANGULARP10P90", "triangular_p10_p90", -2, 2, 3),
+            gl("PERTP10P90", "pert_p10_p90", -2, 2, 3),
         ],
         columns=[
             "sensname",
@@ -172,6 +177,18 @@ def test_distribution_statistis(tmpdir, monkeypatch, correlations):
 
     assert np.isclose(df["LOGUNIFORM"].mean(), 2.485339, atol=atol)
     assert np.isclose(df["LOGUNIFORM"].std(), 1.130975, atol=atol)
+
+    assert np.isclose(df["NORMALP10P90"].quantile(0.1), -2, atol=atol)
+    assert np.isclose(df["NORMALP10P90"].quantile(0.9), 3, atol=atol)
+
+    assert np.isclose(df["UNIFORMP10P90"].quantile(0.1), -2, atol=atol)
+    assert np.isclose(df["UNIFORMP10P90"].quantile(0.9), 3, atol=atol)
+
+    assert np.isclose(df["TRIANGULARP10P90"].quantile(0.1), -2, atol=atol)
+    assert np.isclose(df["TRIANGULARP10P90"].quantile(0.9), 3, atol=atol)
+
+    assert np.isclose(df["PERTP10P90"].quantile(0.1), -2, atol=atol)
+    assert np.isclose(df["PERTP10P90"].quantile(0.9), 3, atol=atol)
 
     # Check that correlations are close
     if correlations:
