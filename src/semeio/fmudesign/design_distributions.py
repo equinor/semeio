@@ -112,7 +112,7 @@ def to_probabilit(
 
     if distname.startswith("disc"):
         if len(dist_parameters) == 1:
-            values_str = dist_parameters[0]
+            values_str = str(dist_parameters[0])
             values = [v.strip() for v in values_str.split(",")]
             distr = probabilit.Distribution("uniform")
             distr._values = np.array(values)
@@ -121,6 +121,14 @@ def to_probabilit(
             values_str, probabilities_str = dist_parameters
             values = [v.strip() for v in values_str.split(",")]
             probabilities = [float(v.strip()) for v in probabilities_str.split(",")]
+            if len(values) != len(probabilities):
+                raise ValueError(
+                    "Length mismatch for discrete distribution, "
+                    f"dist_param1 has length {len(values)}, "
+                    f"but dist_param2 has length {len(probabilities)}. "
+                    "dist_param1 and dist_param2 must have the same numer of "
+                    "entries for discrete distributions."
+                )
             distr = probabilit.Distribution("uniform")
             distr._values = np.array(values)
             distr._probabilities = np.array(probabilities)
@@ -284,7 +292,13 @@ def read_correlations(excel_filename: str, corr_sheet: str) -> pd.DataFrame:
 
     correlations = (
         pd.read_excel(
-            excel_filename, sheet_name=corr_sheet, index_col=0, engine="openpyxl"
+            excel_filename,
+            sheet_name=corr_sheet,
+            index_col=0,
+            # A user reported failures when a single space ' ' was present
+            # in the upper triangular part. Therefore we add spaces as NaN too.
+            na_values=[" " * i for i in range(10)],
+            engine="openpyxl",
         )
         .dropna(axis=0, how="all")
         # Remove any 'Unnamed' columns that Excel/pandas may have automatically added.

@@ -394,7 +394,7 @@ class DesignMatrix:
             temp_df = case_.reset_index()
             temp_df.fillna(self.backgroundvalues, inplace=True)
             temp_df.set_index("index")
-            for key in self.backgroundvalues:
+            for key in self.backgroundvalues.columns:
                 if key not in case_:
                     temp_df[key] = self.backgroundvalues[key]
                     if len(temp_df) > len(self.backgroundvalues):
@@ -419,7 +419,7 @@ class DesignMatrix:
 
     def _fill_with_defaultvalues(self) -> None:
         """Filling NaNs with default values"""
-        for key in self.designvalues:
+        for key in self.designvalues.columns:
             if key in self.defaultvalues:
                 self.designvalues[key] = self.designvalues[key].fillna(
                     self.defaultvalues[key]
@@ -518,7 +518,7 @@ class DesignMatrix:
 
         # Round each column
         dict_decimals = inputdict["decimals"]
-        for key in self.designvalues:
+        for key in self.designvalues.columns:
             if key in dict_decimals:
                 if design_dist.is_number(self.designvalues[key].iloc[0]):
                     self.designvalues[key] = (
