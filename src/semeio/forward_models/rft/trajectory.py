@@ -171,9 +171,9 @@ class Trajectory:
         """
         dframe = pd.DataFrame(data=[vars(point) for point in self.trajectory_points])
         dframe["is_active"] = [point.is_active() for point in self.trajectory_points]
-        dframe["inactive_info"] = [
-            point.inactive_info(zonemap) for point in self.trajectory_points
-        ]
+        dframe["inactive_info"] = pd.Series(
+            [point.inactive_info(zonemap) for point in self.trajectory_points]
+        )
 
         dframe = Trajectory.split_tuple_column(
             dframe, tuplecolumn="grid_ijk", components=["i", "j", "k"]
