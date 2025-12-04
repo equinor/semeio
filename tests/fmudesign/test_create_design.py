@@ -64,6 +64,7 @@ def test_distribution_statistis(tmpdir, monkeypatch, correlations):
             gl("TRUNCNORM", "normal", 0, 1, -1, 2),
             # Lognormal has params (mean, sigma)
             gl("LOGNORMAL", "logn", 1.5, 0.5),
+            gl("TRUNCLOGNORMAL", "logn", 1.5, 0.5, 5, 15),
             # Uniform has params (low, high)
             gl("UNIFORM", "unif", -5, 0),
             # Triangular has params (low, mode, high)
@@ -155,6 +156,9 @@ def test_distribution_statistis(tmpdir, monkeypatch, correlations):
     assert np.isclose(df["LOGNORMAL"].mean(), 5.078418, atol=atol)
     assert np.isclose(df["LOGNORMAL"].std(), 2.706487, atol=atol)
 
+    assert df["TRUNCLOGNORMAL"].min() >= 5
+    assert df["TRUNCLOGNORMAL"].max() <= 15
+
     assert df["UNIFORM"].min() >= -5
     assert df["UNIFORM"].max() <= 0
     assert np.isclose(df["UNIFORM"].mean(), -2.5, atol=atol)
@@ -178,6 +182,8 @@ def test_distribution_statistis(tmpdir, monkeypatch, correlations):
     assert np.isclose(df["LOGUNIFORM"].mean(), 2.485339, atol=atol)
     assert np.isclose(df["LOGUNIFORM"].std(), 1.130975, atol=atol)
 
+    # The P10/P90 distrubtions are all defined to have P10=-2 and P90=3,
+    # so we test them by checking that the observed percentiles match
     assert np.isclose(df["NORMALP10P90"].quantile(0.1), -2, atol=atol)
     assert np.isclose(df["NORMALP10P90"].quantile(0.9), 3, atol=atol)
 
