@@ -118,7 +118,7 @@ def to_probabilit(
             distr._values = np.array(values)
             return distr
         else:
-            values_str, probabilities_str = dist_parameters
+            values_str, probabilities_str = map(str, dist_parameters)
             values = [v.strip() for v in values_str.split(",")]
             probabilities = [float(v.strip()) for v in probabilities_str.split(",")]
             if len(values) != len(probabilities):
