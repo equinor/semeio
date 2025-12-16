@@ -16,7 +16,7 @@ MOCK_GENERAL_INPUT = pd.DataFrame(
         ["repeats", "10"],
         ["rms_seeds", "default"],
         ["background", "None"],
-        ["distribution_seed", "None"],
+        ["distribution_seed", 42],
     ]
 )
 
@@ -43,7 +43,7 @@ def test_excel_to_dict(tmpdir, monkeypatch):
     dict_design = excel_to_dict("designinput.xlsx")
     assert isinstance(dict_design, dict)
     assert dict_design["designtype"] == "onebyone"
-    assert dict_design["distribution_seed"] is None
+    assert dict_design["distribution_seed"] == 42
     assert "defaultvalues" in dict_design
 
     assert isinstance(dict_design["defaultvalues"], dict)
@@ -195,7 +195,7 @@ def test_background_sheet(tmpdir, monkeypatch):
             ["repeats", 3],
             ["rms_seeds", "default"],
             ["background", "backgroundsheet"],
-            ["distribution_seed", "None"],
+            ["distribution_seed", 42],
         ]
     )
     defaultvalues = pd.DataFrame(
