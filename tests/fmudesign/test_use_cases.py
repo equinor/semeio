@@ -31,9 +31,9 @@ def test_prediction_rejection_sampled_ensemble(tmpdir, monkeypatch):
         data=[
             ["designtype", "onebyone"],
             ["repeats", 3],  # This matches the number of HM-samples we have.
-            ["rms_seeds", None],  # Geogrid from HM realization is used
+            ["rms_seeds", "default"],  # Geogrid from HM realization is used
             ["background", "hmrealizations.xlsx"],
-            ["distribution_seed", None],
+            ["distribution_seed", 42],
         ]
     )
     defaultvalues = pd.DataFrame(
@@ -116,8 +116,8 @@ def test_constant_distribution(tmpdir, monkeypatch, gen_input_sheet):
         data=[
             ["designtype", "onebyone"],
             ["repeats", 1],
-            ["rms_seeds", None],
-            ["distribution_seed", None],
+            ["rms_seeds", "default"],
+            ["distribution_seed", 42],
         ]
     )
 

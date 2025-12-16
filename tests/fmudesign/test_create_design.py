@@ -52,7 +52,7 @@ def test_distribution_statistis(tmpdir, monkeypatch, correlations):
             ["repeats", 1],
             ["rms_seeds", "default"],
             ["background", "None"],
-            ["distribution_seed", "None"],
+            ["distribution_seed", 42],
         ]
     )
 
