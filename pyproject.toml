@@ -129,6 +129,7 @@ select = [
   "FLY",
   "FURB",
   "I",   # isort
+  "ISC", # string concatenation
   "ICN", # flake8-import-conventions
   "INT",
   "NPY", # numpy specific rules
