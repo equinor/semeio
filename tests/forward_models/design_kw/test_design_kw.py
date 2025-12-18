@@ -83,7 +83,7 @@ def test_extract_key_value_dup_key():
 
 
 @pytest.mark.parametrize(
-    "paramsdict, expected",
+    ("paramsdict", "expected"),
     [
         ({"foo:bar": "value"}, {"bar": "value"}),
         ({"foo:bar": "value", "foo:com": "value2"}, {"bar": "value", "com": "value2"}),
@@ -95,7 +95,7 @@ def test_rm_genkw_prefix(paramsdict, expected):
 
 
 @pytest.mark.parametrize(
-    "paramsdict, warntext",
+    ("paramsdict", "warntext"),
     [
         (
             {"foo:bar": "value1", "com:bar": "value2"},
@@ -113,7 +113,7 @@ def test_rm_genkw_prefix_warnings(paramsdict, warntext, caplog):
 
 
 @pytest.mark.parametrize(
-    "paramsdict, ignores, expected",
+    ("paramsdict", "ignores", "expected"),
     [
         (
             {"LOG10_foo:bar": "value1", "com:bar": "value2"},
@@ -131,7 +131,7 @@ def test_rm_genkw_prefix_ignore(paramsdict, ignores, expected):
 
 
 @pytest.mark.parametrize(
-    "paramlines, template, result",
+    ("paramlines", "template", "result"),
     [
         ("foo:bar 12", "<foo:bar>", "12"),
         ("foo:bar 12", "<bar>", "12"),
@@ -214,7 +214,7 @@ def test_is_xml():
 
 @pytest.mark.parametrize(
     "filenames",
-    (
+    [
         [
             "template.yml.reference",
             "template.yml.tmpl",
@@ -228,7 +228,7 @@ def test_is_xml():
             "template_xml_format.xml",
             "parameters_for_xml_case.txt",
         ],
-    ),
+    ],
 )
 @pytest.mark.usefixtures("input_data")
 def test_run(filenames):
@@ -290,7 +290,7 @@ def test_run_duplicate_keys():
 
 
 @pytest.mark.parametrize(
-    "parameter_file_content, template_file_content, expected_warning",
+    ("parameter_file_content", "template_file_content", "expected_warning"),
     [
         pytest.param(
             "FOO '12",

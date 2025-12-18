@@ -18,7 +18,7 @@ from .ots_util import mock_segy
     reason="Scipy interpolate produces slightly different numbers on macos arm",
 )
 @pytest.mark.parametrize(
-    "res_scale, size_scale, pos_shift, results, surf_res",
+    ("res_scale", "size_scale", "pos_shift", "results", "surf_res"),
     [
         # all scales or shifts are relative to the input grid file
         # segy file resolution, volume size, position of segy volume

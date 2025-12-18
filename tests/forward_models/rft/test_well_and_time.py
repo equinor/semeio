@@ -6,7 +6,7 @@ import pytest
 from semeio.forward_models.scripts.gendata_rft import load_and_parse_well_time_file
 
 
-@pytest.fixture()
+@pytest.fixture
 def initdir(tmpdir):
     tmpdir.chdir()
     valid_data = """

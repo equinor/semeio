@@ -22,7 +22,7 @@ EXAMPLE_WATEROIL = pd.DataFrame(columns=["SATNUM", "Nw", "NOW"], data=[[1, 2, 2]
 
 
 @pytest.mark.parametrize(
-    "dframe, runargs",
+    ("dframe", "runargs"),
     [
         (EXAMPLE_STATIC_DFRAME, ["__NONE__", "__NONE__", "__NONE__", "sgof", 1]),
         (EXAMPLE_STATIC_DFRAME, ["__NONE__", "__NONE__", "__NONE__", "slgof", 1]),
@@ -125,7 +125,7 @@ def test_fm_pyscal_argparse(tmpdir, monkeypatch):
 
 
 @pytest.mark.parametrize(
-    "dframe, runargs, err_str",
+    ("dframe", "runargs", "err_str"),
     [
         (
             # Writing to a file we don't have permission to write to

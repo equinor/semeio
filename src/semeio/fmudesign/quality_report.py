@@ -1,7 +1,7 @@
 import copy
 import math
 from pathlib import Path
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -9,12 +9,14 @@ import numpy.typing as npt
 import pandas as pd
 import scipy as sp
 import seaborn as sns
-from matplotlib.patches import Rectangle
 from probabilit.correlation import (  # type: ignore[import-untyped]
     nearest_correlation_matrix,
 )
 
 from semeio.fmudesign.design_distributions import to_probabilit
+
+if TYPE_CHECKING:
+    from matplotlib.patches import Rectangle
 
 COLORS = list(plt.rcParams["axes.prop_cycle"].by_key()["color"])
 
@@ -265,7 +267,7 @@ class QualityReporter:
         for _proportion, count, p in zip(
             proportions, value_counts, ax.patches, strict=False
         ):
-            rect = cast(Rectangle, p)
+            rect = cast("Rectangle", p)
             # assert math.isclose(_proportion, rect.get_height())
             percentage = f"{rect.get_height():.1%} (n={count:.0f})"
             ax.annotate(

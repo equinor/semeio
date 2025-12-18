@@ -13,7 +13,7 @@ TEST_NORNE_DIR = Path(__file__).parent / ".." / ".." / "test_data" / "norne"
 
 @pytest.fixture(name="conf")
 def conf_fixture():
-    yield {
+    return {
         "eclbase": "NORNE_ATW2013",
         "above": 100,
         "seabed": 300,
@@ -30,7 +30,7 @@ def conf_fixture():
     }
 
 
-@pytest.fixture()
+@pytest.fixture
 def ecl_files(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     for extension in ["INIT", "EGRID", "UNRST"]:
@@ -52,11 +52,11 @@ def test_valid_config(conf, velocity_model, horizon, vintages_export_file):
 
 
 @pytest.mark.parametrize(
-    "extension, error_msg",
+    ("extension", "error_msg"),
     [
-        ["INIT", r"missing required file\(s\): \['NORNE_ATW2013.INIT'\] "],
-        ["EGRID", r"missing required file\(s\): \['NORNE_ATW2013.EGRID'\] "],
-        ["UNRST", r"missing required file\(s\): \['NORNE_ATW2013.UNRST'\] "],
+        ("INIT", r"missing required file\(s\): \['NORNE_ATW2013.INIT'\] "),
+        ("EGRID", r"missing required file\(s\): \['NORNE_ATW2013.EGRID'\] "),
+        ("UNRST", r"missing required file\(s\): \['NORNE_ATW2013.UNRST'\] "),
     ],
 )
 @pytest.mark.usefixtures("ecl_files")

@@ -54,11 +54,11 @@ def fixture_set_up():
     PARMS.convention = 1
     PARMS.eclbase = "TEST"
 
-    yield spec, actnum, PARMS
+    return spec, actnum, PARMS
 
 
 @pytest.mark.parametrize(
-    "missing_file, expected_error",
+    ("missing_file", "expected_error"),
     [
         ("TEST.INIT", 'Failed to open file "TEST.INIT"'),
         ("TEST.EGRID", "Loading grid from:TEST.EGRID failed"),
@@ -115,7 +115,8 @@ def test_create_invalid_input_missing_segy(set_up):
 
 
 @pytest.mark.parametrize(
-    "config_item, value", [("velocity_model", "TEST.segy"), ("velocity_model", None)]
+    ("config_item", "value"),
+    [("velocity_model", "TEST.segy"), ("velocity_model", None)],
 )
 @pytest.mark.usefixtures("setup_tmpdir")
 def test_create_valid(set_up, config_item, value):
@@ -169,17 +170,17 @@ def test_eval(set_up):
         parms.above,
         parms.velocity_model,
     )
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="No such restart block could be ident"):
         ots.add_survey("S1", datetime.date(2000, 1, 15))
 
     vintage_pairs = [(datetime.date(1900, 1, 1), datetime.date(2010, 1, 1))]
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="No such restart block"):
         ots.geertsma_ts_simple(vintage_pairs)
 
     vintage_pairs = [(datetime.date(2010, 1, 1), datetime.date(1900, 1, 1))]
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="No such restart block"):
         ots.geertsma_ts_simple(vintage_pairs)
 
     vintage_pairs = [(datetime.date(2000, 1, 1), datetime.date(2010, 1, 1))]

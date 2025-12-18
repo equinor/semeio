@@ -472,7 +472,7 @@ def test_that_nonexisting_trajectory_path_is_an_invalid_cli_option(tmp_path, cap
 
 @pytest.mark.usefixtures("norne_data")
 @pytest.mark.parametrize(
-    "eclbase_file_factories,error_msg",
+    ("eclbase_file_factories", "error_msg"),
     [
         ([], "BASE.RFT does not exist"),
         (

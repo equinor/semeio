@@ -139,6 +139,7 @@ select = [
   "PL",  # pylint
   "PLC",
   "PLE",
+  "PT",  # pytest
   "Q",
   "RSE",
   "RUF", # ruff specific rules

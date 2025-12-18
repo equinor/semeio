@@ -76,9 +76,9 @@ def ots_run(parameter_file: str) -> None:
         velocity_model=parms.velocity_model,
     )
 
-    tshift_ts = cast(list[xtgeo.RegularSurface], ots.geertsma_ts(vintage_pairs.ts))
+    tshift_ts = cast("list[xtgeo.RegularSurface]", ots.geertsma_ts(vintage_pairs.ts))
     tshift_ts_simple = ots.geertsma_ts_simple(vintage_pairs.ts_simple)
-    tshift_dpv = cast(list[xtgeo.RegularSurface], ots.dpv(vintage_pairs.dpv))
+    tshift_dpv = cast("list[xtgeo.RegularSurface]", ots.dpv(vintage_pairs.dpv))
     tshift_ts_rporv = ots.geertsma_ts_rporv(vintage_pairs.ts_rporv)
 
     surface_horizon = ots.get_horizon()
@@ -288,7 +288,7 @@ class OverburdenTimeshift:
         :param vintage_pairs:
         """
         return cast(
-            list[xtgeo.RegularSurface],
+            "list[xtgeo.RegularSurface]",
             self._geertsma_ts_custom(
                 vintage_pairs=vintage_pairs,
                 subsidence_func=self.subsidence.eval_geertsma_rporv,
@@ -306,7 +306,7 @@ class OverburdenTimeshift:
         :param vintage_pairs:
         """
         return cast(
-            list[xtgeo.RegularSurface],
+            "list[xtgeo.RegularSurface]",
             self._geertsma_ts_custom(
                 vintage_pairs=vintage_pairs,
                 subsidence_func=self.subsidence.eval_geertsma,

@@ -25,10 +25,10 @@ settings.load_profile("no_timeouts")
 
 @pytest.fixture(name="test_data_root")
 def fixture_test_data_root():
-    yield legacy_test_data.__path__[0]
+    return legacy_test_data.__path__[0]
 
 
-@pytest.fixture()
+@pytest.fixture
 def setup_tmpdir(tmpdir):
     with tmpdir.as_cwd():
         yield
@@ -113,7 +113,7 @@ def _shared_snake_oil_case(request, monkeypatch, test_data_root, grid_prop):
     else:
         monkeypatch.chdir("test_data")
 
-    yield os.getcwd()
+    return os.getcwd()
 
 
 @pytest.fixture(name="grid_prop")
