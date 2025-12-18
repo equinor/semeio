@@ -167,7 +167,7 @@ def test_calc_kolmogorov_smirnov():
     ks_matrix["WOPT:W1"] = ks_matrix["Parameters"].map(
         ahmanalysis.calc_kolmogorov_smirnov(dkeys, prior_data, target_data)
     )
-    ks_matrix.set_index("Parameters", inplace=True)
+    ks_matrix = ks_matrix.set_index("Parameters")
     assert "param2" in ks_matrix.index
     assert ks_matrix.loc["param1", "WOPT:W1"] == 0.275
     assert ks_matrix["WOPT:W1"].max() <= 1

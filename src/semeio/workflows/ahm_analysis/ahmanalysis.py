@@ -286,7 +286,7 @@ class AhmAnalysisJob(ErtScript):
                 # Get the updated scalar parameter distributions
 
                 ensemble_data.to_csv(ahmanalysis_reports_dir / f"{obs_group}.csv")
-                active_obs.at["ratio", obs_group] = (
+                active_obs.loc["ratio", obs_group] = (
                     str(count_active_observations(df_update_log))
                     + " active/"
                     + str(len(df_update_log.index))
@@ -309,7 +309,7 @@ class AhmAnalysisJob(ErtScript):
                         ensemble_data,
                     )
                 )
-        kolmogorov_smirnov_data.set_index("Parameters", inplace=True)
+        kolmogorov_smirnov_data = kolmogorov_smirnov_data.set_index("Parameters")
 
         # save/export the Ks matrix, active_obs, misfitval and prior data
 

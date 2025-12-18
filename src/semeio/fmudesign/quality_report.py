@@ -243,7 +243,7 @@ class QualityReporter:
 
         # Create DataFrame for seaborn
         plot_data = pd.DataFrame(
-            {var_name: proportions.index, "proportion": proportions.values}
+            {var_name: proportions.index, "proportion": proportions.to_numpy()}
         ).sort_values(by=var_name)
 
         # Use seaborn barplot with normalized values
@@ -289,7 +289,7 @@ class QualityReporter:
             corr_name: Name of the correlation group
             df_corr: DataFrame containing the desired correlation matrix
         """
-        assert np.allclose(df_corr.values, df_corr.values.T)
+        assert np.allclose(df_corr.to_numpy(), df_corr.to_numpy().T)
         assert df_corr.shape[0] == df_corr.shape[1]
 
         # Get lower triangular indices
@@ -314,7 +314,7 @@ class QualityReporter:
         nearest_corr = nearest_correlation_matrix(
             df_corr.values, weights=None, eps=1e-6, verbose=False
         )
-        diffs = nearest_corr[idx_low_triang] - df_corr.values[idx_low_triang]
+        diffs = nearest_corr[idx_low_triang] - df_corr.to_numpy()[idx_low_triang]
         corr_rmse = np.sqrt(np.mean(diffs**2))
 
         if corr_rmse > 1e-2:
@@ -338,7 +338,7 @@ class QualityReporter:
             print("Skipping printing observed (Pearson) correlation. Matrix too large.")
 
         # Difference between achieved corr in samples and target
-        diffs = corr.values[idx_low_triang] - nearest_corr[idx_low_triang]
+        diffs = corr.to_numpy()[idx_low_triang] - nearest_corr[idx_low_triang]
         corr_rmse = np.sqrt(np.mean(diffs**2))
         print(
             "Distance metrics between target correlation matrix and empirical correlation matrix"
@@ -524,7 +524,7 @@ def print_corrmat(df_corrmat: pd.DataFrame) -> None:
     | (3) OWC3 |  0.90 |  0.00 |  1.00 |
     """
     df_corrmat = df_corrmat.copy()
-    assert np.allclose(df_corrmat.values, df_corrmat.values.T)
+    assert np.allclose(df_corrmat.to_numpy(), df_corrmat.to_numpy().T)
     # Make slightly negative values positive
     values = df_corrmat.to_numpy()
     mask = np.isclose(values, 0)

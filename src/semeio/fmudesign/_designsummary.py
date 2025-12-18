@@ -78,7 +78,9 @@ def summarize_design(filename: str, sheetname: str = "DesignSheet01") -> pd.Data
     for sensno, sensname in enumerate(sensnames):
         sens_group = dgn[dgn["SENSNAME"] == sensname].copy()
         # Get cases in order of appearance
-        cases = sens_group.drop_duplicates("SENSCASE")[["SENSCASE"]].values.flatten()
+        cases = (
+            sens_group.drop_duplicates("SENSCASE")[["SENSCASE"]].to_numpy().flatten()
+        )
 
         # First case
         case1_data = sens_group[sens_group["SENSCASE"] == cases[0]]
