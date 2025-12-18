@@ -93,7 +93,7 @@ def printwarning(corr_group_name: str) -> None:
     )
 
 
-def to_numeric_safe(val: int | float | str) -> int | float | str:
+def to_numeric_safe(val: float | str) -> int | float | str:
     """Convert all values that CAN be converted to numeric. Retain the rest.
     This used to be pd.to_numeric(..., errors='ignore'), but was deprecated.
 

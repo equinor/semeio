@@ -129,9 +129,9 @@ select = [
   "FLY",
   "FURB",
   "I",   # isort
-  "ISC", # string concatenation
   "ICN", # flake8-import-conventions
   "INT",
+  "ISC", # string concatenation
   "NPY", # numpy specific rules
   "PD",  # pandas
   "PGH", # pygrep-hooks
@@ -140,6 +140,7 @@ select = [
   "PLC",
   "PLE",
   "PT",  # pytest
+  "PYI", # flake8-pyi
   "Q",
   "RET", # flake8-return
   "RSE",

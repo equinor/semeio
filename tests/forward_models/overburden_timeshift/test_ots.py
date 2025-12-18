@@ -1,7 +1,7 @@
 # pylint: disable=invalid-name
 import datetime
 import os
-from collections import namedtuple
+from typing import NamedTuple
 
 import pytest
 import segyio
@@ -12,23 +12,23 @@ from semeio.forward_models.overburden_timeshift.ots import OverburdenTimeshift
 
 from .ots_util import create_init, create_restart, create_segy_file
 
-PARMS = namedtuple(
-    "Parms",
-    [
-        "seabed",
-        "above",
-        "youngs",
-        "poisson",
-        "rfactor",
-        "mapaxes",
-        "convention",
-        "output_dir",
-        "horizon",
-        "vintages_export_file",
-        "velocity_model",
-        "eclbase",
-    ],
-)
+
+class Parms(NamedTuple):
+    seabed: str
+    above: str
+    youngs: str
+    poisson: str
+    rfactor: str
+    mapaxes: str
+    onvention: str
+    output_dir: str
+    horizon: str
+    vintages_export_file: str
+    velocity_model: str
+    eclbase: str
+
+
+PARMS = Parms
 
 
 @pytest.fixture(name="set_up")

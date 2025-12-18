@@ -151,7 +151,7 @@ def run(
     int_param_wo_name: str,  # string or __NONE__
     int_param_go_name: str,  # string or __NONE__
     slgof: str,  # sgof or slgof, default sgof
-    family: Literal[1] | Literal[2],  # int: 1 or 2, default 1
+    family: Literal[1, 2],  # int: 1 or 2, default 1
     parameters_file_name: str = "parameters.txt",
 ) -> None:
     """This function is a wrapper around the Pyscal command
