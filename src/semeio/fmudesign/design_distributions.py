@@ -117,22 +117,21 @@ def to_probabilit(
             distr = probabilit.Distribution("uniform")
             distr._values = np.array(values)
             return distr
-        else:
-            values_str, probabilities_str = map(str, dist_parameters)
-            values = [v.strip() for v in values_str.split(",")]
-            probabilities = [float(v.strip()) for v in probabilities_str.split(",")]
-            if len(values) != len(probabilities):
-                raise ValueError(
-                    "Length mismatch for discrete distribution, "
-                    f"dist_param1 has length {len(values)}, "
-                    f"but dist_param2 has length {len(probabilities)}. "
-                    "dist_param1 and dist_param2 must have the same numer of "
-                    "entries for discrete distributions."
-                )
-            distr = probabilit.Distribution("uniform")
-            distr._values = np.array(values)
-            distr._probabilities = np.array(probabilities)
-            return distr
+        values_str, probabilities_str = map(str, dist_parameters)
+        values = [v.strip() for v in values_str.split(",")]
+        probabilities = [float(v.strip()) for v in probabilities_str.split(",")]
+        if len(values) != len(probabilities):
+            raise ValueError(
+                "Length mismatch for discrete distribution, "
+                f"dist_param1 has length {len(values)}, "
+                f"but dist_param2 has length {len(probabilities)}. "
+                "dist_param1 and dist_param2 must have the same numer of "
+                "entries for discrete distributions."
+            )
+        distr = probabilit.Distribution("uniform")
+        distr._values = np.array(values)
+        distr._probabilities = np.array(probabilities)
+        return distr
 
     # Special case for constant
     if distname.startswith("const"):

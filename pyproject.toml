@@ -140,6 +140,7 @@ select = [
   "PLC",
   "PLE",
   "Q",
+  "RET", # flake8-return
   "RSE",
   "RUF", # ruff specific rules
   "SIM", # flake-8-simplify

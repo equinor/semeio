@@ -339,5 +339,4 @@ def _read_defaultssheet(xlsfilename: str, defaultssheetname: str) -> pd.DataFram
         logger.info("No defaultssheet provided, using empty dataframe")
         default_df = pd.DataFrame(columns=[0, 1])
 
-    default_df = default_df.rename(columns={0: "keys", 1: "defaults"})
-    return default_df
+    return default_df.rename(columns={0: "keys", 1: "defaults"})

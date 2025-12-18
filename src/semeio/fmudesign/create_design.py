@@ -501,7 +501,7 @@ class DesignMatrix:
 
         # No decimal information => Nothing to do.
         if not inputdict.get("decimals", {}):
-            return None
+            return
 
         # If there are dependencies (derived params) that are copies,
         # like TO := copy(FROM), then the new TO column must be rounded too.

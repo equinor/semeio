@@ -66,8 +66,7 @@ def test_ots_config_run_parameters(
     #   2a. top left and bottom right corners (which is due to shift segy volume)
     #   2b. we expect the surface to drop with each timeshift
     def to_numpy(surf):
-        arr = surf.get_values1d(order="F").reshape(-1, surf.get_nx())
-        return arr
+        return surf.get_values1d(order="F").reshape(-1, surf.get_nx())
 
     # horizon
     s_horizon = xtgeo.surface_from_file("horizon.irap", fformat="irap_binary")

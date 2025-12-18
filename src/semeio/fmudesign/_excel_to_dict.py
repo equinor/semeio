@@ -105,10 +105,9 @@ def find_sheet(name: str, names: list[str]) -> str:
     found = [name_i for name_i in names if sanitize(name) == sanitize(name_i)]
     if len(found) > 1:
         raise ValueError(f"More than one match for {name}: {found}")
-    elif len(found) == 0:
+    if len(found) == 0:
         raise ValueError(f"No match for {name}: {names}")
-    else:
-        return found[0]
+    return found[0]
 
 
 def _check_designinput(dsgn_input: pd.DataFrame) -> None:
@@ -218,7 +217,7 @@ def _excel_to_dict_onebyone(
     def parse_value(value: object) -> object:
         if pd.isna(value):  # type: ignore[call-overload]
             return None
-        elif isinstance(value, str):
+        if isinstance(value, str):
             return value.strip()
         return value
 

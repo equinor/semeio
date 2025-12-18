@@ -58,11 +58,10 @@ def _create_docs(schema: dict) -> str:
     required = schema.pop("required", [])
     _insert_ref(schema, defs)
     docs = _make_documentation(schema.pop("properties"), required=required)
-    docs = docs.replace(
+    return docs.replace(
         "  **must be one of**:\n\n      **type**: string\n\n      **type**: null\n\n",
         "",
     )
-    return docs
 
 
 def _make_documentation(
