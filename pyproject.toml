@@ -118,6 +118,7 @@ select = [
   "C4",  # flake8-comprehensions
   "F",   # pyflakes
   "I",   # isort
+  "ISC", # string concatenation
   "ICN", # flake8-import-conventions
   "NPY", # numpy specific rules
   "PGH", # pygrep-hooks

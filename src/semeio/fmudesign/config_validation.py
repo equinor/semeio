@@ -35,8 +35,8 @@ def validate_configuration(
             print("  - When set to 0, Iman Conover is used to induce correlations.")
             print(
                 "  - When set to a positive integer N, Iman Conover is followed by N iterations\n"
-                + "    of random permutations (swaps). This leads to results that are never worse, and often better.\n"
-                + "    It is especially useful for skewed distributions like lognormal and high dimensional problems."
+                "    of random permutations (swaps). This leads to results that are never worse, and often better.\n"
+                "    It is especially useful for skewed distributions like lognormal and high dimensional problems."
             )
             print(
                 f"  If desired correlation does not match observed, try setting {key!r}=999 or higher."
