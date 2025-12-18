@@ -294,14 +294,12 @@ def main() -> None:
     warnings.filterwarnings("ignore", category=DeprecationWarning)
     warnings.filterwarnings("ignore", category=FutureWarning)
 
-    parser, subparsers = get_parser()
+    parser, _subparsers = get_parser()
 
-    # Backwards compatibility. If not a known command and a file, assume "run"
-    if len(sys.argv) > 1:
-        unknown_cmnd = sys.argv[1] not in subparsers.choices
-        file_cmd = sys.argv[1].endswith((".xlsx",))
-        if unknown_cmnd and file_cmd:
-            sys.argv.insert(1, "run")
+    # Backwards compatibility. If not a known command, assume "run"
+    valid_cmds = ("run", "init", "-h", "--help", "-v", "--version")
+    if len(sys.argv) > 1 and sys.argv[1] not in valid_cmds:
+        sys.argv.insert(1, "run")
 
     args = parser.parse_args()
 
