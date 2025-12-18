@@ -1,12 +1,11 @@
 import logging
 import os.path
-from collections import namedtuple
 from collections.abc import Callable, Iterable, Sequence
 from datetime import date
 from datetime import datetime as dt
 from itertools import product
 from pathlib import Path
-from typing import Any, Literal, cast
+from typing import Any, Literal, NamedTuple, cast
 
 import numpy as np
 import numpy.typing as npt
@@ -474,7 +473,10 @@ class OverburdenTimeshift:
         for i in range(len(vintages_date)):
             vintages_name.append(f"S{i}")
 
-        Vintage = namedtuple("Vintage", "name date")
+        class Vintage(NamedTuple):
+            name: str
+            date: date
+
         return [
             Vintage(name, date)
             for name, date in zip(vintages_name, vintages_date, strict=False)
