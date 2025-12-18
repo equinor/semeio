@@ -5,14 +5,14 @@ import pytest
 from ert.config import ErtConfig
 
 
-@pytest.fixture()
+@pytest.fixture
 def snake_oil_config(
     copy_snake_oil_case_storage,
 ):  # pylint: disable=unused-argument
-    yield ErtConfig.from_file("snake_oil.ert")
+    return ErtConfig.from_file("snake_oil.ert")
 
 
-@pytest.fixture()
+@pytest.fixture
 def setup_poly_ert(tmpdir, test_data_root):
     cwd = os.getcwd()
     tmpdir.chdir()

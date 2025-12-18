@@ -11,10 +11,9 @@ used to generate design matrices, including one or several Sensitivities.
 from __future__ import annotations
 
 import copy
-from collections.abc import Hashable, Sequence
 from datetime import datetime
 from pathlib import Path
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import numpy as np
 import pandas as pd
@@ -32,6 +31,9 @@ from semeio.fmudesign.utils import (
     printwarning,
     to_numeric_safe,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Hashable, Sequence
 
 
 class DesignMatrix:
@@ -180,7 +182,7 @@ class DesignMatrix:
             # MonteCarloSensitivity is special - it can produce debugging outputs
             is_montecarlo = isinstance(sensitivity, MonteCarloSensitivity)
             if is_montecarlo and self.verbosity > 0:
-                sensitivity = cast(MonteCarloSensitivity, sensitivity)
+                sensitivity = cast("MonteCarloSensitivity", sensitivity)
                 quality_reporter = QualityReporter(
                     df=sensitivity.sensvalues, variables=sens["parameters"]
                 )
@@ -192,7 +194,7 @@ class DesignMatrix:
                     quality_reporter.print_correlation(corr_name, df_corr)
 
             if is_montecarlo and self.verbosity > 1 and self.output_dir is not None:
-                sensitivity = cast(MonteCarloSensitivity, sensitivity)
+                sensitivity = cast("MonteCarloSensitivity", sensitivity)
                 output_dir = self.output_dir / key
                 quality_reporter.plot_columns(output_dir=output_dir)
 
@@ -831,7 +833,7 @@ class MonteCarloSensitivity(Sensitivity):
             corr_groups.pop("nocorr", None)
 
             for corr_group_name, corr_group in corr_groups.items():
-                corr_group_name = cast(str, corr_group_name)
+                corr_group_name = cast("str", corr_group_name)
 
                 # Skip nocorr
                 if corr_group_name == "nocorr":

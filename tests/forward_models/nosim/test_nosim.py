@@ -10,7 +10,7 @@ import pytest
 # cat insert_nosim.stderr.1
 # sed: 1: "TEST.DATA": invalid command code T
 @pytest.mark.parametrize(
-    "nosim_command,data_input,data_expected",
+    ("nosim_command", "data_input", "data_expected"),
     [
         (
             "INSERT_NOSIM",

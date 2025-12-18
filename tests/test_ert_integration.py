@@ -19,7 +19,7 @@ FORWARD_MODEL {}({})
 @pytest.mark.integration_test
 @pytest.mark.script_launch_mode("subprocess")
 @pytest.mark.parametrize(
-    "entry_point, options",
+    ("entry_point", "options"),
     [
         ("overburden_timeshift", "-c config.ots"),
         ("design2params", "not_int"),
@@ -41,7 +41,7 @@ def test_console_scripts_exit_code(script_runner, entry_point, options):
 
 @pytest.mark.ert_integration
 @pytest.mark.parametrize(
-    "forward_model, configuration, expected_error",
+    ("forward_model", "configuration", "expected_error"),
     [
         ("OTS", "<CONFIG>=config.ots", "config.ots is not an existing file!"),
         ("DESIGN2PARAMS", "<IENS>=not_int", "invalid int value: 'not_int'"),

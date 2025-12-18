@@ -7,7 +7,7 @@ from semeio.forward_models.rft.gendata_rft import _write_gen_data_files, _write_
 
 
 @pytest.mark.parametrize(
-    "dataname, input_data, expected_result",
+    ("dataname", "input_data", "expected_result"),
     [
         ("pressure", {"order": [1, 2], "pressure": [10.0, 20.0]}, ["10.0\n", "20.0\n"]),
         ("pressure", {"order": [1, 2]}, ["-1\n", "-1\n"]),

@@ -18,7 +18,7 @@ def test_that_the_zonemap_not_provided_filename_means_no_zonemap():
     assert ZoneMap.load_and_parse_zonemap_file("ZONEMAP_NOT_PROVIDED") is None
 
 
-@pytest.fixture()
+@pytest.fixture
 def initdir(tmpdir):
     tmpdir.chdir()
     valid_data = """

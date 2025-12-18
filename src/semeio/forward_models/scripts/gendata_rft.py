@@ -3,7 +3,7 @@ import logging
 import os
 import sys
 from argparse import ArgumentParser
-from collections.abc import MutableMapping
+from typing import TYPE_CHECKING
 
 from semeio.forward_models.rft import gendata_rft
 from semeio.forward_models.rft.trajectory import Trajectory
@@ -13,6 +13,9 @@ from semeio.forward_models.rft.utility import (
     valid_eclbase,
 )
 from semeio.forward_models.rft.zonemap import ZoneMap
+
+if TYPE_CHECKING:
+    from collections.abc import MutableMapping
 
 logger = logging.getLogger(__name__)
 

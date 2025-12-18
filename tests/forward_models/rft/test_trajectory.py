@@ -9,7 +9,7 @@ from semeio.forward_models.rft.zonemap import ZoneMap
 
 
 @pytest.mark.parametrize(
-    "line, expected_zone", [("0 1 2.2 3", None), ("0 1 2.2 3 zone", "zone")]
+    ("line", "expected_zone"), [("0 1 2.2 3", None), ("0 1 2.2 3 zone", "zone")]
 )
 def test_load_from_line(line, expected_zone):
     point = TrajectoryPoint(*Trajectory.parse_trajectory_line(line))
@@ -21,7 +21,7 @@ def test_load_from_line(line, expected_zone):
 
 
 @pytest.mark.parametrize(
-    "line, expected_error",
+    ("line", "expected_error"),
     [
         ("1", "Trajectory data file not on correct format"),
         ("a b c", "Trajectory data file not on correct format"),
@@ -34,7 +34,7 @@ def test_invalid_load_from_line(line, expected_error):
 
 
 @pytest.mark.parametrize(
-    "k_value, expected_validation", [(1, True), (3, False), (4, False)]
+    ("k_value", "expected_validation"), [(1, True), (3, False), (4, False)]
 )
 def test_validate_zone(k_value, expected_validation):
     zones_at_k_value = {1: ["Zone1", "Zone2"], 3: ["Zone3"]}
@@ -65,7 +65,7 @@ validations = [False, True]
 
 
 @pytest.mark.parametrize(
-    "ijk, pressure, validation", itertools.product(ijks, pressures, validations)
+    ("ijk", "pressure", "validation"), itertools.product(ijks, pressures, validations)
 )
 def test_is_active(ijk, pressure, validation):
     point = TrajectoryPoint(0, 1, 2, 3, "Zone1")
@@ -77,7 +77,7 @@ def test_is_active(ijk, pressure, validation):
     assert all([ijk, pressure, validation]) or point.get_pressure() == -1
 
 
-@pytest.fixture()
+@pytest.fixture
 def initdir(tmpdir):
     tmpdir.chdir()
     valid_data = """
@@ -160,7 +160,7 @@ def test_dframe_trajectory(fname):
 
 
 @pytest.mark.parametrize(
-    "dframe, tuplecolumn, components",
+    ("dframe", "tuplecolumn", "components"),
     [
         (pd.DataFrame(columns=["grid_ik"], data=[[(1, 2)]]), "grid_ik", ["I", "J"]),
         (pd.DataFrame(columns=["grid_i"], data=[[(1,)]]), "grid_i", ["I"]),
@@ -168,11 +168,6 @@ def test_dframe_trajectory(fname):
             pd.DataFrame(columns=["grid_i"], data=[[[1, 2, 3]]]),
             "grid_i",
             ["I", "J", "K"],
-        ),
-        (
-            pd.DataFrame(columns=["grid_i"], data=[[(1, 2)], [(3, 4)]]),
-            "grid_i",
-            ["I", "J"],
         ),
         (
             pd.DataFrame(columns=["grid_i"], data=[[(1, 2)], [(3, 4)]]),
@@ -205,7 +200,7 @@ def test_tuple_column_splitter(dframe, tuplecolumn, components):
 
 
 @pytest.mark.parametrize(
-    "raises, dframe, tuplecolumn, components",
+    ("raises", "dframe", "tuplecolumn", "components"),
     [
         (
             ValueError,

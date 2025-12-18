@@ -62,7 +62,7 @@ def test_count_active_observations():
 
 
 @pytest.mark.parametrize(
-    "input_obs, expected_misfit, update_log",
+    ("input_obs", "expected_misfit", "update_log"),
     [
         (
             "RWI_3_OBS",
@@ -121,7 +121,7 @@ def test_calc_observationsgroup_misfit(input_obs, expected_misfit, update_log):
 
 
 @pytest.mark.parametrize(
-    "input_obs, expected_msg, update_log",
+    ("input_obs", "expected_msg", "update_log"),
     [
         (
             "OP_1_WWCT",
@@ -175,7 +175,7 @@ def test_calc_kolmogorov_smirnov():
 
 
 @pytest.mark.parametrize(
-    "misfit_data, prior_data, expected_msg",
+    ("misfit_data", "prior_data", "expected_msg"),
     [
         (
             pd.DataFrame(),
@@ -206,7 +206,7 @@ def test_raise_if_empty(misfit_data, prior_data, expected_msg):
 
 
 @pytest.mark.parametrize(
-    "input_map, expected_keys",
+    ("input_map", "expected_keys"),
     [
         (
             {"data_key_1": ["obs_1", "obs_2", "obs_3"]},
@@ -244,9 +244,9 @@ def test_make_obs_groups(input_map, expected_keys):
 
 
 @pytest.mark.parametrize(
-    "prior_data, expected_result",
+    ("prior_data", "expected_result"),
     [
-        [
+        (
             {
                 "SNAKE_OIL_PARAM:OP1_PERSISTENCE": [0, 1, 2],
                 "SNAKE_OIL_PARAM:OP1_OCTAVES": [0, 1, 2],
@@ -260,8 +260,8 @@ def test_make_obs_groups(input_map, expected_keys):
                 "SNAKE_OIL_PARAM:OP1_DIVERGENCE_SCALE",
                 "SNAKE_OIL_PRES:BPR_138_PERSISTENCE",
             ],
-        ],
-        [
+        ),
+        (
             {
                 "SNAKE_OIL_PARAM:OP1_PERSISTENCE": [0, 1, 2],
                 "SNAKE_OIL_PARAM:OP1_OCTAVES": [0, 1, 2],
@@ -275,7 +275,7 @@ def test_make_obs_groups(input_map, expected_keys):
                 "SNAKE_OIL_PARAM:OP1_PERSISTENCE",
                 "SNAKE_OIL_PRES:BPR_138_PERSISTENCE",
             ],
-        ],
+        ),
     ],
 )
 def test_get_updated_parameters(prior_data, expected_result):

@@ -16,7 +16,7 @@ def fixture_setup_spec(setup_tmpdir):
     spec.samples = range(0, 40, 4)
     spec.ilines = range(2)
     spec.xlines = range(2)
-    yield spec
+    return spec
 
 
 def test_create(setup_spec):

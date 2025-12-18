@@ -49,13 +49,13 @@ def mock_norne_data(reals, iters, parameters=True):
                 file_h.write(f"{real:03d} {runpath} NORNE_{real} {iteration:03d}\n")
 
 
-@pytest.fixture()
+@pytest.fixture
 def norne_mocked_ensembleset(setup_tmpdir):
     # pylint: disable=unused-argument
     mock_norne_data(reals=[0, 1], iters=[0, 1], parameters=True)
 
 
-@pytest.fixture()
+@pytest.fixture
 def norne_mocked_ensembleset_noparams(setup_tmpdir):
     # pylint: disable=unused-argument
     mock_norne_data(reals=[0, 1], iters=[0, 1], parameters=False)

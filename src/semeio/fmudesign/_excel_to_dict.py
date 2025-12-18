@@ -297,7 +297,7 @@ def _excel_to_dict_onebyone(
 
         valid_decimals = designinput[mask]
         output["decimals"] = {
-            row.param_name: int(cast(float, row.decimals))
+            row.param_name: int(cast("float", row.decimals))
             for row in valid_decimals.itertuples()
         }
 

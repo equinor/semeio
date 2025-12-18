@@ -15,7 +15,7 @@ FORWARD_MODEL REPLACE_STRING(<FROM>={FROM}, <TO>="{TO}", <FILE>=file.txt)
 
 @pytest.mark.ert_integration
 @pytest.mark.parametrize(
-    "input_text, replace_from, replace_to, expected",
+    ("input_text", "replace_from", "replace_to", "expected"),
     [
         ("something", "something", "else", "else"),
         (

@@ -28,7 +28,7 @@ def input_data(tmpdir):
 # pylint: disable=protected-access
 @pytest.mark.usefixtures("input_data")
 @pytest.mark.parametrize(
-    "test_file, expected_file",
+    ("test_file", "expected_file"),
     [
         (design2params._PARAMETERS_TXT, "refparameters.txt"),
         (design2params._DESIGN_MATRIX_TXT, "refdesignmatrix.txt"),
@@ -50,7 +50,7 @@ def test_run(test_file, expected_file):
 
 @pytest.mark.usefixtures("input_data")
 @pytest.mark.parametrize(
-    "test_file, expected_file",
+    ("test_file", "expected_file"),
     [
         ("new_parameters.txt", "refparameters_when_missing.txt"),
         (design2params._DESIGN_MATRIX_TXT, "refdesignmatrix.txt"),
@@ -72,7 +72,7 @@ def test_run_with_no_parameters_txt(test_file, expected_file):
 
 @pytest.mark.usefixtures("input_data")
 @pytest.mark.parametrize(
-    "test_file, expected_file",
+    ("test_file", "expected_file"),
     [
         (design2params._PARAMETERS_TXT, "refparameters_w_default.txt"),
         (design2params._DESIGN_MATRIX_TXT, "refdesignmatrix.txt"),
@@ -94,7 +94,7 @@ def test_run_with_default(test_file, expected_file):
 
 @pytest.mark.usefixtures("input_data")
 @pytest.mark.parametrize(
-    "test_file, expected_file",
+    ("test_file", "expected_file"),
     [
         (design2params._PARAMETERS_TXT, "refparameters_w_spaces.txt"),
         (design2params._DESIGN_MATRIX_TXT, "refdesignmatrix_w_spaces.txt"),
@@ -161,7 +161,7 @@ def test_three_column_defaults(tmpdir):
 
 
 @pytest.mark.filterwarnings("ignore::DeprecationWarning")
-@pytest.mark.parametrize("ext, engine", [("ods", "odf"), ("xlsx", None)])
+@pytest.mark.parametrize(("ext", "engine"), [("ods", "odf"), ("xlsx", None)])
 def test_support_multiple_formats(tmp_path, ext, engine):
     fname = tmp_path / ("test." + ext)
     dframe = pd.DataFrame({"col1": [1, 2, 3], "col2": [4, 5, 6]})
@@ -253,7 +253,7 @@ def test_open_excel_file_value_missing(caplog):
 
 
 @pytest.mark.parametrize(
-    "exist_params, design_m, expected_warning",
+    ("exist_params", "design_m", "expected_warning"),
     [
         ("NAMESPACE:FOO 3", {"FOO": 5}, None),
         ("FOO 3", {"FOO": 4}, "Parameter FOO already exists"),
@@ -345,7 +345,7 @@ def test_open_excel_file_wrong_defaults():
 
 
 @pytest.mark.parametrize(
-    "cellvalue, expected_parameters_str",
+    ("cellvalue", "expected_parameters_str"),
     [
         ("TRUE", "TRUE"),
         ("FALSE", "FALSE"),
@@ -390,7 +390,7 @@ def test_single_cell_values(cellvalue, expected_parameters_str, tmpdir):
 
 
 @pytest.mark.parametrize(
-    "cellvalues, expected_parameters_strs",
+    ("cellvalues", "expected_parameters_strs"),
     [
         (["TRUE", "True"], ["TRUE", "True"]),
         (["TRUE", 1], ["TRUE", "1"]),
