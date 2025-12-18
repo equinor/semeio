@@ -392,7 +392,7 @@ class DesignMatrix:
         result_values = pd.DataFrame()
         for sensname, case_ in grouped:
             temp_df = case_.reset_index()
-            temp_df.fillna(self.backgroundvalues, inplace=True)
+            temp_df = temp_df.fillna(self.backgroundvalues)
             temp_df.set_index("index")
             for key in self.backgroundvalues.columns:
                 if key not in case_:
@@ -847,7 +847,7 @@ class MonteCarloSensitivity(Sensitivity):
                     excel_filename=corrdict["inputfile"], corr_sheet=corr_group_name
                 )
                 multivariate_parameters = list(df_correlations.index.values)
-                correlations = df_correlations.values
+                correlations = df_correlations.to_numpy()
 
                 if self.verbosity == 0:
                     print(
@@ -930,7 +930,7 @@ class MonteCarloSensitivity(Sensitivity):
             if "RMS_SEED" not in self.sensvalues and seedvalues:
                 self.sensvalues["RMS_SEED"] = seedvalues[:size]
 
-        null_columns = self.sensvalues.isnull().any(axis=0)
+        null_columns = self.sensvalues.isna().any(axis=0)
         if null_columns.any():
             cols_w_null = list(null_columns.loc[lambda ser: ser].index)
             raise ValueError(f"Found NaN values in columns: {cols_w_null}")

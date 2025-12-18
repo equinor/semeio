@@ -61,11 +61,11 @@ def test_gendata_rft_csv(tmpdir):
     assert set(dframe["report_step"]) == {0}
 
     # i-j-k always non-null together:
-    assert (dframe["i"].isnull() == dframe["j"].isnull()).all()
-    assert (dframe["i"].isnull() == dframe["k"].isnull()).all()
+    assert (dframe["i"].isna() == dframe["j"].isna()).all()
+    assert (dframe["i"].isna() == dframe["k"].isna()).all()
 
     # inactive_info must be non-null when active = False
-    assert (~dframe[~dframe["is_active"]]["inactive_info"].isnull()).all()
+    assert (~dframe[~dframe["is_active"]]["inactive_info"].isna()).all()
 
 
 @pytest.mark.usefixtures("reek_data")

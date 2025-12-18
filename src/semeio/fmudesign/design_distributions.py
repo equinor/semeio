@@ -346,9 +346,9 @@ def read_correlations(excel_filename: str, corr_sheet: str) -> pd.DataFrame:
 
     upper_idx = np.triu_indices_from(correlations.values, k=1)
     lower_idx = np.tril_indices_from(correlations.values, k=0)  # Include diag
-    lower_entries = correlations.values[lower_idx]
+    lower_entries = correlations.to_numpy()[lower_idx]
 
-    if not np.all(np.isnan(correlations.values[upper_idx])):
+    if not np.all(np.isnan(correlations.to_numpy()[upper_idx])):
         raise ValueError(
             f"All upper-triangular elements in matrix in corr sheet {corr_sheet} must be blank."
         )
@@ -365,7 +365,7 @@ def read_correlations(excel_filename: str, corr_sheet: str) -> pd.DataFrame:
 
     # Upper triangular part is NaN. Fill it with 0. Copy lower triang over
     correlations = correlations.astype(float).fillna(0)
-    mat = correlations.values + correlations.values.T
+    mat = correlations.to_numpy() + correlations.to_numpy().T
     np.fill_diagonal(mat, 1.0)
     correlations.loc[:] = mat
     return correlations

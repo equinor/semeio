@@ -119,7 +119,7 @@ def test_distribution_statistis(tmpdir, monkeypatch, correlations):
         columns=list(design_input["param_name"]),
         index=list(design_input["param_name"]),
     ).astype(str)
-    corr_sheet.values[upper_idx] = ""  # Set upper triang to blank
+    corr_sheet.to_numpy()[upper_idx] = ""  # Set upper triang to blank
 
     # Create a file to do the save => load roundtrip and test that too
     FILENAME = "designinput.xlsx"
@@ -240,7 +240,7 @@ def test_generate_onebyone(tmpdir):
             "MULTZ_ILE",
         ]
     ).all()
-    assert (diskdesign["REAL"].values == np.arange(rows_in_design_matrix)).all()
+    assert (diskdesign["REAL"].to_numpy() == np.arange(rows_in_design_matrix)).all()
     ensemble_size = 10
     sensname = (
         ["rms_seed"] * ensemble_size
@@ -439,7 +439,7 @@ def test_generate_full_mc(tmpdir):
 
     # Make sure adding dependent discrete parameters works.
     disk_depends = pd.read_excel(inputfile, sheet_name="depend1", engine="openpyxl")
-    df_merged = pd.merge(diskdesign, disk_depends, on="DATO", how="inner")
+    df_merged = diskdesign.merge(disk_depends, on="DATO", how="inner")
     assert (df_merged["DERIVED_PARAM1_x"] == df_merged["DERIVED_PARAM1_y"]).all()
     assert (df_merged["DERIVED_PARAM2_x"] == df_merged["DERIVED_PARAM2_y"]).all()
 
@@ -502,7 +502,7 @@ def test_generate_background(tmpdir):
             design.designvalues["SENSNAME"] == "velmodel", background_params
         ]
 
-        assert (background_vals.values == velmodel_vals.values).all()
+        assert (background_vals.to_numpy() == velmodel_vals.to_numpy()).all()
 
         faults_vals = design.designvalues.loc[
             design.designvalues["SENSNAME"] == "faults", background_params
@@ -511,7 +511,7 @@ def test_generate_background(tmpdir):
             design.designvalues["SENSNAME"] == "contacts", background_params
         ]
 
-        assert (faults_vals.values == contacts_vals.values).all()
+        assert (faults_vals.to_numpy() == contacts_vals.to_numpy()).all()
 
         sens6 = design.designvalues[design.designvalues["SENSNAME"] == "sens6"]
         # PARAM5 ~ TruncatedNormal(3, 1, 1, 5)

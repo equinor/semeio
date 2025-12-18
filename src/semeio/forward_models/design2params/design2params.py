@@ -62,7 +62,7 @@ def run(
     except pd.errors.EmptyDataError:
         logger.info(f"{parametersfilename} existed but was empty.")
         parameters = pd.DataFrame(columns=[0, 1])
-    parameters.rename(columns={0: "keys", 1: "parameters"}, inplace=True)
+    parameters = parameters.rename(columns={0: "keys", 1: "parameters"})
 
     _complete_parameters_file(
         realization, parameters, parametersfilename, design_matrix_sheet, default_df
@@ -98,28 +98,22 @@ def _complete_parameters_file(
         raise SystemExit(
             f"Provided realization arg {realization} does not exist in design matrix"
         ) from err
-    realization_values.rename(
-        columns={"index": "keys", realization: "realization"}, inplace=True
+    realization_values = realization_values.rename(
+        columns={"index": "keys", realization: "realization"}
     )
 
     # merge realization from design-matrix with parameters and defaults to one dataframe
     # For pandas>=2.2 we need to make sure that merge preserve the original order
-    parameters.reset_index(names="order_param", inplace=True)
-    realization_values.reset_index(names="order_real", inplace=True)
-    default_sheet.reset_index(names="order_default", inplace=True)
-    merged = pd.merge(
-        parameters,
-        pd.merge(
-            realization_values,
-            default_sheet,
-            on="keys",
-            how="outer",
-        ),
+    parameters = parameters.reset_index(names="order_param")
+    realization_values = realization_values.reset_index(names="order_real")
+    default_sheet = default_sheet.reset_index(names="order_default")
+    merged = parameters.merge(
+        realization_values.merge(default_sheet, on="keys", how="outer"),
         on="keys",
         how="outer",
     )
-    merged.sort_values(["order_param", "order_real", "order_default"], inplace=True)
-    merged.drop(columns=["order_param", "order_real", "order_default"], inplace=True)
+    merged = merged.sort_values(["order_param", "order_real", "order_default"])
+    merged = merged.drop(columns=["order_param", "order_real", "order_default"])
     # add new column with a combined parameters / data
     # from the realization in design matrix
     merged["parameters_realization"] = merged["parameters"].combine_first(
@@ -345,5 +339,5 @@ def _read_defaultssheet(xlsfilename: str, defaultssheetname: str) -> pd.DataFram
         logger.info("No defaultssheet provided, using empty dataframe")
         default_df = pd.DataFrame(columns=[0, 1])
 
-    default_df.rename(columns={0: "keys", 1: "defaults"}, inplace=True)
+    default_df = default_df.rename(columns={0: "keys", 1: "defaults"})
     return default_df

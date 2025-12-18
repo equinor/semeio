@@ -469,13 +469,13 @@ def _read_background(inp_filename: str, bck_sheet: str) -> dict[str, Any]:
     if "corr_sheet" in bck_input:
         backdict["correlations"] = _read_correlations(bck_input, inp_filename)
 
-    if "dist_param1" not in bck_input.columns.values:
+    if "dist_param1" not in bck_input.columns.to_numpy():
         bck_input["dist_param1"] = float("NaN")
-    if "dist_param2" not in bck_input.columns.values:
+    if "dist_param2" not in bck_input.columns.to_numpy():
         bck_input["dist_param2"] = float("NaN")
-    if "dist_param3" not in bck_input.columns.values:
+    if "dist_param3" not in bck_input.columns.to_numpy():
         bck_input["dist_param3"] = float("NaN")
-    if "dist_param4" not in bck_input.columns.values:
+    if "dist_param4" not in bck_input.columns.to_numpy():
         bck_input["dist_param4"] = float("NaN")
 
     for row in bck_input.itertuples():
@@ -598,7 +598,7 @@ def _read_scenario_sensitivity(sensgroup: pd.DataFrame) -> dict[str, Any]:
 def _read_constants(sensgroup: pd.DataFrame) -> dict[str, Any]:
     """Reads constants to be used together with
     seed sensitivity"""
-    if "dist_param1" not in sensgroup.columns.values:
+    if "dist_param1" not in sensgroup.columns.to_numpy():
         sensgroup["dist_param1"] = float("NaN")
     paramdict: dict[str, Any] = {}
     for row in sensgroup.itertuples():
@@ -625,13 +625,13 @@ def _read_dist_sensitivity(sensgroup: pd.DataFrame) -> dict[str, Any]:
     """Reads parameters and distributions
     for monte carlo sensitivities
     """
-    if "dist_param1" not in sensgroup.columns.values:
+    if "dist_param1" not in sensgroup.columns.to_numpy():
         sensgroup["dist_param1"] = float("NaN")
-    if "dist_param2" not in sensgroup.columns.values:
+    if "dist_param2" not in sensgroup.columns.to_numpy():
         sensgroup["dist_param2"] = float("NaN")
-    if "dist_param3" not in sensgroup.columns.values:
+    if "dist_param3" not in sensgroup.columns.to_numpy():
         sensgroup["dist_param3"] = float("NaN")
-    if "dist_param4" not in sensgroup.columns.values:
+    if "dist_param4" not in sensgroup.columns.to_numpy():
         sensgroup["dist_param4"] = float("NaN")
     paramdict: dict[str, Any] = {}
     for row in sensgroup.itertuples():

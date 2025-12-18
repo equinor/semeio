@@ -1,7 +1,6 @@
 import argparse
 import sys
 
-import pandas as pd
 from ert import ErtScript, plugin
 from fmu import ensemble
 
@@ -85,7 +84,7 @@ def csv_exporter(runpathfile, time_index, outputfile, column_keys=None):
         raise UserWarning("No data found") from exc
 
     if not parameters.empty:
-        pd.merge(summary, parameters).to_csv(outputfile, index=False)
+        summary.merge(parameters).to_csv(outputfile, index=False)
     else:
         summary.to_csv(outputfile, index=False)
 
