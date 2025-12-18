@@ -371,7 +371,7 @@ class QualityReporter:
         """
         # Short circuit this case, as there is nothing to do
         if (not show) and (output_dir is None):
-            return None
+            return
 
         def corrfunc(
             x: npt.NDArray[np.float64],
@@ -446,7 +446,7 @@ class QualityReporter:
         """
         # Short circuit this case, as there is nothing to do
         if (not show) and (output_dir is None):
-            return None
+            return
 
         df = self.df[df_corr.columns].select_dtypes(include="number")
 
