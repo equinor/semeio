@@ -114,20 +114,38 @@ extend-exclude = ["tests/legacy_test_data"]
 
 [tool.ruff.lint]
 select = [
+  "A",
+  "AIR",
+  "ANN", # flake8-annotations
+  "ASYNC",
   "B",   # flake-8-bugbear
   "C4",  # flake8-comprehensions
+  "CPY",
+  "DJ",
+  "DOC",
   "F",   # pyflakes
+  "FA",
+  "FAST",
+  "FLY",
+  "FURB",
   "I",   # isort
   "ICN", # flake8-import-conventions
+  "INT",
   "NPY", # numpy specific rules
   "PGH", # pygrep-hooks
   "PIE", # flake8-pie
   "PL",  # pylint
+  "PLC",
+  "PLE",
+  "Q",
+  "RSE",
   "RUF", # ruff specific rules
   "SIM", # flake-8-simplify
+  "SLOT",
+  "TID",
   "UP",  # pyupgrade
   "W",   # pycodestyle
-  "ANN", # flake8-annotations
+  "YTT",
 ]
 ignore = [
   "PLR0911", # too-many-return-statements
