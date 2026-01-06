@@ -145,6 +145,7 @@ select = [
   "RUF", # ruff specific rules
   "SIM", # flake-8-simplify
   "SLOT",
+  "TC",  # type checking imports
   "TID",
   "UP",  # pyupgrade
   "W",   # pycodestyle
