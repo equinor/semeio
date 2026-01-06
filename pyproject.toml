@@ -120,9 +120,7 @@ select = [
   "ASYNC",
   "B",   # flake-8-bugbear
   "C4",  # flake8-comprehensions
-  "CPY",
   "DJ",
-  "DOC",
   "F",   # pyflakes
   "FA",
   "FAST",
