@@ -252,7 +252,7 @@ class DesignMatrix:
         Path(filename).parent.mkdir(exist_ok=True, parents=True)
 
         if not filename.endswith(".xlsx"):
-            filename = filename + ".xlsx"
+            filename += ".xlsx"
             print(f"Warning: Missing .xlsx suffix. Changed to: {filename}")
 
         with pd.ExcelWriter(filename, engine="openpyxl") as writer:
