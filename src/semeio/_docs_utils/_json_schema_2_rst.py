@@ -86,7 +86,7 @@ def _make_documentation(
                 indented = textwrap.indent(
                     normalized,
                     current_indent_level,
-                    lambda line: line.strip() != "",
+                    lambda line: bool(line.strip()),
                 )
                 if not indented.endswith(f"\n{current_indent_level}"):
                     indented = indented.rstrip() + f"\n{current_indent_level}"
