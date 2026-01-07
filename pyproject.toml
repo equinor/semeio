@@ -134,8 +134,9 @@ select = [
   "PD",  # pandas
   "PGH", # pygrep-hooks
   "PIE", # flake8-pie
-  "PL",  # pylint
+  "PLC",
   "PLE",
+  "PLR",
   "PT",  # pytest
   "PYI", # flake8-pyi
   "Q",
@@ -151,8 +152,10 @@ select = [
   "YTT",
 ]
 ignore = [
+  "PLC2701", # import-private-name
   "PLR0911", # too-many-return-statements
   "PLR0912", # too-many-branches
+  "PLR0914", # too-many-local-variables
   "PLR0915", # too-many-statements
   "PLR2004", # magic-value-comparison
   "PLW2901", # redefined-loop-name
