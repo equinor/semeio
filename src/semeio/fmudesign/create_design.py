@@ -587,7 +587,7 @@ class SeedSensitivity(Sensitivity):
                 distributions or values.
         """
         if seedvalues is None:
-            msg = "Seed values must be set when running sensitivity type 'seed'. Got seed: {seedvalues}"
+            msg = f"Seed values must be set when running sensitivity type 'seed'. Got seed: {seedvalues}"
             raise ValueError(msg)
 
         self.sensvalues = pd.DataFrame(index=range(size))
