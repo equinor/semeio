@@ -44,14 +44,15 @@ def run(
 
     with open(result_file_name, "w", encoding="utf-8") as result_file:
         for line in template:
-            if not is_comment(line):
+            rendered_line = line
+            if not is_comment(rendered_line):
                 for key, value in key_vals.items():
-                    line = line.replace(f"<{key}>", str(value))
+                    rendered_line = rendered_line.replace(f"<{key}>", str(value))
 
-                if find_matching_errors(line, template_file_name, template):
+                if find_matching_errors(rendered_line, template_file_name, template):
                     valid = False
 
-            result_file.write(line)
+            result_file.write(rendered_line)
 
     if valid:
         pathlib.Path(_STATUS_FILE_NAME).write_text("DESIGN_KW OK\n", encoding="utf-8")
@@ -213,8 +214,10 @@ def validate_template_keys(
         if is_comment(line):
             continue
         for key, value in key_vals.items():
-            line = line.replace(f"<{key}>", str(value))
-            for error in find_matching_errors(line, template_file_name, template):
+            rendered_line = line.replace(f"<{key}>", str(value))
+            for error in find_matching_errors(
+                rendered_line, template_file_name, template
+            ):
                 ForwardModelStepWarning.warn(error)
 
 

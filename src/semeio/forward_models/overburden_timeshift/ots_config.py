@@ -186,8 +186,8 @@ class OTSConfig(BaseModel):
 
         for field in self.vintages.model_fields_set:
             vintage = getattr(self.vintages, field)
-            for dates in vintage:
-                dates = set(dates)
+            for dates_ in vintage:
+                dates = set(dates_)
                 if not dates.issubset(rst_dates):
                     errors.append(
                         f"Dates: {dates - rst_dates} missing for property: {field}"

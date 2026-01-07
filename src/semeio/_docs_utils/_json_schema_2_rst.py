@@ -8,11 +8,9 @@ def _insert_ref(schema: dict, defs: dict) -> dict:
         if isinstance(value, dict):
             schema[index] = _insert_ref(value, defs)
         elif isinstance(value, list):
-            for index, val in enumerate(value.copy()):
-                if isinstance(val, int):
-                    val = str(val)
-                if "$ref" in val:
-                    value[index] = defs[val["$ref"]].pop("properties")
+            for inner_index, val in enumerate(value.copy()):
+                if isinstance(val, dict) and "$ref" in val:
+                    value[inner_index] = defs[val["$ref"]].pop("properties")
         elif index == "$ref":
             del schema["$ref"]
             schema["must be"] = defs[value].pop("properties")
@@ -34,7 +32,7 @@ def _replace_key(schema: dict, old_key: str, new_key: str) -> None:
         if key == old_key:
             del schema[key]
             schema[new_key] = val
-            key = new_key
+            key = new_key  # noqa: PLW2901
         if isinstance(val, dict):
             _replace_key(schema[key], old_key, new_key)
 
@@ -92,9 +90,8 @@ def _make_documentation(
                     indented = indented.rstrip() + f"\n{current_indent_level}"
                 docs += [indent + f".. code-block:: yaml\n{indented}\n"]
             elif isinstance(val, dict):
-                if key in required and level == 0:
-                    key += "*"
-                docs += [indent + f"**{key}**:"]
+                extrastar = "*" if (key in required and level == 0) else ""
+                docs += [indent + f"**{key}{extrastar}**:"]
                 docs += [_make_documentation(val, level=level + 1)]
             elif isinstance(val, list):
                 docs += [indent + f"**{key}**:"]
