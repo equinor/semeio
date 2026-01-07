@@ -329,9 +329,9 @@ def test_validate_configuration(
     parameter_file_content, template_file_content, expected_warning, tmp_path
 ):
     template_filename = "template.yml.tmpl"
-    Path(template_filename).write_text(template_file_content)
+    Path(template_filename).write_text(template_file_content, encoding="utf-8")
     parameters_filename = "parameters.txt"
-    Path(parameters_filename).write_text(parameter_file_content)
+    Path(parameters_filename).write_text(parameter_file_content, encoding="utf-8")
     with pytest.warns(ForwardModelStepWarning, match=expected_warning):
         design_kw.validate_configuration(template_filename, parameters_filename)
 

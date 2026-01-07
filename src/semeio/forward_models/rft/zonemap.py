@@ -39,7 +39,7 @@ class ZoneMap:
 
         zones_at_k_value: dict[int, Any] = {}
 
-        zonemap_lines_ = Path(filename).read_text(encoding="utf-8P").splitlines()
+        zonemap_lines_ = Path(filename).read_text(encoding="utf-8").splitlines()
 
         zonemap_lines = [
             (strip_comments(line), idx + 1) for idx, line in enumerate(zonemap_lines_)
