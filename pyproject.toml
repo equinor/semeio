@@ -151,6 +151,7 @@ select = [
   "W",   # pycodestyle
   "YTT",
 ]
+preview = true
 ignore = [
   "PLC2701", # import-private-name
   "PLR0911", # too-many-return-statements
