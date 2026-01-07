@@ -3,7 +3,7 @@ import os.path
 from collections.abc import Callable, Iterable, Sequence
 from datetime import date
 from datetime import datetime as dt
-from itertools import product
+from itertools import product, starmap
 from pathlib import Path
 from typing import Any, Literal, NamedTuple, cast
 
@@ -477,10 +477,7 @@ class OverburdenTimeshift:
             name: str
             date: date
 
-        return [
-            Vintage(name, date)
-            for name, date in zip(vintages_name, vintages_date, strict=False)
-        ]
+        return list(starmap(Vintage, zip(vintages_name, vintages_date, strict=False)))
 
     def _report(
         self, func_name: str, base: date, monitor: date, num_points_calculated: int

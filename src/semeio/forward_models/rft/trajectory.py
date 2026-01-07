@@ -1,5 +1,6 @@
 import os
 from collections.abc import Iterator
+from itertools import starmap
 from typing import Any, Self, TypeAlias
 
 import pandas as pd
@@ -145,9 +146,9 @@ class Trajectory:
     """
 
     def __init__(self, points: Any) -> None:  # noqa: ANN401
-        self.trajectory_points: list[TrajectoryPoint] = [
-            TrajectoryPoint(*point) for point in points
-        ]
+        self.trajectory_points: list[TrajectoryPoint] = list(
+            starmap(TrajectoryPoint, points)
+        )
 
     def __getitem__(self, i: int) -> TrajectoryPoint:
         return self.trajectory_points[i]
