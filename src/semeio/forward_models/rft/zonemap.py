@@ -1,6 +1,7 @@
 import argparse
 import os
 from collections.abc import Container, Mapping
+from pathlib import Path
 from typing import Any, Self
 
 from semeio.forward_models.rft.utility import strip_comments
@@ -38,11 +39,10 @@ class ZoneMap:
 
         zones_at_k_value: dict[int, Any] = {}
 
-        with open(filename, encoding="utf-8") as file_handle:
-            _zonemap_lines = file_handle.readlines()
+        zonemap_lines_ = Path(filename).read_text(encoding="utf-8P").splitlines()
 
         zonemap_lines = [
-            (strip_comments(line), idx + 1) for idx, line in enumerate(_zonemap_lines)
+            (strip_comments(line), idx + 1) for idx, line in enumerate(zonemap_lines_)
         ]
         base_err_msg = (
             "Line {line_number} in ZoneMap file {filename} "

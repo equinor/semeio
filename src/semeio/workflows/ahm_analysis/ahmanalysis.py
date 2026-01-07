@@ -134,8 +134,8 @@ class AhmAnalysisJob(ErtScript):
         prior_ensemble = None
         if ensemble is None:
             with contextlib.suppress(KeyError):
-                for _experiment in storage.experiments:
-                    ensemble = _experiment.get_ensemble_by_name(prior_name)
+                for experiment in storage.experiments:
+                    ensemble = experiment.get_ensemble_by_name(prior_name)
 
         prior_ensemble = ensemble
 

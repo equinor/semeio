@@ -75,14 +75,14 @@ def test_ots_config_run_parameters(
     assert (s_horizon.get_nx() > grid.get_ny()) == results[-1]
     assert (s_horizon.get_ny() > grid.get_nx()) == results[-1]
 
-    _err = 0.01
+    err = 0.01
     nx = s_horizon.get_nx()
     ny = s_horizon.get_ny()
     arr = to_numpy(s_horizon)
     sh_top_left = arr[: ny // 2 - 1, : nx // 2 - 1].sum()
     sh_bottom_right = arr[ny // 2 :, nx // 2 :].sum()
-    assert ((sh_top_left - _err) > 0) == results[0]
-    assert ((sh_bottom_right - _err) > 0) == results[1]
+    assert ((sh_top_left - err) > 0) == results[0]
+    assert ((sh_bottom_right - err) > 0) == results[1]
 
     # ts_simple1
     ts_simple1 = xtgeo.surface_from_file(
@@ -96,8 +96,8 @@ def test_ots_config_run_parameters(
     arr = to_numpy(ts_simple1)
     ts1_top_left = arr[: ny // 2 - 1, : nx // 2 - 1].sum()
     ts1_bottom_right = arr[ny // 2 :, nx // 2 :].sum()
-    assert ((ts1_top_left - _err) > 0) == results[0]
-    assert ((ts1_bottom_right - _err) > 0) == results[1]
+    assert ((ts1_top_left - err) > 0) == results[0]
+    assert ((ts1_bottom_right - err) > 0) == results[1]
     assert ts1_top_left + ts1_bottom_right < sh_top_left + sh_bottom_right
 
     # ts_simple2
@@ -112,8 +112,8 @@ def test_ots_config_run_parameters(
     arr = to_numpy(ts_simple2)
     ts2_top_left = arr[: ny // 2 - 1, : nx // 2 - 1].sum()
     ts2_bottom_right = arr[ny // 2 :, nx // 2 :].sum()
-    assert ((ts2_top_left - _err) > 0) == results[0]
-    assert ((ts2_bottom_right - _err) > 0) == results[1]
+    assert ((ts2_top_left - err) > 0) == results[0]
+    assert ((ts2_bottom_right - err) > 0) == results[1]
     assert ts2_top_left + ts2_bottom_right < sh_top_left + sh_bottom_right
     assert ts2_top_left + ts2_bottom_right < ts1_top_left + ts1_bottom_right
 
@@ -129,6 +129,6 @@ def test_ots_config_run_parameters(
     arr = to_numpy(ts_simple2)
     dpv_top_left = arr[: ny // 2 - 1, : nx // 2 - 1].sum()
     dpv_bottom_right = arr[ny // 2 :, nx // 2 :].sum()
-    assert ((dpv_top_left - _err) > 0) == results[0]
-    assert ((dpv_bottom_right - _err) > 0) == results[1]
+    assert ((dpv_top_left - err) > 0) == results[0]
+    assert ((dpv_bottom_right - err) > 0) == results[1]
     assert dpv_top_left + dpv_bottom_right < sh_top_left + sh_bottom_right

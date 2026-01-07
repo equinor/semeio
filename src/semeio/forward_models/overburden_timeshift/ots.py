@@ -495,9 +495,9 @@ class OverburdenTimeshift:
 
     def _get_non_nan_points(self) -> list[int]:
         points_to_calculate = [
-            _id
-            for _id in range(len(self._surface))
-            if not np.isnan(self._surface.z[_id])
+            id_
+            for id_ in range(len(self._surface))
+            if not np.isnan(self._surface.z[id_])
         ]
         if len(points_to_calculate) == 0:
             logging.error(
