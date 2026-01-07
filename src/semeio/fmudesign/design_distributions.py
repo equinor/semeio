@@ -75,7 +75,7 @@ def quantiles_to_values(
         probabilities = np.ones(len(values)) / len(values)
 
     if not np.isclose(np.sum(probabilities), 1.0):
-        probabilities = probabilities / np.sum(probabilities)
+        probabilities /= np.sum(probabilities)
 
     assert np.all(probabilities >= 0)
 
