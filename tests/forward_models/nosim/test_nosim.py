@@ -66,5 +66,7 @@ def test_nosim(nosim_command, data_input, data_expected):
     subprocess.check_call(
         ["ert", "test_run", "--disable-monitoring", "nosim.ert", "--verbose"],
     )
-    with open("nosim/realization-0/iter-0/TEST.DATA", encoding="utf-8") as file:
-        assert file.read() == data_expected
+    assert (
+        pathlib.Path("nosim/realization-0/iter-0/TEST.DATA").read_text("utf-8")
+        == data_expected
+    )

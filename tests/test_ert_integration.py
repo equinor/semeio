@@ -74,8 +74,7 @@ def test_forward_model_error_propagation(forward_model, configuration, expected_
             ["ert", "test_run", "--disable-monitoring", "config.ert", "--verbose"],
             check=True,
         )
-    with open(
-        f"simulations/realization-0/iter-0/{forward_model}.stderr.0", encoding="utf-8"
-    ) as fin:
-        error = fin.read()
+    error = pathlib.Path(
+        f"simulations/realization-0/iter-0/{forward_model}.stderr.0"
+    ).read_text(encoding="utf-8")
     assert expected_error in error

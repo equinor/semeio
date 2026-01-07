@@ -1,4 +1,5 @@
 import os
+import pathlib
 
 import pandas as pd
 import pytest
@@ -36,9 +37,10 @@ def test_write_gen_data_files_always_pressure(tmpdir):
     _write_gen_data_files(dframe, ".", "A-1", 0)
     pressure_file = "RFT_A-1_0"
     assert os.path.exists(pressure_file)
-    with open(pressure_file, encoding="utf8") as f_handle:
-        pressure_lines = f_handle.read().splitlines()
-    assert pressure_lines == ["-1", "-1"]
+    assert pathlib.Path(pressure_file).read_text(encoding="utf8").splitlines() == [
+        "-1",
+        "-1",
+    ]
 
     swat_file = "RFT_A-1_SWAT_0"
     assert not os.path.exists(swat_file)

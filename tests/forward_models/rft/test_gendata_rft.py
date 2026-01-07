@@ -234,11 +234,10 @@ def test_gendata_inactive_info_point_not_in_grid(tmpdir):
         ]
     )
 
-    with open("RFT_B-1AH_0_inactive_info", encoding="utf-8") as file:
-        result = file.read()
-        assert result.startswith(
-            "TRAJECTORY_POINT_NOT_IN_GRID (utm_x=0.0, utm_y=1.0, measured_depth=2.0)"
-        )
+    result = Path("RFT_B-1AH_0_inactive_info").read_text(encoding="utf-8")
+    assert result.startswith(
+        "TRAJECTORY_POINT_NOT_IN_GRID (utm_x=0.0, utm_y=1.0, measured_depth=2.0)"
+    )
 
 
 @pytest.mark.usefixtures("norne_data")
@@ -270,9 +269,8 @@ def test_gendata_inactive_info_zone_mismatch(tmpdir):
         ]
     )
 
-    with open("RFT_B-1AH_0_inactive_info", encoding="utf-8") as file:
-        result = file.read()
-        assert result.startswith("ZONE_MISMATCH (utm_x=")
+    result = Path("RFT_B-1AH_0_inactive_info").read_text(encoding="utf-8")
+    assert result.startswith("ZONE_MISMATCH (utm_x=")
 
 
 @pytest.mark.usefixtures("norne_data")
@@ -304,9 +302,8 @@ def test_gendata_inactive_info_not_in_rft(tmpdir):
         ]
     )
 
-    with open("RFT_B-1AH_0_inactive_info", encoding="utf-8") as file:
-        result = file.read()
-        assert result.startswith("TRAJECTORY_POINT_NOT_IN_RFT (utm_x=")
+    result = Path("RFT_B-1AH_0_inactive_info").read_text(encoding="utf-8")
+    assert result.startswith("TRAJECTORY_POINT_NOT_IN_RFT (utm_x=")
 
 
 @pytest.mark.usefixtures("norne_data")
@@ -330,9 +327,8 @@ def test_gendata_inactive_info_zone_missing_value(tmpdir):
         ]
     )
 
-    with open("RFT_B-1AH_0_inactive_info", encoding="utf-8") as file:
-        result = file.read()
-        assert result.startswith("ZONEMAP_MISSING_VALUE (utm_x=")
+    result = Path("RFT_B-1AH_0_inactive_info").read_text(encoding="utf-8")
+    assert result.startswith("ZONEMAP_MISSING_VALUE (utm_x=")
 
 
 @pytest.mark.usefixtures("norne_data")
