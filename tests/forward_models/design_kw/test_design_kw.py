@@ -242,15 +242,12 @@ def test_run(filenames):
         parameters_file_name=parameter_filename,
     )
 
-    with open(result_filename, encoding="utf-8") as result_file:
-        result = result_file.read()
+    result = Path(result_filename).read_text(encoding="utf-8")
 
-    with open(reference_filename, encoding="utf-8") as reference_file:
-        reference = reference_file.read()
+    reference = Path(reference_filename).read_text(encoding="utf-8")
 
     # pylint: disable=protected-access
-    with open(design_kw._STATUS_FILE_NAME, encoding="utf-8") as status_file:
-        status = status_file.read()
+    status = Path(design_kw._STATUS_FILE_NAME).read_text(encoding="utf-8")
 
     assert result == reference
     assert status == "DESIGN_KW OK\n"

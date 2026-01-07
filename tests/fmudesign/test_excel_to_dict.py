@@ -1,6 +1,7 @@
 """Testing excel_to_dict"""
 
 import os
+from pathlib import Path
 
 import numpy as np
 import openpyxl
@@ -76,8 +77,7 @@ def test_excel_to_dict(tmpdir, monkeypatch):
     # Dump to yaml:
     inputdict_to_yaml(dict_design, "dictdesign.yaml")
     assert os.path.exists("dictdesign.yaml")
-    with open("dictdesign.yaml", encoding="utf-8") as inputfile:
-        assert "RMS_SEED" in inputfile.read()
+    assert "RMS_SEED" in Path("dictdesign.yaml").read_text(encoding="utf-8")
 
 
 def test_duplicate_sensname_exception(tmpdir, monkeypatch):
