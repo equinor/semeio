@@ -75,12 +75,12 @@ class OTSResSurface:
         z = np.empty(shape=(nx * ny), dtype=np.float32)
         for i in range(nx):
             for j in range(ny):
-                _k = nz - 1
+                k_ = nz - 1
                 for k in range(nz):
                     if grid.active(ijk=(i, j, k)):
-                        _k = k
+                        k_ = k
                         break
-                ijk = (i, j, _k)
+                ijk = (i, j, k_)
 
                 top = [grid.get_cell_corner(c, ijk=ijk) for c in range(4)]
                 pos = i * ny + j
