@@ -90,15 +90,15 @@ def is_xml(file_name: str, template: Sequence[str]) -> bool:
 
 
 def unmatched_templates(line: str) -> list[str]:
-    bracketpattern = re.compile("<.+?>")
+    bracketpattern = re.compile(r"<.+?>")
     if bracketpattern.search(line):
         return bracketpattern.findall(line)
     return []
 
 
 def is_comment(line: str) -> Match[str] | None:
-    ecl_comment_pattern = re.compile("^--")
-    std_comment_pattern = re.compile("^#")
+    ecl_comment_pattern = re.compile(r"^--")
+    std_comment_pattern = re.compile(r"^#")
     return ecl_comment_pattern.search(line) or std_comment_pattern.search(line)
 
 
