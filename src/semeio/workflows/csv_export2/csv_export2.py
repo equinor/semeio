@@ -90,7 +90,7 @@ def csv_exporter(runpathfile, time_index, outputfile, column_keys=None):
 
 
 class CsvExport2Job(ErtScript):
-    def run(self, *args, **_):
+    def run(self, *args, **_):  # noqa: PLR6301
         main(args)
 
 
