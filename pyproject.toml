@@ -132,6 +132,7 @@ select = [
   "ISC", # string concatenation
   "NPY", # numpy specific rules
   "PD",  # pandas
+  "PERF",
   "PGH", # pygrep-hooks
   "PIE", # flake8-pie
   "PLC",
