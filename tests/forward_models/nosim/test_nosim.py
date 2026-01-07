@@ -1,4 +1,5 @@
 import os
+import pathlib
 import shutil
 import subprocess
 
@@ -60,8 +61,7 @@ def test_nosim(nosim_command, data_input, data_expected):
     with open("nosim.ert", "a", encoding="utf-8") as file:
         file.writelines([f"FORWARD_MODEL {nosim_command}"])
 
-    with open("TEST.DATA", "w", encoding="utf-8") as file:
-        file.write(data_input)
+    pathlib.Path("TEST.DATA").write_text(data_input, encoding="utf-8")
 
     subprocess.check_call(
         ["ert", "test_run", "--disable-monitoring", "nosim.ert", "--verbose"],

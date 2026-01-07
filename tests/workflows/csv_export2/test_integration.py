@@ -179,19 +179,18 @@ def verify_exported_file(exported_file_name, result_header, result_iter_rel):
 @pytest.mark.usefixtures("norne_mocked_ensembleset")
 def test_ert_integration():
     """Mock an ERT config and test the workflow"""
-    with open("FOO.DATA", "w", encoding="utf-8") as file_h:
-        file_h.write("--Empty")
+    Path("FOO.DATA").write_text("--Empty", encoding="utf-8")
 
-    with open("wf_csvexport", "w", encoding="utf-8") as file_h:
-        file_h.write(
-            # This workflow is representing the example in csv_export2.py:
-            "MAKE_DIRECTORY csv_output\n"
-            "EXPORT_RUNPATH * | *\n"  # (not really relevant in mocked case)
-            "CSV_EXPORT2 runpathfile csv_output/data.csv monthly FOPT\n"
-            # Example in documentation uses <RUNPATH_FILE> which is
-            # linked to the RUNPATH keyword that we don't use in this
-            # test (mocking data gets more complex if that is to be used)
-        )
+    Path("wf_csvexport").write_text(
+        # This workflow is representing the example in csv_export2.py:
+        "MAKE_DIRECTORY csv_output\n"
+        "EXPORT_RUNPATH * | *\n"  # (not really relevant in mocked case)
+        "CSV_EXPORT2 runpathfile csv_output/data.csv monthly FOPT\n",
+        # Example in documentation uses <RUNPATH_FILE> which is
+        # linked to the RUNPATH keyword that we don't use in this
+        # test (mocking data gets more complex if that is to be used)
+        encoding="utf-8",
+    )
 
     ert_config = [
         "ECLBASE FOO.DATA",
@@ -202,8 +201,7 @@ def test_ert_integration():
     ]
 
     ert_config_fname = "test.ert"
-    with open(ert_config_fname, "w", encoding="utf-8") as file_h:
-        file_h.write("\n".join(ert_config))
+    Path(ert_config_fname).write_text("\n".join(ert_config), encoding="utf-8")
 
     subprocess.run(
         ["ert", "test_run", "--disable-monitoring", ert_config_fname], check=True
@@ -220,15 +218,15 @@ def test_ert_integration_errors(snapshot):
     This test proves that CSV_EXPORT2 happily skips non-existing
     realizations, but emits a warning that there is no STATUS file.
     """
-    with open("FOO.DATA", "w", encoding="utf-8") as file_h:
-        file_h.write("--Empty")
+    Path("FOO.DATA").write_text("--Empty", encoding="utf-8")
 
     # Append a not-existing realizations to the runpathfile:
     with open("runpathfile", "a", encoding="utf-8") as file_h:
         file_h.write("002 realization-2/iter-0 NORNE_1 000")
 
-    with open("wf_csvexport", "w", encoding="utf-8") as file_h:
-        file_h.write("CSV_EXPORT2 runpathfile data.csv monthly FOPT\n")
+    Path("wf_csvexport").write_text(
+        "CSV_EXPORT2 runpathfile data.csv monthly FOPT\n", encoding="utf-8"
+    )
 
     ert_config = [
         "ECLBASE FOO.DATA",
@@ -239,8 +237,7 @@ def test_ert_integration_errors(snapshot):
     ]
 
     ert_config_fname = "test.ert"
-    with open(ert_config_fname, "w", encoding="utf-8") as file_h:
-        file_h.write("\n".join(ert_config))
+    Path(ert_config_fname).write_text("\n".join(ert_config), encoding="utf-8")
 
     subprocess.run(
         ["ert", "test_run", "--disable-monitoring", ert_config_fname], check=True

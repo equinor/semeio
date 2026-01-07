@@ -272,8 +272,7 @@ def test_existing_parameterstxt(
     tmpdir.chdir()
 
     params_file = "parameters.txt"
-    with open(params_file, "w", encoding="utf-8") as file_h:
-        file_h.write(exist_params)
+    Path(params_file).write_text(exist_params, encoding="utf-8")
 
     designsheet_df = pd.DataFrame.from_records(data=[design_m])
     designsheet_df.insert(0, "REAL", [0])

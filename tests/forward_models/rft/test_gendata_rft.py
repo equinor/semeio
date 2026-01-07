@@ -377,8 +377,7 @@ def test_partial_rft_file(tmpdir, caplog):
 
 @pytest.mark.usefixtures("norne_data")
 def test_one_wrong_date(tmpdir, caplog):
-    with open("well_wrongtime.txt", "w", encoding="utf-8") as file_h:
-        file_h.write("B-1AH 2045-12-01 0")
+    Path("well_wrongtime.txt").write_text("B-1AH 2045-12-01 0", encoding="utf-8")
 
     csv_filename = "gendata_rft.csv"
     with pytest.raises(SystemExit):
@@ -408,8 +407,7 @@ def test_empty_well_and_time(tmpdir, caplog):
     def file_count_cwd():
         return len(next(iter(os.walk(".")))[2])
 
-    with open("empty.txt", "w", encoding="utf-8") as file_h:
-        file_h.write("")
+    Path("empty.txt").write_text("", encoding="utf-8")
 
     pre_file_count = file_count_cwd()
     with pytest.raises(SystemExit):

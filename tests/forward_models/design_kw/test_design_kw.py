@@ -147,10 +147,8 @@ def test_rm_genkw_prefix_ignore(paramsdict, ignores, expected):
 )
 def test_genkw_prefix_handling(paramlines, template, result, tmpdir):
     tmpdir.chdir()
-    with open("parameters.txt", "w", encoding="utf-8") as file_h:
-        file_h.write(paramlines)
-    with open("template.tmpl", "w", encoding="utf-8") as file_h:
-        file_h.write(template)
+    Path("parameters.txt").write_text(paramlines, encoding="utf-8")
+    Path("template.tmpl").write_text(template, encoding="utf-8")
     design_kw.run("template.tmpl", "result.txt", logging.DEBUG)
     with open("result.txt", encoding="utf-8") as file_h:
         resulttxt = "\n".join(file_h.readlines())

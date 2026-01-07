@@ -1,3 +1,4 @@
+import pathlib
 import subprocess
 
 import pytest
@@ -63,8 +64,7 @@ def test_forward_model_error_propagation(forward_model, configuration, expected_
     captured in a specific stderr file.
     """
     config = DEFAULT_CONFIG.format(forward_model, configuration)
-    with open("config.ert", "w", encoding="utf-8") as file:
-        file.write(config)
+    pathlib.Path("config.ert").write_text(config, encoding="utf-8")
 
     with pytest.raises(
         subprocess.CalledProcessError,
