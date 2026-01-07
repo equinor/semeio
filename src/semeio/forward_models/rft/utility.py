@@ -73,7 +73,9 @@ def load_and_parse_well_time_file(
         try:
             report_step = int(tokens[report_step_token])
         except ValueError as err:
-            err_msg = base_error_msg + "Unable to convert {report_step} to int"
+            err_msg = (
+                base_error_msg + f"Unable to convert {tokens[report_step_token]} to int"
+            )
             raise argparse.ArgumentTypeError(
                 err_msg.format(
                     line_number=line_number,
