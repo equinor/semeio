@@ -1,4 +1,5 @@
 import os
+import pathlib
 
 import pytest
 
@@ -34,13 +35,13 @@ def mock_norne_data(reals, iters, parameters=True):
                 os.path.join(runpath, f"NORNE_{real}.SMSPEC"),
             )
             if parameters:
-                with open(
-                    os.path.join(runpath, "parameters.txt"), "w", encoding="utf-8"
-                ) as p_fileh:
-                    p_fileh.write(f"FOO 1{real}{iteration}")
+                pathlib.Path(os.path.join(runpath, "parameters.txt")).write_text(
+                    f"FOO 1{real}{iteration}", encoding="utf-8"
+                )
             # Ensure fmu-ensemble does not complain on missing STATUS
-            with open(os.path.join(runpath, "STATUS"), "w", encoding="utf-8") as file_h:
-                file_h.write("a:b\na: 09:00:00 .... 09:00:01")
+            pathlib.Path(os.path.join(runpath, "STATUS")).write_text(
+                "a:b\na: 09:00:00 .... 09:00:01", encoding="utf-8"
+            )
 
     with open("runpathfile", "w", encoding="utf-8") as file_h:
         for iteration in iters:

@@ -1,4 +1,5 @@
 import logging
+import pathlib
 import re
 import shlex
 from collections.abc import Iterable, Mapping, Sequence
@@ -53,8 +54,7 @@ def run(
             result_file.write(line)
 
     if valid:
-        with open(_STATUS_FILE_NAME, "w", encoding="utf-8") as status_file:
-            status_file.write("DESIGN_KW OK\n")
+        pathlib.Path(_STATUS_FILE_NAME).write_text("DESIGN_KW OK\n", encoding="utf-8")
 
     return valid
 

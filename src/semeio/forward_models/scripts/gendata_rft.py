@@ -1,6 +1,7 @@
 import argparse
 import logging
 import os
+import pathlib
 import sys
 from argparse import ArgumentParser
 from typing import TYPE_CHECKING
@@ -171,8 +172,9 @@ def main_entry_point(argv: list[str] | None = None) -> None:
             csvfile=options.csvfile,
             outputdirectory=options.outputdirectory,
         )
-        with open("GENDATA_RFT.OK", "w", encoding="utf-8") as file_handle:
-            file_handle.write("GENDATA RFT completed OK")
+        pathlib.Path("GENDATA_RFT.OK").write_text(
+            "GENDATA RFT completed OK", encoding="utf-8"
+        )
         logger.info("Completed!")
     except ValueError as exception:
         logger.error(str(exception))
