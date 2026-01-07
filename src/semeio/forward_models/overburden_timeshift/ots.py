@@ -132,15 +132,19 @@ def ots_run(parameter_file: str) -> None:
                 x_cord, y_cord, _ = surface_horizon.get_xy_value_from_ij(
                     x_index, y_index
                 )
-                ts = []
-                for iv in range(len(vintage_pairs.ts)):
-                    ts.append(tshift_ts[iv][point])
-                for iv in range(len(vintage_pairs.ts_simple)):
-                    ts.append(tshift_ts_simple[iv].get_value_from_xy((x_cord, y_cord)))
-                for iv in range(len(vintage_pairs.dpv)):
-                    ts.append(tshift_dpv[iv].get_value_from_xy((x_cord, y_cord)))
-                for iv in range(len(vintage_pairs.ts_rporv)):
-                    ts.append(tshift_ts_rporv[iv].get_value_from_xy((x_cord, y_cord)))
+                ts = [tshift_ts[iv][point] for iv in range(len(vintage_pairs.ts))]
+                ts.extend(
+                    tshift_ts_simple[iv].get_value_from_xy((x_cord, y_cord))
+                    for iv in range(len(vintage_pairs.ts_simple))
+                )
+                ts.extend(
+                    tshift_dpv[iv].get_value_from_xy((x_cord, y_cord))
+                    for iv in range(len(vintage_pairs.dpv))
+                )
+                ts.extend(
+                    tshift_ts_rporv[iv].get_value_from_xy((x_cord, y_cord))
+                    for iv in range(len(vintage_pairs.ts_rporv))
+                )
                 f.write(
                     line.format(
                         x_cord,
@@ -469,9 +473,7 @@ class OverburdenTimeshift:
             vintages.add(pair[0])
             vintages.add(pair[1])
         vintages_date = list(vintages)
-        vintages_name = []
-        for i in range(len(vintages_date)):
-            vintages_name.append(f"S{i}")
+        vintages_name = [f"S{i}" for i in range(len(vintages_date))]
 
         class Vintage(NamedTuple):
             name: str
