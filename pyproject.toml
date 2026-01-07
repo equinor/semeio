@@ -135,7 +135,6 @@ select = [
   "PGH", # pygrep-hooks
   "PIE", # flake8-pie
   "PL",  # pylint
-  "PLC",
   "PLE",
   "PT",  # pytest
   "PYI", # flake8-pyi
