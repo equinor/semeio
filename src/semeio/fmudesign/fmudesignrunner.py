@@ -182,7 +182,7 @@ getting help:
     # =============== SUBCOMMAND: init ===============
     description = "Initialize a demo file to get started with fmudesign."
     epilog = "available demo files:\n"
-    ljust = max([len(f.filename) for f in EXAMPLES])
+    ljust = max(len(f.filename) for f in EXAMPLES)
     for example in EXAMPLES:
         epilog += f"  - {example.filename.ljust(ljust)} : {example.description}\n"
 
