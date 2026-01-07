@@ -165,8 +165,8 @@ def map_dependencies(
         from_values = from_dict["from_values"]
         from_values = [to_numeric_safe(value) for value in from_values]
 
-        for to_param, to_values in from_dict["to_params"].items():
-            to_values = [to_numeric_safe(value) for value in to_values]
+        for to_param, to_values_ in from_dict["to_params"].items():
+            to_values = [to_numeric_safe(value) for value in to_values_]
 
             # No values to map to => to_param = copy(from_param)
             if not to_values:

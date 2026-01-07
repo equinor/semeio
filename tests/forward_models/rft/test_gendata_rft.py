@@ -770,9 +770,9 @@ def _assert_almost_equal_line_by_line(file1, file2):
 
     assert len(file1_content) == len(file2_content)
 
-    for line1, line2 in zip(file1_content, file2_content, strict=False):
+    for line1_, line2_ in zip(file1_content, file2_content, strict=False):
         try:
-            line1, line2 = float(line1), float(line2)
+            line1, line2 = float(line1_), float(line2_)
         except ValueError:
             continue
         np.testing.assert_almost_equal(line1, line2, decimal=7)
