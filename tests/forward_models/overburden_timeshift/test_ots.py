@@ -224,7 +224,7 @@ def test_geertsma_TS_simple(set_up):
     ]
 
     tshift = ots.geertsma_ts_simple(vintage_pairs)
-    assert tshift[0][(0, 0)] == pytest.approx(-0.01006, abs=0.0001)
+    assert tshift[0][0, 0] == pytest.approx(-0.01006, abs=0.0001)
 
     parms.convention = -1
     ots = OverburdenTimeshift(
@@ -245,7 +245,7 @@ def test_geertsma_TS_simple(set_up):
     ]
 
     tshift = ots.geertsma_ts_simple(vintage_pairs)
-    assert tshift[0][(0, 0)] == pytest.approx(0.01006, abs=0.0001)
+    assert tshift[0][0, 0] == pytest.approx(0.01006, abs=0.0001)
 
 
 @pytest.mark.usefixtures("setup_tmpdir")
@@ -284,7 +284,7 @@ def test_geertsma_TS_rporv(set_up):
     ]
 
     tshift = ots.geertsma_ts_rporv(vintage_pairs)
-    assert tshift[0][(0, 0)] == pytest.approx(0.0, abs=0.0001)
+    assert tshift[0][0, 0] == pytest.approx(0.0, abs=0.0001)
 
 
 @pytest.mark.usefixtures("setup_tmpdir")
@@ -324,7 +324,7 @@ def test_geertsma_TS(set_up):
 
     tshift = ots.geertsma_ts(vintage_pairs)
 
-    assert tshift[0][(0, 0)] == pytest.approx(-0.00104, abs=0.0001)
+    assert tshift[0][0, 0] == pytest.approx(-0.00104, abs=0.0001)
 
     parms.convention = -1
 
@@ -346,7 +346,7 @@ def test_geertsma_TS(set_up):
     ]
 
     tshift = ots.geertsma_ts(vintage_pairs)
-    assert tshift[0][(0, 0)] == pytest.approx(0.00104, abs=0.0001)
+    assert tshift[0][0, 0] == pytest.approx(0.00104, abs=0.0001)
 
 
 @pytest.mark.usefixtures("setup_tmpdir")
@@ -378,11 +378,11 @@ def test_dPV(set_up):
     ]
 
     tshift = ots.dpv(vintage_pairs)
-    assert tshift[0][(0, 0)] == pytest.approx(((20 - 10) * 1e6 + (0 - 0) * 1e6) / 1e9)
-    assert tshift[0][(0, 1)] == pytest.approx(((20 - 10) * 1e6 + (0 - 0) * 1e6) / 1e9)
+    assert tshift[0][0, 0] == pytest.approx(((20 - 10) * 1e6 + (0 - 0) * 1e6) / 1e9)
+    assert tshift[0][0, 1] == pytest.approx(((20 - 10) * 1e6 + (0 - 0) * 1e6) / 1e9)
 
-    assert tshift[1][(0, 0)] == pytest.approx(((25 - 20) * 1e6 + (0 - 0) * 1e6) / 1e9)
-    assert tshift[1][(0, 1)] == pytest.approx(((25 - 20) * 1e6 + (0 - 0) * 1e6) / 1e9)
+    assert tshift[1][0, 0] == pytest.approx(((25 - 20) * 1e6 + (0 - 0) * 1e6) / 1e9)
+    assert tshift[1][0, 1] == pytest.approx(((25 - 20) * 1e6 + (0 - 0) * 1e6) / 1e9)
 
     parms.convention = -1
 
@@ -398,7 +398,7 @@ def test_dPV(set_up):
         parms.velocity_model,
     )
     tshift_b_m = ots.dpv(vintage_pairs)
-    assert tshift[0][(0, 0)] == pytest.approx(-tshift_b_m[0][(0, 0)])
+    assert tshift[0][0, 0] == pytest.approx(-tshift_b_m[0][0, 0])
 
 
 @pytest.mark.usefixtures("setup_tmpdir")
