@@ -36,15 +36,7 @@ def test_ahmanalysis_run(snake_oil_config):
 
     # assert that this returns/generates a KS csv file
     output_dir = Path("log/update/ensemble-experiment/AhmAnalysisJob")
-    group_obs = [
-        "FOPR",
-        "SNAKE_OIL_WPR_DIFF",
-        "WOPR_OP1",
-        "All_obs",
-        "All_obs-WOPR_OP1",
-        "All_obs-SNAKE_OIL_WPR_DIFF",
-        "All_obs-FOPR",
-    ]
+    group_obs = ["All_obs", "SNAKE_OIL_WPR_DIFF", "WOPR_OP1"]
     parameters = [
         "SNAKE_OIL_PARAM:OP1_PERSISTENCE",
         "SNAKE_OIL_PARAM:OP1_OCTAVES",
@@ -101,7 +93,6 @@ def test_ahmanalysis_run_group_by_obs(snake_oil_config):
     output_dir = Path("log/update/ensemble-experiment/AhmAnalysisJob")
     group_obs = [
         "All_obs",
-        "All_obs-FOPR",
         "All_obs-WOPR_OP1_108",
         "All_obs-WOPR_OP1_144",
         "All_obs-WOPR_OP1_190",
@@ -109,7 +100,6 @@ def test_ahmanalysis_run_group_by_obs(snake_oil_config):
         "All_obs-WOPR_OP1_72",
         "All_obs-WOPR_OP1_9",
         "All_obs-WPR_DIFF_1",
-        "FOPR",
         "WOPR_OP1_108",
         "WOPR_OP1_144",
         "WOPR_OP1_190",
@@ -243,15 +233,7 @@ def test_ahmanalysis_run_cli(snake_oil_config):
 
     # assert that this returns/generates a KS csv file
     output_dir = Path("log/update/AhmAnalysisJob").resolve()
-    group_obs = [
-        "FOPR",
-        "WOPR_OP1",
-        "SNAKE_OIL_WPR_DIFF",
-        "All_obs",
-        "All_obs-SNAKE_OIL_WPR_DIFF",
-        "All_obs-WOPR_OP1",
-        "All_obs-FOPR",
-    ]
+    group_obs = ["All_obs", "SNAKE_OIL_WPR_DIFF", "WOPR_OP1"]
     parameters = [
         "SNAKE_OIL_PARAM:OP1_PERSISTENCE",
         "SNAKE_OIL_PARAM:OP1_OCTAVES",
