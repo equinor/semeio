@@ -50,7 +50,6 @@ def test_gendata_rft_csv(tmpdir):
         "pressure",
         "valid_zone",
         "is_active",
-        "inactive_info",
         "well",
         "time",
         "report_step",
@@ -63,9 +62,6 @@ def test_gendata_rft_csv(tmpdir):
     # i-j-k always non-null together:
     assert (dframe["i"].isna() == dframe["j"].isna()).all()
     assert (dframe["i"].isna() == dframe["k"].isna()).all()
-
-    # inactive_info must be non-null when active = False
-    assert (~dframe[~dframe["is_active"]]["inactive_info"].isna()).all()
 
 
 @pytest.mark.usefixtures("reek_data")

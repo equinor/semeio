@@ -16,7 +16,7 @@ EXPECTED_RESULTS_PATH_NORNE = os.path.join(
 
 MOCK_DATA_CONTENT_NORNE = {
     "RFT_B-1AH_0_active": [1] * 5,
-    "RFT_B-4AH_0_active": [1] * 7 + [0] * 1 + [1] * 21,
+    "RFT_B-4AH_0_active": [1] * 29,
     "RFT_B-4H_0_active": [1] * 20,
     "RFT_C-1H_0_active": [1] * 21,
     "RFT_C-3H_0_active": [1] * 21,

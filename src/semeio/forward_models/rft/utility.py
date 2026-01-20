@@ -4,8 +4,8 @@ import os
 import warnings
 from pathlib import Path
 
-from resdata.grid import Grid
 from resdata.rft import ResdataRFTFile
+from resfo_utilities import CornerpointGrid
 
 
 def strip_comments(line: str) -> str:
@@ -113,7 +113,7 @@ def load_and_parse_well_time_file(
     return well_times
 
 
-def valid_eclbase(file_path: str) -> tuple[Grid, ResdataRFTFile]:
+def valid_eclbase(file_path: str) -> tuple[CornerpointGrid, ResdataRFTFile]:
     """Checks whether file_path is a eclbase with an .EGRID and .RFT file.
 
     The filename is assumed to be without extension and two files
@@ -138,8 +138,8 @@ def valid_eclbase(file_path: str) -> tuple[Grid, ResdataRFTFile]:
         raise argparse.ArgumentTypeError(f"The path {grid_filepath} does not exist")
 
     try:
-        ecl_grid = Grid(grid_filepath)
-    except OSError as err:
+        ecl_grid = CornerpointGrid.read_egrid(grid_filepath)
+    except Exception as err:
         raise argparse.ArgumentTypeError(
             f"Could not load eclipse Grid from file: {grid_filepath}\n"
             f"With the following error:\n"

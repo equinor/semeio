@@ -2,12 +2,11 @@ import datetime
 import logging
 import os
 from collections.abc import Mapping, Sequence
-from time import perf_counter
 
 import numpy as np
 import pandas as pd
-from resdata.grid import Grid
 from resdata.rft import ResdataRFTFile
+from resfo_utilities import CornerpointGrid
 
 from semeio.forward_models.rft.trajectory import Trajectory
 from semeio.forward_models.rft.zonemap import ZoneMap
@@ -125,7 +124,7 @@ def _populate_trajectory_points(
     well: str,
     date: datetime.date,
     trajectory_points: Trajectory,
-    ecl_grid: Grid,
+    ecl_grid: CornerpointGrid,
     ecl_rft: ResdataRFTFile,
     zonemap: ZoneMap | None = None,
 ) -> Trajectory | None:
@@ -157,49 +156,19 @@ def _populate_trajectory_points(
             f"No RFT data found for well {well} at date {date}"
         )
         return None
-
-    ijk_guess = None
-
-    start_time = perf_counter()
-    for point in iter(trajectory_points):
-        ijk = ecl_grid.find_cell(
-            point.utm_x, point.utm_y, point.true_vertical_depth, start_ijk=ijk_guess
+    ijks = ecl_grid.find_cell_containing_point(
+        np.array(
+            [
+                (point.utm_x, point.utm_y, point.true_vertical_depth)
+                for point in iter(trajectory_points)
+            ],
+            dtype=np.float32,
         )
+    )
+    for point, ijk in zip(iter(trajectory_points), ijks, strict=True):
         point.set_ijk(ijk)
-        ijk_guess = ijk
         point.update_simdata_from_rft(rft)
         point.validate_zone(zonemap)
-
-    logger.info(f"Finding points took {perf_counter() - start_time}s")
-
-    try:
-        from resfo_utilities import CornerpointGrid  # noqa: PLC0415
-
-        grid = CornerpointGrid.read_egrid(ecl_grid.get_name())
-        start_time = perf_counter()
-        new_points = grid.find_cell_containing_point(
-            np.array(
-                [
-                    (point.utm_x, point.utm_y, point.true_vertical_depth)
-                    for point in iter(trajectory_points)
-                ],
-                dtype=np.float32,
-            )
-        )
-        logger.info(
-            f"Finding points with new method took {perf_counter() - start_time}s"
-        )
-
-        for point, new_point in zip(iter(trajectory_points), new_points, strict=True):
-            if point.grid_ijk != new_point:
-                logger.warning(
-                    "New and old cell finding method"
-                    " did not agree on grid coordinates: "
-                    f"{point.grid_ijk} vs {new_point}"
-                )
-
-    except Exception as err:
-        logger.error(f"Got error {err} while reading egrid with resfo")
 
     return trajectory_points
 
@@ -207,7 +176,7 @@ def _populate_trajectory_points(
 def run(
     well_times: Sequence[tuple[str, datetime.date, int]],
     trajectories: Mapping[str, Trajectory],
-    ecl_grid: Grid,
+    ecl_grid: CornerpointGrid,
     ecl_rft: ResdataRFTFile,
     zonemap: ZoneMap | None = None,
     csvfile: str | None = None,
