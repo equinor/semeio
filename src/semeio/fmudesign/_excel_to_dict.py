@@ -223,7 +223,7 @@ def _excel_to_dict_onebyone(
 
     # Convert NaN values to None and strip other values
     generalinput = {
-        key.strip(): parse_value(value) for (key, value) in generalinput.items()
+        str(key).strip(): parse_value(value) for (key, value) in generalinput.items()
     }
 
     # Check that there are no wrong keys or typos, e.g. 'repets'
@@ -407,7 +407,8 @@ def _read_defaultvalues(filename: str, sheetname: str) -> dict[str, Any]:
             f"Duplicate parameter names found in sheet '{sheetname}': "
             f"{', '.join(duplicate_names)}. All parameter names must be unique."
         )
-    return default_df.iloc[:, 0].to_dict()
+
+    return {str(k): v for k, v in default_df.iloc[:, 0].to_dict().items()}
 
 
 def _read_dependencies(
