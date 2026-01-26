@@ -3,7 +3,7 @@
 [![Actions Status](https://github.com/equinor/semeio/workflows/CI/badge.svg)](https://github.com/equinor/semeio/actions?query=workflow=CI)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-# semeio #
+# semeio
 
 Semeio is a collection of forward models and workflows used in [ERT](https://github.com/equinor/ert). These are
 exposing end points which is considered the API of semeio. If there are submodules that can be applied
