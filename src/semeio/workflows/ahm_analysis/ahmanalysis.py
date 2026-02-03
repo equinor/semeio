@@ -251,9 +251,7 @@ class AhmAnalysisJob(ErtScript):
             ):
                 try:
                     target_experiment = tmp_storage.create_experiment(
-                        parameters=prior_experiment.parameter_configuration.values(),
-                        observations=prior_experiment.observations,
-                        responses=prior_experiment.response_configuration.values(),
+                        experiment_config=prior_experiment.experiment_config,
                     )
                     target_ensemble = tmp_storage.create_ensemble(
                         target_experiment,
