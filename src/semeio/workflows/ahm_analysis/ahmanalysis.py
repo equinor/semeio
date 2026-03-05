@@ -18,6 +18,7 @@ from ert.analysis import (
     ErtAnalysisError,
     ObservationStatus,
     SmootherSnapshot,
+    build_strategy_map,
     smoother_update,
 )
 from ert.config import ESSettings, Field, ObservationSettings
@@ -214,11 +215,6 @@ class AhmAnalysisJob(ErtScript):
                 if p.type == "gen_kw"
             }
         )
-        gen_kw_names = [
-            p.name
-            for p in prior_experiment.parameter_configuration.values()
-            if p.type == "gen_kw"
-        ]
         if field_parameters:
             logger.warning(
                 f"AHM_ANALYSIS will only evaluate scalar parameters, skipping: {field_parameters}"
@@ -259,14 +255,22 @@ class AhmAnalysisJob(ErtScript):
                         ensemble_size=prior_ensemble.ensemble_size,
                     )
 
+                    strategy_map = build_strategy_map(
+                        parameters=prior_ensemble.experiment.update_parameters,
+                        param_configs=prior_ensemble.experiment.parameter_configuration,
+                        inversion=es_settings.inversion,
+                        enkf_truncation=es_settings.enkf_truncation,
+                        distance_localization=es_settings.distance_localization,
+                        localization=es_settings.localization,
+                        correlation_threshold=es_settings.correlation_threshold,
+                        rng=np.random.default_rng(random_seed),
+                    )
                     update_log = smoother_update(
                         prior_storage=prior_ensemble,
                         posterior_storage=target_ensemble,
                         observations=observations,
-                        parameters=field_parameters + gen_kw_names,
                         update_settings=copy.deepcopy(observation_settings),
-                        es_settings=es_settings,
-                        rng=np.random.default_rng(random_seed),
+                        strategy_map=strategy_map,
                     )
                     # Get the active vs total observation info
                     df_update_log = make_update_log_df(update_log)

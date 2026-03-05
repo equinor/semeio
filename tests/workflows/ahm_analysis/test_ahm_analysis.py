@@ -3,7 +3,7 @@ import copy
 import numpy as np
 import pandas as pd
 import pytest
-from ert.analysis import smoother_update
+from ert.analysis import build_strategy_map, smoother_update
 from ert.storage import open_storage
 from scipy import stats
 
@@ -28,16 +28,26 @@ def test_make_update_log_df(snake_oil_config, snapshot):
             prior_ensemble=prior_ens,
         )
 
+        es_settings = snake_oil_config.analysis_config.es_settings
+        strategy_map = build_strategy_map(
+            parameters=prior_ens.experiment.update_parameters,
+            param_configs=prior_ens.experiment.parameter_configuration,
+            inversion=es_settings.inversion,
+            enkf_truncation=es_settings.enkf_truncation,
+            distance_localization=es_settings.distance_localization,
+            localization=es_settings.localization,
+            correlation_threshold=es_settings.correlation_threshold,
+            rng=np.random.default_rng(snake_oil_config.random_seed),
+        )
+
         log = smoother_update(
             prior_storage=prior_ens,
             posterior_storage=posterior_ens,
             observations=sorted(prior_ens.experiment.observation_keys),
-            parameters=sorted(prior_ens.experiment.parameter_configuration.keys()),
             update_settings=copy.deepcopy(
                 snake_oil_config.analysis_config.observation_settings
             ),
-            es_settings=snake_oil_config.analysis_config.es_settings,
-            rng=np.random.default_rng(snake_oil_config.random_seed),
+            strategy_map=strategy_map,
         )
     snapshot.assert_match(
         ahmanalysis.make_update_log_df(log).round(4).to_csv(),
