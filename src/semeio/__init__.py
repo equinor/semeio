@@ -2,12 +2,11 @@ import argparse
 import logging
 import os
 import sys
-
-import importlib_metadata
+from importlib.metadata import PackageNotFoundError, version
 
 try:  # noqa: SIM105
-    __version__ = importlib_metadata.distribution(__name__).version
-except importlib_metadata.PackageNotFoundError:
+    __version__ = version(__name__)
+except PackageNotFoundError:
     # package is not installed
     pass
 
