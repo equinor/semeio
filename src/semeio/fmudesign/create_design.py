@@ -17,7 +17,7 @@ from typing import TYPE_CHECKING, Any, cast
 
 import numpy as np
 import pandas as pd
-import probabilit  # type: ignore[import-untyped]
+import probabilit
 
 import semeio
 from semeio.fmudesign import design_distributions as design_dist

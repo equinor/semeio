@@ -9,7 +9,7 @@ import numpy.typing as npt
 import pandas as pd
 import scipy as sp
 import seaborn as sns
-from probabilit.correlation import (  # type: ignore[import-untyped]
+from probabilit.correlation import (
     nearest_correlation_matrix,
 )
 
