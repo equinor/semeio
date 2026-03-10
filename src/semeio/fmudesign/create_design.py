@@ -395,7 +395,6 @@ class DesignMatrix:
         for sensname, case_ in grouped:
             temp_df = case_.reset_index()
             temp_df = temp_df.fillna(self.backgroundvalues)
-            temp_df.set_index("index")
             for key in self.backgroundvalues.columns:
                 if key not in case_:
                     temp_df[key] = self.backgroundvalues[key]
@@ -848,7 +847,7 @@ class MonteCarloSensitivity(Sensitivity):
                 df_correlations = design_dist.read_correlations(
                     excel_filename=corrdict["inputfile"], corr_sheet=corr_group_name
                 )
-                multivariate_parameters = list(df_correlations.index.values)
+                multivariate_parameters = df_correlations.index.tolist()
                 correlations = df_correlations.to_numpy()
 
                 if self.verbosity == 0:
@@ -876,7 +875,11 @@ class MonteCarloSensitivity(Sensitivity):
                     print("  - The matrix must be positive semi-definite")
                     print("\nInput correlation matrix:")
                     print_corrmat(df_correlations)
-                    df_correlations.loc[:] = nearest
+                    df_correlations = pd.DataFrame(
+                        nearest,
+                        index=df_correlations.index,
+                        columns=df_correlations.columns,
+                    )
                     print("\nAdjusted to nearest consistent correlation matrix:")
                     print_corrmat(df_correlations)
 
