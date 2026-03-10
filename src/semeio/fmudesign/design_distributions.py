@@ -343,11 +343,12 @@ def read_correlations(excel_filename: str, corr_sheet: str) -> pd.DataFrame:
         msg += f"These values must match exactly. Please fix sheet {corr_sheet!r} in file {excel_filename!r}."
         raise ValueError(msg)
 
-    upper_idx = np.triu_indices_from(correlations.values, k=1)
-    lower_idx = np.tril_indices_from(correlations.values, k=0)  # Include diag
-    lower_entries = correlations.to_numpy()[lower_idx]
+    arr = correlations.to_numpy(copy=True)
+    upper_idx = np.triu_indices_from(arr, k=1)
+    lower_idx = np.tril_indices_from(arr, k=0)  # Include diag
+    lower_entries = arr[lower_idx]
 
-    if not np.all(np.isnan(correlations.to_numpy()[upper_idx])):
+    if not np.all(np.isnan(arr[upper_idx])):
         raise ValueError(
             f"All upper-triangular elements in matrix in corr sheet {corr_sheet} must be blank."
         )
@@ -359,12 +360,11 @@ def read_correlations(excel_filename: str, corr_sheet: str) -> pd.DataFrame:
 
     if np.any((lower_entries < -1) | (lower_entries > 1)):
         raise ValueError(
-            f"All lower-triangular elements in matrix in corr sheet {corr_sheet} must be between 0 and 1."
+            f"All lower-triangular elements in matrix in corr sheet {corr_sheet} must be between -1 and 1."
         )
 
-    # Upper triangular part is NaN. Fill it with 0. Copy lower triang over
-    correlations = correlations.astype(float).fillna(0)
-    mat = correlations.to_numpy() + correlations.to_numpy().T
+    # Build symmetric matrix from lower triangle
+    np.nan_to_num(arr, copy=False, nan=0.0)
+    mat = arr + arr.T
     np.fill_diagonal(mat, 1.0)
-    correlations.loc[:] = mat
-    return correlations
+    return pd.DataFrame(mat, index=correlations.index, columns=correlations.columns)

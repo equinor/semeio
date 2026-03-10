@@ -13,7 +13,7 @@ env:
 
 jobs:
   tests:
-    name: "Python ${{ matrix.python-version }} on ${{ matrix.os }}"
+    name: "Python ${{ matrix.python-version }} on ${{ matrix.os }}${{ matrix.pandas-version && format(' (pandas {0})', matrix.pandas-version) || '' }}"
     runs-on: ${{ matrix.os }}
     permissions:
       contents: read
@@ -21,10 +21,14 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ["3.11", "3.12", "3.13" ]
+        pandas-version: [">3"]
         os: [ ubuntu-latest ]
         include:
-          - python-version: "3.12"
+          - python-version: "3.13"
             os: macos-latest
+          - python-version: "3.13"
+            pandas-version: ">=2,<3"
+            os: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v6
@@ -52,6 +56,10 @@ jobs:
       - name: Install test dependencies
         run: |
           uv pip install ".[test]"
+
+      - name: Pin pandas version
+        if: matrix.pandas-version
+        run: uv pip install "pandas${{ matrix.pandas-version }}"
 
       - name: "Run tests"
         run: pytest tests -n logical --durations 5 --ert-integration

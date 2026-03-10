@@ -291,11 +291,12 @@ class QualityReporter:
             corr_name: Name of the correlation group
             df_corr: DataFrame containing the desired correlation matrix
         """
-        assert np.allclose(df_corr.to_numpy(), df_corr.to_numpy().T)
+        corr_arr = df_corr.to_numpy()
+        assert np.allclose(corr_arr, corr_arr.T)
         assert df_corr.shape[0] == df_corr.shape[1]
 
         # Get lower triangular indices
-        idx_low_triang = np.tril_indices_from(df_corr.values, k=-1)
+        idx_low_triang = np.tril_indices_from(corr_arr, k=-1)
         corr = self.df[df_corr.columns].select_dtypes(include="number").corr()
         # Do not print if only a single variable remains
         if corr.shape[1] == 1:
@@ -314,9 +315,9 @@ class QualityReporter:
             print("Skipping printing desired correlation. Matrix too large.")
 
         nearest_corr = nearest_correlation_matrix(
-            df_corr.values, weights=None, eps=1e-6, verbose=False
+            corr_arr, weights=None, eps=1e-6, verbose=False
         )
-        diffs = nearest_corr[idx_low_triang] - df_corr.to_numpy()[idx_low_triang]
+        diffs = nearest_corr[idx_low_triang] - corr_arr[idx_low_triang]
         corr_rmse = np.sqrt(np.mean(diffs**2))
 
         if corr_rmse > 1e-2:
@@ -464,12 +465,15 @@ class QualityReporter:
         fig, ax = plt.subplots(1, 1, figsize=(size, size))
 
         # Custom annotation
-        annot_matrix = correlation_matrix.copy().map(str)
-        for (i, j), value in np.ndenumerate(correlation_matrix):
-            if i == j:
-                annot_matrix.iloc[i, j] = "1"
-            else:
-                annot_matrix.iloc[i, j] = f"{value:.2f}".replace("0.", ".")
+        arr = correlation_matrix.to_numpy()
+        annot_arr = np.empty_like(arr, dtype=object)
+        for (i, j), value in np.ndenumerate(arr):
+            annot_arr[i, j] = "1" if i == j else f"{value:.2f}".replace("0.", ".")
+        annot_matrix = pd.DataFrame(
+            annot_arr,
+            index=correlation_matrix.index,
+            columns=correlation_matrix.columns,
+        )
 
         # Based on a linear regression
         annot_fontsize = max(8 - 0.115 * n_vars, 2)
@@ -525,13 +529,14 @@ def print_corrmat(df_corrmat: pd.DataFrame) -> None:
     | (2) OWC2 |  0.00 |  1.00 |       |
     | (3) OWC3 |  0.90 |  0.00 |  1.00 |
     """
-    df_corrmat = df_corrmat.copy()
-    assert np.allclose(df_corrmat.to_numpy(), df_corrmat.to_numpy().T)
+    values = df_corrmat.to_numpy(copy=True)
+    assert np.allclose(values, values.T)
     # Make slightly negative values positive
-    values = df_corrmat.to_numpy()
     mask = np.isclose(values, 0)
     values[mask] = np.abs(values[mask])
-    df_corrmat.loc[:] = values
+    df_corrmat = pd.DataFrame(
+        values, index=df_corrmat.index, columns=df_corrmat.columns
+    )
 
     # Compress columns into integers so we can show more on the screen
     assert list(df_corrmat.columns) == list(df_corrmat.index)

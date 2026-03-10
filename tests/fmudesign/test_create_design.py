@@ -12,7 +12,9 @@ from scipy import stats
 
 import semeio
 from semeio.fmudesign import DesignMatrix, excel_to_dict
+from semeio.fmudesign import design_distributions as design_dist
 from semeio.fmudesign._excel_to_dict import _read_defaultvalues
+from semeio.fmudesign.quality_report import print_corrmat
 
 TESTDATA = Path(__file__).parent / "data"
 
@@ -28,19 +30,19 @@ def test_distribution_statistis(tmpdir, monkeypatch, correlations):
         """GL = Generate Line. Generates a line in the input sheet."""
         return [
             "",
-            "",
+            pd.NA,
             "",
             paramname,
             "",
+            pd.NA,
             "",
-            "",
-            "",
+            pd.NA,
             distname,
             p1,
             p2,
             p3,
             p4,
-            "",
+            pd.NA,
             "corr1" if correlations else "",
             "",
         ]
@@ -114,13 +116,15 @@ def test_distribution_statistis(tmpdir, monkeypatch, correlations):
     corr_values = np.zeros(shape=(num_vars, num_vars)) + 0.2
     np.fill_diagonal(corr_values, val=1.0)
     upper_idx = np.triu_indices_from(corr_values, k=1)
+    # Set upper triangle to blank on the numpy array before creating the DataFrame,
+    # since DataFrame.to_numpy() returns a copy in pandas 3 (CoW).
+    str_values = corr_values.astype(str)
+    str_values[upper_idx] = ""
     corr_sheet = pd.DataFrame(
-        corr_values,
+        str_values,
         columns=list(design_input["param_name"]),
         index=list(design_input["param_name"]),
-    ).astype(str)
-    corr_sheet.to_numpy()[upper_idx] = ""  # Set upper triang to blank
-
+    )
     # Create a file to do the save => load roundtrip and test that too
     FILENAME = "designinput.xlsx"
     with pd.ExcelWriter(FILENAME, engine="openpyxl") as writer:
@@ -568,6 +572,104 @@ def test_read_defaultvalues_duplicate_error(tmpdir, monkeypatch):
         match=r"Duplicate parameter names found in sheet 'defaultvalues': a, c\. All parameter names must be unique\.",
     ):
         _read_defaultvalues("test_defaults.xlsx", "defaultvalues")
+
+
+def _write_correlation_excel(filepath, names, lower_values):
+    """Helper: write a correlation sheet with given lower-triangular values."""
+    n = len(names)
+    arr = np.full((n, n), np.nan)
+    for i in range(n):
+        for j in range(i + 1):
+            arr[i, j] = lower_values[i][j]
+    df = pd.DataFrame(arr, index=names, columns=names)
+    with pd.ExcelWriter(filepath, engine="openpyxl") as w:
+        df.to_excel(w, sheet_name="corr1")
+
+
+def test_read_correlations_returns_symmetric_matrix(tmp_path):
+    names = ["A", "B", "C"]
+    lower = [[1.0], [0.5, 1.0], [0.3, 0.4, 1.0]]
+    filepath = tmp_path / "corr.xlsx"
+    _write_correlation_excel(filepath, names, lower)
+
+    result = design_dist.read_correlations(str(filepath), corr_sheet="corr1")
+    arr = result.to_numpy()
+
+    np.testing.assert_array_almost_equal(arr, arr.T)
+    np.testing.assert_array_almost_equal(np.diag(arr), [1.0, 1.0, 1.0])
+    assert np.isclose(arr[1, 0], 0.5)
+    assert np.isclose(arr[0, 1], 0.5)
+
+
+def test_read_correlations_preserves_index_and_columns(tmp_path):
+    names = ["X", "Y"]
+    lower = [[1.0], [0.8, 1.0]]
+    filepath = tmp_path / "corr.xlsx"
+    _write_correlation_excel(filepath, names, lower)
+
+    result = design_dist.read_correlations(str(filepath), corr_sheet="corr1")
+
+    assert list(result.index) == names
+    assert list(result.columns) == names
+
+
+def test_read_correlations_to_numpy_is_writable(tmp_path):
+    """The returned DataFrame's to_numpy(copy=True) should be writable."""
+    names = ["A", "B"]
+    lower = [[1.0], [0.5, 1.0]]
+    filepath = tmp_path / "corr.xlsx"
+    _write_correlation_excel(filepath, names, lower)
+
+    result = design_dist.read_correlations(str(filepath), corr_sheet="corr1")
+    arr = result.to_numpy(copy=True)
+    arr[0, 1] = 0.99  # Should not raise
+
+
+def test_print_corrmat_handles_negative_zeros(capsys):
+    values = np.array([[1, -0.0, 0.9], [-0.0, 1, 0], [0.9, 0, 1.0]])
+    df = pd.DataFrame(values, index=["A", "B", "C"], columns=["A", "B", "C"])
+    print_corrmat(df)
+    output = capsys.readouterr().out
+    assert "1.00" in output
+    assert ".90" in output
+
+
+def test_print_corrmat_does_not_mutate_input():
+    values = np.array([[1, -0.0, 0.9], [-0.0, 1, 0], [0.9, 0, 1.0]])
+    df = pd.DataFrame(values, index=["A", "B", "C"], columns=["A", "B", "C"])
+    original = df.copy()
+    print_corrmat(df)
+    pd.testing.assert_frame_equal(df, original)
+
+
+def test_fill_with_background_values_no_index_column():
+    dm = DesignMatrix()
+    dm.designvalues = pd.DataFrame(
+        {
+            "SENSNAME": ["s1", "s1"],
+            "SENSCASE": ["c1", "c1"],
+            "param1": [np.nan, np.nan],
+        }
+    )
+    dm.backgroundvalues = pd.DataFrame({"param1": [1.0, 2.0]})
+    dm._fill_with_background_values()
+
+    assert "index" not in dm.designvalues.columns
+
+
+def test_fill_with_background_values_are_filled():
+    dm = DesignMatrix()
+    dm.designvalues = pd.DataFrame(
+        {
+            "SENSNAME": ["s1", "s1"],
+            "SENSCASE": ["c1", "c1"],
+            "param1": [np.nan, np.nan],
+        }
+    )
+    dm.backgroundvalues = pd.DataFrame({"param1": [10.0, 20.0]})
+    dm._fill_with_background_values()
+
+    assert dm.designvalues["param1"].tolist() == [10.0, 20.0]
 
 
 if __name__ == "__main__":
