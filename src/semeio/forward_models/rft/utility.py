@@ -1,6 +1,5 @@
 import argparse
 import datetime
-import os
 import warnings
 from pathlib import Path
 
@@ -13,7 +12,7 @@ def strip_comments(line: str) -> str:
 
 
 def existing_directory(path: str) -> str:
-    if not os.path.isdir(path):
+    if not Path(path).is_dir():
         raise argparse.ArgumentTypeError(
             f"The path {path} is not an existing directory"
         )
@@ -121,7 +120,7 @@ def valid_eclbase(file_path: str) -> tuple[CornerpointGrid, ResdataRFTFile]:
     Loads both files with respective loaders and returns them
     """
     rft_filepath = file_path + ".RFT"
-    if not os.path.isfile(rft_filepath):
+    if not Path(rft_filepath).is_file():
         raise argparse.ArgumentTypeError(f"The path {rft_filepath} does not exist")
 
     try:
@@ -134,7 +133,7 @@ def valid_eclbase(file_path: str) -> tuple[CornerpointGrid, ResdataRFTFile]:
         ) from err
 
     grid_filepath = file_path + ".EGRID"
-    if not os.path.isfile(grid_filepath):
+    if not Path(grid_filepath).is_file():
         raise argparse.ArgumentTypeError(f"The path {grid_filepath} does not exist")
 
     try:

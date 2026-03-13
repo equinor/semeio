@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 
 def ots_load_params(input_file: str) -> OTSConfig:
     try:
-        with open(input_file, encoding="utf-8") as fin:
+        with Path(input_file).open(encoding="utf-8") as fin:
             config = OTSConfig(**yaml.safe_load(fin))
     except ValidationError as err:
         raise ConfigurationError(
@@ -124,7 +124,7 @@ def ots_run(parameter_file: str) -> None:
             + len(vintage_pairs.ts_rporv)
         )
         line = "{}, {}, {}" + ", {}" * num_pairs + "\n"
-        with open(parms.vintages_export_file, "w", encoding="utf-8") as f:
+        with Path(parms.vintages_export_file).open("w", encoding="utf-8") as f:
             for point, (x_index, y_index) in enumerate(
                 product(
                     range(1, surface_horizon.get_nx() + 1),

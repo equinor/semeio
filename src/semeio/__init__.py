@@ -1,8 +1,8 @@
 import argparse
 import logging
-import os
 import sys
 from importlib.metadata import PackageNotFoundError, version
+from pathlib import Path
 
 try:  # noqa: SIM105
     __version__ = version(__name__)
@@ -25,6 +25,6 @@ logger.addHandler(std_err_handler)
 
 
 def valid_file(arg):
-    if os.path.isfile(arg):
+    if Path(arg).is_file():
         return arg
     raise argparse.ArgumentTypeError(f"{arg} is not an existing file!")

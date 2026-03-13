@@ -1,5 +1,6 @@
 import os
 import sys
+from pathlib import Path
 
 import pytest
 import xtgeo
@@ -56,7 +57,7 @@ def test_ots_config_run_parameters(
             "dpv": [["1997-11-06", "1997-12-17"]],
         },
     }
-    with open("ots_config.yml", "w", encoding="utf8") as file:
+    with Path("ots_config.yml").open("w", encoding="utf8") as file:
         yaml.dump(conf, file, default_flow_style=False)
     ots_run("ots_config.yml")
 

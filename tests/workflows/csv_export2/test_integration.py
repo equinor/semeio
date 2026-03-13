@@ -1,4 +1,3 @@
-import os
 import shutil
 import subprocess
 from pathlib import Path
@@ -34,7 +33,7 @@ def test_that_a_not_found_realization_is_skipped():
 
 @pytest.mark.usefixtures("norne_mocked_ensembleset")
 def test_that_a_failed_realization_is_skipped():
-    os.remove("realization-0/iter-1/NORNE_0.SMSPEC")
+    Path("realization-0/iter-1/NORNE_0.SMSPEC").unlink()
     csv_export2.csv_exporter(
         runpathfile="runpathfile",
         time_index="yearly",
@@ -95,7 +94,7 @@ def test_that_iterations_in_runpathfile_cannot_be_defaulted():
 
 def test_empty_file_yields_user_warning():
     with (
-        open("empty_file", "a", encoding="utf-8") as empty_file,
+        Path("empty_file").open("a", encoding="utf-8") as empty_file,
         pytest.raises(UserWarning, match="No data found"),
     ):
         csv_export2.csv_exporter(
@@ -221,7 +220,7 @@ def test_ert_integration_errors(snapshot):
     Path("FOO.DATA").write_text("--Empty", encoding="utf-8")
 
     # Append a not-existing realizations to the runpathfile:
-    with open("runpathfile", "a", encoding="utf-8") as file_h:
+    with Path("runpathfile").open("a", encoding="utf-8") as file_h:
         file_h.write("002 realization-2/iter-0 NORNE_1 000")
 
     Path("wf_csvexport").write_text(
@@ -243,7 +242,7 @@ def test_ert_integration_errors(snapshot):
         ["ert", "test_run", "--disable-monitoring", ert_config_fname], check=True
     )
 
-    assert os.path.exists("data.csv")
+    assert Path("data.csv").exists()
     data = pd.read_csv("data.csv")
     snapshot.assert_match(
         data.to_csv(lineterminator="\n"),

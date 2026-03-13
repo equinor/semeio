@@ -1,8 +1,8 @@
 import logging
-import pathlib
 import re
 import shlex
 from collections.abc import Iterable, Mapping, Sequence
+from pathlib import Path
 from re import Match
 from typing import Any
 
@@ -32,17 +32,17 @@ def run(
 
     valid = True
 
-    with open(parameters_file_name, encoding="utf-8") as parameters_file:
+    with Path(parameters_file_name).open(encoding="utf-8") as parameters_file:
         parameters = parameters_file.readlines()
 
     key_vals = extract_key_value(parameters)
 
     key_vals.update(rm_genkw_prefix(key_vals))
 
-    with open(template_file_name, encoding="utf-8") as template_file:
+    with Path(template_file_name).open(encoding="utf-8") as template_file:
         template = template_file.readlines()
 
-    with open(result_file_name, "w", encoding="utf-8") as result_file:
+    with Path(result_file_name).open("w", encoding="utf-8") as result_file:
         for line in template:
             rendered_line = line
             if not is_comment(rendered_line):
@@ -55,7 +55,7 @@ def run(
             result_file.write(rendered_line)
 
     if valid:
-        pathlib.Path(_STATUS_FILE_NAME).write_text("DESIGN_KW OK\n", encoding="utf-8")
+        Path(_STATUS_FILE_NAME).write_text("DESIGN_KW OK\n", encoding="utf-8")
 
     return valid
 
@@ -202,7 +202,7 @@ def validate_template_keys(
     key_vals: Mapping[str, str], template_file_name: str
 ) -> None:
     try:
-        with open(template_file_name, encoding="utf-8") as template_file:
+        with Path(template_file_name).open(encoding="utf-8") as template_file:
             template = template_file.readlines()
     except (OSError, UnicodeDecodeError) as err:
         ForwardModelStepWarning.warn(
@@ -225,7 +225,7 @@ def validate_configuration(
     template_file_name: str, parameters_file_name: str = "parameters.txt"
 ) -> None:
     try:
-        with open(parameters_file_name, encoding="utf-8") as parameters_file:
+        with Path(parameters_file_name).open(encoding="utf-8") as parameters_file:
             parameters = parameters_file.readlines()
     except (OSError, UnicodeDecodeError) as err:
         ForwardModelStepWarning.warn(

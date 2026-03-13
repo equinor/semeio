@@ -141,6 +141,7 @@ select = [
   "PLR",
   "PLW",
   "PT",  # pytest
+  "PTH",
   "PYI", # flake8-pyi
   "Q",
   "RET", # flake8-return
@@ -164,6 +165,9 @@ ignore = [
   "PLR0914", # too-many-local-variables
   "PLR0915", # too-many-statements
   "PLR2004", # magic-value-comparison
+  "PTH118",  # os-path-join
+  "PTH208",  # os-listdir
+  "PTH122",  # os-path-splitext
 ]
 
 [tool.ruff.lint.per-file-ignores]

@@ -203,7 +203,7 @@ class AhmAnalysisJob(ErtScript):
         prior_data = prior_data.sort_index(axis=1)
         prior_data = prior_data.set_index("realization")
         ahmanalysis_reports_dir = Path(reports_dir) / "AhmAnalysisJob"
-        os.makedirs(ahmanalysis_reports_dir, exist_ok=True)
+        Path(ahmanalysis_reports_dir).mkdir(exist_ok=True, parents=True)
 
         field_parameters = [
             p.name

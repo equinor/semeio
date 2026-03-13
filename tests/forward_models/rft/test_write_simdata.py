@@ -1,5 +1,4 @@
-import os
-import pathlib
+from pathlib import Path
 
 import pandas as pd
 import pytest
@@ -21,7 +20,7 @@ def test_write_simdata(tmpdir, dataname, input_data, expected_result):
         dframe = pd.DataFrame(input_data)
         _write_simdata("some_file_name", dataname, dframe)
 
-        with open("some_file_name", encoding="utf8") as fin:
+        with Path("some_file_name").open(encoding="utf8") as fin:
             result = fin.readlines()
         assert result == expected_result
 
@@ -36,11 +35,11 @@ def test_write_gen_data_files_always_pressure(tmpdir):
     dframe = pd.DataFrame({"order": [1, 2], "is_active": [0, 0]})
     _write_gen_data_files(dframe, ".", "A-1", 0)
     pressure_file = "RFT_A-1_0"
-    assert os.path.exists(pressure_file)
-    assert pathlib.Path(pressure_file).read_text(encoding="utf8").splitlines() == [
+    assert Path(pressure_file).exists()
+    assert Path(pressure_file).read_text(encoding="utf8").splitlines() == [
         "-1",
         "-1",
     ]
 
     swat_file = "RFT_A-1_SWAT_0"
-    assert not os.path.exists(swat_file)
+    assert not Path(swat_file).exists()

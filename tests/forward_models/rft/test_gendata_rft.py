@@ -11,8 +11,8 @@ import pytest
 from semeio.forward_models.scripts.gendata_rft import main_entry_point
 from tests.forward_models.rft import conftest
 
-ECLBASE_NORNE = conftest.get_ecl_base_norne()
-ECLBASE_REEK = conftest.get_ecl_base_reek()
+ECLBASE_NORNE: str = conftest.get_ecl_base_norne()
+ECLBASE_REEK: str = conftest.get_ecl_base_reek()
 MOCK_DATA_CONTENT_NORNE = conftest.get_mock_data_content_norne()
 EXPECTED_RESULTS_PATH_NORNE = conftest.get_expected_results_path_norne()
 
@@ -23,7 +23,7 @@ def test_gendata_rft_csv(tmpdir):
     main_entry_point(
         [
             "-e",
-            ECLBASE_NORNE,
+            str(ECLBASE_NORNE),
             "-w",
             "well_and_time.txt",
             "-t",
@@ -34,7 +34,7 @@ def test_gendata_rft_csv(tmpdir):
             csv_filename,
         ]
     )
-    assert os.path.exists(csv_filename)
+    assert Path(csv_filename).exists()
     dframe = pd.read_csv(csv_filename)
     assert not dframe.empty
 
@@ -77,7 +77,7 @@ def test_gendata_rft_csv_reek(tmpdir):
             tmpdir.strpath,
         ]
     )
-    assert os.path.exists(csv_filename)
+    assert Path(csv_filename).exists()
     dframe = pd.read_csv(csv_filename)
     assert not dframe.empty
     assert {"pressure", "swat", "sgas"}.issubset(set(dframe.columns))
@@ -115,12 +115,12 @@ def test_gendata_rft_directory(tmpdir):
     well_count = 6
     files_pr_well = 3
     assert len(next(iter(os.walk(outputdirectory)))[2]) == well_count * files_pr_well
-    assert os.path.exists("csvfile.csv")  # Should be independent of --outputdirectory
+    assert Path("csvfile.csv").exists()  # Should be independent of --outputdirectory
 
 
 @pytest.mark.usefixtures("norne_data")
 def test_gendata_rft_entry_point_wrong_well_file(tmpdir):
-    with open("well_and_time.txt", "w+", encoding="utf-8") as file:
+    with Path("well_and_time.txt").open("w+", encoding="utf-8") as file:
         file.write("NO_FILE_HERE 2005-12-01 0\n")
     with pytest.raises(SystemExit, match=r"NO_FILE_HERE\.txt not found"):
         main_entry_point(
@@ -166,7 +166,7 @@ def test_gendata_rft_entry_point(tmpdir):
     )
 
     for expected_file in expected_files:
-        filename = os.path.basename(expected_file)
+        filename = Path(expected_file).name
         assert filename in os.listdir(tmpdir.strpath)
 
         if not filename.endswith("inactive_info"):
@@ -177,7 +177,7 @@ def test_gendata_rft_entry_point(tmpdir):
 
 @pytest.mark.usefixtures("reek_data")
 def test_multiple_report_steps(tmpdir):
-    with open("well_and_time.txt", "w+", encoding="utf-8") as file:
+    with Path("well_and_time.txt").open("w+", encoding="utf-8") as file:
         file.write("OP_1 2000-02-01 0\n")
         file.write("OP_1 2001-01-01 1\n")
 
@@ -211,10 +211,10 @@ def test_multiple_report_steps(tmpdir):
 
 @pytest.mark.usefixtures("norne_data")
 def test_gendata_inactive_info_point_not_in_grid(tmpdir):
-    with open("B-1AH.txt", "a+", encoding="utf-8") as file:
+    with Path("B-1AH.txt").open("a+", encoding="utf-8") as file:
         file.write("0 1 2 3\n")
 
-    with open("well_and_time.txt", "w+", encoding="utf-8") as file:
+    with Path("well_and_time.txt").open("w+", encoding="utf-8") as file:
         file.write("B-1AH 2005-12-01 0\n")
 
     main_entry_point(
@@ -238,18 +238,18 @@ def test_gendata_inactive_info_point_not_in_grid(tmpdir):
 
 @pytest.mark.usefixtures("norne_data")
 def test_gendata_inactive_info_zone_mismatch(tmpdir):
-    with open("well_and_time.txt", "w+", encoding="utf-8") as file:
+    with Path("well_and_time.txt").open("w+", encoding="utf-8") as file:
         file.write("B-1AH 2005-12-01 0\n")
 
-    with open(
-        os.path.join(tmpdir.strpath, "B-1AH.txt"), "r+", encoding="utf-8"
+    with Path(os.path.join(tmpdir.strpath, "B-1AH.txt")).open(
+        "r+", encoding="utf-8"
     ) as file:
         lines = file.readlines()
 
     line = lines[-1].rsplit(" ", 1)[0]
     line += " last_zone"
 
-    with open("B-1AH.txt", "w+", encoding="utf-8") as file:
+    with Path("B-1AH.txt").open("w+", encoding="utf-8") as file:
         file.write(line)
 
     main_entry_point(
@@ -271,18 +271,18 @@ def test_gendata_inactive_info_zone_mismatch(tmpdir):
 
 @pytest.mark.usefixtures("norne_data")
 def test_gendata_inactive_info_not_in_rft(tmpdir):
-    with open("well_and_time.txt", "w+", encoding="utf-8") as file:
+    with Path("well_and_time.txt").open("w+", encoding="utf-8") as file:
         file.write("B-1AH 2005-12-01 0\n")
 
-    with open(
-        os.path.join(tmpdir.strpath, "B-1AH.txt"), "r+", encoding="utf-8"
+    with Path(os.path.join(tmpdir.strpath, "B-1AH.txt")).open(
+        "r+", encoding="utf-8"
     ) as file:
         lines = file.readlines()
 
     line = lines[-1].rsplit(" ", 3)[0]
     line += " 2700 2700"
 
-    with open("B-1AH.txt", "w+", encoding="utf-8") as file:
+    with Path("B-1AH.txt").open("w+", encoding="utf-8") as file:
         file.write(line)
 
     main_entry_point(
@@ -304,10 +304,10 @@ def test_gendata_inactive_info_not_in_rft(tmpdir):
 
 @pytest.mark.usefixtures("norne_data")
 def test_gendata_inactive_info_zone_missing_value(tmpdir):
-    with open("well_and_time.txt", "w+", encoding="utf-8") as file:
+    with Path("well_and_time.txt").open("w+", encoding="utf-8") as file:
         file.write("B-1AH 2005-12-01 0\n")
 
-    with open("zonemap.txt", "w+", encoding="utf-8") as file:
+    with Path("zonemap.txt").open("w+", encoding="utf-8") as file:
         file.write("1 zone1\n")
 
     main_entry_point(
@@ -340,7 +340,7 @@ def test_partial_rft_file(tmpdir, caplog):
     """
 
     # Append an extra non-existing date to the well_and_time.txt test-file
-    with open("well_and_time.txt", "a", encoding="utf-8") as file_h:
+    with Path("well_and_time.txt").open("a", encoding="utf-8") as file_h:
         file_h.write("B-1AH 2045-12-01 0")
 
     csv_filename = "gendata_rft.csv"
@@ -362,9 +362,9 @@ def test_partial_rft_file(tmpdir, caplog):
 
     assert "Failed to extract all requested RFT data" in caplog.text
 
-    assert os.path.exists(csv_filename)
+    assert Path(csv_filename).exists()
     assert not pd.read_csv(csv_filename).empty
-    assert not os.path.exists("GENDATA_RFT.OK")
+    assert not Path("GENDATA_RFT.OK").exists()
 
 
 @pytest.mark.usefixtures("norne_data")
@@ -390,8 +390,8 @@ def test_one_wrong_date(tmpdir, caplog):
 
     assert "Failed to extract all requested RFT data" in caplog.text
 
-    assert not os.path.exists(csv_filename)
-    assert not os.path.exists("GENDATA_RFT.OK")
+    assert not Path(csv_filename).exists()
+    assert not Path("GENDATA_RFT.OK").exists()
 
 
 @pytest.mark.usefixtures("norne_data")
@@ -422,8 +422,8 @@ def test_empty_well_and_time(tmpdir, caplog):
     # Empty file is seen as an error, we should not write the OK file, and
     # there should be no CSV file.
 
-    assert not os.path.exists("notwritten.csv")
-    assert not os.path.exists("GENDATA_RFT.OK")
+    assert not Path("notwritten.csv").exists()
+    assert not Path("GENDATA_RFT.OK").exists()
     assert file_count_cwd() == pre_file_count
 
 
@@ -455,8 +455,8 @@ def test_that_nonexisting_trajectory_path_is_an_invalid_cli_option(tmp_path, cap
     # Because of error, we should not write the OK file, and
     # there should be no CSV file.
 
-    assert not os.path.exists("notwritten.csv")
-    assert not os.path.exists("GENDATA_RFT.OK")
+    assert not Path("notwritten.csv").exists()
+    assert not Path("GENDATA_RFT.OK").exists()
     assert file_count_cwd() == pre_file_count
 
 
@@ -503,8 +503,8 @@ def test_that_missing_files_in_eclbase_is_invalid_cli_option(
     # Because of error, we should not write the OK file, and
     # there should be no CSV file.
 
-    assert not os.path.exists("notwritten.csv")
-    assert not os.path.exists("GENDATA_RFT.OK")
+    assert not Path("notwritten.csv").exists()
+    assert not Path("GENDATA_RFT.OK").exists()
     assert file_count_cwd() == pre_file_count
 
 
@@ -761,10 +761,10 @@ def test_ert_setup_one_well_two_points_different_time_and_depth(tmpdir):
 
 
 def _assert_almost_equal_line_by_line(file1, file2):
-    with open(file1, encoding="utf-8") as file:
+    with Path(file1).open(encoding="utf-8") as file:
         file1_content = file.readlines()
 
-    with open(file2, encoding="utf-8") as file:
+    with Path(file2).open(encoding="utf-8") as file:
         file2_content = file.readlines()
 
     assert len(file1_content) == len(file2_content)

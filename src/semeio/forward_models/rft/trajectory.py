@@ -1,6 +1,7 @@
 import os
 from collections.abc import Iterator
 from itertools import starmap
+from pathlib import Path
 from typing import Any, Self, TypeAlias
 
 import pandas as pd
@@ -275,10 +276,10 @@ class Trajectory:
         trajectory_points: list[Any] = []
 
         filename = os.path.join(filepath)
-        if not os.path.isfile(filename):
+        if not Path(filename).is_file():
             raise OSError(f"Trajectory file {filename} not found!")
 
-        with open(filename, encoding="utf8") as file_handle:
+        with Path(filename).open(encoding="utf8") as file_handle:
             trajectory_lines = file_handle.readlines()
 
         trajectory_lines = [strip_comments(line) for line in trajectory_lines]

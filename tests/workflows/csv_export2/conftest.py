@@ -1,9 +1,9 @@
 import os
-import pathlib
+from pathlib import Path
 
 import pytest
 
-NORNE_DIR = os.path.join(os.path.dirname(__file__), "../../test_data/norne")
+NORNE_DIR = Path(__file__).parent.parent.parent / "test_data" / "norne"
 
 
 def mock_norne_data(reals, iters, parameters=True):
@@ -22,31 +22,29 @@ def mock_norne_data(reals, iters, parameters=True):
     """
     for real in reals:
         for iteration in iters:
-            runpath = os.path.join(f"realization-{real}", f"iter-{iteration}")
+            runpath = Path(f"realization-{real}") / f"iter-{iteration}"
 
-            os.makedirs(runpath, exist_ok=True)
+            runpath.mkdir(exist_ok=True, parents=True)
 
-            os.symlink(
-                os.path.join(NORNE_DIR, "NORNE_ATW2013.UNSMRY"),
-                os.path.join(runpath, f"NORNE_{real}.UNSMRY"),
+            (runpath / f"NORNE_{real}.UNSMRY").symlink_to(
+                NORNE_DIR / "NORNE_ATW2013.UNSMRY"
             )
-            os.symlink(
-                os.path.join(NORNE_DIR, "NORNE_ATW2013.SMSPEC"),
-                os.path.join(runpath, f"NORNE_{real}.SMSPEC"),
+            (runpath / f"NORNE_{real}.SMSPEC").symlink_to(
+                NORNE_DIR / "NORNE_ATW2013.SMSPEC"
             )
             if parameters:
-                pathlib.Path(os.path.join(runpath, "parameters.txt")).write_text(
+                (runpath / "parameters.txt").write_text(
                     f"FOO 1{real}{iteration}", encoding="utf-8"
                 )
             # Ensure fmu-ensemble does not complain on missing STATUS
-            pathlib.Path(os.path.join(runpath, "STATUS")).write_text(
+            (runpath / "STATUS").write_text(
                 "a:b\na: 09:00:00 .... 09:00:01", encoding="utf-8"
             )
 
-    with open("runpathfile", "w", encoding="utf-8") as file_h:
+    with Path("runpathfile").open("w", encoding="utf-8") as file_h:
         for iteration in iters:
             for real in reals:
-                runpath = os.path.join(f"realization-{real}", f"iter-{iteration}")
+                runpath = Path(f"realization-{real}") / f"iter-{iteration}"
                 file_h.write(f"{real:03d} {runpath} NORNE_{real} {iteration:03d}\n")
 
 
@@ -64,7 +62,7 @@ def norne_mocked_ensembleset_noparams(setup_tmpdir):
 
 @pytest.fixture(name="setup_tmpdir")
 def fixture_setup_tmpdir(tmpdir):
-    cwd = os.getcwd()
+    cwd = Path.cwd()
     tmpdir.chdir()
     yield
     os.chdir(cwd)
