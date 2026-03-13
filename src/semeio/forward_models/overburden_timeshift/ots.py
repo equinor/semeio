@@ -27,6 +27,8 @@ from semeio.forward_models.overburden_timeshift.ots_config import (
     ConstrainedList,
 )
 
+logger = logging.getLogger(__name__)
+
 
 def ots_load_params(input_file: str) -> OTSConfig:
     try:
@@ -339,7 +341,7 @@ class OverburdenTimeshift:
         surf_displacement = {}
         ts_surfaces = []
         for vintage in vintages:
-            logging.info(
+            logger.info(
                 f"{dt.now():%x %X} {method_name}: Calculating vintage {vintage.date:%Y.%m.%d}"
             )
 
@@ -413,7 +415,7 @@ class OverburdenTimeshift:
 
         for base, monitor in vintage_pairs:
             surf_displacement = np.zeros(len(surface))
-            logging.info(
+            logger.info(
                 f"{dt.now():%x %X} TS: Calculating vintage"
                 f" {base:%Y.%m.%d} - {monitor:%Y.%m.%d}"
             )
@@ -490,7 +492,7 @@ class OverburdenTimeshift:
             start_date, end_date = base, monitor
         else:
             raise ValueError(f"Convention must be 1 or -1, was {self._convention}")
-        logging.debug(
+        logger.debug(
             f"{dt.now():%x %X} {func_name}: Calculating shift"
             f" {start_date:%Y.%m.%d}-{end_date:%Y.%m.%d} in {num_points_calculated} points"
         )
@@ -502,7 +504,7 @@ class OverburdenTimeshift:
             if not np.isnan(self._surface.z[id_])
         ]
         if len(points_to_calculate) == 0:
-            logging.error(
+            logger.error(
                 (
                     "Overburden timeshift was calculated in 0 points. ",
                     "Consider changing --apply_mapaxes value.",
@@ -537,7 +539,7 @@ class OverburdenTimeshift:
         pressure_volume = {}
 
         for vintage in vintages:
-            logging.info(
+            logger.info(
                 f"{dt.now():%x %X} DPV: Calculating vintage {vintage.date:%Y.%m.%d}"
             )
             self.add_survey(vintage.name, vintage.date)

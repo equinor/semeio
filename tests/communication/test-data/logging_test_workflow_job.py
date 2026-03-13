@@ -3,6 +3,8 @@ from threading import Thread
 
 from semeio.communication import SemeioScript  # pylint: disable=import-error
 
+logger = logging.getLogger(__name__)
+
 
 class TestWorkflowJob(SemeioScript):
     # pylint: disable=method-hidden, too-few-public-methods
@@ -14,13 +16,13 @@ class TestWorkflowJob(SemeioScript):
         # thread of the workflow (e.g. ERT itself), is logging. This should not
         # end up in the workflow log itself.
         thread = Thread(
-            target=lambda: logging.error(
+            target=lambda: logger.error(
                 "Log statement from outside the workflow thread."
             )
         )
         thread.start()
         thread.join()
 
-        logging.error(
+        logger.error(
             "I finished without any problems - hence I'm not a failure after all!"
         )
