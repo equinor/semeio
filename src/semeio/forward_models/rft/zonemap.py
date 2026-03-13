@@ -1,5 +1,4 @@
 import argparse
-import os
 from collections.abc import Container, Mapping
 from pathlib import Path
 from typing import Any, Self
@@ -34,7 +33,7 @@ class ZoneMap:
         if filename == "ZONEMAP_NOT_PROVIDED":
             return None
 
-        if not os.path.isfile(filename):
+        if not Path(filename).is_file():
             raise argparse.ArgumentTypeError(f"ZoneMap file {filename} not found!")
 
         zones_at_k_value: dict[int, Any] = {}

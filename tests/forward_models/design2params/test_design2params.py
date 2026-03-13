@@ -14,10 +14,10 @@ from semeio.forward_models.design_kw.design_kw import extract_key_value
 
 @pytest.fixture
 def input_data(tmpdir):
-    data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
+    data_dir = Path(__file__).resolve().parent / "data"
     shutil.copytree(data_dir, tmpdir.strpath, dirs_exist_ok=True)
 
-    cwd = os.getcwd()
+    cwd = Path.cwd()
     tmpdir.chdir()
 
     yield
@@ -302,7 +302,7 @@ def test_logging_order(tmpdir, caplog):
     params_file = "parameters.txt"
     data_dict = {}
     expected_warning = []
-    with open(params_file, encoding="utf-8") as file_h:
+    with Path(params_file).open(encoding="utf-8") as file_h:
         for line in file_h:
             key, value = line.strip().split()
             data_dict[key] = 0
@@ -382,7 +382,7 @@ def test_single_cell_values(cellvalue, expected_parameters_str, tmpdir):
         parametersfilename=params_file,
         log_level=logging.DEBUG,
     )
-    with open(params_file, encoding="utf-8") as p_file:
+    with Path(params_file).open(encoding="utf-8") as p_file:
         params_lines = p_file.readlines()
     key_vals = extract_key_value(params_lines)
     assert key_vals["SOMEKEY"] == expected_parameters_str
@@ -429,9 +429,9 @@ def test_pair_cell_values(cellvalues, expected_parameters_strs, tmpdir):
         parametersfilename=params_1,
         log_level=logging.DEBUG,
     )
-    with open(params_0, encoding="utf-8") as p_file:
+    with Path(params_0).open(encoding="utf-8") as p_file:
         params_lines_0 = p_file.readlines()
-    with open(params_1, encoding="utf-8") as p_file:
+    with Path(params_1).open(encoding="utf-8") as p_file:
         params_lines_1 = p_file.readlines()
     key_vals_real0 = extract_key_value(params_lines_0)
     key_vals_real1 = extract_key_value(params_lines_1)

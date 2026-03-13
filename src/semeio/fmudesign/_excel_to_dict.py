@@ -83,7 +83,7 @@ def inputdict_to_yaml(inputdict: dict[str, Any], filename: str) -> None:
         inputdict (dict)
         filename (str): name of output file
     """
-    with open(filename, "w", encoding="utf-8") as stream:
+    with Path(filename).open("w", encoding="utf-8") as stream:
         yaml.dump(inputdict, stream)
 
 

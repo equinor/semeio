@@ -171,7 +171,7 @@ def test_all_input_files(tmpdir, monkeypatch, designfile, verbosity):
 
     # Copy all example files over, to guarantee existence of dependency files
     for filename in designfile.parent.glob("*"):
-        if os.path.isfile(filename):
+        if Path(filename).is_file():
             shutil.copy(filename, ".")
 
     # Run the CLI tool (test will fail on non-zero status code)
@@ -208,11 +208,11 @@ def test_all_input_files_relative_paths(tmpdir, monkeypatch, designfile):
     monkeypatch.chdir(tmpdir)
     copy_to = os.path.join(".", "path", "going", "down")
 
-    os.makedirs(copy_to, exist_ok=True)
+    Path(copy_to).mkdir(exist_ok=True, parents=True)
 
     # Copy all example files over, to guarantee existence of dependency files
     for filename in designfile.parent.glob("*"):
-        if os.path.isfile(filename):
+        if Path(filename).is_file():
             shutil.copy(filename, copy_to)
 
     # Run the CLI tool (test will fail on non-zero status code)

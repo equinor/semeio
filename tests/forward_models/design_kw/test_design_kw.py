@@ -13,10 +13,10 @@ from semeio.forward_models.design_kw import design_kw
 
 @pytest.fixture
 def input_data(tmpdir):
-    data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
+    data_dir = Path(__file__).resolve().parent / "data"
     shutil.copytree(data_dir, tmpdir.strpath, dirs_exist_ok=True)
 
-    cwd = os.getcwd()
+    cwd = Path.cwd()
     tmpdir.chdir()
 
     yield
@@ -150,7 +150,7 @@ def test_genkw_prefix_handling(paramlines, template, result, tmpdir):
     Path("parameters.txt").write_text(paramlines, encoding="utf-8")
     Path("template.tmpl").write_text(template, encoding="utf-8")
     design_kw.run("template.tmpl", "result.txt", logging.DEBUG)
-    with open("result.txt", encoding="utf-8") as file_h:
+    with Path("result.txt").open(encoding="utf-8") as file_h:
         resulttxt = "\n".join(file_h.readlines())
     assert resulttxt == result
 
@@ -265,7 +265,7 @@ def test_run_unmatched():
     )
 
     # pylint: disable=protected-access
-    assert not os.path.isfile(design_kw._STATUS_FILE_NAME)
+    assert not Path(design_kw._STATUS_FILE_NAME).is_file()
 
 
 @pytest.mark.usefixtures("input_data")
@@ -281,7 +281,7 @@ def test_run_duplicate_keys():
         )
 
     # pylint: disable=protected-access
-    assert not os.path.isfile(design_kw._STATUS_FILE_NAME)
+    assert not Path(design_kw._STATUS_FILE_NAME).is_file()
 
 
 @pytest.mark.parametrize(

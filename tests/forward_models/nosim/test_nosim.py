@@ -1,7 +1,6 @@
-import os
-import pathlib
 import shutil
 import subprocess
+from pathlib import Path
 
 import pytest
 
@@ -56,17 +55,16 @@ import pytest
 )
 @pytest.mark.usefixtures("setup_tmpdir")
 def test_nosim(nosim_command, data_input, data_expected):
-    shutil.copy(os.path.join(os.path.dirname(__file__), "data", "nosim.ert"), ".")
+    shutil.copy(Path(__file__).parent / "data" / "nosim.ert", ".")
 
-    with open("nosim.ert", "a", encoding="utf-8") as file:
+    with Path("nosim.ert").open("a", encoding="utf-8") as file:
         file.writelines([f"FORWARD_MODEL {nosim_command}"])
 
-    pathlib.Path("TEST.DATA").write_text(data_input, encoding="utf-8")
+    Path("TEST.DATA").write_text(data_input, encoding="utf-8")
 
     subprocess.check_call(
         ["ert", "test_run", "--disable-monitoring", "nosim.ert", "--verbose"],
     )
     assert (
-        pathlib.Path("nosim/realization-0/iter-0/TEST.DATA").read_text("utf-8")
-        == data_expected
+        Path("nosim/realization-0/iter-0/TEST.DATA").read_text("utf-8") == data_expected
     )

@@ -1,6 +1,5 @@
 """Testing excel_to_dict"""
 
-import os
 from pathlib import Path
 
 import numpy as np
@@ -76,7 +75,7 @@ def test_excel_to_dict(tmpdir, monkeypatch):
 
     # Dump to yaml:
     inputdict_to_yaml(dict_design, "dictdesign.yaml")
-    assert os.path.exists("dictdesign.yaml")
+    assert Path("dictdesign.yaml").exists()
     assert "RMS_SEED" in Path("dictdesign.yaml").read_text(encoding="utf-8")
 
 

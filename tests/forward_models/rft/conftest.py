@@ -1,17 +1,18 @@
 import copy
 import os
 import shutil
+from pathlib import Path
 
 import pytest
 
-ECLBASE_NORNE = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), "data/norne/NORNE_ATW2013"
+ECLBASE_NORNE: str = str(
+    Path(__file__).resolve().parent / "data" / "norne" / "NORNE_ATW2013"
 )
-ECLBASE_REEK = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), "data/reek/2_R001_REEK-0"
+ECLBASE_REEK: str = str(
+    Path(__file__).resolve().parent / "data" / "reek" / "2_R001_REEK-0"
 )
-EXPECTED_RESULTS_PATH_NORNE = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), "data/norne/expected_result"
+EXPECTED_RESULTS_PATH_NORNE: Path = (
+    Path(__file__).resolve().parent / "data" / "norne" / "expected_result"
 )
 
 MOCK_DATA_CONTENT_NORNE = {
@@ -40,22 +41,22 @@ def get_mock_data_content_norne():
     return copy.deepcopy(MOCK_DATA_CONTENT_NORNE)
 
 
-def _generate_mock_data_norne(write_directory):
+def _generate_mock_data_norne(write_directory: Path):
     for fname, content in MOCK_DATA_CONTENT_NORNE.items():
-        with open(os.path.join(write_directory, fname), "w+", encoding="utf-8") as file:
+        with (write_directory / fname).open("w+", encoding="utf-8") as file:
             file.write("\n".join([str(c) for c in content]))
 
 
 @pytest.fixture
 def norne_data(tmpdir):
-    data_dir = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), "data/norne/gendata_rft_input_files"
+    data_dir = (
+        Path(__file__).resolve().parent / "data" / "norne" / "gendata_rft_input_files"
     )
     shutil.copytree(data_dir, tmpdir.strpath, dirs_exist_ok=True)
 
     with tmpdir.as_cwd():
-        expected_results_dir = os.path.join(tmpdir.strpath, "expected_results")
-        os.mkdir(expected_results_dir)
+        expected_results_dir = Path(tmpdir.strpath) / "expected_results"
+        expected_results_dir.mkdir()
 
         shutil.copytree(
             EXPECTED_RESULTS_PATH_NORNE, expected_results_dir, dirs_exist_ok=True
@@ -66,11 +67,11 @@ def norne_data(tmpdir):
 
 @pytest.fixture
 def reek_data(tmpdir):
-    data_dir = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), "data/reek/gendata_rft_input_files"
+    data_dir = (
+        Path(__file__).resolve().parent / "data" / "reek" / "gendata_rft_input_files"
     )
     shutil.copytree(data_dir, tmpdir.strpath, dirs_exist_ok=True)
-    cwd = os.getcwd()
+    cwd = Path.cwd()
     tmpdir.chdir()
 
     try:

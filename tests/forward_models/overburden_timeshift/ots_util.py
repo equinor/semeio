@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 import numpy as np
 import segyio
@@ -171,9 +172,9 @@ def mock_segy(
 
 
 if __name__ == "__main__":
-    grid_path = os.path.realpath(
-        os.path.join(os.path.dirname(__file__), "../../../test-data/norne")
-    )
+    grid_path = (
+        Path(__file__).parent.parent.parent.parent / "test-data" / "norne"
+    ).resolve()
     grid_file = os.path.join(grid_path, "NORNE_ATW2013.EGRID")
     norne_grid = Grid(grid_file, apply_mapaxes=True)
 

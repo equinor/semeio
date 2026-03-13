@@ -1,6 +1,6 @@
 # pylint: disable=invalid-name
 import datetime
-import os
+from pathlib import Path
 from typing import NamedTuple
 
 import pytest
@@ -74,7 +74,7 @@ def test_create_missing_ecl_file(set_up, missing_file, expected_error):
     create_init(grid, "TEST")
     create_restart(grid, "TEST")
 
-    os.remove(missing_file)
+    Path(missing_file).unlink()
     with pytest.raises(IOError, match=expected_error):
         OverburdenTimeshift(
             params.eclbase,

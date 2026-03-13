@@ -2,9 +2,9 @@
 
 import argparse
 import logging
-import os
 import sys
 from argparse import ArgumentParser
+from pathlib import Path
 from typing import Literal
 
 from pyscal import pyscalcli
@@ -161,7 +161,7 @@ def run(
     In contrast with the command line tool where interpolation
     parameters are explicit, they are implicit here, and gathered
     from parameters.txt"""
-    if not os.path.exists(relperm_parameters_file):
+    if not Path(relperm_parameters_file).exists():
         _logger.error("%s does not exist", relperm_parameters_file)
         sys.exit(1)
 
@@ -244,9 +244,9 @@ def _get_interpolation_values(
         tuple with two values, one for WaterOil and one for GasOil
     """
     # Read all key-value pairs from parameters.txt
-    if not os.path.exists(parameters_file_name):
+    if not Path(parameters_file_name).exists():
         raise FileNotFoundError(f"{parameters_file_name} does not exist")
-    with open(parameters_file_name, encoding="utf-8") as parameters_file:
+    with Path(parameters_file_name).open(encoding="utf-8") as parameters_file:
         parameters = parameters_file.readlines()
     parameter_dict = extract_key_value(parameters)
     parameter_dict.update(rm_genkw_prefix(parameter_dict))

@@ -1,6 +1,5 @@
 """Test module for ERT-Pyscal integration"""
 
-import os
 import random
 import sys
 from pathlib import Path
@@ -58,7 +57,7 @@ def test_fm_pyscal(dframe, runargs, tmpdir):
         )
 
     run(*(["relperm-input.csv", "relperm.inc", *runargs]))
-    assert os.path.exists("relperm.inc")
+    assert Path("relperm.inc").exists()
     assert len(Path("relperm.inc").read_text(encoding="utf-8")) > 20
 
 
@@ -90,7 +89,7 @@ def test_fm_pyscal_static_xlsx(tmpdir):
     run(
         "relperm-sheets.xlsx", "static.inc", "static", "__NONE__", "__NONE__", "sgof", 1
     )
-    assert os.path.exists("static.inc")
+    assert Path("static.inc").exists()
     assert "SGOF" in "".join(Path("static.inc").read_text(encoding="utf-8"))
     run(
         "relperm-sheets.xlsx",
@@ -101,7 +100,7 @@ def test_fm_pyscal_static_xlsx(tmpdir):
         "sgof",
         1,
     )
-    assert os.path.exists("wateroil.inc")
+    assert Path("wateroil.inc").exists()
     assert "SGOF" not in "".join(Path("wateroil.inc").read_text(encoding="utf-8"))
 
 
@@ -121,7 +120,7 @@ def test_fm_pyscal_argparse(tmpdir, monkeypatch):
     ]
     monkeypatch.setattr(sys, "argv", arguments)
     main_entry_point()
-    assert os.path.exists("relperm.inc")
+    assert Path("relperm.inc").exists()
 
 
 @pytest.mark.parametrize(

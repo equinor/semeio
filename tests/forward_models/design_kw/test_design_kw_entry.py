@@ -2,6 +2,7 @@ import logging
 import os
 import shutil
 import sys
+from pathlib import Path
 
 import pytest
 
@@ -10,10 +11,10 @@ from semeio.forward_models.scripts import design_kw
 
 @pytest.fixture
 def input_data(tmpdir):
-    data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
+    data_dir = Path(__file__).resolve().parent / "data"
     shutil.copytree(data_dir, tmpdir.strpath, dirs_exist_ok=True)
 
-    cwd = os.getcwd()
+    cwd = Path.cwd()
     tmpdir.chdir()
 
     yield

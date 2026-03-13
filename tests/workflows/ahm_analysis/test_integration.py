@@ -225,7 +225,7 @@ def test_ahmanalysis_run_cli(snake_oil_config):
         "AHM_ANALYSIS analysis_case default", encoding="utf-8"
     )
 
-    with open("snake_oil.ert", mode="a", encoding="utf-8") as f:
+    with Path("snake_oil.ert").open(mode="a", encoding="utf-8") as f:
         f.write("LOAD_WORKFLOW ahmanalysis_wf")
 
     subprocess.run(

@@ -19,8 +19,8 @@ def test_update_simdata_from_rft_reek():
     """Test data extraction from the binary Eclipse files
     for a single well point using TrajectoryPoint.update_simdata_from_rft()"""
 
-    grid = Grid(ECLBASE_REEK + ".EGRID")
-    rft = ResdataRFTFile(ECLBASE_REEK + ".RFT")
+    grid = Grid(str(ECLBASE_REEK) + ".EGRID")
+    rft = ResdataRFTFile(str(ECLBASE_REEK) + ".RFT")
     rft_well_date = rft.get("OP_1", datetime.date(2000, 2, 1))
 
     # A trajectory point for an active cell in reek:
@@ -51,8 +51,8 @@ def test_update_simdata_from_rft_norne():
     does not contain saturations, and in libecl terms contains EclPLTCell
     as opposed to EclRFTCell as in Reek"""
 
-    grid = Grid(ECLBASE_NORNE + ".EGRID")
-    rft = ResdataRFTFile(ECLBASE_NORNE + ".RFT")
+    grid = Grid(str(ECLBASE_NORNE) + ".EGRID")
+    rft = ResdataRFTFile(str(ECLBASE_NORNE) + ".RFT")
     rft_well_date = rft.get("C-3H", datetime.date(1999, 5, 4))
 
     # A trajectory point for an active cell in Norne, picked
@@ -83,8 +83,8 @@ def test_update_simdata_from_rft_norne():
 
 
 def test_update_simdata_outside_grid():
-    grid = Grid(ECLBASE_REEK + ".EGRID")
-    rft = ResdataRFTFile(ECLBASE_REEK + ".RFT")
+    grid = Grid(str(ECLBASE_REEK) + ".EGRID")
+    rft = ResdataRFTFile(str(ECLBASE_REEK) + ".RFT")
     rft_well_date = rft.get("OP_1", datetime.date(2000, 2, 1))
 
     # A point outside the grid:
@@ -103,8 +103,8 @@ def test_update_simdata_outside_grid():
 
 
 def test_update_simdata_outside_well():
-    grid = Grid(ECLBASE_REEK + ".EGRID")
-    rft = ResdataRFTFile(ECLBASE_REEK + ".RFT")
+    grid = Grid(str(ECLBASE_REEK) + ".EGRID")
+    rft = ResdataRFTFile(str(ECLBASE_REEK) + ".RFT")
     rft_well_date = rft.get("OP_1", datetime.date(2000, 2, 1))
 
     # A point in the grid, but not related to the well

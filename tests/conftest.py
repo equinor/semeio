@@ -2,6 +2,7 @@ import fileinput
 import os
 import shutil
 import subprocess
+from pathlib import Path
 
 import cwrap
 import pytest
@@ -42,7 +43,7 @@ def move_to_shared_tmp(tmp_path_factory):
     tear down. This places that storage folder in a shared tempdir
     instead. Should be deleted when we no longer use EnkFMain
     """
-    cwd = os.getcwd()
+    cwd = Path.cwd()
     os.chdir(tmp_path_factory.mktemp("some_shared_path"))
     yield
     os.chdir(cwd)
@@ -79,7 +80,7 @@ def copy_snake_oil_case_storage(_shared_snake_oil_case, tmp_path, monkeypatch):
 def _run_snake_oil(source_root, grid_prop):
     shutil.copytree(os.path.join(source_root, "snake_oil"), "test_data")
     os.chdir("test_data")
-    os.makedirs("fields")
+    Path("fields").mkdir(parents=True)
     grid = GridGenerator.create_rectangular((10, 12, 5), (1, 1, 1))
     for iens in range(10):
         grid_prop("PERMX", 10, grid.getGlobalSize(), f"fields/permx{iens}.grdecl")
@@ -113,7 +114,7 @@ def _shared_snake_oil_case(request, monkeypatch, test_data_root, grid_prop):
     else:
         monkeypatch.chdir("test_data")
 
-    return os.getcwd()
+    return Path.cwd()
 
 
 @pytest.fixture(name="grid_prop")

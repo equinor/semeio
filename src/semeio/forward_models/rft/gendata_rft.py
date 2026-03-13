@@ -2,6 +2,7 @@ import datetime
 import logging
 import os
 from collections.abc import Mapping, Sequence
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -74,7 +75,7 @@ def _write_simdata(
     """Write pressure value, one per line for all points, -1 is used where
     there is no pressure information.
     """
-    with open(output_file, "w+", encoding="utf-8") as file_handle:
+    with Path(output_file).open("w+", encoding="utf-8") as file_handle:
         if dataname in trajectory_df:
             file_handle.write(
                 "\n".join(
@@ -93,7 +94,7 @@ def _write_simdata(
 
 def _write_active(output_file: str, trajectory_df: pd.DataFrame) -> None:
     """Write a file with "1" pr row if a point is active, "0" if not"""
-    with open(output_file, "w+", encoding="utf-8") as file_handle:
+    with Path(output_file).open("w+", encoding="utf-8") as file_handle:
         file_handle.write(
             "\n".join(
                 trajectory_df.sort_values("order")["is_active"]
@@ -106,7 +107,7 @@ def _write_active(output_file: str, trajectory_df: pd.DataFrame) -> None:
 
 def _write_inactive_info(output_file: str, trajectory_df: pd.DataFrame) -> None:
     """Write a file with explanations to users for inactive points"""
-    with open(output_file, "w+", encoding="utf-8") as file_handle:
+    with Path(output_file).open("w+", encoding="utf-8") as file_handle:
         if "inactive_info" not in trajectory_df:
             file_handle.write("")
         else:
