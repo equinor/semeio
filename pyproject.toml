@@ -129,6 +129,7 @@ select = [
   "ICN", # flake8-import-conventions
   "INT",
   "ISC", # string concatenation
+  "LOG",
   "NPY", # numpy specific rules
   "PD",  # pandas
   "PERF",
