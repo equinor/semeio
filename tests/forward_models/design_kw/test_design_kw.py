@@ -314,7 +314,10 @@ def test_run_duplicate_keys():
         pytest.param(
             "FOO 1 2\nBAR 1 2",
             "global:\n\tBAR: <FOO>",
-            "Too many values found in line FOO 1 2\n\nToo many values found in line BAR 1 2",
+            (
+                "Too many values found in line FOO 1 2\n\n"
+                "Too many values found in line BAR 1 2"
+            ),
             id="Multiple errors",
         ),
         pytest.param(

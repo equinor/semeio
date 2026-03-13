@@ -140,7 +140,7 @@ Design matrix of shape (91, 22) written to: 'generateddesignmatrix.xlsx'
  Thank you for using fmudesign <ANY>
   - Documentation:           https://equinor.github.io/fmu-tools/fmudesign.html
   - Course docs:             https://fmu-docs.equinor.com/docs/fmu-coursedocs/fmu-howto/sensitivities/index.html
-  - Issues/feature requests: https://github.com/equinor/semeio/issues"""
+  - Issues/feature requests: https://github.com/equinor/semeio/issues"""  # noqa: E501
 
     for stdout_line, expected_line in zip(
         result.stdout.split(), expected_output.split(), strict=False

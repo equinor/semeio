@@ -569,7 +569,10 @@ def test_read_defaultvalues_duplicate_error(tmpdir, monkeypatch):
     # Test that ValueError is raised with the exact expected message
     with pytest.raises(
         ValueError,
-        match=r"Duplicate parameter names found in sheet 'defaultvalues': a, c\. All parameter names must be unique\.",
+        match=(
+            "Duplicate parameter names found in sheet "
+            r"'defaultvalues': a, c\. All parameter names must be unique\."
+        ),
     ):
         _read_defaultvalues("test_defaults.xlsx", "defaultvalues")
 

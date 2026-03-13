@@ -52,7 +52,8 @@ class QualityReporter:
 
         Args:
             df: DataFrame containing the samples
-            variables: Dictionary mapping variable names to their distribution descriptions
+            variables: Dictionary mapping variable names to their
+                distribution descriptions
                       e.g., {"COST": ["normal", [0.0, 1.0]]}
         """
         self.df: pd.DataFrame = df.loc[:, list(variables.keys())]
@@ -344,7 +345,8 @@ class QualityReporter:
         diffs = corr.to_numpy()[idx_low_triang] - nearest_corr[idx_low_triang]
         corr_rmse = np.sqrt(np.mean(diffs**2))
         print(
-            "Distance metrics between target correlation matrix and empirical correlation matrix"
+            "Distance metrics between target correlation matrix "
+            "and empirical correlation matrix"
         )
         print(f" - Root Mean Squared Error    (RMSE): {corr_rmse:.6f}")
 
@@ -352,9 +354,9 @@ class QualityReporter:
             print(
                 "Target correlation matrix and empirical correlation achieved",
                 " in data does not match well\n"
-                "This is natural with few samples, or very high/low desired correlations, "
+                "This is natural with few samples, or very high/low desired correlations, "  # noqa: E501
                 "or distributions that are far from\nnormal (e.g. lognormal)."
-                " Setting 'correlation_iterations' to 999 in the general input sheet might help.",
+                " Setting 'correlation_iterations' to 999 in the general input sheet might help.",  # noqa: E501
             )
 
     def plot_correlation(

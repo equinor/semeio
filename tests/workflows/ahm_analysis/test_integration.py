@@ -27,7 +27,7 @@ def test_ahmanalysis_run(snake_oil_config):
                 "reports_dir": (
                     snake_oil_config.analysis_config.log_path / ensemble.experiment.name
                 ),
-                "observation_settings": snake_oil_config.analysis_config.observation_settings,
+                "observation_settings": snake_oil_config.analysis_config.observation_settings,  # noqa: E501
                 "es_settings": snake_oil_config.analysis_config.es_settings,
                 "random_seed": snake_oil_config.random_seed,
             },
@@ -91,7 +91,7 @@ def test_ahmanalysis_run_group_by_obs(snake_oil_config):
                 "reports_dir": (
                     snake_oil_config.analysis_config.log_path / ensemble.experiment.name
                 ),
-                "observation_settings": snake_oil_config.analysis_config.observation_settings,
+                "observation_settings": snake_oil_config.analysis_config.observation_settings,  # noqa: E501
                 "es_settings": snake_oil_config.analysis_config.es_settings,
                 "random_seed": snake_oil_config.random_seed,
             },
@@ -207,7 +207,7 @@ def test_that_dataset_with_no_prior_will_fail(snake_oil_config, capsys):
                 "reports_dir": (
                     snake_oil_config.analysis_config.log_path / ensemble.experiment.name
                 ),
-                "observation_settings": snake_oil_config.analysis_config.observation_settings,
+                "observation_settings": snake_oil_config.analysis_config.observation_settings,  # noqa: E501
                 "es_settings": snake_oil_config.analysis_config.es_settings,
                 "random_seed": snake_oil_config.random_seed,
             },

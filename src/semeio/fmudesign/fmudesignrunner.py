@@ -45,7 +45,10 @@ class Example:
 EXAMPLES = [
     Example(
         "fmudesign_ex_montecarlo.xlsx",
-        description="Shows all statistical parameter distributions, how to correlate samples, etc.",
+        description=(
+            "Shows all statistical parameter distributions, "
+            "how to correlate samples, etc."
+        ),
     ),
     Example(
         "fmudesign_ex_onebyone.xlsx",
@@ -57,7 +60,10 @@ EXAMPLES = [
     ),
     Example(
         "ex2_correlations.xlsx",
-        description="Sensitivities with group of (correlated) parameters sampled from distributions",
+        description=(
+            "Sensitivities with group of (correlated) parameters "
+            "sampled from distributions"
+        ),
         other_files=["ex2_doe1.xlsx"],
     ),
     Example(
@@ -75,7 +81,9 @@ EXAMPLES = [
     ),
     Example(
         "ex6_singlereference_and_seed.xlsx",
-        description="Sensitivities with a single reference realisation and seed sensitivity",
+        description=(
+            "Sensitivities with a single reference realisation and seed sensitivity"
+        ),
     ),
     Example(
         "ex7_background_no_seed.xlsx",
@@ -148,32 +156,45 @@ getting help:
         "destination",
         type=str,
         nargs="?",
-        help="Destination filename for design matrix (default: generateddesignmatrix.xlsx)",
+        help=(
+            "Destination filename for design matrix "
+            "(default: generateddesignmatrix.xlsx)"
+        ),
         default="generateddesignmatrix.xlsx",
     )
     parser_run.add_argument(
         "--designinput",
         type=str,
-        help="Alternative sheetname for the worksheet designinput (default: designinput)",
+        help=(
+            "Alternative sheetname for the worksheet designinput (default: designinput)"
+        ),
         default="designinput",
     )
     parser_run.add_argument(
         "--defaultvalues",
         type=str,
-        help="Alternative sheetname for worksheet defaultvalues (default: defaultvalues)",
+        help=(
+            "Alternative sheetname for worksheet defaultvalues (default: defaultvalues)"
+        ),
         default="defaultvalues",
     )
     parser_run.add_argument(
         "--general_input",
         type=str,
-        help="Alternative sheetname for the worksheet general_input (default: general_input)",
+        help=(
+            "Alternative sheetname for the worksheet general_input"
+            "(default: general_input)"
+        ),
         default="general_input",
     )
     parser_run.add_argument(
         "-v",
         "--verbose",
         action="count",
-        help="Verbosity of terminal output and plotting, run with increased verbosity level -v -v to include more information",
+        help=(
+            "Verbosity of terminal output and plotting, "
+            "run with increased verbosity level -v -v to include more information"
+        ),
         default=0,
     )
     func = functools.partial(subcommand_run, parser=parser_run)
@@ -314,20 +335,20 @@ def main() -> None:
         traceback.print_exc()
         print(
             "\n \n",
-            "fmudesign failed. Read the error message above and fix the input file. \n",
-            " - Documentation:           https://equinor.github.io/fmu-tools/fmudesign.html \n",
-            " - Course docs:             https://fmu-docs.equinor.com/docs/fmu-coursedocs/fmu-howto/sensitivities/index.html \n",
-            " - Issues/feature requests: https://github.com/equinor/semeio/issues \n",
-            "If you believe this error is a bug or are unable to fix it, create an issue or contact the scout team \n",
+            "fmudesign failed. Read the error message above and fix the input file.\n",
+            " - Documentation:           https://equinor.github.io/fmu-tools/fmudesign.html\n",
+            " - Course docs:             https://fmu-docs.equinor.com/docs/fmu-coursedocs/fmu-howto/sensitivities/index.html \n",  # noqa: E501
+            " - Issues/feature requests: https://github.com/equinor/semeio/issues\n",
+            "If you believe this error is a bug or are unable to fix it, create an issue or contact the scout team \n",  # noqa: E501
         )
         sys.exit(1)  # Exit with a non-zero status code (required for smoke tests!)
 
     print(
         "\n",
-        f"Thank you for using fmudesign {Version(semeio.__version__).base_version} \n",
-        " - Documentation:           https://equinor.github.io/fmu-tools/fmudesign.html \n",
-        " - Course docs:             https://fmu-docs.equinor.com/docs/fmu-coursedocs/fmu-howto/sensitivities/index.html \n",
-        " - Issues/feature requests: https://github.com/equinor/semeio/issues \n",
+        f"Thank you for using fmudesign {Version(semeio.__version__).base_version}\n",
+        " - Documentation:           https://equinor.github.io/fmu-tools/fmudesign.html\n",
+        " - Course docs:             https://fmu-docs.equinor.com/docs/fmu-coursedocs/fmu-howto/sensitivities/index.html\n",
+        " - Issues/feature requests: https://github.com/equinor/semeio/issues\n",
     )
 
 

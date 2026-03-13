@@ -22,7 +22,8 @@ Example: If ``parameters.txt`` has the line ``MULTFLT:FLT_A10_B18 0.001``, both
 of the templates ``<MULTFLT:FLT_A10_B18>`` and ``<FLT_A10_B18>`` will expand to
 ``0.001``.
 
-Configuration validation pre experiment can be disabled by explicitly setting ``<VALIDATION>=false``
+Configuration validation pre experiment can be disabled by explicitly
+setting ``<VALIDATION>=false``
 """
 
 
