@@ -145,7 +145,10 @@ In the ert config, after running the Eclipse (or similar) forward model, add::
 
     DEFINE RFT_INPUT <CONFIG_PATH>/../input/observations/rft
     FORWARD_MODEL MAKE_DIRECTORY(<DIRECTORY>=gendata_rft)
-    FORWARD_MODEL GENDATA_RFT(<PATH_TO_TRAJECTORY_FILES>=<RFT_INPUT>/rft/, <WELL_AND_TIME_FILE>=<RFT_INPUT>/well_date_rft.txt, <ZONEMAP>=<RFT_INPUT>/layer_zone_table.txt, <OUTPUTDIRECTORY>=gendata_rft)
+    FORWARD_MODEL GENDATA_RFT(<PATH_TO_TRAJECTORY_FILES>=<RFT_INPUT>/rft/, \
+        <WELL_AND_TIME_FILE>=<RFT_INPUT>/well_date_rft.txt, \
+        <ZONEMAP>=<RFT_INPUT>/layer_zone_table.txt, \
+        <OUTPUTDIRECTORY>=gendata_rft)
 
 For assisted history matching, add ``GEN_DATA`` statements to the ert config::
 
@@ -213,10 +216,19 @@ class Pyscal(ForwardModelStepPlugin):
             examples="""
 .. code-block:: none
 
-  FORWARD_MODEL PYSCAL(<PARAMETER_FILE>=scalinput.xlsx, <RESULT_FILE>=eclipse/include/props/relperm.inc, <SHEETNAME>=alternativerecommendation)
-  FORWARD_MODEL PYSCAL(<PARAMETER_FILE>=scalinput.xlsx, <RESULT_FILE>=eclipse/include/props/relperm.inc, <INT_PARAM_WO_NAME>=RELPERM_INTERP)
-  FORWARD_MODEL PYSCAL(<PARAMETER_FILE>=scalinput.xlsx, <RESULT_FILE>=eclipse/include/props/relperm.inc, <INT_PARAM_WO_NAME>=RELPERM_INTERP_WO, <INT_PARAM_GO_NAME>=RELPERM_INTERP_GO)
-  FORWARD_MODEL PYSCAL(<PARAMETER_FILE>=scalinput.xlsx, <RESULT_FILE>=eclipse/include/props/relperm.inc, <FAMILY>=2) -- for Eclipse family 2 output
+  FORWARD_MODEL PYSCAL(<PARAMETER_FILE>=scalinput.xlsx, \
+    <RESULT_FILE>=eclipse/include/props/relperm.inc, \
+    <SHEETNAME>=alternativerecommendation)
+  FORWARD_MODEL PYSCAL(<PARAMETER_FILE>=scalinput.xlsx, \
+    <RESULT_FILE>=eclipse/include/props/relperm.inc, \
+    <INT_PARAM_WO_NAME>=RELPERM_INTERP)
+  FORWARD_MODEL PYSCAL(<PARAMETER_FILE>=scalinput.xlsx, \
+    <RESULT_FILE>=eclipse/include/props/relperm.inc, \
+    <INT_PARAM_WO_NAME>=RELPERM_INTERP_WO, \
+    <INT_PARAM_GO_NAME>=RELPERM_INTERP_GO)
+  FORWARD_MODEL PYSCAL(<PARAMETER_FILE>=scalinput.xlsx, \
+    <RESULT_FILE>=eclipse/include/props/relperm.inc, \
+    <FAMILY>=2) -- for Eclipse family 2 output
 
 """,
         )

@@ -217,7 +217,8 @@ class AhmAnalysisJob(ErtScript):
         )
         if field_parameters:
             logger.warning(
-                f"AHM_ANALYSIS will only evaluate scalar parameters, skipping: {field_parameters}"
+                "AHM_ANALYSIS will only evaluate scalar parameters, "
+                f"skipping: {field_parameters}"
             )
 
         # identify the set of actual parameters that was updated for now just go
@@ -335,7 +336,8 @@ def make_update_log_df(update_log: SmootherSnapshot) -> pd.DataFrame:
         .rename(
             {
                 "observation_key": "obs_key",
-                "observations": "obs_mean",  # not really the mean, just the value, but ok
+                # not really the mean, just the value, but ok:
+                "observations": "obs_mean",
                 "std": "obs_std",
                 "response_mean": "sim_mean",
                 "response_std": "sim_std",

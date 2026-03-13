@@ -64,7 +64,8 @@ def excel_to_dict(
 
     if (design_type := generalinput.get("designtype")) != "onebyone":
         raise ValueError(
-            f"Generation of DesignMatrix only implemented for type 'onebyone', not {design_type}"
+            "Generation of DesignMatrix only implemented "
+            f"for type 'onebyone', not {design_type}"
         )
 
     return _excel_to_dict_onebyone(
@@ -97,7 +98,7 @@ def find_sheet(name: str, names: list[str]) -> str:
     Traceback (most recent call last):
       ...
     ValueError: No match for variable_input: ['generalinput', 'designinput', 'defaultinput']
-    """
+    """  # noqa: E501
 
     def sanitize(inputstring: str) -> str:
         return inputstring.lower().strip().replace("_", "")
@@ -120,8 +121,8 @@ def _check_designinput(dsgn_input: pd.DataFrame) -> None:
         # Find the first duplicate to include in error message
         duplicate_name = valid_sensnames[duplicated_mask].iloc[0]
         raise ValueError(
-            f"sensname '{duplicate_name}' was found on more than one row in designinput "
-            "sheet. Two sensitivities can not share the same sensname. "
+            f"sensname '{duplicate_name}' was found on more than one row in "
+            "designinput sheet. Two sensitivities can not share the same sensname. "
             "Please correct this and rerun"
         )
 
@@ -141,10 +142,10 @@ def _check_for_mixed_sensitivities(sens_name: str, sens_group: pd.DataFrame) -> 
     unique_types = sens_group["type"].dropna().unique()
     if len(unique_types) > 1:
         raise ValueError(
-            f"The sensitivity with sensname '{sens_name}' in designinput sheet contains more "
-            "than one sensitivity type. For each sensname all parameters must be "
-            "specified using the same type (seed, scenario, dist, ref, background, "
-            "extern)"
+            f"The sensitivity with sensname '{sens_name}' in designinput sheet "
+            "contains more than one sensitivity type. For each sensname all parameters "
+            "must be specified using the same type (seed, scenario, dist, ref, "
+            "background, extern)"
         )
 
 
@@ -237,8 +238,11 @@ def _excel_to_dict_onebyone(
     }
     extra_keys = set(generalinput.keys()) - set(ALLOWED_KEYS)
     if extra_keys:
-        msg = "In the general input sheet, the following parameter(s) are not"
-        msg += f"recognized and cannot be parsed:\n{extra_keys!r}\nAllowed keys:{ALLOWED_KEYS!r}"
+        msg = (
+            "In the general input sheet, the following parameter(s) are not"
+            f"recognized and cannot be parsed:\n{extra_keys!r}\n"
+            f"Allowed keys:{ALLOWED_KEYS!r}"
+        )
         raise LookupError(msg)
 
     # Copy keys over if they exist
@@ -757,6 +761,7 @@ def _assert_no_merged_cells(input_filename: str) -> None:
         merged_ranges = list(worksheet.merged_cells.ranges)
         if merged_ranges:
             raise Exception(
-                f"Merged cells are not allowed. Found merged cell in {input_filename} at sheet '{sheet_name}'.\n"
+                "Merged cells are not allowed. Found merged cell in "
+                f"{input_filename} at sheet '{sheet_name}'.\n"
                 f"Found {len(merged_ranges)} merged cell range(s): {merged_ranges}"
             )

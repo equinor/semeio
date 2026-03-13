@@ -342,7 +342,8 @@ class OverburdenTimeshift:
         ts_surfaces = []
         for vintage in vintages:
             logger.info(
-                f"{dt.now():%x %X} {method_name}: Calculating vintage {vintage.date:%Y.%m.%d}"
+                f"{dt.now():%x %X} {method_name}: "
+                f"Calculating vintage {vintage.date:%Y.%m.%d}"
             )
 
             self.add_survey(vintage.name, vintage.date)
@@ -494,7 +495,8 @@ class OverburdenTimeshift:
             raise ValueError(f"Convention must be 1 or -1, was {self._convention}")
         logger.debug(
             f"{dt.now():%x %X} {func_name}: Calculating shift"
-            f" {start_date:%Y.%m.%d}-{end_date:%Y.%m.%d} in {num_points_calculated} points"
+            f" {start_date:%Y.%m.%d}-{end_date:%Y.%m.%d} "
+            f"in {num_points_calculated} points"
         )
 
     def _get_non_nan_points(self) -> list[int]:

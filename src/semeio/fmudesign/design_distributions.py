@@ -28,12 +28,14 @@ def validate_params(distname: str, parameters: list[str]) -> list[float]:
             new_parameters.append(float(parameter))
         except (ValueError, TypeError) as e:
             raise ValueError(
-                f"Parameter {i + 1} in distribution {distname} not convertible to number: {parameter}"
+                f"Parameter {i + 1} in distribution {distname} not "
+                f"convertible to number: {parameter}"
             ) from e
 
         if not np.isfinite(new_parameters[i]):
             raise ValueError(
-                f"Parameter {i + 1} in distribution {distname} is not finite: {parameter}"
+                f"Parameter {i + 1} in distribution {distname} "
+                f"is not finite: {parameter}"
             )
 
     return new_parameters
@@ -106,9 +108,10 @@ def to_probabilit(
     # with weights (0.5, 0.3, 0.2). The way we deal with them is that we sample uniform
     # values, then assign the interval [0, 0.5) to A, [0.5, 0.8) to B and [0.8, 1) to C.
     # This means that we can "correlate" these variables, in the sense that if their
-    # underlying Uniforms are correlated, then the categorical values will often match too.
-    # To accomplish all of this we assign _values and _probabilities to the distribution
-    # instances below. This "correlation" only exists in a narrow specific sense of course.
+    # underlying Uniforms are correlated, then the categorical values will often match
+    # too. To accomplish all of this we assign _values and _probabilities to the
+    # distribution instances below. This "correlation" only exists in a narrow specific
+    # sense of course.
 
     if distname.startswith("disc"):
         if len(dist_parameters) == 1:
@@ -172,7 +175,8 @@ def to_probabilit(
 
         case [_, parameters] if distname.startswith("norm"):
             raise ValueError(
-                f"Normal must have 2 or 4 parameters, got: {len(parameters)} ({parameters})"
+                f"Normal must have 2 or 4 parameters, got: "
+                f"{len(parameters)} ({parameters})"
             )
 
         # ================== LOGNORMAL ==================
@@ -183,7 +187,8 @@ def to_probabilit(
             )
 
         case [_, (mu, sigma, low, high)] if distname.startswith("logn"):
-            # (mu, sigma) are defined in log-spce, but (low, high) are defined on exp-space
+            # (mu, sigma) are defined in log-space, but (low, high)
+            # are defined on exp-space
             return probabilit.modeling.Exp(
                 probabilit.distributions.TruncatedNormal(
                     mu, sigma, low=np.log(low), high=np.log(high)
@@ -192,7 +197,8 @@ def to_probabilit(
 
         case [_, parameters] if distname.startswith("logn"):
             raise ValueError(
-                f"Lognormal must have 2 or 4 parameters, got: {len(parameters)} ({parameters})"
+                f"Lognormal must have 2 or 4 parameters, got: "
+                f"{len(parameters)} ({parameters})"
             )
 
         # ================== UNIFORM ==================
@@ -225,7 +231,8 @@ def to_probabilit(
 
         case [_, parameters] if distname.startswith("triang"):
             raise ValueError(
-                f"Triangular must have 3 parameters, got: {len(parameters)} ({parameters})"
+                f"Triangular must have 3 parameters, got: "
+                f"{len(parameters)} ({parameters})"
             )
 
         # ================== BETA ==================
@@ -241,7 +248,8 @@ def to_probabilit(
 
         case [_, parameters] if distname.startswith("beta"):
             raise ValueError(
-                f"Beta must have 2 or 4 parameters, got: {len(parameters)} ({parameters})"
+                f"Beta must have 2 or 4 parameters, got: "
+                f"{len(parameters)} ({parameters})"
             )
 
         # ================== PERT ==================
@@ -273,7 +281,8 @@ def to_probabilit(
 
         case [_, parameters] if distname.startswith("pert"):
             raise ValueError(
-                f"PERT must have 3 or 4 parameters, got: {len(parameters)} ({parameters})"
+                f"PERT must have 3 or 4 parameters, got: "
+                f"{len(parameters)} ({parameters})"
             )
 
         # ================== LOGUNIFORM ==================
@@ -283,7 +292,8 @@ def to_probabilit(
 
         case [_, parameters] if distname.startswith("logunif"):
             raise ValueError(
-                f"Loguniform must have 2 parameters, got: {len(parameters)} ({parameters})"
+                f"Loguniform must have 2 parameters, got: "
+                f"{len(parameters)} ({parameters})"
             )
 
         case [distname, parameters]:
@@ -337,10 +347,14 @@ def read_correlations(excel_filename: str, corr_sheet: str) -> pd.DataFrame:
     )
 
     if list(correlations.index) != list(correlations.columns):
-        msg = f"Mismatch between column and index in correlation matrix sheet: {corr_sheet!r}\n"
-        msg += f"Column: {correlations.columns.tolist()}\n"
-        msg += f"Index : {correlations.index.tolist()}\n"
-        msg += f"These values must match exactly. Please fix sheet {corr_sheet!r} in file {excel_filename!r}."
+        msg = (
+            "Mismatch between column and index in correlation "
+            f"matrix sheet: {corr_sheet!r}\n"
+            f"Column: {correlations.columns.tolist()}\n"
+            f"Index : {correlations.index.tolist()}\n"
+            "These values must match exactly. Please fix sheet "
+            f"{corr_sheet!r} in file {excel_filename!r}."
+        )
         raise ValueError(msg)
 
     arr = correlations.to_numpy(copy=True)
@@ -350,17 +364,20 @@ def read_correlations(excel_filename: str, corr_sheet: str) -> pd.DataFrame:
 
     if not np.all(np.isnan(arr[upper_idx])):
         raise ValueError(
-            f"All upper-triangular elements in matrix in corr sheet {corr_sheet} must be blank."
+            "All upper-triangular elements in matrix in "
+            f"corr sheet {corr_sheet} must be blank."
         )
 
     if not np.all(np.isfinite(lower_entries)):
         raise ValueError(
-            f"All lower-triangular elements in matrix in corr sheet {corr_sheet} must be specified."
+            "All lower-triangular elements in matrix in "
+            f"corr sheet {corr_sheet} must be specified."
         )
 
     if np.any((lower_entries < -1) | (lower_entries > 1)):
         raise ValueError(
-            f"All lower-triangular elements in matrix in corr sheet {corr_sheet} must be between -1 and 1."
+            "All lower-triangular elements in matrix in "
+            f"corr sheet {corr_sheet} must be between -1 and 1."
         )
 
     # Build symmetric matrix from lower triangle

@@ -300,7 +300,7 @@ class DesignMatrix:
         Provided number of seed values (3) in external file is lower than the maximum number of realisations (5).
          Seeds will be repeated, e.g. [1, 2, 3] => [1, 2, 3, 1, 2, ...]
         [1, 2, 3, 1, 2]
-        """
+        """  # noqa: E501
         if seeds is None:
             return None
 
@@ -586,7 +586,10 @@ class SeedSensitivity(Sensitivity):
                 distributions or values.
         """
         if seedvalues is None:
-            msg = f"Seed values must be set when running sensitivity type 'seed'. Got seed: {seedvalues}"
+            msg = (
+                "Seed values must be set when running sensitivity type 'seed'. "
+                f"Got seed: {seedvalues}"
+            )
             raise ValueError(msg)
 
         self.sensvalues = pd.DataFrame(index=range(size))
@@ -789,8 +792,8 @@ class MonteCarloSensitivity(Sensitivity):
             values (list): a list of seed values or None
             corrdict (dict): Configuration for correlated parameters. Contains:
                 - 'inputfile': Name of Excel file with correlation matrices
-                - 'sheetnames': List of sheet names, where each sheet contains a correlation matrix
-                If None, parameters are treated as uncorrelated.
+                - 'sheetnames': List of sheet names, where each sheet contains a
+                correlation matrix. If None, parameters are treated as uncorrelated.
             rng (numpy.random.Generator): Random number generator instance
             correlation_iterations (int): Number of permutations performed
               on samples after Iman-Conover in an attempt to match observed
@@ -858,7 +861,8 @@ class MonteCarloSensitivity(Sensitivity):
                 else:
                     print(
                         f"Sampling {len(multivariate_parameters)} parameters",
-                        f"in correlation group {corr_group_name!r}: {multivariate_parameters}",
+                        f"in correlation group {corr_group_name!r}: "
+                        f"{multivariate_parameters}",
                     )
 
                 # Get the nearest correlation matrix
@@ -867,7 +871,8 @@ class MonteCarloSensitivity(Sensitivity):
                 )
                 if not np.allclose(correlations, nearest):
                     print(
-                        f"\nWarning: Correlation matrix {corr_group_name!r} is inconsistent"
+                        f"\nWarning: Correlation matrix {corr_group_name!r} "
+                        "is inconsistent"
                     )
                     print("Requirements:")
                     print("  - All diagonal elements must be 1")
