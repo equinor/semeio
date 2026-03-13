@@ -10,6 +10,10 @@ from ert import (
 from .scripts.design2params import description as design2params_description
 from .scripts.design_kw import description as design_kw_description
 from .scripts.design_kw import design_kw as DesignKWScript
+from .scripts.fm_pyscal import description as pyscal_description
+from .scripts.gendata_rft import description as gendata_rft_description
+from .scripts.overburden_timeshift import description as ots_description
+from .scripts.replace_string import description as replace_string_description
 
 
 class Design2Params(ForwardModelStepPlugin):
@@ -80,9 +84,6 @@ class DesignKW(ForwardModelStepPlugin):
             source_function_name="DesignKW",
             description=design_kw_description,
         )
-
-
-from .scripts.gendata_rft import description as gendata_rft_description
 
 
 class GenDataRFT(ForwardModelStepPlugin):
@@ -159,9 +160,6 @@ For assisted history matching, add ``GEN_DATA`` statements to the ert config::
         )
 
 
-from .scripts.overburden_timeshift import description as ots_description
-
-
 class OTS(ForwardModelStepPlugin):
     def __init__(self) -> None:
         super().__init__(
@@ -177,9 +175,6 @@ class OTS(ForwardModelStepPlugin):
             source_function_name="OTS",
             description=ots_description,
         )
-
-
-from .scripts.fm_pyscal import description as pyscal_description
 
 
 class Pyscal(ForwardModelStepPlugin):
@@ -283,9 +278,6 @@ class RemoveNoSim(ForwardModelStepPlugin):
             source_function_name="RemoveNoSim",
             description="Remove all NOSIM lines from <ECLBASE>.DATA file",
         )
-
-
-from .scripts.replace_string import description as replace_string_description
 
 
 class ReplaceString(ForwardModelStepPlugin):

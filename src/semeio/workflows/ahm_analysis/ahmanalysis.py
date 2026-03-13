@@ -174,8 +174,10 @@ class AhmAnalysisJob(ErtScript):
             ).agg(pl.col("observation_key").unique())
 
             key_map = {
-                _replace(l["response_key"]): sorted(map(_replace, l["observation_key"]))
-                for l in key_2_obs_key_df.sort(by="response_key").to_dicts()
+                _replace(row["response_key"]): sorted(
+                    map(_replace, row["observation_key"])
+                )
+                for row in key_2_obs_key_df.sort(by="response_key").to_dicts()
             }
 
         if target_name == "<ANALYSIS_CASE_NAME>":

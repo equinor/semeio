@@ -551,9 +551,9 @@ def print_corrmat(df_corrmat: pd.DataFrame) -> None:
     )
 
     # Remove upper triangular part for prettier printing
-    formatter = lambda x: np.format_float_positional(
-        x, precision=2, unique=True, min_digits=2
-    )
+    def formatter(x: float) -> str:
+        return np.format_float_positional(x, precision=2, unique=True, min_digits=2)
+
     mask = np.triu(np.ones_like(df_corrmat, dtype=bool), k=1)
     df_display = df_corrmat.astype(float).map(formatter)
     df_display[mask] = ""
