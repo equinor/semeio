@@ -1,30 +1,13 @@
-import argparse
-import logging
-import sys
-from importlib.metadata import PackageNotFoundError, version
-from pathlib import Path
+import importlib.metadata
 
-try:  # noqa: SIM105
-    __version__ = version(__name__)
-except PackageNotFoundError:
+from semeio.semeio import setup_logging, valid_file
+
+try:  # noqa: SIM105, RUF067
+    __version__ = importlib.metadata.distribution("semeio").version
+except importlib.metadata.PackageNotFoundError:
     # package is not installed
     pass
 
+setup_logging()  # noqa: RUF067
 
-logger = logging.getLogger(__name__)
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-std_out_handler = logging.StreamHandler(sys.stdout)
-std_out_handler.setFormatter(formatter)
-std_out_handler.setLevel(logging.INFO)
-logger.addHandler(std_out_handler)
-
-std_err_handler = logging.StreamHandler(sys.stderr)
-std_err_handler.setFormatter(formatter)
-std_err_handler.setLevel(logging.WARNING)
-logger.addHandler(std_err_handler)
-
-
-def valid_file(arg):
-    if Path(arg).is_file():
-        return arg
-    raise argparse.ArgumentTypeError(f"{arg} is not an existing file!")
+__all__ = ["valid_file"]
