@@ -1,6 +1,7 @@
 """Testing code for generation of design matrices"""
 
 import json
+import math
 import shutil
 from datetime import datetime
 from pathlib import Path
@@ -480,9 +481,9 @@ def test_generate_full_mc(tmpdir):
     )
 
     date_fractions = diskdesign["DATO"].value_counts(normalize=True)
-    assert date_fractions.loc["2018-11-02"] == 0.3
-    assert date_fractions.loc["2018-11-03"] == 0.4
-    assert date_fractions.loc["2018-11-04"] == 0.3
+    assert math.isclose(date_fractions.loc["2018-11-02"], 0.3)
+    assert math.isclose(date_fractions.loc["2018-11-03"], 0.4)
+    assert math.isclose(date_fractions.loc["2018-11-04"], 0.3)
 
 
 def test_generate_background(tmpdir):
