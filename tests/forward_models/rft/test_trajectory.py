@@ -1,4 +1,5 @@
 import itertools
+import math
 from pathlib import Path
 
 import pandas as pd
@@ -15,7 +16,7 @@ def test_load_from_line(line, expected_zone):
     point = TrajectoryPoint(*Trajectory.parse_trajectory_line(line))
     assert point.utm_x == 0
     assert point.utm_y == 1
-    assert point.measured_depth == 2.2
+    assert math.isclose(point.measured_depth, 2.2)
     assert point.true_vertical_depth == 3
     assert point.zone == expected_zone
 

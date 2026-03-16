@@ -5,6 +5,7 @@ by the DesignMatrix class to generate design matrices.
 
 import collections
 import contextlib
+import math
 from collections import Counter
 from collections.abc import Hashable, Sequence
 from pathlib import Path
@@ -736,10 +737,10 @@ def _has_value(value: Any) -> bool:  # noqa: ANN401
 
 
 def _is_int(teststring: str) -> bool:
-    """Test if a string can be parsed as a float"""
+    """Test if string is a finite integer"""
     try:
         if not np.isnan(int(teststring)):
-            return (float(teststring) % 1) == 0
+            return math.isclose((float(teststring) % 1), 0, abs_tol=1e-14)
         return False  # It was a "number", but it was NaN.
     except ValueError:
         return False

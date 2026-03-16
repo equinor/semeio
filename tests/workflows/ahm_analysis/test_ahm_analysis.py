@@ -1,4 +1,5 @@
 import copy
+import math
 
 import numpy as np
 import pandas as pd
@@ -179,7 +180,7 @@ def test_calc_kolmogorov_smirnov():
     )
     ks_matrix = ks_matrix.set_index("Parameters")
     assert "param2" in ks_matrix.index
-    assert ks_matrix.loc["param1", "WOPT:W1"] == 0.275
+    assert math.isclose(ks_matrix.loc["param1", "WOPT:W1"], 0.275)
     assert ks_matrix["WOPT:W1"].max() <= 1
     assert ks_matrix["WOPT:W1"].min() >= 0
 
