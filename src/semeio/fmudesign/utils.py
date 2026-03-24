@@ -200,11 +200,9 @@ def map_dependencies(
             df = df.assign(
                 **{
                     # Bind loop variables as default args to the lambda
-                    to_param: lambda df, from_param=from_param, mapping=mapping: df[
-                        from_param
-                    ]
-                    .map(to_numeric_safe)
-                    .map(mapping)
+                    to_param: lambda df, from_param=from_param, mapping=mapping: (
+                        df[from_param].map(to_numeric_safe).map(mapping)
+                    )
                 }
             )
             if verbose:

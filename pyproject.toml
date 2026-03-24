@@ -154,6 +154,8 @@ select = [
 ]
 preview = true
 ignore = [
+  "RUF067",  # code in __init__
+  "RUF069",  # unreliable floating point comparison
   "PLC2701", # import-private-name
   "PLR0911", # too-many-return-statements
   "PLR0912", # too-many-branches
