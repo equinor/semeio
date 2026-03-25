@@ -47,7 +47,7 @@ Formatting use `ruff`, See `.pre-commit-config.yaml` for the
 complete steps.
 
 [pre-commit](https://pre-commit.com/) can also provide git hooks to run on every commit
-to avoid commiting with formatting errors. This will only run on the diff so is quite fast.
+to avoid committing with formatting errors. This will only run on the diff so is quite fast.
 To configure this, run:
 
 ```sh

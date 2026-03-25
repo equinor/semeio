@@ -318,7 +318,7 @@ class DesignMatrix:
             return [seeds[item % len(seeds)] for item in range(max_reals)]
 
         # Raise if none of the cases above apply. We do this because if we did not we
-        # would return None, which is a valid case in itsself.
+        # would return None, which is a valid case in itself.
         raise ValueError(f"Must be None, 'default' or list: {seeds=}")
 
     def add_background(
