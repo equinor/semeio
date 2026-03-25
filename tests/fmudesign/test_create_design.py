@@ -186,7 +186,7 @@ def test_distribution_statistis(tmpdir, monkeypatch, correlations):
     assert np.isclose(df["LOGUNIFORM"].mean(), 2.485339, atol=atol)
     assert np.isclose(df["LOGUNIFORM"].std(), 1.130975, atol=atol)
 
-    # The P10/P90 distrubtions are all defined to have P10=-2 and P90=3,
+    # The P10/P90 distributions are all defined to have P10=-2 and P90=3,
     # so we test them by checking that the observed percentiles match
     assert np.isclose(df["NORMALP10P90"].quantile(0.1), -2, atol=atol)
     assert np.isclose(df["NORMALP10P90"].quantile(0.9), 3, atol=atol)

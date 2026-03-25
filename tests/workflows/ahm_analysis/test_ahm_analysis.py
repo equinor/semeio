@@ -136,7 +136,7 @@ def test_calc_observationsgroup_misfit(input_obs, expected_misfit, update_log):
         (
             "OP_1_WWCT",
             "WARNING: no MISFIT value for observation OP_1_WWCT",
-            {"status": {0: "Mising"}},
+            {"status": {0: "Missing"}},
         ),
     ],
 )
