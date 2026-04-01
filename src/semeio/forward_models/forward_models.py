@@ -34,9 +34,6 @@ class Design2Params(ForwardModelStepPlugin):
     ) -> ForwardModelStepJSON:
         return fm_step_json
 
-    def validate_pre_experiment(self, fm_step_json: ForwardModelStepJSON) -> None:  # noqa: PLR6301
-        return fm_step_json
-
     @staticmethod
     def documentation() -> ForwardModelStepDocumentation | None:
         return ForwardModelStepDocumentation(
@@ -74,7 +71,6 @@ class DesignKW(ForwardModelStepPlugin):
                     "Argument list is missing <template_file>"
                 ) from None
             DesignKWScript.validate_configuration(template_file_name=template_file_name)
-        return fm_step_json
 
     @staticmethod
     def documentation() -> ForwardModelStepDocumentation | None:
