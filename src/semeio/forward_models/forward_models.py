@@ -29,11 +29,6 @@ class Design2Params(ForwardModelStepPlugin):
             ],
         )
 
-    def validate_pre_realization_run(  # noqa: PLR6301
-        self, fm_step_json: ForwardModelStepJSON
-    ) -> ForwardModelStepJSON:
-        return fm_step_json
-
     @staticmethod
     def documentation() -> ForwardModelStepDocumentation | None:
         return ForwardModelStepDocumentation(
@@ -56,11 +51,6 @@ class DesignKW(ForwardModelStepPlugin):
             ],
             default_mapping={"<VALIDATE>": "false"},
         )
-
-    def validate_pre_realization_run(  # noqa: PLR6301
-        self, fm_step_json: ForwardModelStepJSON
-    ) -> ForwardModelStepJSON:
-        return fm_step_json
 
     def validate_pre_experiment(self, fm_step_json: ForwardModelStepJSON) -> None:
         if self.private_args.get("<VALIDATE>", "").lower() == "true":
