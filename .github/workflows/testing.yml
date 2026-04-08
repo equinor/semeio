@@ -56,14 +56,14 @@ jobs:
 
       - name: Install test dependencies
         run: |
-          uv pip install ".[test]"
+          uv sync --frozen --extra test
 
       - name: Pin pandas version
         if: matrix.pandas-version
         run: uv pip install "pandas${{ matrix.pandas-version }}"
 
       - name: "Run tests"
-        run: pytest tests -n logical --durations 5 --ert-integration
+        run: uv run --no-sync pytest tests -n logical --durations 5 --ert-integration
 
       - name: "Run doctests on fmudesign"
-        run: pytest ./src/semeio/fmudesign/ --doctest-modules -v
+        run: uv run --no-sync pytest ./src/semeio/fmudesign/ --doctest-modules -v
