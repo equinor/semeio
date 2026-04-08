@@ -34,6 +34,7 @@ jobs:
       uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57 # v8.0.0
       with:
         enable-cache: true
+        prune-cache: false
         cache-dependency-glob: pyproject.toml
         python-version: ${{ matrix.python-version }}
 
