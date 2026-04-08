@@ -173,3 +173,19 @@ ignore = [
 
 [tool.ruff.lint.pylint]
 max-args = 20
+
+[tool.uv]
+fork-strategy = "requires-python"
+exclude-newer = "7 days"
+
+[tool.uv.exclude-newer-package]
+# Excluded as they are developed by Equinor
+ert = false
+fmu-ensemble = false
+resdata = false
+resfo = false
+resfo-utilities = false
+segyio = false
+probabilit = false
+xtgeo = false
+oil-reservoir-synthesizer = false
