@@ -261,7 +261,6 @@ class AhmAnalysisJob(ErtScript):
                     strategy_map = build_strategy_map(
                         parameters=prior_ensemble.experiment.update_parameters,
                         param_configs=prior_ensemble.experiment.parameter_configuration,
-                        inversion=es_settings.inversion,
                         enkf_truncation=es_settings.enkf_truncation,
                         distance_localization=es_settings.distance_localization,
                         localization=es_settings.localization,

@@ -9,7 +9,7 @@ resolution-markers = [
 ]
 
 [options]
-exclude-newer = "2026-04-01T06:03:48.179246845Z"
+exclude-newer = "2026-04-02T11:45:42.867084Z"
 exclude-newer-span = "P7D"
 
 [options.exclude-newer-package]
@@ -776,7 +776,7 @@ wheels = [
 
 [[package]]
 name = "ert"
-version = "21.0.6"
+version = "21.1.0b0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
@@ -836,7 +836,7 @@ dependencies = [
     { name = "xtgeo" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/71/70/e6c9e55bbebe9240c4bc2c4202a7eb3ac72083dcbced1bcd96884d4d5761/ert-21.0.6-py3-none-any.whl", hash = "sha256:a68c6c6d1f8929d104ad41a84bc4ae543a0b52fbbd5db1919a47b401e31a09bc", size = 781376, upload-time = "2026-03-30T13:14:16.539Z" },
+    { url = "https://files.pythonhosted.org/packages/d5/fb/a5e06c926857c3ffaca46eb02161619d81f9dcd5f4e43f9ee89a9ea1af7d/ert-21.1.0b0-py3-none-any.whl", hash = "sha256:59a5399c1287f2cd39973837f94199a06d6b80b2f4d12387188739fbb1855379", size = 784894, upload-time = "2026-04-09T11:02:50.182Z" },
 ]
 
 [[package]]
@@ -1414,7 +1414,7 @@ wheels = [
 
 [[package]]
 name = "iterative-ensemble-smoother"
-version = "0.6.0"
+version = "1.1.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "joblib" },
@@ -1422,9 +1422,9 @@ dependencies = [
     { name = "psutil" },
     { name = "scipy" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/25/88/1ca4be3aec9fb4781425c73e769c54025c6b5e69cebbae5541376f47ea22/iterative_ensemble_smoother-0.6.0.tar.gz", hash = "sha256:5eb9e4827398ca2fb22409abe1bbc214ad1a89a0e448b01cbb163d17f19ea9a4", size = 178947, upload-time = "2026-02-12T15:05:05.803Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e7/27/1f6b9563a3811f97bad82b6b21be5c0e25ec87e34eff2495a30c2eae9431/iterative_ensemble_smoother-1.1.0.tar.gz", hash = "sha256:3959c5639d1a66f31a9802c0861474c65a8474a7119c05973b0f2ee89b73a7bf", size = 181308, upload-time = "2026-03-27T08:51:11.839Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d9/fd/9a396ac6fffc1c14303d3647d6ba43beab207f3c1be3c66fa016b6f8dee1/iterative_ensemble_smoother-0.6.0-py3-none-any.whl", hash = "sha256:f0674dc555526b74bd58b199edf1ea69168d4613491d9237e620c8c7af10aa43", size = 49511, upload-time = "2026-02-12T15:05:04.416Z" },
+    { url = "https://files.pythonhosted.org/packages/c5/76/d63e7670b6f84ebfaaacf11b424a7671bc77d9c178579a1697ab90228ca6/iterative_ensemble_smoother-1.1.0-py3-none-any.whl", hash = "sha256:f5449c9d7642d4122e199c0721512b31d81711172ff450d64c26f0849c91e7a5", size = 51440, upload-time = "2026-03-27T08:51:10.3Z" },
 ]
 
 [[package]]
@@ -3609,16 +3609,16 @@ wheels = [
 
 [[package]]
 name = "ropt"
-version = "0.25.0"
+version = "0.26.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "numpy" },
     { name = "pydantic" },
     { name = "scipy" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/8c/c8/55f5d5dbff4c8e6d81f449d350a5fa7b3fd51403582bedbaff1582748528/ropt-0.25.0.tar.gz", hash = "sha256:a2fb438bc5a0c2d60b093873a6e30e278c71ab14cf5d4720ca4b4b123634ad36", size = 150788, upload-time = "2025-11-25T12:18:12.943Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/46/25/440fef36add52a9efc353665ba1c055377291a4c30e049090a6b646925f5/ropt-0.26.0.tar.gz", hash = "sha256:3ff0e2734cb91b1af893c08d841a7e36f7e6953db1bad3a22342cabcfe4f7274", size = 161671, upload-time = "2026-03-30T05:52:23.474Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/95/62/008cb3417866c40e3f488a8c141286fc357e1cc4668c190f764995646aaf/ropt-0.25.0-py3-none-any.whl", hash = "sha256:9bca0d581e590053f114e8051c7eb0d446a64bd53118ac77668f7028bb7b30b6", size = 162825, upload-time = "2025-11-25T12:18:11.734Z" },
+    { url = "https://files.pythonhosted.org/packages/c8/f0/d0912ed8ea66d5225665b0d10501912290710b42613285fc3854d97835a3/ropt-0.26.0-py3-none-any.whl", hash = "sha256:655aee6b8f5d7f7f85645881c3ea3ac42402c654cae017641483ba5471dd4743", size = 176239, upload-time = "2026-03-30T05:52:21.921Z" },
 ]
 
 [package.optional-dependencies]
@@ -3628,15 +3628,15 @@ pandas = [
 
 [[package]]
 name = "ropt-dakota"
-version = "0.25.0"
+version = "0.26.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "carolina" },
     { name = "numpy" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/7a/58/e478f9402f44f747d6fd83295ed1a0d08781d25ab0d8a83c481a82b32d5d/ropt_dakota-0.25.0.tar.gz", hash = "sha256:51a10d4a2c386243b32dab343ee69b16eb7621d5d1709079a40eac6cbb1a5d1e", size = 29211, upload-time = "2025-11-25T12:18:27.96Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e9/8e/af05a630b5b11dad99b83699b2c02517184673847ee498e61a95e1fe4835/ropt_dakota-0.26.0.tar.gz", hash = "sha256:ea1ed2d37367a34262aa31307ed8b6e2369d83617e3ab50035b0d27f907187d6", size = 27864, upload-time = "2026-03-30T05:53:50.945Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/89/8c/db824097ad40dd1f2aeab52b5fb49ef1c55b1085a66c1314e8511a37bbe3/ropt_dakota-0.25.0-py3-none-any.whl", hash = "sha256:1edd763369a47d079de9e3af5e122d46ad762044d8072406400971ee93930d89", size = 20609, upload-time = "2025-11-25T12:18:26.489Z" },
+    { url = "https://files.pythonhosted.org/packages/d6/6d/d216d803a7fa95eeacfeac4980e2b8037ee43f95941f1cd44cfd11fe94fe/ropt_dakota-0.26.0-py3-none-any.whl", hash = "sha256:3725175da4d55d668171427431ac9989beebdae9fed62add698c3d9f9aac068e", size = 20596, upload-time = "2026-03-30T05:53:49.424Z" },
 ]
 
 [[package]]
@@ -3928,7 +3928,7 @@ types = [
 [package.metadata]
 requires-dist = [
     { name = "cvxpy" },
-    { name = "ert", specifier = ">=21.0.0b1" },
+    { name = "ert", specifier = ">=21.1.0b0" },
     { name = "fmu-ensemble", specifier = ">1.6.5" },
     { name = "hypothesis", marker = "extra == 'test'" },
     { name = "mypy", marker = "extra == 'types'" },
