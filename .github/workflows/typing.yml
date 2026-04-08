@@ -40,7 +40,7 @@ jobs:
 
     - name: Install semeio and dependencies
       run: |
-        uv pip install ".[types]"
+        uv sync --frozen --extra types
     - name: Run mypy
       run: |
-        mypy src/semeio
+        uv run --no-sync mypy src/semeio
