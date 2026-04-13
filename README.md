@@ -27,20 +27,33 @@ documentation. See the [ERT](https://github.com/equinor/ert) documentation for e
 how to run workflows and forward models, and build the [ERT](https://github.com/equinor/ert) documentation to get
 documentation for the workflows and forward models.
 
+## Developing
+
+We use uv to have one synchronized development environment for all packages.
+See [installing uv](https://docs.astral.sh/uv/getting-started/installation/). We
+recommend installing uv using your system's package manager, or into a small
+dedicated virtual environment.
+
+Once uv is installed, you can get a development environment by running:
+
+```sh
+git clone https://github.com/equinor/semeio
+cd semeio
+uv sync --all-groups --all-extras
+```
+
 # Run tests
 To run the full test suite, do:
 
 ```sh
-pip install ".[test]"
-pytest tests
+uv run pytest tests
 ```
 
 [pre-commit](https://pre-commit.com/) is used to comply with the formatting standards.
 The complete formatting tests can be run with:
 
 ```sh
-pip install ".[style]"
-pre-commit run --all-files
+uv run pre-commit run --all-files
 ```
 
 Formatting use `ruff`, See `.pre-commit-config.yaml` for the
@@ -51,9 +64,7 @@ to avoid committing with formatting errors. This will only run on the diff so is
 To configure this, run:
 
 ```sh
-pip install ".[style]"
-pip install pre-commit
-pre-commit install
+uv run pre-commit install
 ```
 
 After this the hook will run on every commit.
@@ -61,5 +72,5 @@ After this the hook will run on every commit.
 If you would like to remove the hooks, run:
 
 ```sh
-pre-commit uninstall
+uv run pre-commit uninstall
 ```
