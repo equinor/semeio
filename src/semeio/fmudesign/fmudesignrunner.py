@@ -331,7 +331,7 @@ def main() -> None:
 
     try:
         args.func(args)
-    except Exception:
+    except Exception:  # noqa: BLE001
         traceback.print_exc()
         print(
             "\n \n",

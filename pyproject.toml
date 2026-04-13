@@ -117,6 +117,7 @@ select = [
   "ANN", # flake8-annotations
   "ASYNC",
   "B",   # flake-8-bugbear
+  "BLE",
   "C4",  # flake8-comprehensions
   "DJ",
   "E",
