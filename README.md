@@ -39,10 +39,10 @@ Once uv is installed, you can get a development environment by running:
 ```sh
 git clone https://github.com/equinor/semeio
 cd semeio
-uv sync --all-groups --all-extras
+uv sync --all-extras
 ```
 
-# Run tests
+## Run tests
 To run the full test suite, do:
 
 ```sh
