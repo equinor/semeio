@@ -2,7 +2,6 @@ import logging
 import os.path
 from collections.abc import Callable, Iterable, Sequence
 from datetime import date
-from datetime import datetime as dt
 from itertools import product, starmap
 from pathlib import Path
 from typing import Any, Literal, NamedTuple, cast
@@ -341,10 +340,7 @@ class OverburdenTimeshift:
         surf_displacement = {}
         ts_surfaces = []
         for vintage in vintages:
-            logger.info(
-                f"{dt.now():%x %X} {method_name}: "
-                f"Calculating vintage {vintage.date:%Y.%m.%d}"
-            )
+            logger.info(f"{method_name}: Calculating vintage {vintage.date:%Y.%m.%d}")
 
             self.add_survey(vintage.name, vintage.date)
             surf_displacement[vintage.date] = np.zeros(len(surface))
@@ -416,10 +412,7 @@ class OverburdenTimeshift:
 
         for base, monitor in vintage_pairs:
             surf_displacement = np.zeros(len(surface))
-            logger.info(
-                f"{dt.now():%x %X} TS: Calculating vintage"
-                f" {base:%Y.%m.%d} - {monitor:%Y.%m.%d}"
-            )
+            logger.info(f"TS: Calculating vintage {base:%Y.%m.%d} - {monitor:%Y.%m.%d}")
 
             # According to the author, base and monitor are
             # reversed for geertsma_ts
@@ -494,7 +487,7 @@ class OverburdenTimeshift:
         else:
             raise ValueError(f"Convention must be 1 or -1, was {self._convention}")
         logger.debug(
-            f"{dt.now():%x %X} {func_name}: Calculating shift"
+            f"{func_name}: Calculating shift"
             f" {start_date:%Y.%m.%d}-{end_date:%Y.%m.%d} "
             f"in {num_points_calculated} points"
         )
@@ -541,9 +534,7 @@ class OverburdenTimeshift:
         pressure_volume = {}
 
         for vintage in vintages:
-            logger.info(
-                f"{dt.now():%x %X} DPV: Calculating vintage {vintage.date:%Y.%m.%d}"
-            )
+            logger.info(f"DPV: Calculating vintage {vintage.date:%Y.%m.%d}")
             self.add_survey(vintage.name, vintage.date)
             pressure = Resdata3DKW.cast_from_kw(
                 self._restart_views[vintage.name]["PRESSURE"][0], self._grid

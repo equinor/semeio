@@ -120,6 +120,7 @@ select = [
   "BLE",
   "C4",  # flake8-comprehensions
   "DJ",
+  "DTZ",
   "E",
   "EXE",
   "F",   # pyflakes
