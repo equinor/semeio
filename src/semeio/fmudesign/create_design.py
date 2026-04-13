@@ -894,9 +894,6 @@ class MonteCarloSensitivity(Sensitivity):
 
         # Either do ImanConover followed by Permutation, or simply ImanConover
         if correlation_iterations > 0:
-            # TODO: It is possible to let the user set the correlation type
-            # if this is of interest. But for now we assume that users care about
-            # pearson correlation, not spearman (rank) correlation.
             correlator = probabilit.correlation.Composite(
                 iterations=correlation_iterations,
                 correlation_type="pearson",
