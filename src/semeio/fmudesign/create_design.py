@@ -273,7 +273,9 @@ class DesignMatrix:
                     "Description": ["Created using semeio version:", "Created on:"],
                     "Value": [
                         semeio.__version__,
-                        datetime.now().isoformat(sep=" ", timespec="seconds"),
+                        datetime.now()
+                        .astimezone()
+                        .isoformat(sep=" ", timespec="seconds"),
                     ],
                 }
             )
