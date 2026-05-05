@@ -1,7 +1,7 @@
 # pylint: disable=invalid-name
 import datetime
+import shutil
 from pathlib import Path
-from typing import NamedTuple
 
 import pytest
 import segyio
@@ -9,30 +9,15 @@ from resdata.grid import GridGenerator
 from xtgeo import surface_from_file
 
 from semeio.forward_models.overburden_timeshift.ots import OverburdenTimeshift
+from semeio.forward_models.overburden_timeshift.ots_config import OTSConfig, Vintages
 
 from .ots_util import create_init, create_restart, create_segy_file
 
-
-class Parms(NamedTuple):
-    seabed: str
-    above: str
-    youngs: str
-    poisson: str
-    rfactor: str
-    mapaxes: str
-    onvention: str
-    output_dir: str
-    horizon: str
-    vintages_export_file: str
-    velocity_model: str
-    eclbase: str
-
-
-PARMS = Parms
+TEST_NORNE_DIR = Path(__file__).parent / ".." / ".." / "test_data" / "norne"
 
 
 @pytest.fixture(name="set_up")
-def fixture_set_up():
+def fixture_set_up(tmp_path):
     spec = segyio.spec()
     spec.format = 5
     spec.sorting = 2
@@ -42,27 +27,44 @@ def fixture_set_up():
 
     actnum = [0, 0, 0, 0, 1, 1, 1, 1]
 
-    PARMS.output_dir = None
-    PARMS.horizon = None
-    PARMS.vintages_export_file = None
-    PARMS.velocity_model = None
-    PARMS.seabed = 10
-    PARMS.above = 10
-    PARMS.youngs = 0.5
-    PARMS.poisson = 0.3
-    PARMS.rfactor = 20
-    PARMS.convention = 1
-    PARMS.eclbase = "TEST"
+    eclbase = tmp_path / "TEST"
 
-    return spec, actnum, PARMS
+    for extension in ["INIT", "EGRID", "UNRST"]:
+        shutil.copy(
+            TEST_NORNE_DIR / f"NORNE_ATW2013.{extension}",
+            tmp_path / f"TEST.{extension}",
+        )
+
+    config = OTSConfig(
+        output_dir=str(tmp_path),
+        seabed=10,
+        above=10,
+        youngs=0.5,
+        poisson=0.3,
+        rfactor=20,
+        convention=1,
+        eclbase=str(eclbase),
+        horizon=None,
+        vintages_export_file=None,
+        velocity_model=None,
+        mapaxes=False,
+        vintages=Vintages(
+            ts_simple=[[datetime.date(1997, 11, 6), datetime.date(1998, 2, 1)]]
+        ),
+    )
+
+    for extension in [".INIT", ".EGRID", ".UNRST"]:
+        (tmp_path / f"TEST.{extension}").unlink(True)
+
+    return spec, actnum, config
 
 
 @pytest.mark.parametrize(
     ("missing_file", "expected_error"),
     [
-        ("TEST.INIT", 'Failed to open file "TEST.INIT"'),
-        ("TEST.EGRID", "Loading grid from:TEST.EGRID failed"),
-        ("TEST.UNRST", 'Failed to open file "TEST.UNRST"'),
+        ("TEST.INIT", 'Failed to open file ".*TEST.INIT"'),
+        ("TEST.EGRID", "Loading grid from:.*TEST.EGRID failed"),
+        ("TEST.UNRST", 'Failed to open file ".*TEST.UNRST"'),
     ],
 )
 @pytest.mark.usefixtures("setup_tmpdir")
