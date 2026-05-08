@@ -160,7 +160,7 @@ class OverburdenTimeshift:
     def __init__(
         self,
         eclbase: str,
-        mapaxes: bool,
+        mapaxes: bool,  # noqa: FBT001
         seabed: float,
         youngs: float,
         poisson: float,

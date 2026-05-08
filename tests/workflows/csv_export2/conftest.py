@@ -6,7 +6,7 @@ import pytest
 NORNE_DIR = Path(__file__).parent.parent.parent / "test_data" / "norne"
 
 
-def mock_norne_data(reals, iters, parameters=True):
+def mock_norne_data(reals, iters, *, parameters=True):
     # pylint: disable=consider-using-f-string
     """From a single UNSMRY file, produce arbitrary sized ensembles.
 
