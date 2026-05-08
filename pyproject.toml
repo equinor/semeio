@@ -131,6 +131,7 @@ select = [
   "FURB",
   "I",   # isort
   "ICN", # flake8-import-conventions
+  "INP",
   "INT",
   "ISC", # string concatenation
   "LOG",
