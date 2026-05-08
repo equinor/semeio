@@ -218,7 +218,7 @@ class QualityReporter:
                 label=f"P{P_label}={quantile_value:.2e}",
             )
 
-        ax.grid(True, ls="--", alpha=0.5)
+        ax.grid(visible=True, ls="--", alpha=0.5)
         ax.legend(loc="upper left", bbox_to_anchor=(1.05, 1), fontsize=7)
         fig.tight_layout()
 
@@ -279,7 +279,7 @@ class QualityReporter:
                 fontsize=9,
             )
 
-        ax.grid(True, ls="--", alpha=0.5, axis="y")
+        ax.grid(visible=True, ls="--", alpha=0.5, axis="y")
         ax.tick_params(axis="x", rotation=0)
         fig.tight_layout()
 
@@ -391,11 +391,11 @@ class QualityReporter:
                 xy=(0.05, 0.95),
                 xycoords=ax.transAxes,
             )
-            ax.grid(True, ls="--", alpha=0.5)
+            ax.grid(visible=True, ls="--", alpha=0.5)
 
         def add_grid(*args: Any, **kwargs: Any) -> None:  # noqa: ANN401
             ax = plt.gca()
-            ax.grid(True, ls="--", alpha=0.5)
+            ax.grid(visible=True, ls="--", alpha=0.5)
 
         df = self.df[df_corr.columns].select_dtypes(include="number")
 
