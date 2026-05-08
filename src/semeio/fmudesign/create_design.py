@@ -202,13 +202,13 @@ class DesignMatrix:
                 for corr_name, df_corr in sensitivity.correlation_dfs_.items():
                     # Always plot heatmaps
                     quality_reporter.plot_correlation_heatmap(
-                        corr_name, df_corr, output_dir=output_dir
+                        corr_name, df_corr, output_dir=output_dir, show=False
                     )
 
                     # Only plot pairgrid for small correlations
                     if len(df_corr) <= 6:
                         quality_reporter.plot_correlation(
-                            corr_name, df_corr, output_dir=output_dir
+                            corr_name, df_corr, output_dir=output_dir, show=False
                         )
 
         # Once all sensitivities have been added, complete the work
@@ -476,7 +476,7 @@ class DesignMatrix:
             # Correlations
             for corr_name, df_corr in mc_background.correlation_dfs_.items():
                 quality_reporter.plot_correlation(
-                    corr_name, df_corr, output_dir=output_dir
+                    corr_name, df_corr, output_dir=output_dir, show=False
                 )
 
         # Rounding of background values as specified

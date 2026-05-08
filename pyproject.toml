@@ -126,6 +126,7 @@ select = [
   "F",   # pyflakes
   "FA",
   "FAST",
+  "FBT",
   "FIX",
   "FLY",
   "FURB",

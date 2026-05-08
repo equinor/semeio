@@ -363,8 +363,9 @@ class QualityReporter:
         self,
         corr_name: str,
         df_corr: pd.DataFrame,
+        *,
         output_dir: Path | None = None,
-        show: bool = False,
+        show: bool,
     ) -> None:
         """Plot correlation group of variables.
 
@@ -438,8 +439,9 @@ class QualityReporter:
         self,
         corr_name: str,
         df_corr: pd.DataFrame,
+        *,
         output_dir: Path | None = None,
-        show: bool = False,
+        show: bool,
     ) -> None:
         """Plot correlation heapmap of group of variables.
 
