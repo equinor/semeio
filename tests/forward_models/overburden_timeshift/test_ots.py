@@ -54,7 +54,7 @@ def fixture_set_up(tmp_path):
     )
 
     for extension in [".INIT", ".EGRID", ".UNRST"]:
-        (tmp_path / f"TEST.{extension}").unlink(True)
+        (tmp_path / f"TEST.{extension}").unlink(missing_ok=True)
 
     return spec, actnum, config
 
