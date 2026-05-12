@@ -37,7 +37,6 @@ def test_make_update_log_df(snake_oil_config, snapshot):
             distance_localization=es_settings.distance_localization,
             localization=es_settings.localization,
             correlation_threshold=es_settings.correlation_threshold,
-            rng=np.random.default_rng(snake_oil_config.random_seed),
         )
 
         log = smoother_update(
@@ -47,6 +46,7 @@ def test_make_update_log_df(snake_oil_config, snapshot):
             update_settings=copy.deepcopy(
                 snake_oil_config.analysis_config.observation_settings
             ),
+            rng=np.random.default_rng(snake_oil_config.random_seed),
             strategy_map=strategy_map,
         )
     snapshot.assert_match(
