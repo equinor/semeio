@@ -265,13 +265,13 @@ class AhmAnalysisJob(ErtScript):
                         distance_localization=es_settings.distance_localization,
                         localization=es_settings.localization,
                         correlation_threshold=es_settings.correlation_threshold,
-                        rng=np.random.default_rng(random_seed),
                     )
                     update_log = smoother_update(
                         prior_storage=prior_ensemble,
                         posterior_storage=target_ensemble,
                         observations=observations,
                         update_settings=copy.deepcopy(observation_settings),
+                        rng=np.random.default_rng(random_seed),
                         strategy_map=strategy_map,
                     )
                     # Get the active vs total observation info
