@@ -197,3 +197,5 @@ segyio = false
 probabilit = false
 xtgeo = false
 oil-reservoir-synthesizer = false
+# Exclude for security update
+urllib3 = false
