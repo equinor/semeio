@@ -26,7 +26,7 @@ classifiers = [
 dynamic = ["version"]
 dependencies = [
     "cvxpy",
-    "ert>=21.1.0b0",
+    "ert>=22.0.0rc1",
     "fmu-ensemble>1.6.5",
     "numpy",
     "pandas>=2",
@@ -188,6 +188,8 @@ exclude-newer = "7 days"
 # Excluded as they are developed by Equinor
 ert = false
 fmu-ensemble = false
+graphite-maps = false
+iterative_ensemble_smoother = false
 resdata = false
 resfo = false
 resfo-utilities = false
