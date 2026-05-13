@@ -19,5 +19,5 @@ def test_console_scripts_help(script_runner, entry_point):
     by checking that we call call --help (which all these have). Semeio
     must be installed for them to pass.
     """
-    ret = script_runner.run(entry_point, "--help")
+    ret = script_runner.run([entry_point, "--help"])
     assert ret.success
