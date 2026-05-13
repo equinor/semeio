@@ -176,6 +176,7 @@ class Pyscal(ForwardModelStepPlugin):
                 "<INT_PARAM_GO_NAME>",
                 "<SLGOF>",
                 "<FAMILY>",
+                "<DELTA_S>",
             ],
             default_mapping={
                 "<RESULT_FILE>": "relperm.inc",
@@ -184,6 +185,7 @@ class Pyscal(ForwardModelStepPlugin):
                 "<INT_PARAM_GO_NAME>": "__NONE__",
                 "<SLGOF>": "SGOF",
                 "<FAMILY>": "1",
+                "<DELTA_S>": "__NONE__",
             },
         )
 
@@ -210,6 +212,9 @@ class Pyscal(ForwardModelStepPlugin):
   FORWARD_MODEL PYSCAL(<PARAMETER_FILE>=scalinput.xlsx, \
     <RESULT_FILE>=eclipse/include/props/relperm.inc, \
     <FAMILY>=2) -- for Eclipse family 2 output
+  FORWARD_MODEL PYSCAL(<PARAMETER_FILE>=scalinput.xlsx, \
+    <RESULT_FILE>=eclipse/include/props/relperm.inc, \
+    <DELTA_S>=0.0025) -- for higher saturation step detail
 
 """,
         )
