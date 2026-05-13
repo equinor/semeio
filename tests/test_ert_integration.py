@@ -37,7 +37,7 @@ def test_console_scripts_exit_code(script_runner, entry_point, options):
     fail when the same script is called as a FORWARD_MODEL, without relying on
     ERTs TARGET_FILE mechanism for determining failure.
     """
-    assert script_runner.run(entry_point, options).returncode != 0
+    assert script_runner.run([entry_point, options]).returncode != 0
 
 
 @pytest.mark.ert_integration
