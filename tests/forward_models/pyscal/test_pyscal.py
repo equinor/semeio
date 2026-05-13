@@ -1,5 +1,6 @@
 """Test module for ERT-Pyscal integration"""
 
+import os
 import random
 import sys
 from pathlib import Path
@@ -23,22 +24,55 @@ EXAMPLE_WATEROIL = pd.DataFrame(columns=["SATNUM", "Nw", "NOW"], data=[[1, 2, 2]
 @pytest.mark.parametrize(
     ("dframe", "runargs"),
     [
-        (EXAMPLE_STATIC_DFRAME, ["__NONE__", "__NONE__", "__NONE__", "sgof", 1]),
-        (EXAMPLE_STATIC_DFRAME, ["__NONE__", "__NONE__", "__NONE__", "slgof", 1]),
-        (EXAMPLE_STATIC_DFRAME, ["__NONE__", "__NONE__", "__NONE__", "sgof", 2]),
-        (EXAMPLE_WATEROIL, ["__NONE__", "__NONE__", "__NONE__", "sgof", 1]),
-        (EXAMPLE_SCAL, ["__NONE__", "INTERPOLATE_WO", "INTERPOLATE_GO", "sgof", 1]),
-        (EXAMPLE_SCAL, ["__NONE__", "INTERPOLATE_WO", "INTERPOLATE_GO", "slgof", 1]),
-        (EXAMPLE_SCAL, ["__NONE__", "INTERPOLATE_WO", "INTERPOLATE_GO", "sgof", 2]),
-        (EXAMPLE_SCAL, ["__NONE__", "INTERPOLATE_WO", "INTERPOLATE_WO", "sgof", 2]),
-        (EXAMPLE_SCAL, ["__NONE__", "INTERPOLATE_WO", "__NONE__", "sgof", 1]),
-        (EXAMPLE_SCAL, ["__NONE__", "__BASE__", "__NONE__", "sgof", 1]),
-        (EXAMPLE_SCAL, ["__NONE__", "__LOW__", "__NONE__", "sgof", 1]),
-        (EXAMPLE_SCAL, ["__NONE__", "__PESS__", "__NONE__", "sgof", 1]),
-        (EXAMPLE_SCAL, ["__NONE__", "__PESSIMISTIC__", "__NONE__", "sgof", 1]),
-        (EXAMPLE_SCAL, ["__NONE__", "__OPT__", "__NONE__", "sgof", 1]),
-        (EXAMPLE_SCAL, ["__NONE__", "__OPTIMISTIC__", "__NONE__", "sgof", 1]),
-        (EXAMPLE_SCAL, ["__NONE__", "__BASE__", "__OPTIMISTIC__", "sgof", 1]),
+        (
+            EXAMPLE_STATIC_DFRAME,
+            ["__NONE__", "__NONE__", "__NONE__", "sgof", 1, "__NONE__"],
+        ),
+        (
+            EXAMPLE_STATIC_DFRAME,
+            ["__NONE__", "__NONE__", "__NONE__", "slgof", 1, "__NONE__"],
+        ),
+        (
+            EXAMPLE_STATIC_DFRAME,
+            ["__NONE__", "__NONE__", "__NONE__", "sgof", 2, "__NONE__"],
+        ),
+        (EXAMPLE_WATEROIL, ["__NONE__", "__NONE__", "__NONE__", "sgof", 1, "__NONE__"]),
+        (
+            EXAMPLE_SCAL,
+            ["__NONE__", "INTERPOLATE_WO", "INTERPOLATE_GO", "sgof", 1, "__NONE__"],
+        ),
+        (
+            EXAMPLE_SCAL,
+            ["__NONE__", "INTERPOLATE_WO", "INTERPOLATE_GO", "slgof", 1, "__NONE__"],
+        ),
+        (
+            EXAMPLE_SCAL,
+            ["__NONE__", "INTERPOLATE_WO", "INTERPOLATE_GO", "sgof", 2, "__NONE__"],
+        ),
+        (
+            EXAMPLE_SCAL,
+            ["__NONE__", "INTERPOLATE_WO", "INTERPOLATE_WO", "sgof", 2, "__NONE__"],
+        ),
+        (
+            EXAMPLE_SCAL,
+            ["__NONE__", "INTERPOLATE_WO", "__NONE__", "sgof", 1, "__NONE__"],
+        ),
+        (EXAMPLE_SCAL, ["__NONE__", "__BASE__", "__NONE__", "sgof", 1, "__NONE__"]),
+        (EXAMPLE_SCAL, ["__NONE__", "__LOW__", "__NONE__", "sgof", 1, "__NONE__"]),
+        (EXAMPLE_SCAL, ["__NONE__", "__PESS__", "__NONE__", "sgof", 1, "__NONE__"]),
+        (
+            EXAMPLE_SCAL,
+            ["__NONE__", "__PESSIMISTIC__", "__NONE__", "sgof", 1, "__NONE__"],
+        ),
+        (EXAMPLE_SCAL, ["__NONE__", "__OPT__", "__NONE__", "sgof", 1, "__NONE__"]),
+        (
+            EXAMPLE_SCAL,
+            ["__NONE__", "__OPTIMISTIC__", "__NONE__", "sgof", 1, "__NONE__"],
+        ),
+        (
+            EXAMPLE_SCAL,
+            ["__NONE__", "__BASE__", "__OPTIMISTIC__", "sgof", 1, "__NONE__"],
+        ),
     ],
 )
 def test_fm_pyscal(dframe, runargs, tmpdir):
@@ -73,6 +107,7 @@ def test_fm_pyscal_errors_on_slgof_family_2(tmpdir):
             "__NONE__",
             "slgof",
             2,
+            "__NONE__",
         )
 
 
@@ -80,14 +115,30 @@ def test_fm_pyscal_static_xlsx(tmpdir):
     """Test fm_pyscal on a static xlsx file"""
     tmpdir.chdir()
     EXAMPLE_STATIC_DFRAME.to_excel("relperm-input.xlsx")
-    run("relperm-input.xlsx", "relperm.inc", "", "__NONE__", "__NONE__", "slgof", 1)
+    run(
+        "relperm-input.xlsx",
+        "relperm.inc",
+        "",
+        "__NONE__",
+        "__NONE__",
+        "slgof",
+        1,
+        "__NONE__",
+    )
 
     # pylint: disable=abstract-class-instantiated
     with pd.ExcelWriter("relperm-sheets.xlsx") as writer:
         EXAMPLE_STATIC_DFRAME.to_excel(writer, sheet_name="static")
         EXAMPLE_WATEROIL.to_excel(writer, sheet_name="wateroil")
     run(
-        "relperm-sheets.xlsx", "static.inc", "static", "__NONE__", "__NONE__", "sgof", 1
+        "relperm-sheets.xlsx",
+        "static.inc",
+        "static",
+        "__NONE__",
+        "__NONE__",
+        "sgof",
+        1,
+        "__NONE__",
     )
     assert Path("static.inc").exists()
     assert "SGOF" in "".join(Path("static.inc").read_text(encoding="utf-8"))
@@ -99,6 +150,7 @@ def test_fm_pyscal_static_xlsx(tmpdir):
         "__NONE__",
         "sgof",
         1,
+        "__NONE__",
     )
     assert Path("wateroil.inc").exists()
     assert "SGOF" not in "".join(Path("wateroil.inc").read_text(encoding="utf-8"))
@@ -117,6 +169,7 @@ def test_fm_pyscal_argparse(tmpdir, monkeypatch):
         "__NONE__",
         "slgof",
         "1",
+        "__NONE__",
     ]
     monkeypatch.setattr(sys, "argv", arguments)
     main_entry_point()
@@ -137,13 +190,23 @@ def test_fm_pyscal_argparse(tmpdir, monkeypatch):
                 "__NONE__",
                 "sgof",
                 1,
+                "__NONE__",
             ],
             "/relperm.inc",
         ),
         (
             # Reading a file that does not exist
             None,
-            ["not-existing.csv", "relperm.inc", "", "__NONE__", "__NONE__", "sgof", 1],
+            [
+                "not-existing.csv",
+                "relperm.inc",
+                "",
+                "__NONE__",
+                "__NONE__",
+                "sgof",
+                1,
+                "__NONE__",
+            ],
             "not-existing",
         ),
         (
@@ -152,7 +215,16 @@ def test_fm_pyscal_argparse(tmpdir, monkeypatch):
             # error messages upfront. The exact exception might improve, so just assert
             # anything is thrown:
             EXAMPLE_STATIC_DFRAME,
-            ["file.xlsx", "rel.inc", "foo_sheet", "__NONE__", "__NONE__", "sgof", 1],
+            [
+                "file.xlsx",
+                "rel.inc",
+                "foo_sheet",
+                "__NONE__",
+                "__NONE__",
+                "sgof",
+                1,
+                "__NONE__",
+            ],
             "foo_sheet",  # Don't test on the exact error message from xlrd/pandas
         ),
         (
@@ -166,6 +238,7 @@ def test_fm_pyscal_argparse(tmpdir, monkeypatch):
                 "INTERPOLATE_GO",
                 "sgof",
                 1,
+                "__NONE__",
             ],
             "WaterOil interpolation parameter missing",
         ),
@@ -180,6 +253,7 @@ def test_fm_pyscal_argparse(tmpdir, monkeypatch):
                 "INTERPOLATE_GO",
                 "sgof",
                 1,
+                "__NONE__",
             ],
             "FOOOO not found in parameters.txt",
         ),
@@ -194,6 +268,7 @@ def test_fm_pyscal_argparse(tmpdir, monkeypatch):
                 "INTERPOLATE_GOOOOOO",
                 "sgof",
                 1,
+                "__NONE__",
             ],
             "INTERPOLATE_GOOOOOO not found in parameters.txt",
         ),
@@ -208,6 +283,7 @@ def test_fm_pyscal_argparse(tmpdir, monkeypatch):
                 "__NONE__",
                 "sgof",
                 1,
+                "__NONE__",
             ],
             "__OPTIM__ not found in parameters.txt",
         ),
@@ -222,6 +298,7 @@ def test_fm_pyscal_argparse(tmpdir, monkeypatch):
                 "INTERPOLATE_GO",
                 "sgofffff",
                 1,
+                "__NONE__",
             ],
             "Only supports sgof or slgof",
         ),
@@ -236,6 +313,7 @@ def test_fm_pyscal_argparse(tmpdir, monkeypatch):
                 "INTERPOLATE_GO",
                 "sgof",
                 3,
+                "__NONE__",
             ],
             "Family must be either 1 or 2",
         ),
@@ -250,6 +328,7 @@ def test_fm_pyscal_argparse(tmpdir, monkeypatch):
                 "INTERPOLATE_GO",
                 "sgof",
                 1,
+                "__NONE__",
             ],
             "Do not include brackets",
         ),
@@ -264,6 +343,7 @@ def test_fm_pyscal_argparse(tmpdir, monkeypatch):
                 "<INTERPOLATE_GO>",
                 "sgof",
                 1,
+                "__NONE__",
             ],
             "Do not include brackets",
         ),
@@ -287,3 +367,36 @@ def test_fm_pyscal_errors(dframe, runargs, err_str, tmpdir, caplog):
         run(*runargs)
 
     assert err_str in caplog.text
+
+
+@pytest.mark.parametrize(
+    ("delta_s", "expected_line_count"),
+    [
+        ("__NONE__", 4 * (int(1 / 0.01) + 1)),
+        ("0.1", 4 * (int(1 / 0.1) + 1)),
+        ("0.01", 4 * (int(1 / 0.01) + 1)),
+        ("0.001", 4 * (int(1 / 0.001) + 1)),
+    ],
+)
+def test_that_delta_s_argument_gives_correct_line_count(
+    delta_s: str, expected_line_count: int, tmp_path: Path
+):
+    os.chdir(tmp_path)
+    EXAMPLE_STATIC_DFRAME.to_csv("relperm-input.csv", index=False)
+    run(
+        *[
+            "relperm-input.csv",
+            "relperm.inc",
+            "__NONE__",
+            "__NONE__",
+            "__NONE__",
+            "sgof",
+            1,
+            delta_s,
+        ]
+    )
+    outputted_lines = Path("relperm.inc").read_text(encoding="utf-8").splitlines()
+    assert (
+        len([line for line in outputted_lines if line and line[0] in {"0", "1"}])
+        == expected_line_count
+    )

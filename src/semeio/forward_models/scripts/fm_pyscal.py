@@ -45,6 +45,7 @@ def main_entry_point() -> None:
         options.int_param_go_name,
         options.slgof,
         options.family,
+        options.delta_s,
     )
 
 
@@ -141,6 +142,12 @@ def _get_args_parser() -> ArgumentParser:
         ),
         default=1,
     )
+    parser.add_argument(
+        "delta_s",
+        type=str,
+        help="Saturation table step-length for sw/sg. Default 0.01",
+        default=MAGIC_NONE,
+    )
     return parser
 
 
@@ -152,6 +159,7 @@ def run(
     int_param_go_name: str,  # string or __NONE__
     slgof: str,  # sgof or slgof, default sgof
     family: Literal[1, 2],  # int: 1 or 2, default 1
+    delta_s: str,  # float, or __NONE__
     parameters_file_name: str = "parameters.txt",
 ) -> None:
     """This function is a wrapper around the Pyscal command
@@ -218,6 +226,7 @@ def run(
             int_param_go=int_param_go,
             slgof=slgof == "slgof",
             family2=family == 2,
+            delta_s=float(delta_s) if delta_s != MAGIC_NONE else None,
         )
     except (OSError, ValueError) as e_msg:
         _logger.error(str(e_msg))

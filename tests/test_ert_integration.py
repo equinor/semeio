@@ -1,7 +1,10 @@
 import pathlib
 import subprocess
+from pathlib import Path
 
 import pytest
+
+from .forward_models.pyscal.test_pyscal import EXAMPLE_STATIC_DFRAME
 
 DEFAULT_CONFIG = """
 JOBNAME TEST
@@ -78,3 +81,26 @@ def test_forward_model_error_propagation(forward_model, configuration, expected_
         f"simulations/realization-0/iter-0/{forward_model}.stderr.0"
     ).read_text(encoding="utf-8")
     assert expected_error in error
+
+
+@pytest.mark.usefixtures("setup_tmpdir")
+def test_pyscal_accepts_delta_s_argument():
+    config = DEFAULT_CONFIG.format(
+        "PYSCAL", "<PARAMETER_FILE>=<CONFIG_PATH>/relperm-input.csv, <DELTA_S>=0.1"
+    )
+    expected_line_count = 4 * (int(1 / 0.1) + 1)
+    EXAMPLE_STATIC_DFRAME.to_csv("relperm-input.csv", index=False)
+    pathlib.Path("config.ert").write_text(config, encoding="utf-8")
+    subprocess.run(
+        ["ert", "test_run", "--disable-monitoring", "config.ert", "--verbose"],
+        check=True,
+    )
+    outputted_lines = (
+        Path("simulations/realization-0/iter-0/relperm.inc")
+        .read_text(encoding="utf-8")
+        .splitlines()
+    )
+    assert (
+        len([line for line in outputted_lines if line and line[0] in {"0", "1"}])
+        == expected_line_count
+    )
