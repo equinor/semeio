@@ -262,8 +262,6 @@ class AhmAnalysisJob(ErtScript):
                         parameters=prior_ensemble.experiment.update_parameters,
                         param_configs=prior_ensemble.experiment.parameter_configuration,
                         enkf_truncation=es_settings.enkf_truncation,
-                        distance_localization=es_settings.distance_localization,
-                        localization=es_settings.localization,
                         correlation_threshold=es_settings.correlation_threshold,
                         rng=np.random.default_rng(random_seed),
                     )
