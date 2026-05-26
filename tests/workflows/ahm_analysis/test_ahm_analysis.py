@@ -34,8 +34,6 @@ def test_make_update_log_df(snake_oil_config, snapshot):
             parameters=prior_ens.experiment.update_parameters,
             param_configs=prior_ens.experiment.parameter_configuration,
             enkf_truncation=es_settings.enkf_truncation,
-            distance_localization=es_settings.distance_localization,
-            localization=es_settings.localization,
             correlation_threshold=es_settings.correlation_threshold,
         )
 
