@@ -3945,7 +3945,7 @@ types = [
 [package.metadata]
 requires-dist = [
     { name = "cvxpy" },
-    { name = "ert", specifier = ">=22.0.0rc1" },
+    { name = "ert", specifier = ">=22.0.0rc1.dev0" },
     { name = "fmu-ensemble", specifier = ">1.6.5" },
     { name = "hypothesis", marker = "extra == 'test'" },
     { name = "mypy", marker = "extra == 'types'" },
