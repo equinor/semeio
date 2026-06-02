@@ -13,7 +13,7 @@ import ert
 import numpy as np
 import pandas as pd
 import polars as pl
-from ert import ErtScript, LibresFacade
+from ert import ErtScript
 from ert.analysis import (
     ErtAnalysisError,
     ObservationStatus,
@@ -189,7 +189,7 @@ class AhmAnalysisJob(ErtScript):
             raise_if_empty(
                 dataframes=[
                     prior_data,
-                    LibresFacade.load_all_misfit_data(prior_ensemble),
+                    prior_ensemble.load_all_misfit_data(),
                 ],
                 messages=[
                     "Empty prior ensemble",
@@ -298,7 +298,7 @@ class AhmAnalysisJob(ErtScript):
                     calc_observationsgroup_misfit(
                         obs_group,
                         df_update_log,
-                        LibresFacade.load_all_misfit_data(prior_ensemble),
+                        prior_ensemble.load_all_misfit_data(),
                     )
                 ]
                 # Calculate Ks matrix for scalar parameters
