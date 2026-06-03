@@ -787,7 +787,7 @@ wheels = [
 
 [[package]]
 name = "ert"
-version = "22.0.0rc1"
+version = "23.0.0b1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
@@ -847,7 +847,7 @@ dependencies = [
     { name = "xtgeo" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f1/66/205342d74a8529e60640ad2ad1c9c687461db2249cd88c31cd7b49fa0350/ert-22.0.0rc1-py3-none-any.whl", hash = "sha256:45112969cc9c9c6caf5df7c05267d191e8a852211ac1c2c0b6d77cfc86348fc3", size = 806358, upload-time = "2026-05-12T08:54:55.173Z" },
+    { url = "https://files.pythonhosted.org/packages/83/bc/0b4cc3729690e12d3bc4a7eb6b4b4379f40c3a5e0cba83827a10c106dcc0/ert-23.0.0b1-py3-none-any.whl", hash = "sha256:4e0da36820411f3a2cf54fde851fde9ed0cda8e04c3bdbac594d204be560cba8", size = 828054, upload-time = "2026-06-04T06:50:35.454Z" },
 ]
 
 [[package]]
@@ -3945,7 +3945,7 @@ types = [
 [package.metadata]
 requires-dist = [
     { name = "cvxpy" },
-    { name = "ert", specifier = ">=22.0.0rc1.dev0" },
+    { name = "ert", specifier = ">=23.0.0b1.dev0" },
     { name = "fmu-ensemble", specifier = ">1.6.5" },
     { name = "hypothesis", marker = "extra == 'test'" },
     { name = "mypy", marker = "extra == 'types'" },
