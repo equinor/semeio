@@ -26,7 +26,7 @@ classifiers = [
 dynamic = ["version"]
 dependencies = [
     "cvxpy",
-    "ert>=22.0.0rc1.dev0",
+    "ert>=23.0.0b1.dev0",
     "fmu-ensemble>1.6.5",
     "numpy",
     "pandas>=2",
