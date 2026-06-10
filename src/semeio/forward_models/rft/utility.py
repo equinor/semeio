@@ -83,7 +83,7 @@ def load_and_parse_well_time_file(
                 )
             ) from err
 
-        try:
+        try:  # noqa: PLW0717
             if len(tokens) == 3:
                 welldate = datetime.datetime.fromisoformat(tokens[1]).date()
             else:
