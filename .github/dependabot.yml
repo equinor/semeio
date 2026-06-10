@@ -5,3 +5,30 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    groups:
+      all-deps:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "uv"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    allow:
+      - dependency-type: "all"
+    versioning-strategy: "lockfile-only"
+    groups:
+      all-deps:
+        patterns:
+          - "*"
+    cooldown:
+      default-days: 7
+
+  - package-ecosystem: "pre-commit"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      all-deps:
+        patterns:
+          - "*"
