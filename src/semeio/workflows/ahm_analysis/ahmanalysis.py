@@ -175,7 +175,7 @@ class AhmAnalysisJob(ErtScript):
 
             key_map = {
                 _replace(row["response_key"]): sorted(
-                    map(_replace, row["observation_key"])
+                    row["observation_key"]
                 )
                 for row in key_2_obs_key_df.sort(by="response_key").to_dicts()
             }
