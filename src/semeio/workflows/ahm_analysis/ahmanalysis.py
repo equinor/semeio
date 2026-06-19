@@ -22,7 +22,7 @@ from ert.analysis import (
     smoother_update,
 )
 from ert.config import ESSettings, Field, ObservationSettings
-from ert.storage import Ensemble, Storage, open_storage
+from ert.storage import Ensemble, Experiment, Storage, open_storage
 from scipy.stats import ks_2samp
 
 from semeio._exceptions.exceptions import ValidationError
@@ -151,34 +151,7 @@ class AhmAnalysisJob(ErtScript):
         assert prior_ensemble is not None
 
         prior_experiment = prior_ensemble.experiment
-        observations_and_responses_mapping = (
-            pl.concat(
-                df["observation_key", "response_key"]
-                for df in prior_experiment.observations.values()
-            )
-            if len(prior_experiment.observations) > 0
-            else pl.DataFrame({"observation_key": [], "response_key": []})
-        )
-
-        def _replace(s: str) -> str:
-            return s.replace(":", "_")
-
-        if group_by != "data_key":
-            key_map = {
-                _replace(k): [k]
-                for k in observations_and_responses_mapping["observation_key"].unique()
-            }
-        else:
-            key_2_obs_key_df = observations_and_responses_mapping.group_by(
-                "response_key"
-            ).agg(pl.col("observation_key").unique())
-
-            key_map = {
-                _replace(row["response_key"]): sorted(
-                    row["observation_key"]
-                )
-                for row in key_2_obs_key_df.sort(by="response_key").to_dicts()
-            }
+        key_map = build_key_map(prior_experiment, group_by)
 
         if target_name == "<ANALYSIS_CASE_NAME>":
             target_name = "analysis_case"
@@ -350,6 +323,33 @@ def make_update_log_df(update_log: SmootherSnapshot) -> pd.DataFrame:
         )
         .to_pandas()
     )
+
+
+def build_key_map(prior_experiment: Experiment, group_by: str) -> dict[str, list[str]]:
+    """Build mapping from group key to observation keys"""
+    observations_and_responses_mapping = (
+        pl.concat(
+            df["observation_key", "response_key"]
+            for df in prior_experiment.observations.values()
+        )
+        if len(prior_experiment.observations) > 0
+        else pl.DataFrame({"observation_key": [], "response_key": []})
+    )
+
+    if group_by != "data_key":
+        return {
+            k.replace(":", "_"): [k]
+            for k in observations_and_responses_mapping["observation_key"].unique()
+        }
+
+    key_2_obs_key_df = observations_and_responses_mapping.group_by("response_key").agg(
+        pl.col("observation_key").unique()
+    )
+
+    return {
+        row["response_key"].replace(":", "_"): sorted(row["observation_key"])
+        for row in key_2_obs_key_df.sort(by="response_key").to_dicts()
+    }
 
 
 def make_obs_groups(key_map):
