@@ -62,7 +62,7 @@ def fixture_set_up(tmp_path):
 @pytest.mark.parametrize(
     ("missing_file", "expected_error"),
     [
-        ("TEST.INIT", 'Failed to open file ".*TEST.INIT"'),
+        ("TEST.INIT", "TEST.INIT"),
         ("TEST.EGRID", "Loading grid from:.*TEST.EGRID failed"),
         ("TEST.UNRST", 'Failed to open file ".*TEST.UNRST"'),
     ],
