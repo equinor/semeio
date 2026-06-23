@@ -1,8 +1,10 @@
 import copy
 import math
+from types import SimpleNamespace
 
 import numpy as np
 import pandas as pd
+import polars as pl
 import pytest
 from ert.analysis import build_strategy_map, smoother_update
 from ert.storage import open_storage
@@ -246,9 +248,118 @@ def test_raise_if_empty(misfit_data, prior_data, expected_msg):
         ),
     ],
 )
-def test_make_obs_groups(input_map, expected_keys):
+def test_that_make_obs_groups_works_as_expected(input_map, expected_keys):
     result = ahmanalysis.make_obs_groups(input_map)
     assert result == expected_keys
+
+
+@pytest.mark.parametrize(
+    ("group_by", "observations", "expected"),
+    [
+        pytest.param(
+            "data_key",
+            {
+                "obs_group_1": pl.DataFrame(
+                    {
+                        "observation_key": ["OBS:A", "OBS:C"],
+                        "response_key": ["RESP:2", "RESP:1"],
+                    }
+                ),
+                "obs_group_2": pl.DataFrame(
+                    {
+                        "observation_key": ["OBS:B", "OBS:A"],
+                        "response_key": ["RESP:1", "RESP:2"],
+                    }
+                ),
+            },
+            {
+                "RESP_1": ["OBS:B", "OBS:C"],
+                "RESP_2": ["OBS:A"],
+            },
+            id="group_by_data_key",
+        ),
+        pytest.param(
+            "obs_key",
+            {
+                "obs_group_1": pl.DataFrame(
+                    {
+                        "observation_key": ["OBS:A", "OBS:C"],
+                        "response_key": ["RESP:2", "RESP:1"],
+                    }
+                ),
+                "obs_group_2": pl.DataFrame(
+                    {
+                        "observation_key": ["OBS:B", "OBS:A"],
+                        "response_key": ["RESP:1", "RESP:2"],
+                    }
+                ),
+            },
+            {
+                "OBS_A": ["OBS:A"],
+                "OBS_C": ["OBS:C"],
+                "OBS_B": ["OBS:B"],
+            },
+            id="group_by_obs_key",
+        ),
+        pytest.param(
+            "data_key",
+            {},
+            {},
+            id="empty_observations",
+        ),
+        pytest.param(
+            "data_key",
+            {
+                "obs_group_1": pl.DataFrame(
+                    {
+                        "observation_key": [
+                            "WPR_DIFF_1",
+                            "WOPR:OP1-190",
+                            "WOPR:OP1_108",
+                            "WOPR_OP1_144",
+                        ],
+                        "response_key": [
+                            "SNAKE_OIL_WPR_DIFF",
+                            "WOPR_OP1",
+                            "WOPR_OP1",
+                            "WOPR_OP1",
+                        ],
+                    }
+                ),
+                "obs_group_2": pl.DataFrame(
+                    {
+                        "observation_key": [
+                            "WOPR_OP1_36",
+                            "WOPR_OP1_72",
+                            "WOPR_OP1_9",
+                        ],
+                        "response_key": [
+                            "WOPR_OP1",
+                            "WOPR_OP1",
+                            "WOPR_OP1",
+                        ],
+                    }
+                ),
+            },
+            {
+                "SNAKE_OIL_WPR_DIFF": ["WPR_DIFF_1"],
+                "WOPR_OP1": [
+                    "WOPR:OP1-190",
+                    "WOPR:OP1_108",
+                    "WOPR_OP1_144",
+                    "WOPR_OP1_36",
+                    "WOPR_OP1_72",
+                    "WOPR_OP1_9",
+                ],
+            },
+            id="data_key_with_multiple_responses_and_colon_in_obs_key",
+        ),
+    ],
+)
+def test_that_build_key_map_works_as_expected(group_by, observations, expected):
+    prior_experiment = SimpleNamespace(observations=observations)
+    result = ahmanalysis.build_key_map(prior_experiment, group_by)
+    assert result == expected
 
 
 @pytest.mark.parametrize(
