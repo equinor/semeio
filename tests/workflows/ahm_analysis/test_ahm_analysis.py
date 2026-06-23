@@ -256,7 +256,7 @@ def test_that_make_obs_groups_works_as_expected(input_map, expected_keys):
 @pytest.mark.parametrize(
     ("group_by", "observations", "expected"),
     [
-        (
+        pytest.param(
             "data_key",
             {
                 "obs_group_1": pl.DataFrame(
@@ -276,8 +276,9 @@ def test_that_make_obs_groups_works_as_expected(input_map, expected_keys):
                 "RESP_1": ["OBS:B", "OBS:C"],
                 "RESP_2": ["OBS:A"],
             },
+            id="group_by_data_key",
         ),
-        (
+        pytest.param(
             "obs_key",
             {
                 "obs_group_1": pl.DataFrame(
@@ -298,13 +299,15 @@ def test_that_make_obs_groups_works_as_expected(input_map, expected_keys):
                 "OBS_C": ["OBS:C"],
                 "OBS_B": ["OBS:B"],
             },
+            id="group_by_obs_key",
         ),
-        (
+        pytest.param(
             "data_key",
             {},
             {},
+            id="empty_observations",
         ),
-        (
+        pytest.param(
             "data_key",
             {
                 "obs_group_1": pl.DataFrame(
@@ -349,6 +352,7 @@ def test_that_make_obs_groups_works_as_expected(input_map, expected_keys):
                     "WOPR_OP1_9",
                 ],
             },
+            id="data_key_with_multiple_responses_and_colon_in_obs_key",
         ),
     ],
 )
