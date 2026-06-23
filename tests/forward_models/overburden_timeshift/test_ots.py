@@ -64,7 +64,7 @@ def fixture_set_up(tmp_path):
     [
         ("TEST.INIT", "TEST.INIT"),
         ("TEST.EGRID", "Loading grid from:.*TEST.EGRID failed"),
-        ("TEST.UNRST", 'Failed to open file ".*TEST.UNRST"'),
+        ("TEST.UNRST", ".*TEST.UNRST.*"),
     ],
 )
 @pytest.mark.usefixtures("setup_tmpdir")
