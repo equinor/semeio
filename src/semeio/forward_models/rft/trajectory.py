@@ -2,7 +2,7 @@ import os
 from collections.abc import Iterator
 from itertools import starmap
 from pathlib import Path
-from typing import Any, Self, TypeAlias
+from typing import Any, Self
 
 import pandas as pd
 from resdata.rft import ResdataRFT, ResdataRFTCell
@@ -10,7 +10,7 @@ from resdata.rft import ResdataRFT, ResdataRFTCell
 from semeio.forward_models.rft.utility import strip_comments
 from semeio.forward_models.rft.zonemap import ZoneMap
 
-IJKCoordinates: TypeAlias = tuple[int, int, int]
+type IJKCoordinates = tuple[int, int, int]
 
 
 class TrajectoryPoint:
