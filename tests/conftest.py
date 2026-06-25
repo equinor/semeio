@@ -35,7 +35,7 @@ def setup_tmpdir(tmpdir):
         yield
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="session", autouse=True)  # noqa: RUF076
 def move_to_shared_tmp(tmp_path_factory):
     """
     We do this because when running some of the tests individually
