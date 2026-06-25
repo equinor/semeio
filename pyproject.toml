@@ -8,7 +8,7 @@ authors = [
     { name = "Equinor ASA", email = "fg_sib-scout@equinor.com" },
 ]
 description = "Forward models and workflows for Ert."
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 readme = "README.md"
 license = "GPL-3.0-or-later"
 classifiers = [
@@ -17,7 +17,6 @@ classifiers = [
     "Intended Audience :: Science/Research",
     "Natural Language :: English",
     "Programming Language :: Python",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
