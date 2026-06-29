@@ -10,8 +10,8 @@ from segyio import TraceField
 
 
 def create_init(grid, case):
-    poro = ResdataKW("PORO", grid.getNumActive(), ResDataType.RD_FLOAT)
-    porv = ResdataKW("PORV", grid.getGlobalSize(), ResDataType.RD_FLOAT)
+    poro = ResdataKW("PORO", grid.get_num_active(), ResDataType.RD_FLOAT)
+    porv = ResdataKW("PORV", grid.get_global_size(), ResDataType.RD_FLOAT)
 
     with openFortIO(f"{case}.INIT", mode=FortIO.WRITE_MODE) as file:
         poro.fwrite(file)
@@ -23,7 +23,7 @@ def create_restart(grid, case, rporv=None):
     with openFortIO(f"{case}.UNRST", mode=FortIO.WRITE_MODE) as file:
         seq_hdr = ResdataKW("SEQNUM", 1, ResDataType.RD_FLOAT)
         seq_hdr[0] = 1
-        p = ResdataKW("PRESSURE", grid.getNumActive(), ResDataType.RD_FLOAT)
+        p = ResdataKW("PRESSURE", grid.get_num_active(), ResDataType.RD_FLOAT)
         p.assign(1)
 
         for i, _ in enumerate(p):
@@ -39,7 +39,7 @@ def create_restart(grid, case, rporv=None):
         p.fwrite(file)
 
         if rporv:
-            rp = ResdataKW("RPORV", grid.getNumActive(), ResDataType.RD_FLOAT)
+            rp = ResdataKW("RPORV", grid.get_num_active(), ResDataType.RD_FLOAT)
             for idx, val in enumerate(rporv):
                 rp[idx] = val
             rp.fwrite(file)
@@ -54,7 +54,7 @@ def create_restart(grid, case, rporv=None):
         p.fwrite(file)
 
         if rporv:
-            rp = ResdataKW("RPORV", grid.getNumActive(), ResDataType.RD_FLOAT)
+            rp = ResdataKW("RPORV", grid.get_num_active(), ResDataType.RD_FLOAT)
             for idx, val in enumerate(rporv):
                 rp[idx] = val
             rp.fwrite(file)
@@ -69,7 +69,7 @@ def create_restart(grid, case, rporv=None):
         p.fwrite(file)
 
         if rporv:
-            rp = ResdataKW("RPORV", grid.getNumActive(), ResDataType.RD_FLOAT)
+            rp = ResdataKW("RPORV", grid.get_num_active(), ResDataType.RD_FLOAT)
             for idx, val in enumerate(rporv):
                 rp[idx] = val
             rp.fwrite(file)

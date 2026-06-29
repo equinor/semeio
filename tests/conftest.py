@@ -83,8 +83,8 @@ def _run_snake_oil(source_root, grid_prop):
     Path("fields").mkdir(parents=True)
     grid = GridGenerator.create_rectangular((10, 12, 5), (1, 1, 1))
     for iens in range(10):
-        grid_prop("PERMX", 10, grid.getGlobalSize(), f"fields/permx{iens}.grdecl")
-        grid_prop("PORO", 0.2, grid.getGlobalSize(), f"fields/poro{iens}.grdecl")
+        grid_prop("PERMX", 10, grid.get_global_size(), f"fields/permx{iens}.grdecl")
+        grid_prop("PORO", 0.2, grid.get_global_size(), f"fields/poro{iens}.grdecl")
 
     with fileinput.input("snake_oil.ert", inplace=True) as fin:
         for line_nr, line in enumerate(fin):
