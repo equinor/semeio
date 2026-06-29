@@ -188,7 +188,7 @@ def test_ahmanalysis_run_deactivated_obs(copy_snake_oil_case_storage, snapshot, 
     # assert that this returns/generates a KS csv file
     output_dir = Path("log/update/ensemble-experiment/AhmAnalysisJob")
     ks_df = pd.read_csv(output_dir / "ks.csv")
-    snapshot.assert_match(ks_df.iloc[:10].to_csv(), "ks_df")
+    snapshot.assert_match(ks_df.iloc[:10].round(4).to_csv(), "ks_df")
 
 
 @pytest.mark.usefixtures("setup_tmpdir")
