@@ -475,9 +475,12 @@ def test_generate_full_mc(tmpdir):
         stats.spearmanr(diskdesign["PARAM1"], diskdesign["PARAM3"])[0], 0.2, atol=0.1
     )
 
-    # Check that we can add correlations to discrete variables
+    # Check that we can add correlations to discrete variables.
+    # DATO is stored as strings, so convert to ordinals: spearmanr needs
+    # numeric input, otherwise scipy passes an object array to np.cov.
+    dato_ordinal = pd.to_datetime(diskdesign["DATO"]).astype("int64")
     assert np.isclose(
-        stats.spearmanr(diskdesign["DATO"], diskdesign["NTG1"])[0], 0.8, atol=0.1
+        stats.spearmanr(dato_ordinal, diskdesign["NTG1"])[0], 0.8, atol=0.1
     )
 
     date_fractions = diskdesign["DATO"].value_counts(normalize=True)
