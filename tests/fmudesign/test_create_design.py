@@ -15,6 +15,7 @@ import semeio
 from semeio.fmudesign import DesignMatrix, excel_to_dict
 from semeio.fmudesign import design_distributions as design_dist
 from semeio.fmudesign._excel_to_dict import _read_defaultvalues
+from semeio.fmudesign.create_design import MonteCarloSensitivity, _derive_rng
 from semeio.fmudesign.quality_report import print_corrmat
 
 TESTDATA = Path(__file__).parent / "data"
@@ -414,6 +415,31 @@ def test_generate_full_mc_snapshot(snapshot):
     snapshot.assert_match(snapshot_str, "design_output_mc_with_correls.json")
 
 
+def test_generate_full_mc_snapshot_independent(snapshot):
+    """Same config as test_generate_full_mc_snapshot, but with the opt-in
+    'independent' seed strategy.
+    """
+    inputfile = TESTDATA / "config/design_input_mc_with_correls.xlsx"
+    input_dict = excel_to_dict(inputfile)
+    input_dict["seed_strategy"] = "independent"
+    design = DesignMatrix()
+
+    design.generate(input_dict)
+
+    df_rounded = design.designvalues.map(
+        lambda x: x if isinstance(x, str) else float(f"{x:.6g}")
+    )
+    snapshot_str = json.dumps(
+        {
+            "designvalues": df_rounded.to_dict("records"),
+            "defaultvalues": dict(design.defaultvalues),
+        },
+        indent=2,
+        sort_keys=True,
+    )
+    snapshot.assert_match(snapshot_str, "design_output_mc_with_correls.json")
+
+
 def test_generate_full_mc(tmpdir):
     """Test generation of full monte carlo"""
     inputfile = TESTDATA / "config/design_input_mc_with_correls.xlsx"
@@ -590,9 +616,7 @@ def _write_correlation_excel(filepath, names, lower_values):
     for i in range(n):
         for j in range(i + 1):
             arr[i, j] = lower_values[i][j]
-    df = pd.DataFrame(arr, index=names, columns=names)
-    with pd.ExcelWriter(filepath, engine="openpyxl") as w:
-        df.to_excel(w, sheet_name="corr1")
+    _write_correlation_sheets(filepath, {"corr1": (names, arr)})
 
 
 def test_read_correlations_returns_symmetric_matrix(tmp_path):
@@ -685,3 +709,394 @@ if __name__ == "__main__":
     import pytest
 
     pytest.main(args=[__file__, "--doctest-modules", "-v", "-l"])
+
+
+# --------------------------------------------------------------------------
+# Monte Carlo seed strategies ('joint' default vs opt-in 'independent').
+#
+# 'joint' draws all parameters in one LHS call, so editing one parameter
+# reshuffles all of them. 'independent' seeds each parameter (and each
+# correlation group) separately, so unrelated parameters stay fixed.
+# --------------------------------------------------------------------------
+
+
+def _sample_mc(
+    params,
+    *,
+    corrdict=None,
+    strategy="independent",
+    base=42,
+    size=200,
+    correlation_iterations=0,
+    sensname="foo",
+):
+    """Sample a MonteCarloSensitivity and return the resulting dataframe."""
+    sens = MonteCarloSensitivity(sensname=sensname, verbosity=0)
+    sens.generate(
+        size=size,
+        parameters=params,
+        seedvalues=None,
+        corrdict=corrdict,
+        rng=np.random.default_rng(0),
+        correlation_iterations=correlation_iterations,
+        seed_strategy=strategy,
+        base_seed=base,
+    )
+    return sens.sensvalues
+
+
+def _col(df, name):
+    return df[name].to_numpy(dtype=float)
+
+
+def _write_correlation_sheets(path, sheets):
+    """Write correlation matrices to an xlsx, blanking the upper triangle as
+    required by read_correlations. sheets maps sheet_name -> (names, matrix)."""
+    with pd.ExcelWriter(path, engine="openpyxl") as writer:
+        for sheet, (names, matrix) in sheets.items():
+            frame = pd.DataFrame(
+                np.array(matrix, dtype=float), index=names, columns=names
+            )
+            for i in range(len(names)):
+                for j in range(i + 1, len(names)):
+                    frame.iloc[i, j] = np.nan
+            frame.to_excel(writer, sheet_name=sheet)
+
+
+def _design_dict(
+    params, strategy, *, repeats=10, distribution_seed=42, background=None
+):
+    defaultvalues = dict.fromkeys(params, 0)
+    if background is not None:
+        defaultvalues.update(dict.fromkeys(background["parameters"], 0))
+    config = {
+        "designtype": "onebyone",
+        "seeds": None,
+        "repeats": repeats,
+        "distribution_seed": distribution_seed,
+        "seed_strategy": strategy,
+        "defaultvalues": defaultvalues,
+        "sensitivities": {
+            "s1": {"senstype": "dist", "parameters": params, "correlations": None}
+        },
+    }
+    if background is not None:
+        config["background"] = background
+    return config
+
+
+def test_default_strategy_is_joint():
+    """Omitting seed_strategy must equal explicitly passing 'joint'."""
+    params = {"A": ("normal", ["0", "1"], None), "B": ("uniform", ["0", "1"], None)}
+
+    def sample(**kwargs):
+        sens = MonteCarloSensitivity(sensname="foo", verbosity=0)
+        sens.generate(
+            size=8,
+            parameters=params,
+            seedvalues=None,
+            corrdict=None,
+            rng=np.random.default_rng(7),
+            correlation_iterations=0,
+            **kwargs,
+        )
+        return _col(sens.sensvalues, "A")
+
+    np.testing.assert_array_equal(
+        sample(), sample(seed_strategy="joint", base_seed=None)
+    )
+
+
+def _assert_stability(stable, before, after, columns):
+    """Assert the given columns are bit-identical (stable) or changed."""
+    for col in columns:
+        first, second = _col(before, col), _col(after, col)
+        if stable:
+            np.testing.assert_array_equal(first, second, err_msg=col)
+        else:
+            assert not np.array_equal(first, second), col
+
+
+@pytest.mark.parametrize("strategy", ["joint", "independent"])
+def test_marginal_distributions_are_correct(strategy):
+    """Both strategies must reproduce the requested marginals."""
+    params = {"N": ("normal", ["0", "2"], None), "U": ("uniform", ["-5", "0"], None)}
+    design = DesignMatrix()
+    design.generate(_design_dict(params, strategy, repeats=10000))
+
+    n = design.designvalues["N"].to_numpy(float)
+    u = design.designvalues["U"].to_numpy(float)
+    assert np.isclose(n.mean(), 0.0, atol=0.1)
+    assert np.isclose(n.std(), 2.0, atol=0.1)
+    assert u.min() >= -5
+    assert u.max() <= 0
+    assert np.isclose(u.mean(), -2.5, atol=0.1)
+
+
+def test_independent_reordering_parameters_keeps_values():
+    ab = {"A": ("normal", ["0", "1"], None), "B": ("uniform", ["0", "1"], None)}
+    ba = {"B": ("uniform", ["0", "1"], None), "A": ("normal", ["0", "1"], None)}
+    _assert_stability(
+        stable=True, before=_sample_mc(ab), after=_sample_mc(ba), columns=["A", "B"]
+    )
+
+
+def test_independent_adding_a_parameter_keeps_discrete_parameter_values():
+    base = {
+        "A": ("normal", ["0", "1"], None),
+        "D": ("discrete", ["red, green, blue"], None),
+    }
+    added = {**base, "C": ("uniform", ["0", "1"], None)}
+    first, second = _sample_mc(base), _sample_mc(added)
+    _assert_stability(stable=True, before=first, after=second, columns=["A"])
+    assert list(first["D"]) == list(second["D"])
+
+
+def test_independent_changing_distribution_keeps_other_parameter_values():
+    base = {"A": ("normal", ["0", "1"], None), "B": ("uniform", ["0", "1"], None)}
+    changed = {"A": ("normal", ["0", "1"], None), "B": ("uniform", ["0", "5"], None)}
+    np.testing.assert_array_equal(
+        _col(_sample_mc(base), "A"),
+        _col(_sample_mc(changed), "A"),
+    )
+
+
+def test_independent_different_base_seed_changes_values():
+    base = {"A": ("normal", ["0", "1"], None)}
+    assert not np.allclose(
+        _col(_sample_mc(base, base=1), "A"), _col(_sample_mc(base, base=2), "A")
+    )
+
+
+@pytest.mark.parametrize("strategy", ["joint", "independent"])
+def test_correlation_group_is_correlated(tmp_path, strategy):
+    """Both strategies must induce the requested correlation."""
+    path = tmp_path / "corr.xlsx"
+    _write_correlation_sheets(path, {"corr1": (["X", "Y"], [[1.0, 0.7], [0.7, 1.0]])})
+    params = {
+        "X": ("normal", ["0", "1"], "corr1"),
+        "Y": ("normal", ["0", "1"], "corr1"),
+    }
+    corrdict = {"inputfile": str(path), "sheetnames": ["corr1"]}
+    result = _sample_mc(
+        params,
+        corrdict=corrdict,
+        strategy=strategy,
+        size=5000,
+        correlation_iterations=0,
+    )
+    achieved = np.corrcoef(_col(result, "X"), _col(result, "Y"))[0, 1]
+    assert abs(achieved - 0.7) < 0.05
+
+
+def test_independent_editing_one_group_does_not_touch_others(tmp_path):
+    path = tmp_path / "corr.xlsx"
+    _write_correlation_sheets(
+        path,
+        {
+            "corr1": (["X", "Y"], [[1.0, 0.7], [0.7, 1.0]]),
+            "corr2": (["P", "Q"], [[1.0, 0.5], [0.5, 1.0]]),
+        },
+    )
+    corrdict = {"inputfile": str(path), "sheetnames": ["corr1", "corr2"]}
+    full = {
+        "X": ("normal", ["0", "1"], "corr1"),
+        "Y": ("normal", ["0", "1"], "corr1"),
+        "P": ("normal", ["0", "1"], "corr2"),
+        "Q": ("normal", ["0", "1"], "corr2"),
+        "U": ("uniform", ["0", "1"], None),
+    }
+    without_group1 = {
+        "P": ("normal", ["0", "1"], "corr2"),
+        "Q": ("normal", ["0", "1"], "corr2"),
+        "U": ("uniform", ["0", "1"], None),
+    }
+    r_full = _sample_mc(full, corrdict=corrdict)
+    r_wo = _sample_mc(without_group1, corrdict=corrdict)
+    for name in ("P", "Q", "U"):
+        np.testing.assert_array_equal(
+            _col(r_full, name), _col(r_wo, name), err_msg=name
+        )
+
+
+def test_independent_background_param_edit_leaves_other_background_stable():
+    """Background parameters are seeded independently too, so adding one leaves
+    the others unchanged (the joint strategy would reshuffle them)."""
+    bg2 = {
+        "parameters": {
+            "BG1": ("normal", ["0", "1"], None),
+            "BG2": ("uniform", ["0", "1"], None),
+        },
+        "correlations": None,
+    }
+    bg3 = {
+        "parameters": {**bg2["parameters"], "BG3": ("triang", ["0", "1", "2"], None)},
+        "correlations": None,
+    }
+    params = {"A": ("normal", ["0", "1"], None)}
+    d2, d3 = DesignMatrix(), DesignMatrix()
+    d2.generate(_design_dict(params, "independent", background=bg2))
+    d3.generate(_design_dict(params, "independent", background=bg3))
+    np.testing.assert_array_equal(
+        d2.designvalues["BG1"].to_numpy(float), d3.designvalues["BG1"].to_numpy(float)
+    )
+    np.testing.assert_array_equal(
+        d2.designvalues["BG2"].to_numpy(float), d3.designvalues["BG2"].to_numpy(float)
+    )
+
+
+def test_independent_without_seed_is_valid_and_nonreproducible():
+    """With no distribution_seed a random base is drawn per run: the output must
+    be valid but differ between runs."""
+    params = {"A": ("normal", ["0", "1"], None), "B": ("uniform", ["0", "1"], None)}
+    d1, d2 = DesignMatrix(), DesignMatrix()
+    d1.generate(_design_dict(params, "independent", distribution_seed=None))
+    d2.generate(_design_dict(params, "independent", distribution_seed=None))
+    a1 = d1.designvalues["A"].to_numpy(float)
+    a2 = d2.designvalues["A"].to_numpy(float)
+    assert not np.isnan(a1).any()
+    assert not np.allclose(a1, a2)
+
+
+@pytest.mark.parametrize(
+    ("strategy", "stable"), [("independent", True), ("joint", False)]
+)
+def test_designmatrix_adding_a_parameter_end_to_end(strategy, stable):
+    """Adding a parameter is stable only under the independent strategy."""
+    p2 = {"A": ("normal", ["0", "1"], None), "B": ("uniform", ["0", "1"], None)}
+    p3 = {**p2, "C": ("triang", ["0", "1", "2"], None)}
+    d2, d3 = DesignMatrix(), DesignMatrix()
+    d2.generate(_design_dict(p2, strategy))
+    d3.generate(_design_dict(p3, strategy))
+    _assert_stability(stable, d2.designvalues, d3.designvalues, ["A", "B"])
+
+
+@pytest.mark.parametrize(
+    ("keys_a", "keys_b"),
+    [
+        # Naive ":".join encoding maps both of these to "42:a:param:b:param:c".
+        (("a", "param", "b:param:c"), ("a:param:b", "param", "c")),
+        (("ab", "param", "c"), ("a", "param", "bc")),
+    ],
+)
+def test_derive_rng_distinct_keys_give_distinct_streams(keys_a, keys_b):
+    """Identifiers containing the delimiter must not collide into one stream."""
+    stream_a = _derive_rng(42, *keys_a).random(8)
+    stream_b = _derive_rng(42, *keys_b).random(8)
+    assert not np.array_equal(stream_a, stream_b)
+
+
+def test_derive_rng_is_deterministic():
+    np.testing.assert_array_equal(
+        _derive_rng(42, "foo", "param", "A").random(8),
+        _derive_rng(42, "foo", "param", "A").random(8),
+    )
+
+
+def test_independent_group_may_share_a_name_with_a_parameter(tmp_path):
+    """A correlation *sheet* may be named like a parameter."""
+    path = tmp_path / "corr.xlsx"
+    _write_correlation_sheets(path, {"PORO": (["X", "Y"], [[1.0, 0.7], [0.7, 1.0]])})
+    params = {
+        "X": ("normal", ["0", "1"], "PORO"),
+        "Y": ("normal", ["0", "1"], "PORO"),
+        "PORO": ("normal", ["0", "1"], None),
+    }
+    result = _sample_mc(
+        params,
+        corrdict={"inputfile": str(path), "sheetnames": ["PORO"]},
+        size=5000,
+    )
+    x, y = _col(result, "X"), _col(result, "Y")
+    poro = _col(result, "PORO")
+    assert abs(np.corrcoef(x, y)[0, 1] - 0.7) < 0.05
+    assert abs(np.corrcoef(x, poro)[0, 1]) < 0.05
+
+
+@pytest.mark.parametrize("strategy", ["joint", "independent"])
+def test_overlapping_correlation_groups_raise(tmp_path, strategy):
+    """A parameter listed in two correlation matrices is ambiguous: only one of
+    the two requested correlations can be honoured, so it must be rejected.
+
+    'Z' is the offending parameter: it is assigned to 'corr2', but is also
+    listed in the matrix of 'corr1'. All four parameters are needed, since a
+    sheet with only one parameter assigned to it is skipped as uncorrelated.
+    """
+    path = tmp_path / "corr.xlsx"
+    _write_correlation_sheets(
+        path,
+        {
+            "corr1": (["X", "Y", "Z"], [[1, 0.8, 0.8], [0.8, 1, 0.8], [0.8, 0.8, 1]]),
+            "corr2": (["Z", "W"], [[1, 0.8], [0.8, 1]]),
+        },
+    )
+    params = {
+        "X": ("normal", ["0", "1"], "corr1"),
+        "Y": ("normal", ["0", "1"], "corr1"),
+        "Z": ("normal", ["0", "1"], "corr2"),
+        "W": ("normal", ["0", "1"], "corr2"),
+    }
+    with pytest.raises(
+        ValueError,
+        match=(
+            "Parameter 'Z' is part of several correlation groups: 'corr1' and 'corr2'"
+        ),
+    ):
+        _sample_mc(
+            params,
+            corrdict={"inputfile": str(path), "sheetnames": ["corr1", "corr2"]},
+            strategy=strategy,
+            size=50,
+        )
+
+
+def test_unknown_seed_strategy_raises():
+    """The low-level API must reject typos instead of silently using 'joint'."""
+    with pytest.raises(ValueError, match="seed_strategy"):
+        _sample_mc({"A": ("normal", ["0", "1"], None)}, strategy="bogus")
+
+
+def test_independent_without_base_seed_raises():
+    with pytest.raises(ValueError, match="base_seed"):
+        _sample_mc({"A": ("normal", ["0", "1"], None)}, base=None)
+
+
+def test_independent_same_param_name_differs_between_sensitivities():
+    """The sensitivity name is part of the key, so two sensitivities sharing a
+    parameter name must not receive identical samples."""
+    params = {"A": ("normal", ["0", "1"], None)}
+    first = _sample_mc(params, sensname="sens1")
+    second = _sample_mc(params, sensname="sens2")
+    assert not np.allclose(_col(first, "A"), _col(second, "A"))
+
+
+def test_independent_correlated_background_is_correlated_and_stable(tmp_path):
+    """Background parameters may also be correlated; the group must keep its
+    correlation and stay stable when an unrelated background parameter is added."""
+    path = tmp_path / "corr.xlsx"
+    _write_correlation_sheets(
+        path, {"bgcorr": (["BG1", "BG2"], [[1.0, 0.6], [0.6, 1.0]])}
+    )
+    corr_params = {
+        "BG1": ("normal", ["0", "1"], "bgcorr"),
+        "BG2": ("normal", ["0", "1"], "bgcorr"),
+    }
+    corrdict = {"inputfile": str(path), "sheetnames": ["bgcorr"]}
+    background = {"parameters": corr_params, "correlations": corrdict}
+    extended = {
+        "parameters": {**corr_params, "BG3": ("uniform", ["0", "1"], None)},
+        "correlations": corrdict,
+    }
+    params = {"A": ("normal", ["0", "1"], None)}
+
+    d1, d2 = DesignMatrix(), DesignMatrix()
+    d1.generate(
+        _design_dict(params, "independent", repeats=2000, background=background)
+    )
+    d2.generate(_design_dict(params, "independent", repeats=2000, background=extended))
+
+    bg1 = d1.designvalues["BG1"].to_numpy(float)
+    bg2 = d1.designvalues["BG2"].to_numpy(float)
+    assert abs(np.corrcoef(bg1, bg2)[0, 1] - 0.6) < 0.05
+    np.testing.assert_array_equal(bg1, d2.designvalues["BG1"].to_numpy(float))
+    np.testing.assert_array_equal(bg2, d2.designvalues["BG2"].to_numpy(float))

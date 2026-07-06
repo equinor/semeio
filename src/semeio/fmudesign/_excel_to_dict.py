@@ -234,6 +234,7 @@ def _excel_to_dict_onebyone(
         "repeats",
         "correlation_iterations",
         "distribution_seed",
+        "seed_strategy",
         "rms_seeds",
         "background",
     }
@@ -247,7 +248,13 @@ def _excel_to_dict_onebyone(
         raise LookupError(msg)
 
     # Copy keys over if they exist
-    keys = ["designtype", "repeats", "correlation_iterations", "distribution_seed"]
+    keys = [
+        "designtype",
+        "repeats",
+        "correlation_iterations",
+        "distribution_seed",
+        "seed_strategy",
+    ]
     for key in keys:
         if key not in generalinput:
             continue
