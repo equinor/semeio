@@ -4,7 +4,24 @@ Module for validation of config (typically read from Excel).
 
 import copy
 import numbers
+from enum import StrEnum
 from typing import Any
+
+
+class SeedStrategy(StrEnum):
+    """How Monte Carlo samples are seeded.
+
+    JOINT:
+        All parameters are drawn in one Latin Hypercube Sampling call (the
+        default). Adding, removing or reordering a parameter reshuffles every
+        other parameter.
+    INDEPENDENT:
+        Each parameter, and each correlation group, is seeded separately from
+        the base seed, so changing one leaves the others bit-identical.
+    """
+
+    JOINT = "joint"
+    INDEPENDENT = "independent"
 
 
 def validate_configuration(
@@ -66,6 +83,22 @@ def validate_configuration(
         raise ValueError(
             f"{key!r} must be a non-negative integer or None, got: {config[key]}"
         )
+
+    # 'seed_strategy' controls how Monte Carlo samples are seeded.
+    # See the SeedStrategy docstring for what each strategy means.
+    key = "seed_strategy"
+    value = config.get(key)
+    if isinstance(value, str):
+        value = value.strip().lower()
+    if value is None or value == "none":
+        value = SeedStrategy.JOINT
+    try:
+        config[key] = SeedStrategy(value)
+    except (ValueError, TypeError) as err:
+        raise ValueError(
+            f"{key!r} must be one of {[s.value for s in SeedStrategy]}, "
+            f"got: {config[key]}"
+        ) from err
 
     # 'seeds' here is 'rms_seeds' in the input. It can be either:
     # - 'default' => gives seed numbers 1000, 1001, 1002, ...

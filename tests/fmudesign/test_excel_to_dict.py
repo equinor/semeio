@@ -395,3 +395,29 @@ def test_assert_no_merged_cells(tmpdir, monkeypatch):
     # Should raise exception
     with pytest.raises(Exception, match="Merged cells"):
         _assert_no_merged_cells("test_file.xlsx")
+
+
+def test_excel_to_dict_passes_seed_strategy(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    general = pd.DataFrame(
+        data=[
+            ["designtype", "onebyone"],
+            ["repeats", "10"],
+            ["rms_seeds", "default"],
+            ["background", "None"],
+            ["distribution_seed", 42],
+            ["seed_strategy", "independent"],
+        ]
+    )
+    designinput = pd.DataFrame(
+        data=[["sensname", "numreal", "type", "param_name"], ["rms_seed", "", "seed"]]
+    )
+    with pd.ExcelWriter("designinput.xlsx", engine="openpyxl") as writer:
+        general.to_excel(writer, sheet_name="general_input", index=False, header=None)
+        designinput.to_excel(writer, sheet_name="designinput", index=False, header=None)
+        pd.DataFrame().to_excel(
+            writer, sheet_name="defaultvalues", index=False, header=None
+        )
+
+    dict_design = excel_to_dict(Path("designinput.xlsx"))
+    assert dict_design["seed_strategy"] == "independent"
