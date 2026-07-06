@@ -9,11 +9,11 @@ from semeio.forward_models.overburden_timeshift.ots_res_surface import OTSResSur
 
 def get_source_ert(grid):
     # pylint: disable=invalid-name
-    x = np.zeros(grid.getNumActive(), np.float64)
-    y = np.zeros(grid.getNumActive(), np.float64)
-    z = np.zeros(grid.getNumActive(), np.float64)
-    v = np.zeros(grid.getNumActive(), np.float64)
-    for i in range(grid.getNumActive()):
+    x = np.zeros(grid.get_num_active(), np.float64)
+    y = np.zeros(grid.get_num_active(), np.float64)
+    z = np.zeros(grid.get_num_active(), np.float64)
+    v = np.zeros(grid.get_num_active(), np.float64)
+    for i in range(grid.get_num_active()):
         (x[i], y[i], z[i]) = grid.get_xyz(active_index=i)
         v[i] = grid.cell_volume(active_index=i)
 

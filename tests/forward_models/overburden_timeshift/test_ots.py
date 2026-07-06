@@ -257,7 +257,7 @@ def test_geertsma_TS_rporv(set_up):
         dims=(2, 2, 2), dV=(100, 100, 100), actnum=actnum
     )
 
-    create_restart(grid, "TEST", rporv=[10 for i in range(grid.getNumActive())])
+    create_restart(grid, "TEST", rporv=[10 for i in range(grid.get_num_active())])
     create_init(grid, "TEST")
     grid.save_EGRID("TEST.EGRID")
 
