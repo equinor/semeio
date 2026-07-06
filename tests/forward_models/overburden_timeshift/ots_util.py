@@ -125,7 +125,7 @@ def mock_segy(
     top_corners = np.empty(shape=(nx + 1, ny + 1, 3), dtype=np.float32)
     for i in range(nx + 1):
         for j in range(ny + 1):
-            top_corners[i, j] = rd_grid.getNodePos(i, j, 0)
+            top_corners[i, j] = rd_grid.get_node_pos(i, j, 0)
 
     # get the bounding box of the surface
     min_x = np.min(top_corners[:, :, 0])
