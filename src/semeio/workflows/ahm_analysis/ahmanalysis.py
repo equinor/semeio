@@ -386,6 +386,8 @@ def count_active_observations(df_update_log):
 
 def calc_observationsgroup_misfit(obs_keys, df_update_log, misfit_df):
     """To get the misfit for total observations (active/inactive)."""
+    if isinstance(misfit_df, pl.DataFrame):
+        misfit_df = misfit_df.to_pandas()
 
     total_obs_nr = len(df_update_log[df_update_log.status.isin(["Active", "Inactive"])])
     if total_obs_nr == 0:
@@ -451,7 +453,8 @@ def raise_if_empty(dataframes, messages):
     """Check input ensemble prior is not empty
     and if ensemble contains parameters for hm"""
     for dframe in dataframes:
-        if dframe.empty:
+        pddf = dframe.to_pandas() if isinstance(dframe, pl.DataFrame) else dframe
+        if pddf.empty:
             raise ValidationError(f"{messages}")
 
 
