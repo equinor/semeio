@@ -331,15 +331,15 @@ def main() -> None:
 
     try:
         args.func(args)
-    except Exception:  # noqa: BLE001
+    except Exception:  # ruff: ignore[blind-except]
         traceback.print_exc()
         print(
             "\n \n",
             "fmudesign failed. Read the error message above and fix the input file.\n",
             " - Documentation:           https://equinor.github.io/fmu-tools/fmudesign.html\n",
-            " - Course docs:             https://fmu-docs.equinor.com/docs/fmu-coursedocs/fmu-howto/sensitivities/index.html \n",  # noqa: E501
+            " - Course docs:             https://fmu-docs.equinor.com/docs/fmu-coursedocs/fmu-howto/sensitivities/index.html \n",  # ruff: ignore[line-too-long]
             " - Issues/feature requests: https://github.com/equinor/semeio/issues\n",
-            "If you believe this error is a bug or are unable to fix it, create an issue or contact the scout team \n",  # noqa: E501
+            "If you believe this error is a bug or are unable to fix it, create an issue or contact the scout team \n",  # ruff: ignore[line-too-long]
         )
         sys.exit(1)  # Exit with a non-zero status code (required for smoke tests!)
 

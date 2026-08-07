@@ -354,9 +354,9 @@ class QualityReporter:
             print(
                 "Target correlation matrix and empirical correlation achieved",
                 " in data does not match well\n"
-                "This is natural with few samples, or very high/low desired correlations, "  # noqa: E501
+                "This is natural with few samples, or very high/low desired correlations, "  # ruff: ignore[line-too-long]
                 "or distributions that are far from\nnormal (e.g. lognormal)."
-                " Setting 'correlation_iterations' to 999 in the general input sheet might help.",  # noqa: E501
+                " Setting 'correlation_iterations' to 999 in the general input sheet might help.",  # ruff: ignore[line-too-long]
             )
 
     def plot_correlation(
@@ -382,7 +382,7 @@ class QualityReporter:
         def corrfunc(
             x: npt.NDArray[np.float64],
             y: npt.NDArray[np.float64],
-            **kwargs: Any,  # noqa: ANN401
+            **kwargs: Any,  # ruff: ignore[any-type]
         ) -> None:
             # Add correlations and grid to plots
             r, _ = sp.stats.pearsonr(x, y)
@@ -394,7 +394,7 @@ class QualityReporter:
             )
             ax.grid(visible=True, ls="--", alpha=0.5)
 
-        def add_grid(*args: Any, **kwargs: Any) -> None:  # noqa: ANN401
+        def add_grid(*args: Any, **kwargs: Any) -> None:  # ruff: ignore[any-type]
             ax = plt.gca()
             ax.grid(visible=True, ls="--", alpha=0.5)
 

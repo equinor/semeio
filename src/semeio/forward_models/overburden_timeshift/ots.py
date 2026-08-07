@@ -160,7 +160,7 @@ class OverburdenTimeshift:
     def __init__(
         self,
         eclbase: str,
-        mapaxes: bool,  # noqa: FBT001
+        mapaxes: bool,  # ruff: ignore[boolean-type-hint-positional-argument]
         seabed: float,
         youngs: float,
         poisson: float,
@@ -258,7 +258,7 @@ class OverburdenTimeshift:
 
         return surf_geo
 
-    def add_survey(self, name: str, date: date) -> Any:  # noqa: ANN401
+    def add_survey(self, name: str, date: date) -> Any:  # ruff: ignore[any-type]
         """The add_survey() method will register a survey at a specific date.
 
         The name argument should be a unique string, this will later

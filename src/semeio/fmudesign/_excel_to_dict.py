@@ -99,7 +99,7 @@ def find_sheet(name: str, names: list[str]) -> str:
     Traceback (most recent call last):
       ...
     ValueError: No match for variable_input: ['generalinput', 'designinput', 'defaultinput']
-    """  # noqa: E501
+    """  # ruff: ignore[line-too-long]
 
     def sanitize(inputstring: str) -> str:
         return inputstring.lower().strip().replace("_", "")
@@ -728,7 +728,7 @@ def _read_correlations(
     return correlations
 
 
-def _has_value(value: Any) -> bool:  # noqa: ANN401
+def _has_value(value: Any) -> bool:  # ruff: ignore[any-type]
     """Returns False only if the argument is np.nan"""
     try:
         return not np.isnan(value)

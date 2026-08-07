@@ -32,7 +32,7 @@ def _replace_key(schema: dict, old_key: str, new_key: str) -> None:
         if key == old_key:
             del schema[key]
             schema[new_key] = val
-            key = new_key  # noqa: PLW2901
+            key = new_key  # ruff: ignore[redefined-loop-name]
         if isinstance(val, dict):
             _replace_key(schema[key], old_key, new_key)
 
