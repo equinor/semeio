@@ -1,4 +1,4 @@
-from .ots_config import OTSConfig  # noqa: I001
+from .ots_config import OTSConfig  # ruff: ignore[unsorted-imports]
 from .ots_vel_surface import OTSVelSurface
 from .ots_res_surface import OTSResSurface
 from .ots import ots_run

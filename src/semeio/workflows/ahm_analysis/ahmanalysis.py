@@ -115,7 +115,7 @@ class AhmAnalysisJob(ErtScript):
     observation during history matching
     """
 
-    def run(  # noqa: PLR6301
+    def run(  # ruff: ignore[no-self-use]
         self,
         workflow_args: list[str],
         storage: Storage,

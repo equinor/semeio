@@ -66,7 +66,7 @@ runs::
   LOAD_WORKFLOW ../bin/workflows/QC_CSVEXPORT2
   HOOK_WORKFLOW QC_CSVEXPORT2 POST_SIMULATION
 
-"""  # noqa: E501
+"""  # ruff: ignore[line-too-long]
 
 
 def csv_exporter(runpathfile, time_index, outputfile, column_keys=None):
@@ -90,7 +90,7 @@ def csv_exporter(runpathfile, time_index, outputfile, column_keys=None):
 
 
 class CsvExport2Job(ErtScript):
-    def run(self, *args, **_):  # noqa: PLR6301
+    def run(self, *args, **_):  # ruff: ignore[no-self-use]
         main(args)
 
 

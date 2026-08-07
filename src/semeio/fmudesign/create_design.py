@@ -302,7 +302,7 @@ class DesignMatrix:
         Provided number of seed values (3) in external file is lower than the maximum number of realisations (5).
          Seeds will be repeated, e.g. [1, 2, 3] => [1, 2, 3, 1, 2, ...]
         [1, 2, 3, 1, 2]
-        """  # noqa: E501
+        """  # ruff: ignore[line-too-long]
         if seeds is None:
             return None
 

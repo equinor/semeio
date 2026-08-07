@@ -146,7 +146,7 @@ class Trajectory:
         points (list): List of lists with (textual) data for the trajectory.
     """
 
-    def __init__(self, points: Any) -> None:  # noqa: ANN401
+    def __init__(self, points: Any) -> None:  # ruff: ignore[any-type]
         self.trajectory_points: list[TrajectoryPoint] = list(
             starmap(TrajectoryPoint, points)
         )
