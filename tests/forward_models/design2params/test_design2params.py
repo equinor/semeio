@@ -220,6 +220,7 @@ def test_open_excel_file_header_missing():
         )
 
 
+@pytest.mark.integration_test
 @pytest.mark.usefixtures("input_data")
 def test_open_excel_file_value_missing(caplog):
     """Check that we get SystemExit only for those realizations

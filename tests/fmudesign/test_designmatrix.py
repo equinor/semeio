@@ -6,6 +6,7 @@ import subprocess
 from pathlib import Path
 
 import pandas as pd
+import pytest
 
 from semeio.fmudesign import DesignMatrix
 
@@ -72,6 +73,7 @@ def test_designmatrix():
     assert isinstance(design.defaultvalues, dict)
 
 
+@pytest.mark.integration_test
 def test_endpoint(tmpdir, monkeypatch):
     """Test the installed endpoint
 
