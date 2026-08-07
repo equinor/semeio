@@ -43,6 +43,7 @@ def test_console_scripts_exit_code(script_runner, entry_point, options):
     assert script_runner.run([entry_point, options]).returncode != 0
 
 
+@pytest.mark.integration_test
 @pytest.mark.ert_integration
 @pytest.mark.parametrize(
     ("forward_model", "configuration", "expected_error"),
@@ -83,6 +84,7 @@ def test_forward_model_error_propagation(forward_model, configuration, expected_
     assert expected_error in error
 
 
+@pytest.mark.integration_test
 @pytest.mark.usefixtures("use_tmpdir")
 def test_pyscal_accepts_delta_s_argument():
     config = DEFAULT_CONFIG.format(

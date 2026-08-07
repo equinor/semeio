@@ -20,6 +20,7 @@ from semeio.fmudesign.quality_report import print_corrmat
 TESTDATA = Path(__file__).parent / "data"
 
 
+@pytest.mark.integration_test
 @pytest.mark.parametrize("correlations", [True, False])
 def test_distribution_statistis(tmpdir, monkeypatch, correlations):
     """This test ensures that if any large-sample statistics for any distribution
@@ -489,6 +490,7 @@ def test_generate_full_mc(tmpdir):
     assert math.isclose(date_fractions.loc["2018-11-04"], 0.3)
 
 
+@pytest.mark.integration_test
 def test_generate_background(tmpdir):
     inputfile = TESTDATA / "config/design_input_background.xlsx"
     input_dict = excel_to_dict(inputfile)

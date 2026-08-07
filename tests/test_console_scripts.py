@@ -1,6 +1,7 @@
 import pytest
 
 
+@pytest.mark.integration_test
 @pytest.mark.script_launch_mode("subprocess")
 @pytest.mark.parametrize(
     "entry_point",

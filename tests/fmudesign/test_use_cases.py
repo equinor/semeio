@@ -162,6 +162,7 @@ def test_constant_distribution(tmpdir, monkeypatch, gen_input_sheet):
     print(f"Sensitivity name: {set(design.designvalues['SENSNAME'])}")
 
 
+@pytest.mark.integration_test
 @pytest.mark.parametrize("designfile", TEST_FILES, ids=[p.stem for p in TEST_FILES])
 @pytest.mark.parametrize("verbosity", [0, 1, 2])
 def test_all_input_files(tmpdir, monkeypatch, designfile, verbosity):
@@ -181,6 +182,7 @@ def test_all_input_files(tmpdir, monkeypatch, designfile, verbosity):
     )
 
 
+@pytest.mark.integration_test
 @pytest.mark.parametrize("designfile", EXAMPLE_FILES, ids=EXAMPLE_FILES)
 @pytest.mark.parametrize("verbosity", [0])
 def test_all_example_files_cmd_init(tmpdir, monkeypatch, designfile, verbosity):
@@ -200,6 +202,7 @@ def test_all_example_files_cmd_init(tmpdir, monkeypatch, designfile, verbosity):
     )
 
 
+@pytest.mark.integration_test
 @pytest.mark.parametrize("designfile", TEST_FILES, ids=[p.stem for p in TEST_FILES])
 def test_all_input_files_relative_paths(tmpdir, monkeypatch, designfile):
     """Smoketest all files, but invoke them from a directory above.
