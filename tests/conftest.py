@@ -30,9 +30,8 @@ def fixture_test_data_root():
 
 
 @pytest.fixture
-def setup_tmpdir(tmpdir):
-    with tmpdir.as_cwd():
-        yield
+def use_tmpdir(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
 
 
 @pytest.fixture(scope="session", autouse=True)

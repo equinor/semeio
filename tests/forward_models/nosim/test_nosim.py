@@ -53,7 +53,7 @@ import pytest
         ),
     ],
 )
-@pytest.mark.usefixtures("setup_tmpdir")
+@pytest.mark.usefixtures("use_tmpdir")
 def test_nosim(nosim_command, data_input, data_expected):
     shutil.copy(Path(__file__).parent / "data" / "nosim.ert", ".")
 

@@ -67,7 +67,7 @@ def fixture_set_up(tmp_path):
         ("TEST.UNRST", ".*TEST.UNRST.*"),
     ],
 )
-@pytest.mark.usefixtures("setup_tmpdir")
+@pytest.mark.usefixtures("use_tmpdir")
 def test_create_missing_ecl_file(set_up, missing_file, expected_error):
     _, _, params = set_up
     grid = GridGenerator.create_rectangular(dims=(10, 10, 10), dV=(1, 1, 1))
@@ -120,7 +120,7 @@ def test_create_invalid_input_missing_segy(set_up):
     ("config_item", "value"),
     [("velocity_model", "TEST.segy"), ("velocity_model", None)],
 )
-@pytest.mark.usefixtures("setup_tmpdir")
+@pytest.mark.usefixtures("use_tmpdir")
 def test_create_valid(set_up, config_item, value):
     spec, _, params = set_up
     grid = GridGenerator.create_rectangular(dims=(10, 10, 10), dV=(1, 1, 1))
@@ -147,7 +147,7 @@ def test_create_valid(set_up, config_item, value):
     )
 
 
-@pytest.mark.usefixtures("setup_tmpdir")
+@pytest.mark.usefixtures("use_tmpdir")
 def test_eval(set_up):
     spec, actnum, parms = set_up
     grid = GridGenerator.create_rectangular(
@@ -190,7 +190,7 @@ def test_eval(set_up):
     ots.geertsma_ts_simple(vintage_pairs)
 
 
-@pytest.mark.usefixtures("setup_tmpdir")
+@pytest.mark.usefixtures("use_tmpdir")
 def test_geertsma_TS_simple(set_up):
     spec, actnum, parms = set_up
     grid = GridGenerator.create_rectangular(
@@ -250,7 +250,7 @@ def test_geertsma_TS_simple(set_up):
     assert tshift[0][0, 0] == pytest.approx(0.01006, abs=0.0001)
 
 
-@pytest.mark.usefixtures("setup_tmpdir")
+@pytest.mark.usefixtures("use_tmpdir")
 def test_geertsma_TS_rporv(set_up):
     spec, actnum, parms = set_up
     grid = GridGenerator.create_rectangular(
@@ -289,7 +289,7 @@ def test_geertsma_TS_rporv(set_up):
     assert tshift[0][0, 0] == pytest.approx(0.0, abs=0.0001)
 
 
-@pytest.mark.usefixtures("setup_tmpdir")
+@pytest.mark.usefixtures("use_tmpdir")
 def test_geertsma_TS(set_up):
     spec, actnum, parms = set_up
     grid = GridGenerator.create_rectangular(
@@ -351,7 +351,7 @@ def test_geertsma_TS(set_up):
     assert tshift[0][0, 0] == pytest.approx(0.00104, abs=0.0001)
 
 
-@pytest.mark.usefixtures("setup_tmpdir")
+@pytest.mark.usefixtures("use_tmpdir")
 def test_dPV(set_up):
     _, actnum, parms = set_up
     grid = GridGenerator.create_rectangular(
@@ -403,7 +403,7 @@ def test_dPV(set_up):
     assert tshift[0][0, 0] == pytest.approx(-tshift_b_m[0][0, 0])
 
 
-@pytest.mark.usefixtures("setup_tmpdir")
+@pytest.mark.usefixtures("use_tmpdir")
 def test_irap_surface(set_up):
     spec, actnum, parms = set_up
     grid = GridGenerator.create_rectangular(

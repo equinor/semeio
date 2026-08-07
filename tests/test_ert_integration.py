@@ -58,7 +58,7 @@ def test_console_scripts_exit_code(script_runner, entry_point, options):
         ("PYSCAL", "<PARAMETER_FILE>=not_file", "not_file does not exist"),
     ],
 )
-@pytest.mark.usefixtures("setup_tmpdir")
+@pytest.mark.usefixtures("use_tmpdir")
 def test_forward_model_error_propagation(forward_model, configuration, expected_error):
     """Assert that hard errors in forward models are also
     hard errors for ERT.
@@ -83,7 +83,7 @@ def test_forward_model_error_propagation(forward_model, configuration, expected_
     assert expected_error in error
 
 
-@pytest.mark.usefixtures("setup_tmpdir")
+@pytest.mark.usefixtures("use_tmpdir")
 def test_pyscal_accepts_delta_s_argument():
     config = DEFAULT_CONFIG.format(
         "PYSCAL", "<PARAMETER_FILE>=<CONFIG_PATH>/relperm-input.csv, <DELTA_S>=0.1"

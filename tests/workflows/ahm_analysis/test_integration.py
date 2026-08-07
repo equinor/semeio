@@ -191,7 +191,7 @@ def test_ahmanalysis_run_deactivated_obs(copy_snake_oil_case_storage, snapshot, 
     snapshot.assert_match(ks_df.iloc[:10].round(4).to_csv(), "ks_df")
 
 
-@pytest.mark.usefixtures("setup_tmpdir")
+@pytest.mark.usefixtures("use_tmpdir")
 def test_that_dataset_with_no_prior_will_fail(snake_oil_config, capsys):
     with open_storage(snake_oil_config.ens_path, "w") as storage:
         ensemble = storage.create_experiment().create_ensemble(
