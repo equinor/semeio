@@ -42,6 +42,10 @@ dependencies = [
     "probabilit>=0.4.1",
     "resfo-utilities>=0.1.1",
 ]
+[dependency-groups]
+dev = [
+    "rust-just"
+]
 
 [project.urls]
 repository = "https://github.com/equinor/semeio"
