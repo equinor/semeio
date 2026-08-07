@@ -9,7 +9,7 @@ from .ots_util import create_segy_file
 
 
 @pytest.fixture(name="setup_spec")
-def fixture_setup_spec(setup_tmpdir):
+def fixture_setup_spec(use_tmpdir):
     spec = segyio.spec()
     spec.format = 5
     spec.sorting = 2
