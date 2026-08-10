@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 import pytest
@@ -58,11 +57,3 @@ def norne_mocked_ensembleset(use_tmpdir):
 def norne_mocked_ensembleset_noparams(use_tmpdir):
     # pylint: disable=unused-argument
     mock_norne_data(reals=[0, 1], iters=[0, 1], parameters=False)
-
-
-@pytest.fixture(name="setup_tmpdir")
-def fixture_setup_tmpdir(tmpdir):
-    cwd = Path.cwd()
-    tmpdir.chdir()
-    yield
-    os.chdir(cwd)
