@@ -33,9 +33,9 @@ jobs:
           cache-dependency-glob: pyproject.toml
           python-version: '3.14'
 
-      - name: Install semeio with style deps
+      - name: Install semeio and dependencies
         run: |
-          uv sync --frozen --extra style
+          uv sync --frozen
 
       - name: Run pre-commit
         run: uv run --no-sync pre-commit run --all-files --show-diff-on-failure

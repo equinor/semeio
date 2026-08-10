@@ -44,7 +44,24 @@ dependencies = [
 ]
 [dependency-groups]
 dev = [
-    "rust-just"
+    'hypothesis',
+    'mypy',
+    'odfpy',
+    'oil_reservoir_synthesizer',
+    'openpyxl',
+    'pandas-stubs',
+    'pre-commit',
+    'pytest',
+    'pytest-console-scripts',
+    'pytest-snapshot',
+    'pytest-xdist',
+    'rstcheck-core',
+    'rust-just',
+    'types-PyYAML',
+    'types-openpyxl',
+    'types-seaborn',
+    'types-setuptools',
+    'xlwt'
 ]
 
 [project.urls]
@@ -73,33 +90,6 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 "semeio.fmudesign.examples" = ["*.xlsx", "*.yml", "*.yaml", "*.toml"]
-
-[project.optional-dependencies]
-test = [
-    "hypothesis",
-    "odfpy",
-    "oil_reservoir_synthesizer",
-    "openpyxl",
-    "pytest",
-    "pytest-console-scripts",
-    "pytest-snapshot",
-    "pytest-xdist",
-    "rstcheck-core",
-    "xlwt",
-]
-
-style = [
-    "pre-commit",
-]
-
-types = [
-    "mypy",
-    "pandas-stubs",
-    "types-PyYAML",
-    "types-openpyxl",
-    "types-setuptools",
-    "types-seaborn",
-]
 
 [tool.pytest.ini_options]
 addopts = "-ra --strict-markers"

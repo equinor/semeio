@@ -3671,34 +3671,26 @@ dependencies = [
     { name = "xtgeo" },
 ]
 
-[package.optional-dependencies]
-style = [
-    { name = "pre-commit" },
-]
-test = [
+[package.dev-dependencies]
+dev = [
     { name = "hypothesis" },
+    { name = "mypy" },
     { name = "odfpy" },
     { name = "oil-reservoir-synthesizer" },
     { name = "openpyxl" },
+    { name = "pandas-stubs" },
+    { name = "pre-commit" },
     { name = "pytest" },
     { name = "pytest-console-scripts" },
     { name = "pytest-snapshot" },
     { name = "pytest-xdist" },
     { name = "rstcheck-core" },
-    { name = "xlwt" },
-]
-types = [
-    { name = "mypy" },
-    { name = "pandas-stubs" },
+    { name = "rust-just" },
     { name = "types-openpyxl" },
     { name = "types-pyyaml" },
     { name = "types-seaborn" },
     { name = "types-setuptools" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "rust-just" },
+    { name = "xlwt" },
 ]
 
 [package.metadata]
@@ -3706,41 +3698,42 @@ requires-dist = [
     { name = "cvxpy" },
     { name = "ert", specifier = ">=23.0.0b1.dev0" },
     { name = "fmu-ensemble", specifier = ">1.6.5" },
-    { name = "hypothesis", marker = "extra == 'test'" },
-    { name = "mypy", marker = "extra == 'types'" },
     { name = "numpy" },
-    { name = "odfpy", marker = "extra == 'test'" },
-    { name = "oil-reservoir-synthesizer", marker = "extra == 'test'" },
-    { name = "openpyxl", marker = "extra == 'test'" },
     { name = "pandas", specifier = ">=2" },
-    { name = "pandas-stubs", marker = "extra == 'types'" },
-    { name = "pre-commit", marker = "extra == 'style'" },
     { name = "probabilit", specifier = ">=0.4.1" },
     { name = "pydantic", specifier = ">=2.9" },
     { name = "pyscal", specifier = ">=0.4.0" },
-    { name = "pytest", marker = "extra == 'test'" },
-    { name = "pytest-console-scripts", marker = "extra == 'test'" },
-    { name = "pytest-snapshot", marker = "extra == 'test'" },
-    { name = "pytest-xdist", marker = "extra == 'test'" },
     { name = "resdata" },
     { name = "resfo-utilities", specifier = ">=0.1.1" },
-    { name = "rstcheck-core", marker = "extra == 'test'" },
     { name = "scikit-learn" },
     { name = "scipy" },
     { name = "seaborn" },
     { name = "segyio" },
-    { name = "types-openpyxl", marker = "extra == 'types'" },
-    { name = "types-pyyaml", marker = "extra == 'types'" },
-    { name = "types-seaborn", marker = "extra == 'types'" },
-    { name = "types-setuptools", marker = "extra == 'types'" },
     { name = "xlrd" },
-    { name = "xlwt", marker = "extra == 'test'" },
     { name = "xtgeo", specifier = ">=2.15" },
 ]
-provides-extras = ["test", "style", "types"]
 
 [package.metadata.requires-dev]
-dev = [{ name = "rust-just" }]
+dev = [
+    { name = "hypothesis" },
+    { name = "mypy" },
+    { name = "odfpy" },
+    { name = "oil-reservoir-synthesizer" },
+    { name = "openpyxl" },
+    { name = "pandas-stubs" },
+    { name = "pre-commit" },
+    { name = "pytest" },
+    { name = "pytest-console-scripts" },
+    { name = "pytest-snapshot" },
+    { name = "pytest-xdist" },
+    { name = "rstcheck-core" },
+    { name = "rust-just" },
+    { name = "types-openpyxl" },
+    { name = "types-pyyaml" },
+    { name = "types-seaborn" },
+    { name = "types-setuptools" },
+    { name = "xlwt" },
+]
 
 [[package]]
 name = "setuptools"

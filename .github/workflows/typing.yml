@@ -42,7 +42,7 @@ jobs:
 
     - name: Install semeio and dependencies
       run: |
-        uv sync --frozen --extra types
+        uv sync --frozen
     - name: Run mypy
       run: |
         uv run --no-sync mypy src/semeio
