@@ -56,9 +56,9 @@ jobs:
           sudo apt-get install libegl1
         shell: bash
 
-      - name: Install test dependencies
+      - name: Install semeio and dependencies
         run: |
-          uv sync --frozen --extra test
+          uv sync --frozen
 
       - name: Pin pandas version
         if: matrix.pandas-version
