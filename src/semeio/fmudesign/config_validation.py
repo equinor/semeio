@@ -28,30 +28,23 @@ class SeedStrategy(StrEnum):
     INDEPENDENT = "independent"
 
 
-def validate_configuration(
-    config: dict[str, Any], verbosity: int = 0
-) -> dict[str, Any]:
-    """Main function for config validation.
-
-    This function is responsible for:
-        - Checking that required keys exist
-        - Checking that values are set to valid types
-        - Setting default values if keys are not set
-
-    """
-    config = copy.deepcopy(config)
-
+def _validate_designtype(config: dict[str, Any]) -> None:
+    if "designtype" not in config:
+        raise ConfigValidationError(
+            "'designtype' must be specified in general input sheet"
+        )
     if config["designtype"] != "onebyone":
         raise ConfigValidationError(
             "Generation of DesignMatrix only implemented for type 'onebyone', "
-            f"not {config['designtype']}"
+            f"not '{config['designtype']}'"
         )
 
+
+def _validate_repeats(config: dict[str, Any]) -> None:
     if "repeats" not in config:
         raise ConfigValidationError(
-            '"repeats" must be specified in general input sheet'
+            "'repeats' must be specified in general input sheet"
         )
-
     if not isinstance(config["repeats"], int):
         raise ConfigValidationError(
             f"'repeats' in general_input must be an int, "
@@ -59,6 +52,8 @@ def validate_configuration(
             f"with type: {type(config['repeats']).__name__}"
         )
 
+
+def _validate_correlation_iterations(config: dict[str, Any], verbosity: int) -> None:
     key = "correlation_iterations"
     if key not in config:
         if verbosity > 0:
@@ -81,8 +76,9 @@ def validate_configuration(
                 f"{key!r} must be a non-negative integer, got: {config[key]}"
             ) from err
 
-    key = "distribution_seed"
-    if key not in config:
+
+def _validate_distribution_seed(config: dict[str, Any]) -> None:
+    if "distribution_seed" not in config:
         raise ConfigValidationError(
             "You did not specify a value for 'distribution_seed', which is used to "
             "seed the random number generator that draws from distributions in Monte "
@@ -92,11 +88,17 @@ def validate_configuration(
             "- Specify None if you do not want to seed the random number generator. "
             "Your analysis will not be reproducible."
         )
+
+    key = "distribution_seed"
+    if key not in config:
+        raise ConfigValidationError
     if not (isinstance(config[key], numbers.Integral) or (config[key] is None)):
         raise ConfigValidationError(
             f"{key!r} must be a non-negative integer or None, got: {config[key]}"
         )
 
+
+def _validate_rms_seeds(config: dict[str, Any]) -> None:
     # 'seed_strategy' controls how Monte Carlo samples are seeded.
     # See the SeedStrategy docstring for what each strategy means.
     key = "seed_strategy"
@@ -113,20 +115,24 @@ def validate_configuration(
             f"got: {config[key]}"
         ) from err
 
-    # 'seeds' here is 'rms_seeds' in the input. It can be either:
-    # - 'default' => gives seed numbers 1000, 1001, 1002, ...
-    # - 'None'    => seed number not added
-    # - a path to a file
-    key = "seeds"
-    if key not in config:
-        msg = '"rms_seeds" must be specified in general input sheet\n'
-        msg += ' - Set to "None", "default" or path to a file.'
-        raise ConfigValidationError(msg)
-    is_default = config[key] == "default"
-    is_none = config[key] is None
-    is_list = isinstance(config[key], list) and config[key]
-    if not any([is_default, is_none, is_list]):
-        msg = f"'rms_seeds' must be 'None', 'default' or a list, got: {config[key]}"
-        raise ConfigValidationError(msg)
+
+def validate_configuration(
+    config: dict[str, Any], verbosity: int = 0
+) -> dict[str, Any]:
+    """Main function for config validation.
+
+    This function is responsible for:
+        - Checking that required keys exist
+        - Checking that values are set to valid types
+        - Setting default values if keys are not set
+
+    """
+    config = copy.deepcopy(config)
+
+    _validate_designtype(config)
+    _validate_repeats(config)
+    _validate_correlation_iterations(config, verbosity)
+    _validate_distribution_seed(config)
+    _validate_rms_seeds(config)
 
     return config
