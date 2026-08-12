@@ -228,6 +228,154 @@ def test_background_sheet(tmpdir, monkeypatch):
     assert dict_design["defaultvalues"]["extraseed"] == 0
 
 
+def _write_background_workbook(filename, background, corr_matrix, background_name):
+    """Write a workbook with a background sheet and a 'bgcorr' correlation sheet."""
+    general_input = pd.DataFrame(
+        data=[
+            ["designtype", "onebyone"],
+            ["repeats", 3],
+            ["rms_seeds", "default"],
+            ["background", background_name],
+            ["distribution_seed", 42],
+        ]
+    )
+    defaultvalues = pd.DataFrame(
+        columns=["param_name", "default_value"], data=[["PARAM_A", 0], ["PARAM_B", 0]]
+    )
+    with pd.ExcelWriter(filename, engine="openpyxl") as writer:
+        general_input.to_excel(
+            writer, sheet_name="general_input", index=False, header=None
+        )
+        MOCK_DESIGNINPUT.to_excel(
+            writer, sheet_name="designinput", index=False, header=None
+        )
+        defaultvalues.to_excel(writer, sheet_name="defaultvalues", index=False)
+        background.to_excel(
+            writer, sheet_name="backgroundsheet", index=False, header=None
+        )
+        if corr_matrix is not None:
+            corr_matrix.to_excel(writer, sheet_name="bgcorr")
+
+
+BACKGROUND_WITH_CORR = pd.DataFrame(
+    data=[
+        ["param_name", "dist_name", "dist_param1", "dist_param2", "corr_sheet"],
+        ["PARAM_A", "uniform", 0, 1, "bgcorr"],
+        ["PARAM_B", "uniform", 0, 1, "bgcorr"],
+    ]
+)
+
+
+def test_background_correlation_sheet_with_mismatching_index_and_columns(
+    tmpdir, monkeypatch
+):
+    """Correlation matrices for background parameters must be validated the same
+    way as correlation matrices for ordinary sensitivities."""
+    monkeypatch.chdir(tmpdir)
+    corr_matrix = pd.DataFrame(
+        [[1.0, np.nan], [0.5, 1.0]],
+        index=["PARAM_A", "PARAM_B"],
+        columns=["PARAM_A", "PARAM_TYPO"],
+    )
+    _write_background_workbook(
+        "designinput.xlsx", BACKGROUND_WITH_CORR, corr_matrix, "backgroundsheet"
+    )
+
+    with pytest.raises(
+        ValueError, match="Mismatch between column and index in correlation"
+    ):
+        excel_to_dict("designinput.xlsx")
+
+
+def test_background_correlation_sheet_with_mismatching_parameters(tmpdir, monkeypatch):
+    """Parameters pointing to a correlation sheet from the background sheet must
+    match the parameters in that correlation sheet exactly."""
+    monkeypatch.chdir(tmpdir)
+    corr_matrix = pd.DataFrame(
+        [[1.0, np.nan], [0.5, 1.0]],
+        index=["PARAM_A", "PARAM_TYPO"],
+        columns=["PARAM_A", "PARAM_TYPO"],
+    )
+    _write_background_workbook(
+        "designinput.xlsx", BACKGROUND_WITH_CORR, corr_matrix, "backgroundsheet"
+    )
+
+    with pytest.raises(ValueError, match="Mismatch between parameters"):
+        excel_to_dict("designinput.xlsx")
+
+
+def test_background_sheet_that_does_not_exist(tmpdir, monkeypatch):
+    """A background sheet name that does not exist must be reported, listing the
+    sheets that are available."""
+    monkeypatch.chdir(tmpdir)
+    _write_background_workbook(
+        "designinput.xlsx", BACKGROUND_WITH_CORR, None, "typo_sheet"
+    )
+
+    with pytest.raises(ValueError, match="Sheets in workbook") as exc_info:
+        excel_to_dict("designinput.xlsx")
+
+    message = str(exc_info.value)
+    assert "typo_sheet" in message
+    assert "backgroundsheet" in message
+    assert "Use 'None' as background" in message
+
+
+@pytest.mark.parametrize(
+    "background_name", ["Backgroundsheet", "background_sheet", " backgroundsheet "]
+)
+def test_background_sheet_name_is_matched_softly(tmpdir, monkeypatch, background_name):
+    monkeypatch.chdir(tmpdir)
+    corr_matrix = pd.DataFrame(
+        [[1.0, np.nan], [0.5, 1.0]],
+        index=["PARAM_A", "PARAM_B"],
+        columns=["PARAM_A", "PARAM_B"],
+    )
+    _write_background_workbook(
+        "designinput.xlsx", BACKGROUND_WITH_CORR, corr_matrix, background_name
+    )
+
+    background = excel_to_dict("designinput.xlsx")["background"]
+    assert list(background["parameters"]) == ["PARAM_A", "PARAM_B"]
+
+
+def test_background_file_that_does_not_exist(tmpdir, monkeypatch):
+    monkeypatch.chdir(tmpdir)
+    _write_background_workbook(
+        "designinput.xlsx", BACKGROUND_WITH_CORR, None, "missing_background.csv"
+    )
+
+    with pytest.raises(ValueError, match="Failed to resolve path"):
+        excel_to_dict("designinput.xlsx")
+
+
+@pytest.mark.parametrize("background_name", ["None", "none", np.nan])
+def test_background_not_in_use(tmpdir, monkeypatch, background_name):
+    """Not specifying a background must not be an error."""
+    monkeypatch.chdir(tmpdir)
+    _write_background_workbook(
+        "designinput.xlsx", BACKGROUND_WITH_CORR, None, background_name
+    )
+
+    assert excel_to_dict("designinput.xlsx")["background"] is None
+
+
+def test_background_correlations_are_read(tmpdir, monkeypatch):
+    monkeypatch.chdir(tmpdir)
+    corr_matrix = pd.DataFrame(
+        [[1.0, np.nan], [0.5, 1.0]],
+        index=["PARAM_A", "PARAM_B"],
+        columns=["PARAM_A", "PARAM_B"],
+    )
+    _write_background_workbook(
+        "designinput.xlsx", BACKGROUND_WITH_CORR, corr_matrix, "backgroundsheet"
+    )
+
+    background = excel_to_dict("designinput.xlsx")["background"]
+    assert background["correlations"]["sheetnames"] == ["bgcorr"]
+    assert list(background["parameters"]) == ["PARAM_A", "PARAM_B"]
+
+
 def test_assert_no_merged_cells(tmpdir, monkeypatch):
     """Test that assert_no_merged_cells detects merged cells"""
     monkeypatch.chdir(tmpdir)
