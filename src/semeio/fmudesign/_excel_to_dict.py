@@ -265,19 +265,17 @@ def _excel_to_dict_onebyone(
         if isinstance(maybe_path, str) and Path(maybe_path).exists():
             output[key] = seeds_from_extern(maybe_path)
 
-    # If 'background' is a file, then read it
+    # The 'background' key is either blank/'None', a reference to another file
+    # or the name of a sheet in this workbook.
     key = "background"
-    output[key] = {}
-    try:
-        value = str(generalinput[key])
-        if value.endswith(("csv", "xlsx")):
-            output[key]["extern"] = resolve_path(input_filename, value)
-        else:
-            output[key] = _read_background(input_filename, value)
-    except KeyError:
+    value = generalinput.get(key)
+    background = "" if value is None else str(value).strip()
+    if background.lower() in {"", "none"}:
         output[key] = None
-    except ValueError:
-        output[key] = generalinput[key]
+    elif background.endswith(("csv", "xlsx")):
+        output[key] = {"extern": resolve_path(input_filename, background)}
+    else:
+        output[key] = _read_background(input_filename, background)
 
     output["defaultvalues"] = _read_defaultvalues(input_filename, default_values_sheet)
 
@@ -464,6 +462,18 @@ def _read_background(inp_filename: str, bck_sheet: str) -> dict[str, Any]:
     """
     backdict: dict[str, Any] = {}
     paramdict: dict[str, Any] = {}
+    with pd.ExcelFile(inp_filename, engine="openpyxl") as workbook:
+        sheet_names = [str(name) for name in workbook.sheet_names]
+    try:
+        bck_sheet = find_sheet(bck_sheet, names=sheet_names)
+    except ValueError as err:
+        raise ValueError(
+            f"Sheet {bck_sheet!r} with background parameters, specified in the "
+            f"general input sheet, was not found in {inp_filename!r}.\n"
+            f"Sheets in workbook: {sheet_names}\n"
+            "Use 'None' as background in the general input sheet if no "
+            "background parameters are wanted."
+        ) from err
     bck_input = (
         pd.read_excel(inp_filename, bck_sheet, engine="openpyxl")
         .dropna(axis=0, how="all")
@@ -472,7 +482,9 @@ def _read_background(inp_filename: str, bck_sheet: str) -> dict[str, Any]:
 
     backdict["correlations"] = None
     if "corr_sheet" in bck_input:
-        backdict["correlations"] = _read_correlations(bck_input, inp_filename)
+        backdict["correlations"] = _read_correlations(
+            bck_input, inp_filename, group_description=f"background sheet {bck_sheet!r}"
+        )
 
     if "dist_param1" not in bck_input.columns.to_numpy():
         bck_input["dist_param1"] = float("NaN")
@@ -686,9 +698,17 @@ def _read_dist_sensitivity(sensgroup: pd.DataFrame) -> dict[str, Any]:
 
 
 def _read_correlations(
-    sensgroup: pd.DataFrame, inputfile: str
+    sensgroup: pd.DataFrame, inputfile: str, group_description: str | None = None
 ) -> dict[str, Any] | None:
-    """Parse correlation information from a sensitivity group."""
+    """Parse correlation information from a sensitivity group.
+
+    Args:
+        sensgroup: rows describing the parameters, either a sensitivity group
+            from the designinput sheet or the background sheet.
+        inputfile: name of the Excel workbook holding the correlation sheets.
+        group_description: how to refer to `sensgroup` in error messages.
+            Defaults to the sensname of the group.
+    """
 
     # No correlation sheet column exists
     if "corr_sheet" not in sensgroup.columns:
@@ -697,6 +717,9 @@ def _read_correlations(
     # The column exists, but it is all blank
     if sensgroup["corr_sheet"].dropna().empty:
         return None
+
+    if group_description is None:
+        group_description = f"sensitivity group {sensgroup['sensname'].iloc[0]!r}"
 
     correlations: dict[str, Any] = {"inputfile": inputfile}
 
@@ -714,11 +737,10 @@ def _read_correlations(
     for corr_sheet, parameters in corr_to_params.items():
         df_corr = read_correlations(excel_filename=inputfile, corr_sheet=corr_sheet)
         if set(df_corr.columns) != set(parameters):
-            sensname = sensgroup["sensname"].iloc[0]
-            msg = f"Mismatch between parameters in sensitivity group {sensname!r} "
+            msg = f"Mismatch between parameters in {group_description} "
             msg += f"pointing to\ncorrelation sheet {corr_sheet!r} and "
             msg += "parameters specified in that correlation sheet.\n"
-            msg += f"Parameters in sensitivity group: {sorted(set(parameters))}\n"
+            msg += f"Parameters in {group_description}: {sorted(set(parameters))}\n"
             msg += f"Parameters in correlation sheet: {sorted(set(df_corr.columns))}\n"
             msg += "These parameters must be specified one-to-one."
             raise ValueError(msg)
