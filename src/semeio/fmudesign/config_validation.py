@@ -8,6 +8,10 @@ from enum import StrEnum
 from typing import Any
 
 
+class ConfigValidationError(ValueError):
+    pass
+
+
 class SeedStrategy(StrEnum):
     """How Monte Carlo samples are seeded.
 
@@ -38,16 +42,18 @@ def validate_configuration(
     config = copy.deepcopy(config)
 
     if config["designtype"] != "onebyone":
-        raise ValueError(
+        raise ConfigValidationError(
             "Generation of DesignMatrix only implemented for type 'onebyone', "
             f"not {config['designtype']}"
         )
 
     if "repeats" not in config:
-        raise LookupError('"repeats" must be specified in general input sheet')
+        raise ConfigValidationError(
+            '"repeats" must be specified in general input sheet'
+        )
 
     if not isinstance(config["repeats"], int):
-        raise ValueError(
+        raise ConfigValidationError(
             f"'repeats' in general_input must be an int, "
             f"got 'repeats = {config['repeats']}' "
             f"with type: {type(config['repeats']).__name__}"
@@ -71,13 +77,13 @@ def validate_configuration(
         try:
             config[key] = int(config[key])
         except (ValueError, TypeError) as err:
-            raise ValueError(
+            raise ConfigValidationError(
                 f"{key!r} must be a non-negative integer, got: {config[key]}"
             ) from err
 
     key = "distribution_seed"
     if key not in config:
-        raise ValueError(
+        raise ConfigValidationError(
             "You did not specify a value for 'distribution_seed', which is used to "
             "seed the random number generator that draws from distributions in Monte "
             "Carlo sensitivities.\n"
@@ -87,7 +93,7 @@ def validate_configuration(
             "Your analysis will not be reproducible."
         )
     if not (isinstance(config[key], numbers.Integral) or (config[key] is None)):
-        raise ValueError(
+        raise ConfigValidationError(
             f"{key!r} must be a non-negative integer or None, got: {config[key]}"
         )
 
@@ -102,7 +108,7 @@ def validate_configuration(
     try:
         config[key] = SeedStrategy(value)
     except (ValueError, TypeError) as err:
-        raise ValueError(
+        raise ConfigValidationError(
             f"{key!r} must be one of {[s.value for s in SeedStrategy]}, "
             f"got: {config[key]}"
         ) from err
@@ -115,12 +121,12 @@ def validate_configuration(
     if key not in config:
         msg = '"rms_seeds" must be specified in general input sheet\n'
         msg += ' - Set to "None", "default" or path to a file.'
-        raise LookupError(msg)
+        raise ConfigValidationError(msg)
     is_default = config[key] == "default"
     is_none = config[key] is None
     is_list = isinstance(config[key], list) and config[key]
     if not any([is_default, is_none, is_list]):
         msg = f"'rms_seeds' must be 'None', 'default' or a list, got: {config[key]}"
-        raise ValueError(msg)
+        raise ConfigValidationError(msg)
 
     return config

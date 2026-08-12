@@ -3,7 +3,11 @@ import re
 
 import pytest
 
-from semeio.fmudesign.config_validation import SeedStrategy, validate_configuration
+from semeio.fmudesign.config_validation import (
+    ConfigValidationError,
+    SeedStrategy,
+    validate_configuration,
+)
 
 
 def _minimal_config(**extra):
@@ -23,7 +27,7 @@ def test_that_non_int_repeat_raises_value_error(invalid_repeats):
         f"got 'repeats = {invalid_repeats}' "
         f"with type: {type(invalid_repeats).__name__}"
     )
-    with pytest.raises(ValueError, match=expected_match):
+    with pytest.raises(ConfigValidationError, match=expected_match):
         validate_configuration(
             {
                 "designtype": "onebyone",
