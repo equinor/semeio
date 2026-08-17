@@ -1,4 +1,5 @@
 """Tests for validation of 'seed_strategy' in the general_input sheet."""
+import re
 
 import pytest
 
@@ -13,6 +14,24 @@ def _minimal_config(**extra):
         "seeds": "default",
         **extra,
     }
+
+
+@pytest.mark.parametrize("invalid_repeats", [1.5, None, "foo", [1, 2, 3]])
+def test_that_non_int_repeat_raises_value_error(invalid_repeats):
+    expected_match = re.escape(
+        "'repeats' in general_input must be an int, "
+        f"got 'repeats = {invalid_repeats}' "
+        f"with type: {type(invalid_repeats).__name__}"
+    )
+    with pytest.raises(ValueError, match=expected_match):
+        validate_configuration(
+            {
+                "designtype": "onebyone",
+                "repeats": invalid_repeats,
+                "distribution_seed": None,
+                "seeds": None,
+            }
+        )
 
 
 def test_seed_strategy_defaults_to_joint():

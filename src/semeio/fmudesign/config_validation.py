@@ -46,6 +46,13 @@ def validate_configuration(
     if "repeats" not in config:
         raise LookupError('"repeats" must be specified in general input sheet')
 
+    if not isinstance(config["repeats"], int):
+        raise ValueError(
+            f"'repeats' in general_input must be an int, "
+            f"got 'repeats = {config['repeats']}' "
+            f"with type: {type(config['repeats']).__name__}"
+        )
+
     key = "correlation_iterations"
     if key not in config:
         if verbosity > 0:
