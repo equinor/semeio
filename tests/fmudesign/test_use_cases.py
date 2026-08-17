@@ -10,11 +10,9 @@ import pytest
 
 from semeio.fmudesign import DesignMatrix, excel_to_dict
 from semeio.fmudesign.fmudesignrunner import EXAMPLES
+from tests.fmudesign.workbook_specs import DESIGN_INPUT_FILES, DESIGN_INPUT_IDS
 
 EXAMPLE_FILES = [ex.filename for ex in EXAMPLES]
-
-TESTDATA = Path(__file__).parent / "data"
-TEST_FILES = list((TESTDATA / "config").glob("design_input*.xlsx"))
 
 
 def test_prediction_rejection_sampled_ensemble(tmpdir, monkeypatch):
@@ -163,11 +161,14 @@ def test_constant_distribution(tmpdir, monkeypatch, gen_input_sheet):
 
 
 @pytest.mark.integration_test
-@pytest.mark.parametrize("designfile", TEST_FILES, ids=[p.stem for p in TEST_FILES])
+@pytest.mark.parametrize("designfile", DESIGN_INPUT_FILES, ids=DESIGN_INPUT_IDS)
 @pytest.mark.parametrize("verbosity", [0, 1, 2])
-def test_all_input_files(tmpdir, monkeypatch, designfile, verbosity):
+def test_all_input_files(
+    tmpdir, monkeypatch, fmudesign_test_data, designfile, verbosity
+):
     """Smoketest all files."""
 
+    designfile = fmudesign_test_data / "config" / designfile
     monkeypatch.chdir(tmpdir)
 
     # Copy all example files over, to guarantee existence of dependency files
@@ -203,11 +204,14 @@ def test_all_example_files_cmd_init(tmpdir, monkeypatch, designfile, verbosity):
 
 
 @pytest.mark.integration_test
-@pytest.mark.parametrize("designfile", TEST_FILES, ids=[p.stem for p in TEST_FILES])
-def test_all_input_files_relative_paths(tmpdir, monkeypatch, designfile):
+@pytest.mark.parametrize("designfile", DESIGN_INPUT_FILES, ids=DESIGN_INPUT_IDS)
+def test_all_input_files_relative_paths(
+    tmpdir, monkeypatch, fmudesign_test_data, designfile
+):
     """Smoketest all files, but invoke them from a directory above.
     This tests that relative paths in the Excel files work correctly."""
 
+    designfile = fmudesign_test_data / "config" / designfile
     monkeypatch.chdir(tmpdir)
     copy_to = os.path.join(".", "path", "going", "down")
 

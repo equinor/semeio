@@ -1,4 +1,7 @@
-Testdata for tornadoplots from one by one sensitivities (design matrix)
-distributions: contains design matrix on fmu standard format in excel and .csv format
-results: contains in place volumes exported from RMS in fmu standard csv format
-config: contains yaml config files for add_webviz_tornado_onebyone.py
+Text test data for FMU-design.
+
+- `distributions` contains a design matrix in FMU-standard CSV format.
+- `results` contains in-place volumes exported from RMS in FMU-standard CSV format.
+- `config` contains external seed data used by generated workbook fixtures.
+
+Excel workbooks are generated from `tests/fmudesign/workbook_specs.py` during tests.

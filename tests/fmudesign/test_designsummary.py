@@ -2,14 +2,14 @@ from pathlib import Path
 
 from semeio.fmudesign import summarize_design
 
-TESTDATA = Path(__file__).parent / "data"
+SOURCE_DATA = Path(__file__).parent / "data"
 
 
-def test_designsummary():
+def test_designsummary(fmudesign_test_data):
     """Test import and summary of design matrix"""
 
     snorrebergdesign = summarize_design(
-        TESTDATA / "distributions/design.xlsx", "DesignSheet01"
+        fmudesign_test_data / "distributions/design.xlsx", "DesignSheet01"
     )
     # checking dimensions and some values in summary of design matrix
     assert snorrebergdesign.shape == (7, 9)
@@ -49,5 +49,5 @@ def test_designsummary():
     assert snorrebergdesign["endreal1"].sum() == 333
 
     # Test same also when design matrix is in .csv format
-    designcsv = summarize_design(TESTDATA / "distributions/design.csv")
+    designcsv = summarize_design(SOURCE_DATA / "distributions/design.csv")
     assert snorrebergdesign.equals(designcsv)

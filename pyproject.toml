@@ -61,7 +61,8 @@ dev = [
     'types-openpyxl',
     'types-seaborn',
     'types-setuptools',
-    'xlwt'
+    'xlsxwriter>=3.2.3',
+    'xlwt',
 ]
 
 [project.urls]

@@ -18,8 +18,6 @@ from semeio.fmudesign._excel_to_dict import _read_defaultvalues
 from semeio.fmudesign.create_design import MonteCarloSensitivity, _derive_rng
 from semeio.fmudesign.quality_report import print_corrmat
 
-TESTDATA = Path(__file__).parent / "data"
-
 
 @pytest.mark.integration_test
 @pytest.mark.parametrize("correlations", [True, False])
@@ -209,10 +207,10 @@ def test_distribution_statistis(tmpdir, monkeypatch, correlations):
         assert np.sqrt(np.mean((obs_corr - corr_values) ** 2)) < 0.02
 
 
-def test_generate_onebyone(tmpdir):
+def test_generate_onebyone(tmpdir, fmudesign_test_data):
     """Test generation of onebyone design"""
 
-    inputfile = TESTDATA / "config/design_input_example1.xlsx"
+    inputfile = fmudesign_test_data / "config/design_input_example1.xlsx"
 
     input_dict = excel_to_dict(inputfile)
 
@@ -379,14 +377,14 @@ def test_generate_onebyone(tmpdir):
         pytest.fail("Timestamp in Metadata sheet is not in expected format")
 
 
-def test_generate_full_mc_snapshot(snapshot):
+def test_generate_full_mc_snapshot(snapshot, fmudesign_test_data):
     """Test that full monte carlo design matrix generation remains consistent.
 
     This is a snapshot test that verifies the entire output of the design matrix
     generation process, including both the design values and default values.
     """
     # Setup
-    inputfile = TESTDATA / "config/design_input_mc_with_correls.xlsx"
+    inputfile = fmudesign_test_data / "config/design_input_mc_with_correls.xlsx"
     input_dict = excel_to_dict(inputfile)
     design = DesignMatrix()
 
@@ -415,11 +413,11 @@ def test_generate_full_mc_snapshot(snapshot):
     snapshot.assert_match(snapshot_str, "design_output_mc_with_correls.json")
 
 
-def test_generate_full_mc_snapshot_independent(snapshot):
+def test_generate_full_mc_snapshot_independent(snapshot, fmudesign_test_data):
     """Same config as test_generate_full_mc_snapshot, but with the opt-in
     'independent' seed strategy.
     """
-    inputfile = TESTDATA / "config/design_input_mc_with_correls.xlsx"
+    inputfile = fmudesign_test_data / "config/design_input_mc_with_correls.xlsx"
     input_dict = excel_to_dict(inputfile)
     input_dict["seed_strategy"] = "independent"
     design = DesignMatrix()
@@ -440,9 +438,9 @@ def test_generate_full_mc_snapshot_independent(snapshot):
     snapshot.assert_match(snapshot_str, "design_output_mc_with_correls.json")
 
 
-def test_generate_full_mc(tmpdir):
+def test_generate_full_mc(tmpdir, fmudesign_test_data):
     """Test generation of full monte carlo"""
-    inputfile = TESTDATA / "config/design_input_mc_with_correls.xlsx"
+    inputfile = fmudesign_test_data / "config/design_input_mc_with_correls.xlsx"
     input_dict = excel_to_dict(inputfile)
 
     design = DesignMatrix()
@@ -517,10 +515,10 @@ def test_generate_full_mc(tmpdir):
 
 
 @pytest.mark.integration_test
-def test_generate_background(tmpdir):
-    inputfile = TESTDATA / "config/design_input_background.xlsx"
+def test_generate_background(tmpdir, fmudesign_test_data):
+    inputfile = fmudesign_test_data / "config/design_input_background.xlsx"
     input_dict = excel_to_dict(inputfile)
-    source_file = TESTDATA / "config/doe1.xlsx"
+    source_file = fmudesign_test_data / "config/doe1.xlsx"
     dest_file = tmpdir.join("doe1.xlsx")
     shutil.copy2(source_file, dest_file)
 
