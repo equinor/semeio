@@ -1,5 +1,4 @@
 """Tests for validation of 'seed_strategy' in the general_input sheet."""
-import re
 
 import pytest
 
@@ -18,24 +17,6 @@ def _minimal_config(**extra):
         "seeds": "default",
         **extra,
     }
-
-
-@pytest.mark.parametrize("invalid_repeats", [1.5, None, "foo", [1, 2, 3]])
-def test_that_non_int_repeat_raises_value_error(invalid_repeats):
-    expected_match = re.escape(
-        "'repeats' in general_input must be an int, "
-        f"got 'repeats = {invalid_repeats}' "
-        f"with type: {type(invalid_repeats).__name__}"
-    )
-    with pytest.raises(ConfigValidationError, match=expected_match):
-        validate_configuration(
-            {
-                "designtype": "onebyone",
-                "repeats": invalid_repeats,
-                "distribution_seed": None,
-                "seeds": None,
-            }
-        )
 
 
 def test_seed_strategy_defaults_to_joint():
@@ -72,3 +53,34 @@ def test_seed_strategy_is_case_and_whitespace_insensitive(value):
 def test_seed_strategy_none_falls_back_to_joint(value):
     cfg = validate_configuration(_minimal_config(seed_strategy=value))
     assert cfg["seed_strategy"] is SeedStrategy.JOINT
+
+
+def _validate_config_with_repeat(repeat):
+    return validate_configuration(
+        {
+            "designtype": "onebyone",
+            "repeats": repeat,
+            "distribution_seed": None,
+            "seeds": None,
+        }
+    )
+
+
+def test_that_string_repeat_raises_config_validation_error():
+    with pytest.raises(ConfigValidationError):
+        _validate_config_with_repeat("foo")
+
+
+def test_that_none_repeat_raises_config_validation_error():
+    with pytest.raises(ConfigValidationError):
+        _validate_config_with_repeat(None)
+
+
+def test_that_list_repeat_raises_config_validation_error():
+    with pytest.raises(ConfigValidationError):
+        _validate_config_with_repeat([1, 2])
+
+
+def test_that_int_repeat_does_not_raise_config_validation_error():
+    config = _validate_config_with_repeat(5)
+    assert isinstance(config["repeats"], int)

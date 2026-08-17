@@ -45,9 +45,9 @@ def _validate_repeats(config: dict[str, Any]) -> None:
         raise ConfigValidationError(
             "'repeats' must be specified in general input sheet"
         )
-    if not isinstance(config["repeats"], int):
+    if type(config["repeats"]) is not int:
         raise ConfigValidationError(
-            f"'repeats' in general_input must be an int, "
+            f"'repeats' in general_input must be an integer, "
             f"got 'repeats = {config['repeats']}' "
             f"with type: {type(config['repeats']).__name__}"
         )
