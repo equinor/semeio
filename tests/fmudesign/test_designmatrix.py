@@ -10,8 +10,6 @@ import pytest
 
 from semeio.fmudesign import DesignMatrix
 
-TESTDATA = Path(__file__).parent / "data"
-
 
 def matches(pattern: str, text: str) -> bool:
     """Match text against a pattern where <ANY> acts as a wildcard.
@@ -74,13 +72,13 @@ def test_designmatrix():
 
 
 @pytest.mark.integration_test
-def test_endpoint(tmpdir, monkeypatch):
+def test_endpoint(tmpdir, monkeypatch, fmudesign_test_data):
     """Test the installed endpoint
 
     Will write generated design matrices to the pytest tmpdir directory,
     usually /tmp/pytest-of-<username>/
     """
-    designfile = TESTDATA / "config/design_input_onebyone.xlsx"
+    designfile = fmudesign_test_data / "config/design_input_onebyone.xlsx"
 
     # The xlsx file contains a relative path, relative to the input design sheet:
     dependency = (
