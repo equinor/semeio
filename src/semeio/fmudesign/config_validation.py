@@ -104,12 +104,7 @@ def _validate_correlation_iterations(config: dict[str, Any], verbosity: int) -> 
             )
         config[key] = 0
     else:
-        try:
-            config[key] = int(config[key])
-        except (ValueError, TypeError) as err:
-            raise ConfigValidationError(
-                f"{key!r} must be a non-negative integer, got: {config[key]}"
-            ) from err
+        config[key] = _validate_positive_int(config[key], "correlation_iterations")
 
 
 def _validate_distribution_seed(config: dict[str, Any]) -> None:

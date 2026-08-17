@@ -111,3 +111,31 @@ def test_that_any_design_string_not_one_by_one_raises_config_validation_error(
     assume(designtype != "onebyone")
     with pytest.raises(ConfigValidationError):
         _setup_and_validate_config(design_type=designtype)
+
+
+def test_that_missing_correlation_iteration_defaults_to_zerio():
+    validated = _setup_and_validate_config()
+    assert validated["correlation_iterations"] == 0
+
+
+def test_that_str_correlation_iteration_raises_config_validation_error():
+    with pytest.raises(ConfigValidationError):
+        _setup_and_validate_config(extra_keys={"correlation_iterations": "foo"})
+
+
+def test_that_negative_float_correlation_iteration_raises_config_validation_error():
+    with pytest.raises(ConfigValidationError):
+        _setup_and_validate_config(extra_keys={"correlation_iterations": -5.5})
+
+
+def test_that_negative_int_correlation_iteration_raises_config_validation_error():
+    with pytest.raises(ConfigValidationError):
+        _setup_and_validate_config(extra_keys={"correlation_iterations": -5})
+
+
+def test_that_positive_float_correlation_iteration_does_not_raise_validation_error():
+    _setup_and_validate_config(extra_keys={"correlation_iterations": 5.5})
+
+
+def test_that_positive_int_correlation_iteration_does_not_raise_validation_error():
+    _setup_and_validate_config(extra_keys={"correlation_iterations": 5})
