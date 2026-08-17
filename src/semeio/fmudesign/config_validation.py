@@ -12,12 +12,16 @@ class SeedStrategy(StrEnum):
     """How Monte Carlo samples are seeded.
 
     JOINT:
-        All parameters are drawn in one Latin Hypercube Sampling call (the
-        default). Adding, removing or reordering a parameter reshuffles every
-        other parameter.
+        The parameters of a sensitivity are drawn in one Latin Hypercube
+        Sampling call (the default). Adding, removing or reordering a parameter
+        reshuffles every other parameter *in that sensitivity*. Sensitivities do
+        not affect each other, since each sampling call gets its own generator,
+        but adding or removing a whole sensitivity shifts the ones after it.
     INDEPENDENT:
         Each parameter, and each correlation group, is seeded separately from
-        the base seed, so changing one leaves the others bit-identical.
+        the base seed, so changing one leaves the others bit-identical. The key
+        includes the sensitivity and parameter names, so renaming either
+        reshuffles the values it covers.
     """
 
     JOINT = "joint"
