@@ -12,6 +12,52 @@ class ConfigValidationError(ValueError):
     pass
 
 
+def _validate_key_in_config(
+    key: str, config: dict[str, Any], err_msg: str | None = None
+) -> None:
+    if key not in config:
+        if err_msg is None:
+            err_msg = f"'{key}' must be specified in general input sheet"
+        raise ConfigValidationError(err_msg)
+
+
+def _validate_int(maybe_int: Any, key: str) -> int:  # ruff: ignore[any-type]
+    try:
+        return int(maybe_int)
+    except Exception as e:
+        raise ConfigValidationError(
+            f"Could not convert '{maybe_int}' to int for key '{key}'. "
+            f"Failed to validate '{maybe_int}'",
+        ) from e
+
+
+def _validate_positive_int(maybe_int: Any, key: str) -> int:  # ruff: ignore[any-type]
+    try:
+        int_ = int(maybe_int)
+    except Exception as e:
+        raise ConfigValidationError(
+            f'Could not convert "{maybe_int}" to int for key "{key}". '
+            f'Failed to validate "{maybe_int}"',
+        ) from e
+
+    if int_ < 0:
+        raise ConfigValidationError(
+            f"'{int_}' must be a positive integer for key '{key}'. "
+            f"Failed to validate '{int_}'",
+        )
+    return int_
+
+
+def _validate_string(maybe_string: Any, key: str) -> str:  # ruff: ignore[any-type]
+    try:
+        return str(maybe_string)
+    except Exception as e:
+        raise ConfigValidationError(
+            f'Could not convert "{maybe_string}" to str for key "{key}". '
+            f'Failed to validate "{maybe_string}"',
+        ) from e
+
+
 class SeedStrategy(StrEnum):
     """How Monte Carlo samples are seeded.
 
@@ -29,10 +75,7 @@ class SeedStrategy(StrEnum):
 
 
 def _validate_designtype(config: dict[str, Any]) -> None:
-    if "designtype" not in config:
-        raise ConfigValidationError(
-            "'designtype' must be specified in general input sheet"
-        )
+    _validate_key_in_config("designtype", config)
     if config["designtype"] != "onebyone":
         raise ConfigValidationError(
             "Generation of DesignMatrix only implemented for type 'onebyone', "
@@ -41,16 +84,8 @@ def _validate_designtype(config: dict[str, Any]) -> None:
 
 
 def _validate_repeats(config: dict[str, Any]) -> None:
-    if "repeats" not in config:
-        raise ConfigValidationError(
-            "'repeats' must be specified in general input sheet"
-        )
-    if type(config["repeats"]) is not int:
-        raise ConfigValidationError(
-            f"'repeats' in general_input must be an integer, "
-            f"got 'repeats = {config['repeats']}' "
-            f"with type: {type(config['repeats']).__name__}"
-        )
+    _validate_key_in_config("repeats", config)
+    _validate_int(config["repeats"], "repeats")
 
 
 def _validate_correlation_iterations(config: dict[str, Any], verbosity: int) -> None:
@@ -78,8 +113,11 @@ def _validate_correlation_iterations(config: dict[str, Any], verbosity: int) -> 
 
 
 def _validate_distribution_seed(config: dict[str, Any]) -> None:
-    if "distribution_seed" not in config:
-        raise ConfigValidationError(
+    key = "distribution_seed"
+    _validate_key_in_config(
+        key,
+        config,
+        err_msg=(
             "You did not specify a value for 'distribution_seed', which is used to "
             "seed the random number generator that draws from distributions in Monte "
             "Carlo sensitivities.\n"
@@ -87,11 +125,8 @@ def _validate_distribution_seed(config: dict[str, Any]) -> None:
             "generator and obtain reproducible results.\n"
             "- Specify None if you do not want to seed the random number generator. "
             "Your analysis will not be reproducible."
-        )
-
-    key = "distribution_seed"
-    if key not in config:
-        raise ConfigValidationError
+        ),
+    )
     if not (isinstance(config[key], numbers.Integral) or (config[key] is None)):
         raise ConfigValidationError(
             f"{key!r} must be a non-negative integer or None, got: {config[key]}"

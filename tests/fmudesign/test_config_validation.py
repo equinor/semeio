@@ -1,6 +1,8 @@
 """Tests for validation of 'seed_strategy' in the general_input sheet."""
 
+import hypothesis.strategies as st
 import pytest
+from hypothesis import assume, given
 
 from semeio.fmudesign.config_validation import (
     ConfigValidationError,
@@ -55,32 +57,57 @@ def test_seed_strategy_none_falls_back_to_joint(value):
     assert cfg["seed_strategy"] is SeedStrategy.JOINT
 
 
-def _validate_config_with_repeat(repeat):
+def _setup_and_validate_config(design_type="onebyone", repeat=5, extra_keys=None):
     return validate_configuration(
         {
-            "designtype": "onebyone",
+            "designtype": design_type,
             "repeats": repeat,
             "distribution_seed": None,
             "seeds": None,
         }
+        | (extra_keys or {})
     )
 
 
 def test_that_string_repeat_raises_config_validation_error():
     with pytest.raises(ConfigValidationError):
-        _validate_config_with_repeat("foo")
+        _setup_and_validate_config(repeat="foo")
 
 
 def test_that_none_repeat_raises_config_validation_error():
     with pytest.raises(ConfigValidationError):
-        _validate_config_with_repeat(None)
+        _setup_and_validate_config(repeat=None)
 
 
 def test_that_list_repeat_raises_config_validation_error():
     with pytest.raises(ConfigValidationError):
-        _validate_config_with_repeat([1, 2])
+        _setup_and_validate_config(repeat=[1, 2])
 
 
 def test_that_int_repeat_does_not_raise_config_validation_error():
-    config = _validate_config_with_repeat(5)
+    config = _setup_and_validate_config(repeat=5)
     assert isinstance(config["repeats"], int)
+
+
+def test_that_int_design_string_raises_config_validation_error():
+    with pytest.raises(ConfigValidationError):
+        _setup_and_validate_config(design_type=123)
+
+
+def test_that_float_design_string_raises_config_validation_error():
+    with pytest.raises(ConfigValidationError):
+        _setup_and_validate_config(design_type=7.5)
+
+
+def test_that_none_design_string_raises_config_validation_error():
+    with pytest.raises(ConfigValidationError):
+        _setup_and_validate_config(design_type=None)
+
+
+@given(st.text())
+def test_that_any_design_string_not_one_by_one_raises_config_validation_error(
+    designtype,
+):
+    assume(designtype != "onebyone")
+    with pytest.raises(ConfigValidationError):
+        _setup_and_validate_config(design_type=designtype)
