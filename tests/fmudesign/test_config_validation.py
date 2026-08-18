@@ -139,3 +139,21 @@ def test_that_positive_float_correlation_iteration_does_not_raise_validation_err
 
 def test_that_positive_int_correlation_iteration_does_not_raise_validation_error():
     _setup_and_validate_config(extra_keys={"correlation_iterations": 5})
+
+
+def test_that_negative_distribution_seed_raises_config_validation_error():
+    with pytest.raises(ConfigValidationError):
+        _setup_and_validate_config(extra_keys={"distribution_seed": -1234})
+
+
+def test_that_positive_distribution_seed_does_not_raise_config_validation_error():
+    _setup_and_validate_config(extra_keys={"distribution_seed": 1234})
+
+
+def test_that_none_distribution_seed_does_not_raise_config_validation_error():
+    _setup_and_validate_config(extra_keys={"distribution_seed": None})
+
+
+def test_that_string_distribution_seed_raises_config_validation_error():
+    with pytest.raises(ConfigValidationError):
+        _setup_and_validate_config(extra_keys={"distribution_seed": "foo"})

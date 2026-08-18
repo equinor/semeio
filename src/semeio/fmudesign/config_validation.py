@@ -3,7 +3,6 @@ Module for validation of config (typically read from Excel).
 """
 
 import copy
-import numbers
 from enum import StrEnum
 from typing import Any
 
@@ -122,10 +121,15 @@ def _validate_distribution_seed(config: dict[str, Any]) -> None:
             "Your analysis will not be reproducible."
         ),
     )
-    if not (isinstance(config[key], numbers.Integral) or (config[key] is None)):
-        raise ConfigValidationError(
-            f"{key!r} must be a non-negative integer or None, got: {config[key]}"
-        )
+    dist_seed = config["distribution_seed"]
+    try:
+        _validate_positive_int(dist_seed, "distribution_seed")
+    except ConfigValidationError as e:
+        if dist_seed is not None:
+            raise ConfigValidationError(
+                f"'{dist_seed}' must be a positive integer or None for key '{key}'. "
+                f"Failed to validate '{dist_seed}'",
+            ) from e
 
 
 def _validate_rms_seeds(config: dict[str, Any]) -> None:
