@@ -73,6 +73,26 @@ class SeedStrategy(StrEnum):
     INDEPENDENT = "independent"
 
 
+def _validate_no_extra_keys(config) -> None:
+    ALLOWED_KEYS = {
+        "designtype",
+        "repeats",
+        "correlation_iterations",
+        "distribution_seed",
+        "seed_strategy",
+        "rms_seeds",
+        "background",
+    }
+    extra_keys = set(config.keys()) - set(ALLOWED_KEYS)
+    if extra_keys:
+        msg = (
+            "In the general input sheet, the following parameter(s) are not"
+            f"recognized and cannot be parsed:\n{extra_keys!r}\n"
+            f"Allowed keys:{ALLOWED_KEYS!r}"
+        )
+        raise LookupError(msg)
+
+
 def _validate_designtype(config: dict[str, Any]) -> None:
     _validate_key_in_config("designtype", config)
     if config["designtype"] != "onebyone":
@@ -163,6 +183,7 @@ def validate_general_input(
     """
     config = copy.deepcopy(config)
 
+    _validate_no_extra_keys(config)
     _validate_designtype(config)
     _validate_repeats(config)
     _validate_correlation_iterations(config, verbosity)

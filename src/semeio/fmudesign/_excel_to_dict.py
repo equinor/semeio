@@ -209,25 +209,8 @@ def _excel_to_dict_onebyone(
         str(key).strip(): parse_value(value) for (key, value) in generalinput.items()
     }
 
-    # Check that there are no wrong keys or typos, e.g. 'repets'
-    ALLOWED_KEYS = {
-        "designtype",
-        "repeats",
-        "correlation_iterations",
-        "distribution_seed",
-        "seed_strategy",
-        "rms_seeds",
-        "background",
-    }
-    extra_keys = set(generalinput.keys()) - set(ALLOWED_KEYS)
-    if extra_keys:
-        msg = (
-            "In the general input sheet, the following parameter(s) are not"
-            f"recognized and cannot be parsed:\n{extra_keys!r}\n"
-            f"Allowed keys:{ALLOWED_KEYS!r}"
-        )
-        raise LookupError(msg)
     validate_general_input(generalinput)
+
     # Copy keys over if they exist
     keys = [
         "designtype",
