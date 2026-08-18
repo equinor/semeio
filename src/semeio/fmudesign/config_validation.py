@@ -150,7 +150,7 @@ def _validate_rms_seeds(config: dict[str, Any]) -> None:
         ) from err
 
 
-def validate_configuration(
+def validate_general_input(
     config: dict[str, Any], verbosity: int = 0
 ) -> dict[str, Any]:
     """Main function for config validation.

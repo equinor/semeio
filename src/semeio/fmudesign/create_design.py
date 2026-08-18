@@ -23,7 +23,7 @@ import probabilit
 import semeio
 from semeio.fmudesign import design_distributions as design_dist
 from semeio.fmudesign._excel_to_dict import _raise_if_duplicates
-from semeio.fmudesign.config_validation import SeedStrategy, validate_configuration
+from semeio.fmudesign.config_validation import SeedStrategy
 from semeio.fmudesign.quality_report import QualityReporter, print_corrmat
 from semeio.fmudesign.utils import (
     find_max_realisations,
@@ -115,8 +115,6 @@ class DesignMatrix:
         Args:
             inputdict (dict): input parameters for design
         """
-        inputdict = validate_configuration(inputdict, verbosity=self.verbosity)
-
         self.reset()  # Emptying if regenerating matrix
         self.rng = np.random.default_rng(seed=inputdict.get("distribution_seed"))
         self.defaultvalues = inputdict["defaultvalues"]

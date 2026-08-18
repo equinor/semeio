@@ -16,6 +16,7 @@ import openpyxl
 import pandas as pd
 import yaml
 
+from semeio.fmudesign.config_validation import validate_general_input
 from semeio.fmudesign.design_distributions import read_correlations
 from semeio.fmudesign.utils import seeds_from_extern
 
@@ -226,7 +227,7 @@ def _excel_to_dict_onebyone(
             f"Allowed keys:{ALLOWED_KEYS!r}"
         )
         raise LookupError(msg)
-
+    validate_general_input(generalinput)
     # Copy keys over if they exist
     keys = [
         "designtype",
