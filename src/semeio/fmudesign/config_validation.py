@@ -77,7 +77,7 @@ def _validate_designtype(config: dict[str, Any]) -> None:
     _validate_key_in_config("designtype", config)
     if config["designtype"] != "onebyone":
         raise ConfigValidationError(
-            "Generation of DesignMatrix only implemented for type 'onebyone', "
+            "Generation of DesignMatrix only implemented for designtype 'onebyone', "
             f"not '{config['designtype']}'"
         )
 

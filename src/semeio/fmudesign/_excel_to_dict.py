@@ -49,26 +49,6 @@ def excel_to_dict(
     design_input_sheet = find_sheet(design_input_sheet, names=xlsx.sheetnames)
     default_values_sheet = find_sheet(default_values_sheet, names=xlsx.sheetnames)
 
-    generalinput = (
-        pd.read_excel(
-            input_filename,
-            general_input_sheet,
-            header=None,
-            index_col=0,
-            engine="openpyxl",
-        )
-        .dropna(axis=0, how="all")
-        .dropna(axis=1, how="all")
-        .loc[:, 1]
-        .to_dict()
-    )
-
-    if (design_type := generalinput.get("designtype")) != "onebyone":
-        raise ValueError(
-            "Generation of DesignMatrix only implemented "
-            f"for type 'onebyone', not {design_type}"
-        )
-
     return _excel_to_dict_onebyone(
         input_filename=input_filename,
         general_input_sheet=general_input_sheet,
