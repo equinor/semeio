@@ -11,6 +11,14 @@ class ConfigValidationError(ValueError):
     pass
 
 
+class ConversionError(ValueError):
+    def __init__(self, val: Any, key: str, type_str: str) -> None:  # ruff: ignore[any-type]
+        raise ConfigValidationError(
+            f"Could not convert '{val}' to {type_str} for key '{key}'. "
+            f"Failed to validate '{val}'",
+        )
+
+
 def _validate_key_in_config(
     key: str, config: dict[str, Any], err_msg: str | None = None
 ) -> None:
@@ -23,21 +31,15 @@ def _validate_key_in_config(
 def _validate_int(maybe_int: Any, key: str) -> int:  # ruff: ignore[any-type]
     try:
         return int(maybe_int)
-    except Exception as e:
-        raise ConfigValidationError(
-            f"Could not convert '{maybe_int}' to int for key '{key}'. "
-            f"Failed to validate '{maybe_int}'",
-        ) from e
+    except (TypeError, ValueError) as e:
+        raise ConversionError(maybe_int, key, "int") from e
 
 
 def _validate_positive_int(maybe_int: Any, key: str) -> int:  # ruff: ignore[any-type]
     try:
         int_ = int(maybe_int)
     except Exception as e:
-        raise ConfigValidationError(
-            f'Could not convert "{maybe_int}" to int for key "{key}". '
-            f'Failed to validate "{maybe_int}"',
-        ) from e
+        raise ConversionError(maybe_int, key, "int") from e
 
     if int_ < 0:
         raise ConfigValidationError(
@@ -47,14 +49,20 @@ def _validate_positive_int(maybe_int: Any, key: str) -> int:  # ruff: ignore[any
     return int_
 
 
+def _validate_none(maybe_none: Any, key: str) -> None:  # ruff: ignore[any-type]
+    is_nonetype = maybe_none is None
+    is_nonestring = False
+    if isinstance(maybe_none, str):
+        is_nonestring = maybe_none.lower() in {"", "none", "null"}
+    if not is_nonetype or not is_nonestring:
+        raise ConversionError(maybe_none, key, "None")
+
+
 def _validate_string(maybe_string: Any, key: str) -> str:  # ruff: ignore[any-type]
     try:
         return str(maybe_string)
     except Exception as e:
-        raise ConfigValidationError(
-            f'Could not convert "{maybe_string}" to str for key "{key}". '
-            f'Failed to validate "{maybe_string}"',
-        ) from e
+        raise ConversionError(maybe_string, key, "str") from e
 
 
 class SeedStrategy(StrEnum):
@@ -152,7 +160,7 @@ def _validate_distribution_seed(config: dict[str, Any]) -> None:
             ) from e
 
 
-def _validate_rms_seeds(config: dict[str, Any]) -> None:
+def _validate_seed_strategy(config: dict[str, Any]) -> None:
     # 'seed_strategy' controls how Monte Carlo samples are seeded.
     # See the SeedStrategy docstring for what each strategy means.
     key = "seed_strategy"
@@ -168,6 +176,16 @@ def _validate_rms_seeds(config: dict[str, Any]) -> None:
             f"{key!r} must be one of {[s.value for s in SeedStrategy]}, "
             f"got: {config[key]}"
         ) from err
+
+
+def _validate_rms_seeds(config: dict[str, Any]) -> None:
+    key = "rms_seeds"
+    try:
+        value = _validate_string(config.get(key), key)
+    except ConversionError:
+        value = _validate_none(config.get(key), key)
+    except ConfigValidationError:
+        raise ConfigValidationError("")
 
 
 def validate_general_input(
