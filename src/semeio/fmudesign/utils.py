@@ -35,7 +35,7 @@ def parameters_from_extern(filename: str) -> pd.DataFrame:
     )
 
 
-def seeds_from_extern(filename: str) -> list[int]:
+def seeds_from_extern(filename: Path | str) -> list[int]:
     """Read parameter values or background values
     from specified file. Format either Excel ('xlsx')
     or csv.

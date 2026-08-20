@@ -3,7 +3,6 @@ These are converted to a dict-of-dicts representation, then they are used
 by the DesignMatrix class to generate design matrices.
 """
 
-import contextlib
 from collections import Counter
 from collections.abc import Hashable, Sequence
 from pathlib import Path
@@ -13,13 +12,12 @@ import openpyxl
 import pandas as pd
 import yaml
 
-from semeio.fmudesign.read_background import read_background
+from semeio.fmudesign.general_input import GeneralInput
 from semeio.fmudesign.read_correlations import parse_sensitivity_correlations
 from semeio.fmudesign.utils import (
     _has_value,
     find_sheet,
     resolve_path,
-    seeds_from_extern,
 )
 
 
@@ -31,11 +29,11 @@ def _read_general_input(
             input_filename,
             general_input_sheet,
             header=None,
-            index_col=0,
             engine="openpyxl",
         )
         .dropna(axis=0, how="all")
         .dropna(axis=1, how="all")
+        .set_index(0)
         .loc[:, 1]
         .to_dict()
     )
@@ -73,29 +71,13 @@ def excel_to_dict(
     design_input_sheet = find_sheet(design_input_sheet, names=xlsx.sheetnames)
     default_values_sheet = find_sheet(default_values_sheet, names=xlsx.sheetnames)
 
-    generalinput = (
-        pd.read_excel(
-            input_filename,
-            general_input_sheet,
-            header=None,
-            index_col=0,
-            engine="openpyxl",
-        )
-        .dropna(axis=0, how="all")
-        .dropna(axis=1, how="all")
-        .loc[:, 1]
-        .to_dict()
-    )
+    general_input_dict = _read_general_input(input_filename, general_input_sheet)
 
-    if (design_type := generalinput.get("designtype")) != "onebyone":
-        raise ValueError(
-            "Generation of DesignMatrix only implemented "
-            f"for type 'onebyone', not {design_type}"
-        )
+    general_input = GeneralInput.from_dict(general_input_dict)
 
     return _excel_to_dict_onebyone(
         input_filename=input_filename,
-        general_input_sheet=general_input_sheet,
+        generalinput=general_input,
         design_input_sheet=design_input_sheet,
         default_values_sheet=default_values_sheet,
     )
@@ -153,7 +135,7 @@ def _check_for_mixed_sensitivities(sens_name: str, sens_group: pd.DataFrame) -> 
 def _excel_to_dict_onebyone(
     input_filename: str,
     *,
-    general_input_sheet: str,
+    generalinput: GeneralInput,
     design_input_sheet: str,
     default_values_sheet: str,
 ) -> dict[str, Any]:
@@ -169,95 +151,18 @@ def _excel_to_dict_onebyone(
         dict on format for DesignMatrix.generate
     """
     output: dict[str, Any] = {
-        "input_file": input_filename
+        "input_file": input_filename,
+        "designtype": generalinput.designtype,
+        "repeats": generalinput.repeats,
+        "distribution_seed": generalinput.distribution_seed,
+        "background": generalinput.background,
+        "seeds": generalinput.rms_seeds,
+        "correlation_iterations": generalinput.correlation_iterations,
+        "seed_strategy": generalinput.seed_strategy,
+        "defaultvalues": _read_defaultvalues(input_filename, default_values_sheet),
+        "sensitivities": {},
     }  # This is the config that we read and return
 
-    # Read the general input sheet to a dictionary
-    generalinput = (
-        pd.read_excel(
-            input_filename,
-            general_input_sheet,
-            header=None,
-            engine="openpyxl",
-        )
-        .dropna(axis=0, how="all")
-        .dropna(axis=1, how="all")
-        .set_index(0)
-        .loc[:, 1]
-        .to_dict()
-    )
-
-    def parse_value(value: object) -> object:
-        if pd.isna(value):  # type: ignore[call-overload]
-            return None
-        if isinstance(value, str):
-            return value.strip()
-        return value
-
-    # Convert NaN values to None and strip other values
-    generalinput = {
-        str(key).strip(): parse_value(value) for (key, value) in generalinput.items()
-    }
-
-    # Check that there are no wrong keys or typos, e.g. 'repets'
-    ALLOWED_KEYS = {
-        "designtype",
-        "repeats",
-        "correlation_iterations",
-        "distribution_seed",
-        "seed_strategy",
-        "rms_seeds",
-        "background",
-    }
-    extra_keys = set(generalinput.keys()) - set(ALLOWED_KEYS)
-    if extra_keys:
-        msg = (
-            "In the general input sheet, the following parameter(s) are not"
-            f"recognized and cannot be parsed:\n{extra_keys!r}\n"
-            f"Allowed keys:{ALLOWED_KEYS!r}"
-        )
-        raise LookupError(msg)
-
-    # Copy keys over if they exist
-    keys = [
-        "designtype",
-        "repeats",
-        "correlation_iterations",
-        "distribution_seed",
-        "seed_strategy",
-    ]
-    for key in keys:
-        if key not in generalinput:
-            continue
-        output[key] = generalinput[key]
-
-    # Copy the 'rms_seeds' key over. It is called 'seeds' further down in
-    # the code for historical reasons.
-    key = "seeds"
-    with contextlib.suppress(KeyError):
-        output[key] = generalinput["rms_seeds"]
-
-    # If 'seeds' / 'rms_seed' is a file, then read it
-    if key in output:
-        maybe_path = resolve_path(input_filename, output[key])
-        if isinstance(maybe_path, str) and Path(maybe_path).exists():
-            output[key] = seeds_from_extern(maybe_path)
-
-    # The 'background' key is either blank/'None', a reference to another file
-    # or the name of a sheet in this workbook.
-    key = "background"
-    value = generalinput.get(key)
-    background = "" if value is None else str(value).strip()
-    if background.lower() in {"", "none"}:
-        output[key] = None
-    elif background.endswith(("csv", "xlsx")):
-        output[key] = {"extern": resolve_path(input_filename, background)}
-    else:
-        output[key] = read_background(input_filename, background)
-
-    output["defaultvalues"] = _read_defaultvalues(input_filename, default_values_sheet)
-
-    output["sensitivities"] = {}
     designinput = (
         pd.read_excel(input_filename, design_input_sheet, engine="openpyxl")
         .dropna(axis=0, how="all")
