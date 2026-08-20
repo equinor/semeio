@@ -1,0 +1,204 @@
+version: 1
+formats: {}
+worksheets:
+- name: general_input
+  rows:
+    1:
+    - designtype
+    - onebyone
+    2:
+    - repeats
+    - 1
+    3:
+    - rms_seeds
+    - default
+    4:
+    - background
+    - None
+    5:
+    - distribution_seed
+    - 0
+    6:
+    - correlation_iterations
+    - 999
+- name: defaultvalues
+  rows:
+    1:
+    - param_name
+    - default_values
+    2:
+    - A
+    - 1
+    3:
+    - B
+    - 1
+    4:
+    - C
+    - 1
+    5:
+    - D
+    - 1
+    6:
+    - E
+    - 1
+    7:
+    - F
+    - 1
+- name: designinput
+  rows:
+    1:
+    - sensname
+    - numreal
+    - type
+    - param_name
+    - senscase1
+    - value1
+    - senscase2
+    - value2
+    - dist_name
+    - dist_param1
+    - dist_param2
+    - dist_param3
+    - dist_param4
+    - decimals
+    - corr_sheet
+    - extern_file
+    2:
+    - mc1
+    - 999
+    - dist
+    - A
+    - null
+    - null
+    - null
+    - null
+    - lognorm
+    - 1
+    - 0.5
+    - null
+    - null
+    - null
+    - correlations
+    3:
+    - null
+    - null
+    - null
+    - B
+    - null
+    - null
+    - null
+    - null
+    - lognorm
+    - 2
+    - 0.6
+    - null
+    - null
+    - null
+    - correlations
+    4:
+    - null
+    - null
+    - null
+    - C
+    - null
+    - null
+    - null
+    - null
+    - lognorm
+    - 3
+    - 0.7
+    - null
+    - null
+    - null
+    - correlations
+    5:
+    - null
+    - null
+    - null
+    - D
+    - null
+    - null
+    - null
+    - null
+    - lognorm
+    - 4
+    - 0.8
+    - null
+    - null
+    - null
+    - correlations
+    6:
+    - null
+    - null
+    - null
+    - E
+    - null
+    - null
+    - null
+    - null
+    - lognorm
+    - 5
+    - 0.9
+    - null
+    - null
+    - null
+    - correlations
+    7:
+    - null
+    - null
+    - null
+    - F
+    - null
+    - null
+    - null
+    - null
+    - lognorm
+    - 6
+    - 1
+    - null
+    - null
+    - null
+    - correlations
+- name: correlations
+  rows:
+    1:
+    - null
+    - A
+    - B
+    - C
+    - D
+    - E
+    - F
+    2:
+    - A
+    - 1
+    3:
+    - B
+    - 0.8
+    - 1
+    4:
+    - C
+    - 0.8
+    - 0.8
+    - 1
+    5:
+    - D
+    - 0.8
+    - 0.8
+    - 0.8
+    - 1
+    6:
+    - E
+    - 0.8
+    - 0.8
+    - 0.8
+    - 0.8
+    - 1
+    7:
+    - F
+    - 0.8
+    - 0.8
+    - 0.8
+    - 0.8
+    - 0.8
+    - 1

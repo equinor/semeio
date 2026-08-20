@@ -1,0 +1,139 @@
+version: 1
+formats: {}
+worksheets:
+- name: general_input
+  rows:
+    1:
+    - designtype
+    - onebyone
+    2:
+    - repeats
+    - 1
+    3:
+    - rms_seeds
+    - None
+    4:
+    - background
+    - None
+    5:
+    - distribution_seed
+    - None
+- name: designinput
+  rows:
+    1:
+    - sensname
+    - numreal
+    - type
+    - param_name
+    - senscase1
+    - value1
+    - senscase2
+    - value2
+    - dist_name
+    - dist_param1
+    - dist_param2
+    - dist_param3
+    - dist_param4
+    - decimals
+    - corr_sheet
+    - extern_file
+    2:
+    - defaultvalues
+    - 1
+    - ref
+    3:
+    - faults
+    - 1
+    - scenario
+    - FAULT_POSITION
+    - east
+    - -1
+    - west
+    - 1
+    4:
+    - velmodel
+    - 1
+    - scenario
+    - VEL_MODEL
+    - alternative
+    - 2
+    5:
+    - contacts
+    - 1
+    - scenario
+    - OWC1
+    - shallow
+    - 2600
+    - deep
+    - 2700
+    6:
+    - null
+    - null
+    - null
+    - OWC2
+    - null
+    - 2700
+    - null
+    - 2800
+    7:
+    - null
+    - null
+    - null
+    - OWC3
+    - null
+    - 2800
+    - null
+    - 2900
+    8:
+    - multz
+    - 10
+    - dist
+    - MULTZ_ILE
+    - null
+    - null
+    - null
+    - null
+    - logunif
+    - '0.0001'
+    - 1
+    - null
+    - null
+    - 4
+- name: defaultvalues
+  rows:
+    1:
+    - param_name
+    - default_value
+    2:
+    - RMS_SEED
+    - 1000
+    3:
+    - FAULT_POSITION
+    - 0
+    4:
+    - VEL_MODEL
+    - 1
+    5:
+    - OWC1
+    - 2650
+    6:
+    - OWC2
+    - 2750
+    7:
+    - OWC3
+    - 2850
+    8:
+    - MULTZ_ILE
+    - 0.1
+    9:
+    - PARAM1
+    - 0
+    10:
+    - PARAM2
+    - '0.1'
+    11:
+    - PARAM3
+    - 0
+    12:
+    - PARAM4
+    - 0

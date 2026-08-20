@@ -1,0 +1,1574 @@
+version: 1
+formats:
+  format_001:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    bold: true
+  format_002:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    align: center
+  format_003:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    bold: true
+    left: 1
+    right: 1
+    top: 1
+  format_004:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    bold: true
+    top: 1
+  format_005:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    bold: true
+    left: 1
+    right: 2
+    top: 1
+  format_006:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    bold: true
+    left: 2
+    top: 1
+  format_007:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    bold: true
+    left: 1
+    right: 1
+    top: 1
+    align: center
+  format_008:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    bold: true
+    right: 2
+    top: 1
+    align: center
+  format_009:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    bold: true
+    left: 2
+    right: 1
+    top: 1
+    align: center
+  format_010:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    bold: true
+    left: 1
+    top: 1
+    align: center
+  format_011:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    bold: true
+    left: 7
+    right: 7
+    top: 1
+    align: center
+  format_012:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    bold: true
+    top: 1
+    align: center
+  format_013:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    bold: true
+    left: 7
+    top: 1
+    align: center
+  format_014:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    bold: true
+    left: 2
+    right: 2
+    top: 1
+    align: center
+  format_015:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#FFF2CC'
+    left: 1
+    right: 1
+    top: 1
+    bottom: 1
+  format_016:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#FFF2CC'
+    left: 1
+    right: 1
+    top: 1
+    bottom: 1
+    align: center
+  format_017:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#FFF2CC'
+    top: 1
+    bottom: 1
+  format_018:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#FFF2CC'
+    left: 1
+    right: 2
+    top: 1
+    bottom: 1
+  format_019:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#FFF2CC'
+    left: 2
+    top: 1
+    bottom: 1
+  format_020:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#FFF2CC'
+    right: 2
+    top: 1
+    bottom: 1
+    align: center
+  format_021:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#FFF2CC'
+    left: 2
+    right: 1
+    top: 1
+    bottom: 1
+    align: center
+  format_022:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#FFF2CC'
+    left: 1
+    top: 1
+    bottom: 1
+    align: center
+  format_023:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#FFF2CC'
+    left: 7
+    right: 7
+    top: 1
+    bottom: 1
+    align: center
+  format_024:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#FFF2CC'
+    top: 1
+    bottom: 1
+    align: center
+  format_025:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#FFF2CC'
+    left: 7
+    top: 1
+    bottom: 1
+    align: center
+  format_026:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#FFF2CC'
+    left: 2
+    right: 1
+    top: 1
+    bottom: 1
+  format_027:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#D9D9D9'
+    left: 1
+    right: 1
+    top: 1
+    bottom: 1
+  format_028:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#D9D9D9'
+    left: 1
+    right: 1
+    top: 1
+    bottom: 1
+    align: center
+  format_029:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#D9D9D9'
+    top: 1
+    bottom: 1
+  format_030:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#D9D9D9'
+    left: 1
+    right: 2
+    top: 1
+    bottom: 1
+  format_031:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#D9D9D9'
+    left: 2
+    top: 1
+    bottom: 1
+  format_032:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#D9D9D9'
+    right: 2
+    top: 1
+    bottom: 1
+    align: center
+  format_033:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#D9D9D9'
+    left: 2
+    right: 1
+    top: 1
+    bottom: 1
+    align: center
+  format_034:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#D9D9D9'
+    left: 1
+    top: 1
+    bottom: 1
+    align: center
+  format_035:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#D9D9D9'
+    left: 7
+    right: 7
+    top: 1
+    bottom: 1
+    align: center
+  format_036:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#D9D9D9'
+    top: 1
+    bottom: 1
+    align: center
+  format_037:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#D9D9D9'
+    left: 7
+    top: 1
+    bottom: 1
+    align: center
+  format_038:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#D9D9D9'
+    left: 2
+    right: 1
+    top: 1
+  format_039:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#D9D9D9'
+    left: 2
+    right: 1
+    top: 1
+    bottom: 1
+  format_040:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#C5E0B4'
+    left: 1
+    right: 1
+    top: 1
+  format_041:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#C5E0B4'
+    left: 1
+    right: 1
+    top: 1
+    align: center
+  format_042:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#C5E0B4'
+    top: 1
+  format_043:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#C5E0B4'
+    left: 1
+    right: 2
+    top: 1
+  format_044:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#C5E0B4'
+    left: 2
+    top: 1
+  format_045:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#C5E0B4'
+    right: 2
+    top: 1
+    align: center
+  format_046:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#C5E0B4'
+    left: 2
+    right: 1
+    top: 1
+  format_047:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#C5E0B4'
+    left: 1
+    top: 1
+    align: center
+  format_048:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#C5E0B4'
+    left: 7
+    right: 7
+    top: 1
+    align: center
+  format_049:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#C5E0B4'
+    top: 1
+    align: center
+  format_050:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#C5E0B4'
+    left: 7
+    top: 1
+    align: center
+  format_051:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#C5E0B4'
+    left: 2
+    right: 2
+    top: 1
+  format_052:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#C5E0B4'
+    left: 1
+    right: 1
+  format_053:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#C5E0B4'
+    left: 1
+    right: 1
+    align: center
+  format_054:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#C5E0B4'
+  format_055:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#C5E0B4'
+    left: 1
+    right: 2
+  format_056:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#C5E0B4'
+    left: 2
+  format_057:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#C5E0B4'
+    right: 2
+    align: center
+  format_058:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#C5E0B4'
+    left: 2
+    right: 1
+  format_059:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#C5E0B4'
+    left: 1
+    align: center
+  format_060:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#C5E0B4'
+    left: 7
+    right: 7
+    align: center
+  format_061:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#C5E0B4'
+    align: center
+  format_062:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#C5E0B4'
+    left: 7
+    align: center
+  format_063:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#C5E0B4'
+    left: 2
+    right: 2
+  format_064:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#C5E0B4'
+    left: 1
+    right: 1
+    bottom: 1
+    align: center
+  format_065:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#C5E0B4'
+    right: 2
+    bottom: 1
+    align: center
+  format_066:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#C5E0B4'
+    left: 2
+    right: 1
+    bottom: 1
+  format_067:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#C5E0B4'
+    left: 1
+    bottom: 1
+    align: center
+  format_068:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#C5E0B4'
+    left: 7
+    right: 7
+    bottom: 1
+    align: center
+  format_069:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#C5E0B4'
+    bottom: 1
+    align: center
+  format_070:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#C5E0B4'
+    left: 7
+    bottom: 1
+    align: center
+  format_071:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#C5E0B4'
+    left: 2
+    right: 2
+    bottom: 1
+  format_072:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#C5E0B4'
+    left: 1
+    right: 1
+    top: 1
+    bottom: 1
+    align: left
+  format_073:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#C5E0B4'
+    left: 1
+    right: 1
+    top: 1
+    bottom: 1
+    align: center
+  format_074:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#C5E0B4'
+    left: 1
+    right: 2
+    top: 1
+    bottom: 1
+  format_075:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#C5E0B4'
+    right: 1
+    top: 1
+    bottom: 1
+  format_076:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#C5E0B4'
+    left: 2
+    right: 1
+    top: 1
+    bottom: 1
+  format_077:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#C5E0B4'
+    left: 1
+    right: 1
+    align: left
+  format_078:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#C5E0B4'
+    align: left
+  format_079:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    bold: true
+    align: center
+  format_080:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    align: right
+worksheets:
+- name: general_input
+  rows:
+    1:
+    - designtype
+    - onebyone
+    2:
+    - repeats
+    - 5
+    3:
+    - rms_seeds
+    - default
+    4:
+    - background
+    - None
+    5:
+    - distribution_seed
+    - 1234
+    6:
+    - correlation_iterations
+    - 999
+  cell_formats:
+    A1: format_001
+    B1: format_002
+    A2: format_001
+    B2: format_002
+    A3: format_001
+    B3: format_002
+    A4: format_001
+    A5: format_001
+    A6: format_001
+  comments:
+    B1:
+      text: Specifies that this is a setup for a onebyone design
+      author: None
+    B2:
+      text: "Number of repeated rms_seeds per sensitivity/sensitivity case. \nThis is overridden if the\
+        \ number of realisations is specified in the \u201Cnumreal\u201D column in designinput."
+      author: None
+    B3:
+      text: "Alternatives:\n- default gives seed numbers 1000, 1001, 1002, ...\n- None (seed number is\
+        \ not added as parameter in output spreadsheet) \n- filename for file with list of seeds in ert/input/distributions/"
+      author: None
+    B4:
+      text: 'Alternatives:
+
+        - None
+
+        - name of sheet in this workbook with background parameters
+
+        - Name of external file with background parameters. Must end with .xlsx or .csv and be readable
+        as pandas dataframe with parameter names as column headers. The path can be absolute, or relative
+        (to the location of this file)'
+      author: None
+    B5:
+      text: "Seed user for random number generator (RNG). Alternatives:\n - A number (e.g. a six digit\
+        \ number like 294284) to see the RNG.\n - None. The RNG will not be seeded and analysis will not\
+        \ be reproducible."
+      author: None
+    B6:
+      text: "To correlate variables, an algorithm called Iman-Conover is used.\n- If \u2018correlation_iterations\u2019\
+        \ is set to 0, then only Iman-Conover is used.\n- If \u2018correlation_iterations\u2019 is a positive\
+        \ integer, then random swaps will be performed to improve the correlation. This takes a bit longer,\
+        \ but typically leads to observec orrelation that is closer to desired correlation, especially\
+        \ when variables are far from Gaussian (normal distribution). A value of 999 is a good starting\
+        \ point."
+      author: None
+  column_widths:
+    A: 19.6640625
+    B: 10.0
+    C: 77.83203125
+  default_column_width: 8.6640625
+  default_row_height: 15.0
+  zoom: 130
+  orientation: portrait
+- name: designinput
+  rows:
+    1:
+    - sensname
+    - numreal
+    - type
+    - param_name
+    - senscase1
+    - value1
+    - senscase2
+    - value2
+    - dist_name
+    - dist_param1
+    - dist_param2
+    - dist_param3
+    - dist_param4
+    - decimals
+    - corr_sheet
+    - extern_file
+    2:
+    - seed
+    - null
+    - seed
+    3:
+    - defaultvalues
+    - 1
+    - ref
+    4:
+    - montecarlo1
+    - 200
+    - dist
+    - FAULT_POSITION
+    - null
+    - null
+    - null
+    - null
+    - discrete
+    - -1,0,1
+    - 30,40,30
+    5:
+    - null
+    - null
+    - null
+    - DC_MODEL
+    - null
+    - null
+    - null
+    - null
+    - discrete
+    - pess,base,opt
+    - 30,40,30
+    6:
+    - null
+    - null
+    - null
+    - OWC1
+    - null
+    - null
+    - null
+    - null
+    - uniform
+    - 2640
+    - 2660
+    - null
+    - null
+    - null
+    - corr_owc
+    7:
+    - null
+    - null
+    - null
+    - OWC2
+    - null
+    - null
+    - null
+    - null
+    - triangular
+    - 2740
+    - 2750
+    - 2765
+    - null
+    - null
+    - corr_owc
+    8:
+    - null
+    - null
+    - null
+    - OWC3
+    - null
+    - null
+    - null
+    - null
+    - pert
+    - 2840
+    - 2850
+    - 2855
+    - null
+    - null
+    - corr_owc
+    9:
+    - null
+    - null
+    - null
+    - MULTZ_ILE
+    - null
+    - null
+    - null
+    - null
+    - loguniform
+    - 0.01
+    - 0.1
+    10:
+    - null
+    - null
+    - null
+    - PARAM0
+    - null
+    - null
+    - null
+    - null
+    - lognorm
+    - 3
+    - 3
+    - 10
+    - 100
+    11:
+    - null
+    - null
+    - null
+    - PARAM1
+    - null
+    - null
+    - null
+    - null
+    - lognorm
+    - 4.6
+    - 0.8
+    12:
+    - null
+    - null
+    - null
+    - PARAM2
+    - null
+    - null
+    - null
+    - null
+    - normal
+    - 200
+    - 10
+    13:
+    - null
+    - null
+    - null
+    - PARAM3
+    - null
+    - null
+    - null
+    - null
+    - normal
+    - 0.5
+    - 0.3
+    - 0
+    - 1
+    14:
+    - null
+    - null
+    - null
+    - PARAM4
+    - null
+    - null
+    - null
+    - null
+    - constant
+    - 10
+    15:
+    - montecarlo2
+    - 200
+    - dist
+    - FAULT_POSITION
+    - null
+    - null
+    - null
+    - null
+    - discrete
+    - -1,0,1
+    - 30,40,30
+    16:
+    - montecarlo3
+    - 200
+    - dist
+    - PARAM5
+    - null
+    - null
+    - null
+    - null
+    - normal_p10_p90
+    - -1
+    - 1
+    17:
+    - null
+    - null
+    - null
+    - PARAM6
+    - null
+    - null
+    - null
+    - null
+    - uniform_p10_p90
+    - 0.1
+    - 0.9
+    18:
+    - null
+    - null
+    - null
+    - PARAM7
+    - null
+    - null
+    - null
+    - null
+    - triangular_p10_p90
+    - 0.1
+    - 0.5
+    - 0.9
+    19:
+    - null
+    - null
+    - null
+    - PARAM8
+    - null
+    - null
+    - null
+    - null
+    - pert_p10_p90
+    - 1
+    - 3
+    - 10
+  cell_formats:
+    A1: format_003
+    B1: format_003
+    C1: format_004
+    D1: format_005
+    E1: format_006
+    F1: format_007
+    G1: format_007
+    H1: format_008
+    I1: format_009
+    J1: format_010
+    K1: format_011
+    L1: format_012
+    M1: format_013
+    N1: format_013
+    O1: format_014
+    P1: format_009
+    V1: format_001
+    A2: format_015
+    B2: format_016
+    C2: format_017
+    D2: format_018
+    E2: format_019
+    F2: format_016
+    G2: format_016
+    H2: format_020
+    I2: format_021
+    J2: format_022
+    K2: format_023
+    L2: format_024
+    M2: format_025
+    N2: format_025
+    O2: format_026
+    P2: format_026
+    A3: format_027
+    B3: format_028
+    C3: format_029
+    D3: format_030
+    E3: format_031
+    F3: format_028
+    G3: format_028
+    H3: format_032
+    I3: format_033
+    J3: format_034
+    K3: format_035
+    L3: format_036
+    M3: format_037
+    N3: format_037
+    O3: format_038
+    P3: format_039
+    A4: format_040
+    B4: format_041
+    C4: format_042
+    D4: format_043
+    E4: format_044
+    F4: format_041
+    G4: format_041
+    H4: format_045
+    I4: format_046
+    J4: format_047
+    K4: format_048
+    L4: format_049
+    M4: format_050
+    N4: format_050
+    O4: format_051
+    P4: format_046
+    A5: format_052
+    B5: format_053
+    C5: format_054
+    D5: format_055
+    E5: format_056
+    F5: format_053
+    G5: format_053
+    H5: format_057
+    I5: format_058
+    J5: format_059
+    K5: format_060
+    L5: format_061
+    M5: format_062
+    N5: format_062
+    O5: format_063
+    P5: format_058
+    A6: format_052
+    B6: format_053
+    C6: format_054
+    D6: format_055
+    E6: format_056
+    F6: format_053
+    G6: format_053
+    H6: format_057
+    I6: format_058
+    J6: format_059
+    K6: format_060
+    L6: format_061
+    M6: format_062
+    N6: format_062
+    O6: format_063
+    P6: format_058
+    A7: format_052
+    B7: format_053
+    C7: format_054
+    D7: format_055
+    E7: format_056
+    F7: format_053
+    G7: format_053
+    H7: format_057
+    I7: format_058
+    J7: format_059
+    K7: format_060
+    L7: format_061
+    M7: format_062
+    N7: format_062
+    O7: format_063
+    P7: format_058
+    A8: format_052
+    B8: format_053
+    C8: format_054
+    D8: format_055
+    E8: format_056
+    F8: format_053
+    G8: format_053
+    H8: format_057
+    I8: format_058
+    J8: format_059
+    K8: format_060
+    L8: format_061
+    M8: format_062
+    N8: format_062
+    O8: format_063
+    P8: format_058
+    A9: format_052
+    B9: format_053
+    C9: format_054
+    D9: format_055
+    E9: format_056
+    F9: format_053
+    G9: format_053
+    H9: format_057
+    I9: format_058
+    J9: format_059
+    K9: format_060
+    L9: format_061
+    M9: format_062
+    N9: format_062
+    O9: format_063
+    P9: format_058
+    A10: format_052
+    B10: format_053
+    C10: format_054
+    D10: format_055
+    E10: format_056
+    F10: format_053
+    G10: format_053
+    H10: format_057
+    I10: format_058
+    J10: format_059
+    K10: format_060
+    L10: format_061
+    M10: format_062
+    N10: format_062
+    O10: format_063
+    P10: format_058
+    A11: format_052
+    B11: format_053
+    C11: format_054
+    D11: format_055
+    E11: format_056
+    F11: format_053
+    G11: format_053
+    H11: format_057
+    I11: format_058
+    J11: format_059
+    K11: format_060
+    L11: format_061
+    M11: format_062
+    N11: format_062
+    O11: format_063
+    P11: format_058
+    A12: format_052
+    B12: format_053
+    C12: format_054
+    D12: format_055
+    E12: format_056
+    F12: format_053
+    G12: format_053
+    H12: format_057
+    I12: format_058
+    J12: format_059
+    K12: format_060
+    L12: format_061
+    M12: format_062
+    N12: format_062
+    O12: format_063
+    P12: format_058
+    A13: format_052
+    B13: format_053
+    C13: format_054
+    D13: format_055
+    E13: format_056
+    F13: format_053
+    G13: format_053
+    H13: format_057
+    I13: format_058
+    J13: format_059
+    K13: format_060
+    L13: format_061
+    M13: format_062
+    N13: format_062
+    O13: format_063
+    P13: format_058
+    A14: format_052
+    B14: format_053
+    C14: format_054
+    D14: format_055
+    E14: format_054
+    F14: format_064
+    G14: format_064
+    H14: format_065
+    I14: format_066
+    J14: format_067
+    K14: format_068
+    L14: format_069
+    M14: format_070
+    N14: format_070
+    O14: format_071
+    P14: format_066
+    A15: format_072
+    B15: format_073
+    C15: format_072
+    D15: format_074
+    E15: format_075
+    F15: format_064
+    G15: format_064
+    H15: format_064
+    I15: format_076
+    J15: format_064
+    K15: format_064
+    L15: format_064
+    M15: format_064
+    N15: format_064
+    O15: format_064
+    P15: format_064
+    A16: format_077
+    B16: format_053
+    C16: format_078
+    D16: format_055
+    E16: format_056
+    F16: format_053
+    G16: format_053
+    H16: format_057
+    I16: format_058
+    J16: format_059
+    K16: format_060
+    L16: format_061
+    M16: format_062
+    N16: format_062
+    O16: format_063
+    P16: format_058
+    A17: format_052
+    B17: format_053
+    C17: format_054
+    D17: format_055
+    E17: format_056
+    F17: format_053
+    G17: format_053
+    H17: format_057
+    I17: format_058
+    J17: format_059
+    K17: format_060
+    L17: format_061
+    M17: format_062
+    N17: format_062
+    O17: format_063
+    P17: format_058
+    A18: format_052
+    B18: format_053
+    C18: format_054
+    D18: format_055
+    E18: format_056
+    F18: format_053
+    G18: format_053
+    H18: format_057
+    I18: format_058
+    J18: format_059
+    K18: format_060
+    L18: format_061
+    M18: format_062
+    N18: format_062
+    O18: format_063
+    P18: format_058
+    A19: format_052
+    B19: format_053
+    C19: format_054
+    D19: format_055
+    E19: format_056
+    F19: format_053
+    G19: format_053
+    H19: format_057
+    I19: format_058
+    J19: format_059
+    K19: format_060
+    L19: format_061
+    M19: format_062
+    N19: format_062
+    O19: format_063
+    P19: format_058
+  comments:
+    I1:
+      text: "These are the distributions available.\n - normal(mean, std)\n - normal(mean, std, trunc_low,\
+        \ trunc_high)\n - uniform(min, max)\n - triangular(min, mode, max)\n - lognormal(mean, std) [equivalent\
+        \ to exp(normal(mean, std))]\n - lognormal(mean, std, trunc_low, trunc_high) [trunc_low, trunc_high\
+        \ in exp-space]\n - beta(a, b)\n - beta(a, b, min, max)\n - pert(min, mode, max)\n - pert(min,\
+        \ mode, max, scale)\n - loguniform(low, high) [equivalent to exp(uniform(log(low), log(high)))]\n\
+        \ - discrete([value1, value2, ..., value_n],[weight1, weight2, ..., weight_n])\n - constant(value)\n\
+        \ - normal_p10_p90(low,high)\n - uniform_p10_p90(low,high)\n - triangular_p10_p90(low,mode,high)\n\
+        \ - pert_p10_p90(low,mode,high)\n - pert_p10_p90(low,mode,high,scale) \n\nBold marks the minimum\
+        \ name."
+      author: None
+  column_widths:
+    A: 12.1640625
+    B: 10.0
+    C: 5.33203125
+    D: 19.6640625
+    E: 10.0
+    F: 11.83203125
+    I: 15.6640625
+    J: 33.1640625
+    K: 18.33203125
+    L: 11.83203125
+    O: 11.83203125
+    T: 9.83203125
+    V: 9.83203125
+  row_heights:
+    7: 16.0
+    16: 16.0
+    17: 16.0
+    18: 16.0
+    19: 16.0
+  default_column_width: 8.6640625
+  default_row_height: 15.0
+  zoom: 145
+  orientation: portrait
+  paper_size: 9
+- name: defaultvalues
+  rows:
+    1:
+    - param_name
+    - default_value
+    2:
+    - RMS_SEED
+    - 1234
+    3:
+    - FAULT_POSITION
+    - 0
+    4:
+    - DC_MODEL
+    - base
+    5:
+    - OWC1
+    - 2650
+    6:
+    - OWC2
+    - 2750
+    7:
+    - OWC3
+    - 2850
+    8:
+    - MULTZ_ILE
+    - 0.1
+    9:
+    - PARAM0
+    - 1
+    10:
+    - PARAM1
+    - 100
+    11:
+    - PARAM2
+    - 200
+    12:
+    - PARAM3
+    - 0.5
+    13:
+    - PARAM4
+    - 10
+    14:
+    - PARAM5
+    - 0
+    15:
+    - PARAM6
+    - 1
+    16:
+    - PARAM7
+    - 0.5
+    17:
+    - PARAM8
+    - 3
+  cell_formats:
+    A1: format_001
+    B1: format_079
+    B2: format_002
+    B3: format_002
+    B4: format_002
+    B5: format_002
+    B6: format_002
+    B7: format_002
+    B8: format_002
+    B9: format_002
+    B10: format_002
+    B11: format_002
+    B12: format_002
+    B13: format_002
+    B14: format_002
+    B15: format_002
+    B16: format_002
+    B17: format_002
+  column_widths:
+    A: 19.6640625
+    B: 13.5
+  default_column_width: 8.6640625
+  default_row_height: 15.0
+  zoom: 130
+  orientation: portrait
+- name: corr_owc
+  rows:
+    1:
+    - null
+    - OWC1
+    - OWC2
+    - OWC3
+    2:
+    - OWC1
+    - 1
+    3:
+    - OWC2
+    - 0.7
+    - 1
+    4:
+    - OWC3
+    - 0.7
+    - 0.7
+    - 1
+  cell_formats:
+    B2: format_080
+    C2: format_080
+    D2: format_080
+    E2: format_080
+    F2: format_080
+    G2: format_080
+    H2: format_080
+    I2: format_080
+    J2: format_080
+    K2: format_080
+    B3: format_080
+    C3: format_080
+    D3: format_080
+    E3: format_080
+    F3: format_080
+    G3: format_080
+    H3: format_080
+    I3: format_080
+    J3: format_080
+    K3: format_080
+    B4: format_080
+    C4: format_080
+    D4: format_080
+    E4: format_080
+    F4: format_080
+    G4: format_080
+    H4: format_080
+    I4: format_080
+    J4: format_080
+    K4: format_080
+    B5: format_080
+    C5: format_080
+    D5: format_080
+    E5: format_080
+    F5: format_080
+    G5: format_080
+    H5: format_080
+    I5: format_080
+    J5: format_080
+    K5: format_080
+    B6: format_080
+    C6: format_080
+    D6: format_080
+    E6: format_080
+    F6: format_080
+    G6: format_080
+    H6: format_080
+    I6: format_080
+    J6: format_080
+    K6: format_080
+    B7: format_080
+    C7: format_080
+    D7: format_080
+    E7: format_080
+    F7: format_080
+    G7: format_080
+    H7: format_080
+    I7: format_080
+    J7: format_080
+    K7: format_080
+    B8: format_080
+    C8: format_080
+    D8: format_080
+    E8: format_080
+    F8: format_080
+    G8: format_080
+    H8: format_080
+    I8: format_080
+    J8: format_080
+    K8: format_080
+    B9: format_080
+    C9: format_080
+    D9: format_080
+    E9: format_080
+    F9: format_080
+    G9: format_080
+    H9: format_080
+    I9: format_080
+    J9: format_080
+    K9: format_080
+    B10: format_080
+    C10: format_080
+    D10: format_080
+    E10: format_080
+    F10: format_080
+    G10: format_080
+    H10: format_080
+    I10: format_080
+    J10: format_080
+    K10: format_080
+    B11: format_080
+    C11: format_080
+    D11: format_080
+    E11: format_080
+    F11: format_080
+    G11: format_080
+    H11: format_080
+    I11: format_080
+    J11: format_080
+    K11: format_080
+  column_widths:
+    A: 6.6640625
+    C: 6.6640625
+    D: 9.5
+    E: 12.33203125
+    F: 12.5
+    G: 5.5
+    H: 12.0
+    I: 5.33203125
+    J: 12.1640625
+    K: 13.33203125
+  default_column_width: 8.6640625
+  default_row_height: 15.0
+  zoom: 130
+  orientation: portrait

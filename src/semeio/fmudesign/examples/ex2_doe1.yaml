@@ -1,0 +1,146 @@
+version: 1
+formats:
+  format_001:
+    font_name: Arial
+    font_size: 10.0
+    num_format: GENERAL
+    align: general
+    valign: bottom
+  format_002:
+    font_name: Arial
+    font_size: 10.0
+    num_format: YYYY\-MM\-DD
+    align: general
+    valign: bottom
+worksheets:
+- name: Sheet1
+  rows:
+    1:
+    - PARAM13
+    - PARAM14
+    - PARAM15
+    - PARAM16
+    2:
+    - 0
+    - 1
+    - 2
+    - '2018-11-01'
+    3:
+    - 1
+    - 2
+    - 3
+    - '2018-11-02'
+    4:
+    - 2
+    - 3
+    - 4
+    - '2018-11-03'
+    5:
+    - 3
+    - 4
+    - 5
+    - '2018-11-04'
+    6:
+    - 4
+    - 5
+    - 6
+    - '2018-11-05'
+    7:
+    - 5
+    - 6
+    - 7
+    - '2018-11-06'
+    8:
+    - 6
+    - 7
+    - 8
+    - '2018-11-07'
+    9:
+    - 7
+    - 8
+    - 9
+    - '2018-11-08'
+    10:
+    - 8
+    - 9
+    - 10
+    - '2018-11-09'
+    11:
+    - 9
+    - 10
+    - 11
+    - '2018-11-10'
+    12:
+    - 10
+    - 11
+    - 12
+    - '2018-11-11'
+  cell_formats:
+    A1: format_001
+    B1: format_001
+    C1: format_001
+    D1: format_001
+    A2: format_001
+    B2: format_001
+    C2: format_001
+    D2: format_002
+    A3: format_001
+    B3: format_001
+    C3: format_001
+    D3: format_002
+    A4: format_001
+    B4: format_001
+    C4: format_001
+    D4: format_002
+    A5: format_001
+    B5: format_001
+    C5: format_001
+    D5: format_002
+    A6: format_001
+    B6: format_001
+    C6: format_001
+    D6: format_002
+    A7: format_001
+    B7: format_001
+    C7: format_001
+    D7: format_002
+    A8: format_001
+    B8: format_001
+    C8: format_001
+    D8: format_002
+    A9: format_001
+    B9: format_001
+    C9: format_001
+    D9: format_002
+    A10: format_001
+    B10: format_001
+    C10: format_001
+    D10: format_002
+    A11: format_001
+    B11: format_001
+    C11: format_001
+    D11: format_002
+    A12: format_001
+    B12: format_001
+    C12: format_001
+    D12: format_002
+  column_widths:
+    A: 11.5204081632653
+  row_heights:
+    1: 12.8
+    2: 12.8
+    3: 12.8
+    4: 12.8
+    5: 12.8
+    6: 12.8
+    7: 12.8
+    8: 12.8
+    9: 12.8
+    10: 12.8
+    11: 12.8
+    12: 12.8
+  default_row_height: 12.8
+  zoom: 130
+  orientation: portrait
+  paper_size: 1
+  print_scale: 100

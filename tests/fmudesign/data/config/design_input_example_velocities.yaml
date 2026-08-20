@@ -1,0 +1,158 @@
+version: 1
+formats: {}
+worksheets:
+- name: general_input
+  rows:
+    1:
+    - designtype
+    - onebyone
+    2:
+    - repeats
+    - 10
+    3:
+    - rms_seeds
+    - default
+    4:
+    - background
+    - None
+    5:
+    - distribution_seed
+    - None
+- name: designinput
+  rows:
+    1:
+    - sensname
+    - numreal
+    - type
+    - param_name
+    - senscase1
+    - value1
+    - senscase2
+    - value2
+    - dist_name
+    - dist_param1
+    - dist_param2
+    - dist_param3
+    - dist_param4
+    - decimals
+    - corr_sheet
+    - extern_file
+    2:
+    - rms_seed
+    - null
+    - seed
+    - COHIBA_MODE
+    - null
+    - null
+    - null
+    - null
+    - const
+    - prediction
+    3:
+    - velmod1
+    - null
+    - seed
+    - COHIBA_MODE
+    - null
+    - null
+    - null
+    - null
+    - const
+    - simulation
+    4:
+    - null
+    - null
+    - null
+    - VEL_MODEL
+    - null
+    - null
+    - null
+    - null
+    - const
+    - 1
+    5:
+    - velmod2
+    - null
+    - seed
+    - COHIBA_MODE
+    - null
+    - null
+    - null
+    - null
+    - const
+    - simulation
+    6:
+    - null
+    - null
+    - null
+    - VEL_MODEL
+    - null
+    - null
+    - null
+    - null
+    - const
+    - 2
+    7:
+    - vel_combined
+    - 30
+    - dist
+    - COHIBA_MODE
+    - null
+    - null
+    - null
+    - null
+    - const
+    - simulation
+    8:
+    - null
+    - null
+    - null
+    - VEL_MODEL
+    - null
+    - null
+    - null
+    - null
+    - discrete
+    - 1, 2
+    - 0.6, 0.4
+- name: defaultvalues
+  rows:
+    1:
+    - param_name
+    - default_value
+    2:
+    - RMS_SEED
+    - 1000
+    3:
+    - FAULT_POSITION
+    - 0
+    4:
+    - VEL_MODEL
+    - 1
+    5:
+    - OWC1
+    - 2650
+    6:
+    - OWC2
+    - 2750
+    7:
+    - OWC3
+    - 2850
+    8:
+    - MULTZ_ILE
+    - 0.1
+    9:
+    - PARAM1
+    - 0
+    10:
+    - PARAM2
+    - '0.1'
+    11:
+    - PARAM3
+    - 0
+    12:
+    - PARAM4
+    - 0
+    13:
+    - COHIBA_MODE
+    - prediction

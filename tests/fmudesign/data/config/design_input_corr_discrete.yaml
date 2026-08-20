@@ -1,0 +1,120 @@
+version: 1
+formats: {}
+worksheets:
+- name: general_input
+  rows:
+    1:
+    - designtype
+    - onebyone
+    2:
+    - repeats
+    - 1
+    3:
+    - rms_seeds
+    - default
+    4:
+    - background
+    - None
+    5:
+    - distribution_seed
+    - 1030
+- name: defaultvalues
+  rows:
+    1:
+    - param_name
+    - default_values
+    2:
+    - AFAC
+    - 1
+    3:
+    - BFAC
+    - 1
+    4:
+    - CFAC
+    - 1
+- name: designinput
+  rows:
+    1:
+    - sensname
+    - numreal
+    - type
+    - param_name
+    - senscase1
+    - value1
+    - senscase2
+    - value2
+    - dist_name
+    - dist_param1
+    - dist_param2
+    - dist_param3
+    - dist_param4
+    - decimals
+    - corr_sheet
+    - extern_file
+    2:
+    - mc1
+    - 50
+    - dist
+    - AFAC
+    - null
+    - null
+    - null
+    - null
+    - discrete
+    - 1,2,3
+    - 3,4,3
+    - null
+    - null
+    - null
+    - corr_abc
+    3:
+    - null
+    - null
+    - null
+    - BFAC
+    - null
+    - null
+    - null
+    - null
+    - discrete
+    - 1,2,3
+    - 3,4,3
+    - null
+    - null
+    - null
+    - corr_abc
+    4:
+    - null
+    - null
+    - null
+    - CFAC
+    - null
+    - null
+    - null
+    - null
+    - discrete
+    - 1,2,3
+    - 3,4,3
+    - null
+    - null
+    - null
+    - corr_abc
+- name: corr_abc
+  rows:
+    1:
+    - null
+    - AFAC
+    - BFAC
+    - CFAC
+    2:
+    - AFAC
+    - 1
+    3:
+    - BFAC
+    - 0.9
+    - 1
+    4:
+    - CFAC
+    - 0.9
+    - 0.9
+    - 1

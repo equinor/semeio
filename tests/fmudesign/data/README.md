@@ -1,5 +1,5 @@
-Test data for `fmudesign`.
+Text test data for `fmudesign`.
 
-`config` contains representative input workbooks used by integration and
-regression tests, plus external background and seed workbooks referenced by
-those inputs.
+`config` contains YAML specifications for representative input workbooks used
+by integration and regression tests. Tests render the workbooks into a
+temporary directory with the FMU-design workbook renderer.

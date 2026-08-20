@@ -1,0 +1,974 @@
+version: 1
+formats:
+  format_001:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    bold: true
+    align: general
+    valign: bottom
+  format_002:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    align: center
+    valign: bottom
+  format_003:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    bold: true
+    left: 1
+    right: 1
+    top: 1
+    bottom: 1
+    align: general
+    valign: bottom
+  format_004:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#808080'
+    bold: true
+    left: 1
+    right: 1
+    top: 1
+    bottom: 1
+    align: center
+    valign: bottom
+  format_005:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    bold: true
+    left: 1
+    right: 1
+    top: 1
+    bottom: 1
+    align: center
+    valign: bottom
+  format_006:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    bold: true
+    left: 1
+    top: 1
+    bottom: 1
+    align: left
+    valign: bottom
+  format_007:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    bold: true
+    left: 2
+    right: 1
+    top: 2
+    bottom: 1
+    align: center
+    valign: bottom
+  format_008:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    bold: true
+    left: 1
+    right: 1
+    top: 2
+    bottom: 1
+    align: center
+    valign: bottom
+  format_009:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    bold: true
+    left: 1
+    right: 2
+    top: 2
+    bottom: 1
+    align: center
+    valign: bottom
+  format_010:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    bold: true
+    left: 1
+    right: 1
+    top: 2
+    bottom: 1
+    align: left
+    valign: bottom
+  format_011:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#808080'
+    bold: true
+    left: 1
+    right: 2
+    top: 2
+    bottom: 1
+    align: center
+    valign: bottom
+  format_012:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#808080'
+    bold: true
+    left: 2
+    right: 2
+    top: 2
+    bottom: 1
+    align: center
+    valign: bottom
+  format_013:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#FFF2CC'
+    left: 1
+    right: 1
+    top: 1
+    bottom: 1
+    align: general
+    valign: bottom
+  format_014:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#FFF2CC'
+    left: 1
+    right: 1
+    top: 1
+    bottom: 1
+    align: center
+    valign: bottom
+  format_015:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#FFF2CC'
+    left: 1
+    top: 1
+    bottom: 1
+    align: left
+    valign: bottom
+  format_016:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#FFF2CC'
+    left: 2
+    right: 1
+    top: 1
+    bottom: 1
+    align: center
+    valign: bottom
+  format_017:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#FFF2CC'
+    left: 1
+    right: 2
+    top: 1
+    bottom: 1
+    align: center
+    valign: bottom
+  format_018:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#FFF2CC'
+    left: 1
+    right: 1
+    top: 1
+    bottom: 1
+    align: left
+    valign: bottom
+  format_019:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#FFF2CC'
+    left: 2
+    right: 2
+    top: 1
+    bottom: 1
+    align: center
+    valign: bottom
+  format_020:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#F2F2F2'
+    left: 1
+    right: 1
+    top: 1
+    bottom: 1
+    align: general
+    valign: bottom
+  format_021:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#F2F2F2'
+    left: 1
+    right: 1
+    top: 1
+    bottom: 1
+    align: center
+    valign: bottom
+  format_022:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#F2F2F2'
+    left: 1
+    top: 1
+    bottom: 1
+    align: left
+    valign: bottom
+  format_023:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#F2F2F2'
+    left: 2
+    right: 1
+    top: 1
+    bottom: 1
+    align: center
+    valign: bottom
+  format_024:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#F2F2F2'
+    left: 1
+    right: 2
+    top: 1
+    bottom: 1
+    align: center
+    valign: bottom
+  format_025:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#F2F2F2'
+    left: 1
+    right: 1
+    top: 1
+    bottom: 1
+    align: left
+    valign: bottom
+  format_026:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#F2F2F2'
+    left: 2
+    right: 2
+    top: 1
+    bottom: 1
+    align: center
+    valign: bottom
+  format_027:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#D9D9D9'
+    left: 1
+    right: 1
+    top: 1
+    bottom: 1
+    align: general
+    valign: bottom
+  format_028:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#D9D9D9'
+    left: 1
+    right: 1
+    top: 1
+    bottom: 1
+    align: center
+    valign: bottom
+  format_029:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#D9D9D9'
+    left: 1
+    top: 1
+    bottom: 1
+    align: left
+    valign: bottom
+  format_030:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#D9D9D9'
+    left: 2
+    right: 1
+    top: 1
+    bottom: 1
+    align: center
+    valign: bottom
+  format_031:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#D9D9D9'
+    left: 1
+    right: 2
+    top: 1
+    bottom: 1
+    align: center
+    valign: bottom
+  format_032:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#D9D9D9'
+    left: 1
+    right: 1
+    top: 1
+    bottom: 1
+    align: left
+    valign: bottom
+  format_033:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#D9D9D9'
+    left: 2
+    right: 2
+    top: 1
+    bottom: 1
+    align: center
+    valign: bottom
+  format_034:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#E2F0D9'
+    left: 1
+    right: 1
+    top: 1
+    bottom: 1
+    align: general
+    valign: bottom
+  format_035:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#E2F0D9'
+    left: 1
+    right: 1
+    top: 1
+    bottom: 1
+    align: center
+    valign: bottom
+  format_036:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#E2F0D9'
+    left: 1
+    top: 1
+    bottom: 1
+    align: left
+    valign: bottom
+  format_037:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#E2F0D9'
+    left: 2
+    right: 1
+    top: 1
+    bottom: 1
+    align: center
+    valign: bottom
+  format_038:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#E2F0D9'
+    left: 1
+    right: 2
+    top: 1
+    bottom: 1
+    align: center
+    valign: bottom
+  format_039:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    pattern: 1
+    fg_color: '#E2F0D9'
+    left: 2
+    right: 2
+    top: 1
+    bottom: 1
+    align: center
+    valign: bottom
+  format_040:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    bold: true
+    align: center
+    valign: bottom
+  format_041:
+    font_name: Calibri
+    font_size: 11.0
+    font_color: '#000000'
+    align: general
+    valign: bottom
+worksheets:
+- name: general_input
+  rows:
+    1:
+    - designtype
+    - onebyone
+    2:
+    - repeats
+    - 10
+    3:
+    - rms_seeds
+    - default
+    4:
+    - background
+    - None
+    5:
+    - distribution_seed
+    - None
+  cell_formats:
+    A1: format_001
+    B1: format_002
+    A2: format_001
+    B2: format_002
+    A3: format_001
+    B3: format_002
+    A4: format_001
+    B4: format_002
+    A5: format_001
+    B5: format_002
+  comments:
+    B2:
+      text: Default number of realisations per sensitivity/scenario. Typically > 1 for repeating seeds.
+      author: ' '
+    B3:
+      text: "Alternatives:\n- default: means using RMS_SEED 1000-1001-1002-1003-\u2026\n- None: RMS_SEED\
+        \ is not added as parameter in spreadsheet\n- filname for filw with list of seeds (one column)"
+      author: ' '
+    B4:
+      text: 'Advanced option to include sampled background parameters (see documentation).
+
+        Alternatives:
+
+        - None (no sampled background parameters)
+
+        - name of sheet in current workbook containing distributions for background parameters
+
+        - name of external file with background parameters (suffix .xlsx or .csv) Must be readable as
+        pandas data frame with parameter names as column headers. Path is relative to where fmudesign
+        is run from.'
+      author: ' '
+    B5:
+      text: 'Set RNG seed for "dist" sensitivities
+
+        Alternatives:
+
+        - Integer (e.g. 395830)
+
+        - None (leads to non-reproducible analysis)'
+      author: ' '
+  column_widths:
+    A: 16.87
+    B: 9.13
+  row_heights:
+    1: 15.0
+    2: 15.0
+    3: 15.0
+    4: 15.0
+    5: 15.0
+  default_column_width: 8.6953125
+  default_row_height: 15.0
+  zoom: 205
+  orientation: portrait
+  paper_size: 1
+  print_scale: 100
+- name: designinput
+  rows:
+    1:
+    - sensname
+    - numreal
+    - type
+    - param_name
+    - senscase1
+    - value1
+    - senscase2
+    - value2
+    - dist_name
+    - dist_param1
+    - dist_param2
+    - dist_param3
+    - dist_param4
+    - decimals
+    - corr_sheet
+    - extern_file
+    2:
+    - rms_seed
+    - null
+    - seed
+    3:
+    - faults
+    - null
+    - scenario
+    - FAULT_POSITION
+    - east
+    - -1
+    - west
+    - 1
+    4:
+    - velmodel
+    - null
+    - scenario
+    - DC_MODEL
+    - alternative
+    - hum2
+    5:
+    - contacts
+    - null
+    - scenario
+    - OWC1
+    - shallow
+    - 2600
+    - deep
+    - 2700
+    6:
+    - null
+    - null
+    - null
+    - OWC2
+    - null
+    - 2700
+    - null
+    - 2800
+    7:
+    - null
+    - null
+    - null
+    - OWC3
+    - null
+    - 2800
+    - null
+    - 2900
+    8:
+    - multz
+    - 20
+    - dist
+    - MULTZ_ILE
+    - null
+    - null
+    - null
+    - null
+    - logunif
+    - 0.0001
+    - 1
+  cell_formats:
+    A1: format_003
+    B1: format_004
+    C1: format_005
+    D1: format_006
+    E1: format_007
+    F1: format_008
+    G1: format_008
+    H1: format_009
+    I1: format_007
+    J1: format_010
+    K1: format_008
+    L1: format_008
+    M1: format_008
+    N1: format_011
+    O1: format_012
+    P1: format_012
+    A2: format_013
+    B2: format_014
+    C2: format_014
+    D2: format_015
+    E2: format_016
+    F2: format_014
+    G2: format_014
+    H2: format_017
+    I2: format_016
+    J2: format_018
+    K2: format_014
+    L2: format_014
+    M2: format_014
+    N2: format_017
+    O2: format_019
+    P2: format_019
+    A3: format_020
+    B3: format_021
+    C3: format_021
+    D3: format_022
+    E3: format_023
+    F3: format_021
+    G3: format_021
+    H3: format_024
+    I3: format_023
+    J3: format_025
+    K3: format_021
+    L3: format_021
+    M3: format_021
+    N3: format_024
+    O3: format_026
+    P3: format_026
+    A4: format_027
+    B4: format_028
+    C4: format_028
+    D4: format_029
+    E4: format_030
+    F4: format_028
+    G4: format_028
+    H4: format_031
+    I4: format_030
+    J4: format_032
+    K4: format_028
+    L4: format_028
+    M4: format_028
+    N4: format_031
+    O4: format_033
+    P4: format_033
+    A5: format_020
+    B5: format_021
+    C5: format_021
+    D5: format_022
+    E5: format_023
+    F5: format_021
+    G5: format_021
+    H5: format_024
+    I5: format_023
+    J5: format_025
+    K5: format_021
+    L5: format_021
+    M5: format_021
+    N5: format_024
+    O5: format_026
+    P5: format_026
+    A6: format_020
+    B6: format_021
+    C6: format_021
+    D6: format_022
+    E6: format_023
+    F6: format_021
+    G6: format_021
+    H6: format_024
+    I6: format_023
+    J6: format_025
+    K6: format_021
+    L6: format_021
+    M6: format_021
+    N6: format_024
+    O6: format_026
+    P6: format_026
+    A7: format_020
+    B7: format_021
+    C7: format_021
+    D7: format_022
+    E7: format_023
+    F7: format_021
+    G7: format_021
+    H7: format_024
+    I7: format_023
+    J7: format_025
+    K7: format_021
+    L7: format_021
+    M7: format_021
+    N7: format_024
+    O7: format_026
+    P7: format_026
+    A8: format_034
+    B8: format_035
+    C8: format_035
+    D8: format_036
+    E8: format_037
+    F8: format_035
+    G8: format_035
+    H8: format_038
+    I8: format_037
+    J8: format_035
+    K8: format_035
+    L8: format_035
+    M8: format_035
+    N8: format_038
+    O8: format_039
+    P8: format_039
+  comments:
+    A1:
+      text: Name for sensitivity. Will show up in SENSNAME column in design matrix. For tornado plots
+        each SENSNAME will correspond to a bar in the tornado plot. Can contain one/two senscases for
+        a scenario sensitivity or alternatively one monte carlo sensitivity with one or several parameters
+        specified by dist_name(s) and parameters.
+      author: ' '
+    B1:
+      text: 'Optional columns in grey text.
+
+        Numreal: number of realisations per sensitivity/scenario.
+
+        Overwrites number of realisations from ''repeats'' in general_input sheet.'
+      author: ' '
+    C1:
+      text: "seed: only seed is varying. Other parameters are set to default, or specified with dist_name\
+        \ = const\nscenario: one or two alternative cases (with/without repeated seeds). Use with senscase/value\n\
+        dist: parameters sampled from distributions, use with dist_name and dist_param1\u2026\nref: single\
+        \ realisation with parameter values set to default values\n\nAdvanced options:\nbackground: parameter\
+        \ values set to default values, except set of background parameters that are varied\nextern: parameter\
+        \ values read from an external file, typically createed in another software"
+      author: ' '
+    E1:
+      text: name of first alternative scenario. Will show up in SENSCASE column in design matrix
+      author: ' '
+    F1:
+      text: parameter value(s) for first alternative scenario
+      author: ' '
+    G1:
+      text: name of 2nd alternative scenario. Will show up in SENSCASE column in design matrix
+      author: ' '
+    H1:
+      text: parameter value(s) for first alternative scenario
+      author: ' '
+    I1:
+      text: 'Available distributions (dist_name) and dist_params in order:
+
+        normal (mean, std dev)
+
+        normal (mean, std dev, min, max) - truncated normal
+
+        uniform (min, max)
+
+        loguniform (min, max) - give min max of the output variable
+
+        triangular (min, mode, max)
+
+        pert (min, mode, max)
+
+        pert (min, mode, max, concentration_param)
+
+        beta (a, b)
+
+        beta (a, b, min, max)
+
+        discrete ((value1, value2, value3, .. value_n), (weight1, weight2, weight3, weight_n)) - no weights
+        give discrete uniform
+
+        lognormal (mu, sigma) - parameters are mean and std dev for the logarithm of the variable
+
+        const (value)
+
+
+        Bold part of dist_name is sufficient for distribution name, but the whole name can be provided'
+      author: ' '
+    N1:
+      text: 'Optional column:
+
+        For sensitivities of type dist. Will round output numbers to this number of decimals.'
+      author: ' '
+    O1:
+      text: 'Optional column:
+
+        For sensitivities of type dist. Name of sheet with correlation matrix.'
+      author: ' '
+    P1:
+      text: 'Optional column:
+
+        For sensitivities of type extern. Name of file to read parameters from.'
+      author: ' '
+  column_widths:
+    A: 10.0
+    B: 8.41
+    D: 16.14
+    E: 10.71
+    F: 10.71
+    G: 9.85
+    H: 6.87
+    I: 10.29
+    J: 11.86
+    K: 11.86
+    N: 8.86
+    O: 10.42
+    P: 10.85
+  row_heights:
+    1: 15.0
+    2: 15.0
+    3: 15.0
+    4: 13.8
+    5: 15.0
+    6: 15.0
+    7: 15.0
+    8: 15.0
+  default_column_width: 8.6953125
+  default_row_height: 15.0
+  zoom: 145
+  orientation: portrait
+  paper_size: 1
+  print_scale: 100
+- name: defaultvalues
+  rows:
+    1:
+    - param_name
+    - default_values
+    2:
+    - RMS_SEED
+    - 1000
+    3:
+    - FAULT_POSITION
+    - 0
+    4:
+    - DC_MODEL
+    - base
+    5:
+    - OWC1
+    - 2650
+    6:
+    - OWC2
+    - 2750
+    7:
+    - OWC3
+    - 2850
+    8:
+    - MULTZ_ILE
+    - 0.1
+    9:
+    - PARAM1
+    - 100
+    10:
+    - PARAM2
+    - 200
+    11:
+    - PARAM3
+    - 0.5
+  cell_formats:
+    A1: format_001
+    B1: format_040
+    A2: format_041
+    B2: format_002
+    A3: format_041
+    B3: format_002
+    A4: format_041
+    B4: format_002
+    A5: format_041
+    B5: format_002
+    A6: format_041
+    B6: format_002
+    A7: format_041
+    B7: format_002
+    A8: format_041
+    B8: format_002
+    A9: format_041
+    B9: format_002
+    A10: format_041
+    B10: format_002
+    A11: format_041
+    B11: format_002
+  column_widths:
+    A: 16.14
+    B: 14.28
+  row_heights:
+    1: 15.0
+    2: 15.0
+    3: 15.0
+    4: 15.0
+    5: 15.0
+    6: 15.0
+    7: 15.0
+    8: 15.0
+    9: 15.0
+    10: 15.0
+    11: 15.0
+  default_column_width: 8.6953125
+  default_row_height: 15.0
+  zoom: 100
+  orientation: portrait
+  paper_size: 1
+  print_scale: 100
+- name: INFO
+  rows:
+    1:
+    - This file is an example for configuration of design matrix for one-by-one sensitivities
+    2:
+    - and contains the set up for the three mandatory pages. For more advanced set ups consult the documentation
+    4:
+    - Edit the file to contain your sensitivities and save to ert/input/distributions
+    6:
+    - 'Run with command from terminal window: '
+    - null
+    - null
+    - null
+    - null
+    - null
+    - fmudesign design_input_template.xlsx output_design_matrix.xlsx
+    9:
+    - Excel files can be edited on Linux using
+    - null
+    - null
+    - null
+    - null
+    - oocalc filename.xlsx
+    10:
+    - Note that point is used as a decimal separator in the set up, while comma will separate different
+      values for discrete distributions
+  cell_formats:
+    A1: format_041
+    A2: format_041
+    A4: format_041
+    A6: format_041
+    G6: format_001
+    A9: format_041
+    F9: format_001
+    A10: format_041
+  row_heights:
+    1: 15.0
+    2: 15.0
+    4: 15.0
+    6: 15.0
+    9: 15.0
+    10: 15.0
+  default_column_width: 8.6953125
+  default_row_height: 15.0
+  zoom: 100
+  orientation: portrait
+  paper_size: 9
+  print_scale: 100

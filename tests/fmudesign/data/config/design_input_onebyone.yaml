@@ -1,0 +1,406 @@
+version: 1
+formats: {}
+worksheets:
+- name: general_input
+  rows:
+    1:
+    - designtype
+    - onebyone
+    2:
+    - repeats
+    - 5
+    3:
+    - rms_seeds
+    - default
+    4:
+    - background
+    - doe1.xlsx
+    5:
+    - distribution_seed
+    - 1234
+- name: designinput
+  rows:
+    1:
+    - sensname
+    - numreal
+    - type
+    - param_name
+    - senscase1
+    - value1
+    - senscase2
+    - value2
+    - dist_name
+    - dist_param1
+    - dist_param2
+    - dist_param3
+    - dist_param4
+    - decimals
+    - corr_sheet
+    - extern_file
+    2:
+    - seed
+    - null
+    - seed
+    3:
+    - faults
+    - null
+    - scenario
+    - PARAM1
+    - low
+    - -1
+    - high
+    - 1
+    4:
+    - velmodel
+    - null
+    - scenario
+    - DC_MODEL
+    - alternative
+    - alternative
+    5:
+    - contacts
+    - null
+    - scenario
+    - PARAM2
+    - shallow
+    - -1
+    - deep
+    - 1
+    6:
+    - null
+    - null
+    - null
+    - PARAM3
+    - null
+    - -1
+    - null
+    - 1
+    7:
+    - null
+    - null
+    - null
+    - PARAM4
+    - null
+    - -1
+    - null
+    - 1
+    8:
+    - multz
+    - 10
+    - dist
+    - MULTZ_ILE
+    - null
+    - null
+    - null
+    - null
+    - logunif
+    - '0.0001'
+    - 1
+    9:
+    - sens6
+    - 10
+    - dist
+    - PARAM5
+    - null
+    - null
+    - null
+    - null
+    - normal
+    - 3
+    - 1
+    - 1
+    - 5
+    10:
+    - null
+    - null
+    - null
+    - PARAM6
+    - null
+    - null
+    - null
+    - null
+    - uniform
+    - 0
+    - 1
+    11:
+    - null
+    - null
+    - null
+    - PARAM7
+    - null
+    - null
+    - null
+    - null
+    - triang
+    - 1
+    - 3
+    - 5
+    12:
+    - null
+    - null
+    - null
+    - FAULT_SEAL
+    - null
+    - null
+    - null
+    - null
+    - discrete
+    - 2018-11-02, 2018-11-03, 2018-11-04
+    - 0.3, 0.4, 0.3
+    13:
+    - sens7
+    - 30
+    - dist
+    - PARAM9
+    - null
+    - null
+    - null
+    - null
+    - lognormal
+    - 0
+    - 1
+    - null
+    - null
+    - 2
+    - corr1
+    14:
+    - null
+    - null
+    - null
+    - PARAM10
+    - null
+    - null
+    - null
+    - null
+    - uniform
+    - 0
+    - 1
+    - null
+    - null
+    - 3
+    - corr1
+    15:
+    - null
+    - null
+    - null
+    - PARAM11
+    - null
+    - null
+    - null
+    - null
+    - triang
+    - 1
+    - 3
+    - 5
+    - null
+    - null
+    - corr1
+    16:
+    - null
+    - null
+    - null
+    - PARAM12
+    - null
+    - null
+    - null
+    - null
+    - logunif
+    - 1
+    - 10
+    - null
+    - null
+    - null
+    - corr1
+    17:
+    - sens8
+    - 11
+    - extern
+    - PARAM13
+    - null
+    - null
+    - null
+    - null
+    - null
+    - null
+    - null
+    - null
+    - null
+    - null
+    - null
+    - doe1.xlsx
+    18:
+    - null
+    - null
+    - null
+    - PARAM14
+    19:
+    - null
+    - null
+    - null
+    - PARAM15
+    20:
+    - null
+    - null
+    - null
+    - PARAM16
+- name: defaultvalues
+  rows:
+    1:
+    - param_name
+    - default_value
+    2:
+    - DEFAULT1
+    - 0
+    3:
+    - DEFAULT2
+    - prediction
+    4:
+    - DEFAULT3
+    - 0
+    5:
+    - PARAM1
+    - 0
+    6:
+    - DC_MODEL
+    - base
+    7:
+    - PARAM2
+    - 0
+    8:
+    - PARAM3
+    - 0
+    9:
+    - PARAM4
+    - 0
+    10:
+    - MULTZ_ILE
+    - '0.1'
+    11:
+    - PARAM5
+    - 0
+    12:
+    - PARAM6
+    - 0
+    13:
+    - PARAM7
+    - 0
+    14:
+    - PARAM8
+    - 0
+    15:
+    - PARAM9
+    - 0
+    16:
+    - PARAM10
+    - 0
+    17:
+    - PARAM11
+    - 0
+    18:
+    - PARAM12
+    - 0
+    19:
+    - PARAM13
+    - 0
+    20:
+    - PARAM14
+    - 0
+    21:
+    - PARAM15
+    - 0
+    22:
+    - PARAM16
+    - 0
+    23:
+    - PARAM17
+    - 0
+    24:
+    - PARAM18
+    - 0
+    25:
+    - PARAM19
+    - 0
+    26:
+    - FAULT_SEAL
+    - base
+- name: corr1
+  rows:
+    1:
+    - null
+    - PARAM9
+    - PARAM10
+    - PARAM11
+    - PARAM12
+    2:
+    - PARAM9
+    - 1
+    3:
+    - PARAM10
+    - '0.9'
+    - 1
+    4:
+    - PARAM11
+    - 0
+    - '0.9'
+    - 1
+    5:
+    - PARAM12
+    - 0
+    - 0
+    - 0
+    - 1
+- name: background
+  rows:
+    1:
+    - param_name
+    - dist_name
+    - dist_param1
+    - dist_param2
+    - dist_param3
+    - dist_param4
+    - decimals
+    - corr_sheet
+    2:
+    - PARAM20
+    - normal
+    - 0
+    - 1
+    - null
+    - null
+    - 2
+    - background_corr
+    3:
+    - PARAM21
+    - uniform
+    - 0
+    - 1
+    - null
+    - null
+    - 2
+    4:
+    - PARAM22
+    - triang
+    - 1
+    - 3
+    - 5
+    - null
+    - 2
+- name: background_corr
+  rows:
+    1:
+    - null
+    - PARAM20
+    - PARAM21
+    - PARAM22
+    2:
+    - PARAM20
+    - 1
+    3:
+    - PARAM21
+    - '0.9'
+    - 1
+    4:
+    - PARAM22
+    - 0
+    - '0.9'
+    - 1

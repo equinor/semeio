@@ -1,0 +1,349 @@
+version: 1
+formats: {}
+worksheets:
+- name: general_input
+  rows:
+    1:
+    - designtype
+    - onebyone
+    2:
+    - repeats
+    - 1
+    3:
+    - rms_seeds
+    - default
+    4:
+    - distribution_seed
+    - 555
+- name: designinput
+  rows:
+    1:
+    - sensname
+    - numreal
+    - type
+    - param_name
+    - senscase1
+    - value1
+    - senscase2
+    - value2
+    - dist_name
+    - dist_param1
+    - dist_param2
+    - dist_param3
+    - dist_param4
+    - decimals
+    - corr_sheet
+    - extern_file
+    - dependencies
+    2:
+    - montecarlo
+    - 500
+    - dist
+    - PARAM1
+    - null
+    - null
+    - null
+    - null
+    - triang
+    - 0.025
+    - 0.035
+    - 0.045
+    - null
+    - 3
+    - corr1
+    3:
+    - null
+    - null
+    - null
+    - PARAM2
+    - null
+    - null
+    - null
+    - null
+    - norm
+    - 0
+    - 1
+    - -1
+    - 1
+    - 2
+    - corr1
+    4:
+    - null
+    - null
+    - null
+    - PARAM3
+    - null
+    - null
+    - null
+    - null
+    - logn
+    - 1
+    - 10
+    - null
+    - null
+    - 3
+    - corr1
+    5:
+    - null
+    - null
+    - null
+    - OWC1
+    - null
+    - null
+    - null
+    - null
+    - unif
+    - 2500
+    - 2550
+    - null
+    - null
+    - 1
+    - corr2
+    6:
+    - null
+    - null
+    - null
+    - OWC2
+    - null
+    - null
+    - null
+    - null
+    - triang
+    - 2430
+    - 2470
+    - 2500
+    - null
+    - 1
+    - corr2
+    7:
+    - null
+    - null
+    - null
+    - OWC3
+    - null
+    - null
+    - null
+    - null
+    - triang
+    - 2400
+    - 2450
+    - 2500
+    - null
+    - 1
+    - corr2
+    8:
+    - null
+    - null
+    - null
+    - DATO
+    - null
+    - null
+    - null
+    - null
+    - disc
+    - 2018-11-02, 2018-11-03, 2018-11-04
+    - 0.3, 0.4, 0.3
+    - null
+    - null
+    - null
+    - corr3
+    - null
+    - depend1
+    9:
+    - null
+    - null
+    - null
+    - NTG1
+    - null
+    - null
+    - null
+    - null
+    - triang
+    - 0.75
+    - 0.8
+    - 1
+    - null
+    - 2
+    - corr3
+    10:
+    - null
+    - null
+    - null
+    - NTG2
+    - null
+    - null
+    - null
+    - null
+    - pert
+    - 0.5
+    - 0.6
+    - 0.65
+    - null
+    - 2
+    11:
+    - null
+    - null
+    - null
+    - FAULTSEAL
+    - null
+    - null
+    - null
+    - null
+    - logunif
+    - 0.001
+    - 1
+    - null
+    - null
+    - 3
+- name: corr1
+  rows:
+    1:
+    - null
+    - PARAM1
+    - PARAM2
+    - PARAM3
+    2:
+    - PARAM1
+    - 1
+    3:
+    - PARAM2
+    - 0
+    - 1
+    4:
+    - PARAM3
+    - 0.2
+    - 0
+    - 1
+- name: corr2
+  rows:
+    1:
+    - null
+    - OWC1
+    - OWC2
+    - OWC3
+    2:
+    - OWC1
+    - 1
+    3:
+    - OWC2
+    - 0.5
+    - 1
+    4:
+    - OWC3
+    - -0.7
+    - -0.7
+    - 1
+- name: corr3
+  rows:
+    1:
+    - null
+    - DATO
+    - NTG1
+    2:
+    - DATO
+    - 1
+    3:
+    - NTG1
+    - 0.8
+    - 1
+- name: depend1
+  rows:
+    1:
+    - DATO
+    - DERIVED_PARAM1
+    - DERIVED_PARAM2
+    2:
+    - '2018-11-02'
+    - 1
+    - a
+    3:
+    - '2018-11-03'
+    - 2
+    - b
+    4:
+    - '2018-11-04'
+    - 3
+    - c
+- name: defaultvalues
+  rows:
+    1:
+    - param_name
+    - default_value
+    2:
+    - RMS_SEED
+    - 1000
+    3:
+    - HUM_MODE
+    - PREDICTION
+    4:
+    - HUM_METHOD
+    - SIMPLE
+    5:
+    - INJ_UNC
+    - 0
+    6:
+    - PARAM1
+    - 0.035
+    7:
+    - PARAM2
+    - 0.05
+    8:
+    - PARAM3
+    - 0.02
+    9:
+    - OWC1
+    - 0.001
+    10:
+    - OWC2
+    - 0.1
+    11:
+    - OWC3
+    - 0.07
+    12:
+    - NTG1
+    - 0.25
+    13:
+    - NTG2
+    - 0.45
+    14:
+    - NTG6
+    - 0.8
+    15:
+    - DATO
+    - '2018-11-03'
+    16:
+    - FAULTSEAL
+    - 0.01
+    17:
+    - DERIVED_PARAM1
+    - 1
+    18:
+    - DERIVED_PARAM2
+    - a
+- name: INFO
+  rows:
+    1:
+    - This file is an example for configuration of design matrix for one-by-one sensititivities
+    2:
+    - and contains the set up for the three mandatory pages. For more advanced set ups consult the documentation
+    4:
+    - 'From FMU wiki portal :'
+    - null
+    - One-by-one sensitivities and Tornado plots
+    5:
+    - 'Documentation for set up:'
+    - null
+    - https://sdp.equinor.com/wikidocs/FMU/lib/fmu/tools/html/examples.html#create-design-matrix-for-one-by-one-sensitivities
+    7:
+    - Run with command
+    - null
+    - fmudesign  design_input_template.xlsx
+    - null
+    - null
+    - null
+    - from the command line
+    9:
+    - Excel files can be edited in Linux using
+    - null
+    - null
+    - oocalc filename.xlsx
