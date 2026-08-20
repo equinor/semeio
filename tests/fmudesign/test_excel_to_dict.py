@@ -1,7 +1,5 @@
 """Testing excel_to_dict"""
 
-from pathlib import Path
-
 import numpy as np
 import openpyxl
 import pandas as pd
@@ -25,63 +23,65 @@ MOCK_DESIGNINPUT = pd.DataFrame(
 )
 
 
-def test_excel_to_dict(tmpdir, monkeypatch):
-    """Test that we can convert an Excelfile to a dictionary"""
-    monkeypatch.chdir(tmpdir)
-    defaultvalues = pd.DataFrame()
-    # pylint: disable=abstract-class-instantiated
-    writer = pd.ExcelWriter("designinput.xlsx", engine="openpyxl")
-    MOCK_GENERAL_INPUT.to_excel(
-        writer, sheet_name="general_input", index=False, header=None
-    )
-    MOCK_DESIGNINPUT.to_excel(
-        writer, sheet_name="designinput", index=False, header=None
-    )
-    defaultvalues.to_excel(writer, sheet_name="defaultvalues", index=False, header=None)
-    writer.close()
+def _write_config_workbook(
+    path,
+    *,
+    general_input=MOCK_GENERAL_INPUT,
+    design_input=MOCK_DESIGNINPUT,
+    defaultvalues=None,
+    background=None,
+    general_sheet="general_input",
+    design_sheet="designinput",
+    default_sheet="defaultvalues",
+    background_sheet="backgroundsheet",
+):
+    if defaultvalues is None:
+        defaultvalues = pd.DataFrame()
+    with pd.ExcelWriter(path, engine="openpyxl") as writer:
+        general_input.to_excel(
+            writer, sheet_name=general_sheet, index=False, header=None
+        )
+        design_input.to_excel(writer, sheet_name=design_sheet, index=False, header=None)
+        defaultvalues.to_excel(
+            writer, sheet_name=default_sheet, index=False, header=None
+        )
+        if background is not None:
+            background.to_excel(
+                writer, sheet_name=background_sheet, index=False, header=None
+            )
+    return path
 
-    dict_design = excel_to_dict("designinput.xlsx")
+
+def test_excel_to_dict(tmp_path):
+    input_path = _write_config_workbook(tmp_path / "designinput.xlsx")
+    dict_design = excel_to_dict(input_path)
+
     assert isinstance(dict_design, dict)
     assert dict_design["designtype"] == "onebyone"
     assert dict_design["distribution_seed"] == 42
-    assert "defaultvalues" in dict_design
-
-    assert isinstance(dict_design["defaultvalues"], dict)
-    assert not dict_design["defaultvalues"]  # (it is empty)
-
+    assert dict_design["defaultvalues"] == {}
     assert isinstance(dict_design["sensitivities"], dict)
 
     sens = dict_design["sensitivities"]
-    # This now contains a key for each sensitivity to make
-    assert "rms_seed" in sens
-    assert isinstance(sens["rms_seed"], dict)
     assert sens["rms_seed"]["seedname"] == "RMS_SEED"
-    assert sens["rms_seed"]["senstype"] == "seed"  # upper-cased
+    assert sens["rms_seed"]["senstype"] == "seed"
 
-    # Check that we can vary some strings
-    writer = pd.ExcelWriter("designinput2.xlsx", engine="openpyxl")
-    MOCK_GENERAL_INPUT.to_excel(
-        writer, sheet_name="Generalinput", index=False, header=None
+    alternate_path = _write_config_workbook(
+        tmp_path / "designinput2.xlsx",
+        general_sheet="Generalinput",
+        design_sheet="Design_input",
+        default_sheet="DefaultValues",
     )
-    MOCK_DESIGNINPUT.to_excel(
-        writer, sheet_name="Design_input", index=False, header=None
-    )
-    defaultvalues.to_excel(writer, sheet_name="DefaultValues", index=False, header=None)
-    writer.close()
-
-    dict_design = excel_to_dict("designinput2.xlsx")
+    dict_design = excel_to_dict(alternate_path)
     assert isinstance(dict_design, dict)
     assert dict_design["sensitivities"]["rms_seed"]["senstype"] == "seed"
 
-    # Dump to yaml:
-    inputdict_to_yaml(dict_design, "dictdesign.yaml")
-    assert Path("dictdesign.yaml").exists()
-    assert "RMS_SEED" in Path("dictdesign.yaml").read_text(encoding="utf-8")
+    yaml_path = tmp_path / "dictdesign.yaml"
+    inputdict_to_yaml(dict_design, yaml_path)
+    assert "RMS_SEED" in yaml_path.read_text(encoding="utf-8")
 
 
-def test_duplicate_sensname_exception(tmpdir, monkeypatch):
-    """Test that exceptions are raised for erroneous sensnames"""
-    # pylint: disable=abstract-class-instantiated
+def test_duplicate_sensname_exception(tmp_path):
     mock_erroneous_designinput = pd.DataFrame(
         data=[
             ["sensname", "numreal", "type", "param_name"],
@@ -92,26 +92,17 @@ def test_duplicate_sensname_exception(tmpdir, monkeypatch):
             ["valid_name", "", "seed"],  # Valid unique name
         ]
     )
-    monkeypatch.chdir(tmpdir)
-    defaultvalues = pd.DataFrame()
-
-    writer = pd.ExcelWriter("designinput3.xlsx", engine="openpyxl")
-    MOCK_GENERAL_INPUT.to_excel(
-        writer, sheet_name="general_input", index=False, header=None
+    input_path = _write_config_workbook(
+        tmp_path / "designinput.xlsx", design_input=mock_erroneous_designinput
     )
-    mock_erroneous_designinput.to_excel(
-        writer, sheet_name="designinput", index=False, header=None
-    )
-    defaultvalues.to_excel(writer, sheet_name="defaultvalues", index=False, header=None)
-    writer.close()
 
     with pytest.raises(
         ValueError, match="Two sensitivities can not share the same sensname"
     ):
-        excel_to_dict("designinput3.xlsx")
+        excel_to_dict(input_path)
 
 
-def test_strip_spaces(tmpdir, monkeypatch):
+def test_strip_spaces(tmp_path):
     """Spaces before and after parameter names are probably
     invisible user errors in Excel sheets. Remove them."""
     # pylint: disable=abstract-class-instantiated
@@ -128,30 +119,19 @@ def test_strip_spaces(tmpdir, monkeypatch):
             ["spacious2  ", 3.3],
         ]
     )
-    monkeypatch.chdir(tmpdir)
-    writer = pd.ExcelWriter("designinput_spaces.xlsx", engine="openpyxl")
-    MOCK_GENERAL_INPUT.to_excel(
-        writer, sheet_name="general_input", index=False, header=None
+    input_path = _write_config_workbook(
+        tmp_path / "designinput.xlsx",
+        design_input=mock_spacious_designinput,
+        defaultvalues=defaultvalues_spacious,
     )
-    mock_spacious_designinput.to_excel(
-        writer, sheet_name="designinput", index=False, header=None
-    )
-    defaultvalues_spacious.to_excel(
-        writer, sheet_name="defaultvalues", index=False, header=None
-    )
-    writer.close()
 
-    dict_design = excel_to_dict("designinput_spaces.xlsx")
+    dict_design = excel_to_dict(input_path)
     assert next(iter(dict_design["sensitivities"].keys())) == "rms_seed"
-
-    # Check default values parameter names:
     def_params = list(dict_design["defaultvalues"].keys())
     assert [par.strip() for par in def_params] == def_params
 
 
-def test_mixed_senstype_exception(tmpdir, monkeypatch):
-    """Test that exceptions are raised for mixups in user input on types"""
-    # pylint: disable=abstract-class-instantiated
+def test_mixed_senstype_exception(tmp_path):
     mock_erroneous_designinput = pd.DataFrame(
         data=[
             ["sensname", "numreal", "type", "param_name"],
@@ -159,35 +139,22 @@ def test_mixed_senstype_exception(tmpdir, monkeypatch):
             ["", "", "dist"],
         ]
     )
-    monkeypatch.chdir(tmpdir)
-    defaultvalues = pd.DataFrame()
-
-    writer = pd.ExcelWriter("designinput4.xlsx", engine="openpyxl")
-    MOCK_GENERAL_INPUT.to_excel(
-        writer, sheet_name="general_input", index=False, header=None
+    input_path = _write_config_workbook(
+        tmp_path / "designinput.xlsx", design_input=mock_erroneous_designinput
     )
-    mock_erroneous_designinput.to_excel(
-        writer, sheet_name="designinput", index=False, header=None
-    )
-    defaultvalues.to_excel(writer, sheet_name="defaultvalues", index=False, header=None)
-    writer.close()
 
     with pytest.raises(ValueError, match="contains more than one sensitivity type"):
-        excel_to_dict("designinput4.xlsx")
+        excel_to_dict(input_path)
 
 
-def test_has_value():
-    """Test a function that is used to check if xlsx-cells are empty or not"""
-    assert _has_value(1)
-    assert not _has_value(np.nan)
-
-    # This possibly makes no sense, but is the current implementation:
-    assert _has_value(None)
+@pytest.mark.parametrize(
+    ("value", "expected"), [(1, True), (np.nan, False), (None, True)]
+)
+def test_has_value(value, expected):
+    assert _has_value(value) is expected
 
 
-def test_background_sheet(tmpdir, monkeypatch):
-    """Test loading background values from a sheet"""
-    monkeypatch.chdir(tmpdir)
+def test_background_sheet(tmp_path):
     general_input = pd.DataFrame(
         data=[
             ["designtype", "onebyone"],
@@ -198,7 +165,7 @@ def test_background_sheet(tmpdir, monkeypatch):
         ]
     )
     defaultvalues = pd.DataFrame(
-        columns=["param_name", "default_value"], data=[["extraseed", "0"]]
+        data=[["param_name", "default_value"], ["extraseed", "0"]]
     )
     background = pd.DataFrame(
         data=[
@@ -207,16 +174,15 @@ def test_background_sheet(tmpdir, monkeypatch):
         ]
     )
 
-    writer = pd.ExcelWriter("designinput.xlsx", engine="openpyxl")
-    general_input.to_excel(writer, sheet_name="general_input", index=False, header=None)
-    MOCK_DESIGNINPUT.to_excel(
-        writer, sheet_name="design_input", index=False, header=None
+    input_path = _write_config_workbook(
+        tmp_path / "designinput.xlsx",
+        general_input=general_input,
+        defaultvalues=defaultvalues,
+        background=background,
+        design_sheet="design_input",
     )
-    defaultvalues.to_excel(writer, sheet_name="defaultvalues", index=False)
-    background.to_excel(writer, sheet_name="backgroundsheet", index=False, header=None)
-    writer.close()
 
-    dict_design = excel_to_dict("designinput.xlsx")
+    dict_design = excel_to_dict(input_path)
 
     # Assert it has been interpreted correctly from input files:
     assert dict_design["background"]["parameters"]["extraseed"] == [
@@ -228,8 +194,7 @@ def test_background_sheet(tmpdir, monkeypatch):
     assert dict_design["defaultvalues"]["extraseed"] == 0
 
 
-def _write_background_workbook(filename, background, corr_matrix, background_name):
-    """Write a workbook with a background sheet and a 'bgcorr' correlation sheet."""
+def _write_background_workbook(path, background, corr_matrix, background_name):
     general_input = pd.DataFrame(
         data=[
             ["designtype", "onebyone"],
@@ -242,7 +207,7 @@ def _write_background_workbook(filename, background, corr_matrix, background_nam
     defaultvalues = pd.DataFrame(
         columns=["param_name", "default_value"], data=[["PARAM_A", 0], ["PARAM_B", 0]]
     )
-    with pd.ExcelWriter(filename, engine="openpyxl") as writer:
+    with pd.ExcelWriter(path, engine="openpyxl") as writer:
         general_input.to_excel(
             writer, sheet_name="general_input", index=False, header=None
         )
@@ -255,6 +220,7 @@ def _write_background_workbook(filename, background, corr_matrix, background_nam
         )
         if corr_matrix is not None:
             corr_matrix.to_excel(writer, sheet_name="bgcorr")
+    return path
 
 
 BACKGROUND_WITH_CORR = pd.DataFrame(
@@ -266,54 +232,47 @@ BACKGROUND_WITH_CORR = pd.DataFrame(
 )
 
 
-def test_background_correlation_sheet_with_mismatching_index_and_columns(
-    tmpdir, monkeypatch
-):
-    """Correlation matrices for background parameters must be validated the same
-    way as correlation matrices for ordinary sensitivities."""
-    monkeypatch.chdir(tmpdir)
+@pytest.mark.parametrize(
+    ("index", "columns", "error"),
+    [
+        (
+            ["PARAM_A", "PARAM_B"],
+            ["PARAM_A", "PARAM_TYPO"],
+            "Mismatch between column and index in correlation",
+        ),
+        (
+            ["PARAM_A", "PARAM_TYPO"],
+            ["PARAM_A", "PARAM_TYPO"],
+            "Mismatch between parameters",
+        ),
+    ],
+)
+def test_invalid_background_correlation_sheet_raises(tmp_path, index, columns, error):
     corr_matrix = pd.DataFrame(
         [[1.0, np.nan], [0.5, 1.0]],
-        index=["PARAM_A", "PARAM_B"],
-        columns=["PARAM_A", "PARAM_TYPO"],
+        index=index,
+        columns=columns,
     )
-    _write_background_workbook(
-        "designinput.xlsx", BACKGROUND_WITH_CORR, corr_matrix, "backgroundsheet"
-    )
-
-    with pytest.raises(
-        ValueError, match="Mismatch between column and index in correlation"
-    ):
-        excel_to_dict("designinput.xlsx")
-
-
-def test_background_correlation_sheet_with_mismatching_parameters(tmpdir, monkeypatch):
-    """Parameters pointing to a correlation sheet from the background sheet must
-    match the parameters in that correlation sheet exactly."""
-    monkeypatch.chdir(tmpdir)
-    corr_matrix = pd.DataFrame(
-        [[1.0, np.nan], [0.5, 1.0]],
-        index=["PARAM_A", "PARAM_TYPO"],
-        columns=["PARAM_A", "PARAM_TYPO"],
-    )
-    _write_background_workbook(
-        "designinput.xlsx", BACKGROUND_WITH_CORR, corr_matrix, "backgroundsheet"
+    input_path = _write_background_workbook(
+        tmp_path / "designinput.xlsx",
+        BACKGROUND_WITH_CORR,
+        corr_matrix,
+        "backgroundsheet",
     )
 
-    with pytest.raises(ValueError, match="Mismatch between parameters"):
-        excel_to_dict("designinput.xlsx")
+    with pytest.raises(ValueError, match=error):
+        excel_to_dict(input_path)
 
 
-def test_background_sheet_that_does_not_exist(tmpdir, monkeypatch):
+def test_background_sheet_that_does_not_exist(tmp_path):
     """A background sheet name that does not exist must be reported, listing the
     sheets that are available."""
-    monkeypatch.chdir(tmpdir)
-    _write_background_workbook(
-        "designinput.xlsx", BACKGROUND_WITH_CORR, None, "typo_sheet"
+    input_path = _write_background_workbook(
+        tmp_path / "designinput.xlsx", BACKGROUND_WITH_CORR, None, "typo_sheet"
     )
 
     with pytest.raises(ValueError, match="Sheets in workbook") as exc_info:
-        excel_to_dict("designinput.xlsx")
+        excel_to_dict(input_path)
 
     message = str(exc_info.value)
     assert "typo_sheet" in message
@@ -324,81 +283,60 @@ def test_background_sheet_that_does_not_exist(tmpdir, monkeypatch):
 @pytest.mark.parametrize(
     "background_name", ["Backgroundsheet", "background_sheet", " backgroundsheet "]
 )
-def test_background_sheet_name_is_matched_softly(tmpdir, monkeypatch, background_name):
-    monkeypatch.chdir(tmpdir)
+def test_background_sheet_name_is_matched_softly(tmp_path, background_name):
     corr_matrix = pd.DataFrame(
         [[1.0, np.nan], [0.5, 1.0]],
         index=["PARAM_A", "PARAM_B"],
         columns=["PARAM_A", "PARAM_B"],
     )
-    _write_background_workbook(
-        "designinput.xlsx", BACKGROUND_WITH_CORR, corr_matrix, background_name
+    input_path = _write_background_workbook(
+        tmp_path / "designinput.xlsx",
+        BACKGROUND_WITH_CORR,
+        corr_matrix,
+        background_name,
     )
 
-    background = excel_to_dict("designinput.xlsx")["background"]
+    background = excel_to_dict(input_path)["background"]
     assert list(background["parameters"]) == ["PARAM_A", "PARAM_B"]
+    assert background["correlations"]["sheetnames"] == ["bgcorr"]
 
 
-def test_background_file_that_does_not_exist(tmpdir, monkeypatch):
-    monkeypatch.chdir(tmpdir)
-    _write_background_workbook(
-        "designinput.xlsx", BACKGROUND_WITH_CORR, None, "missing_background.csv"
+def test_background_file_that_does_not_exist(tmp_path):
+    input_path = _write_background_workbook(
+        tmp_path / "designinput.xlsx",
+        BACKGROUND_WITH_CORR,
+        None,
+        "missing_background.csv",
     )
 
     with pytest.raises(ValueError, match="Failed to resolve path"):
-        excel_to_dict("designinput.xlsx")
+        excel_to_dict(input_path)
 
 
 @pytest.mark.parametrize("background_name", ["None", "none", np.nan])
-def test_background_not_in_use(tmpdir, monkeypatch, background_name):
-    """Not specifying a background must not be an error."""
-    monkeypatch.chdir(tmpdir)
-    _write_background_workbook(
-        "designinput.xlsx", BACKGROUND_WITH_CORR, None, background_name
+def test_background_not_in_use(tmp_path, background_name):
+    input_path = _write_background_workbook(
+        tmp_path / "designinput.xlsx", BACKGROUND_WITH_CORR, None, background_name
     )
 
-    assert excel_to_dict("designinput.xlsx")["background"] is None
+    assert excel_to_dict(input_path)["background"] is None
 
 
-def test_background_correlations_are_read(tmpdir, monkeypatch):
-    monkeypatch.chdir(tmpdir)
-    corr_matrix = pd.DataFrame(
-        [[1.0, np.nan], [0.5, 1.0]],
-        index=["PARAM_A", "PARAM_B"],
-        columns=["PARAM_A", "PARAM_B"],
-    )
-    _write_background_workbook(
-        "designinput.xlsx", BACKGROUND_WITH_CORR, corr_matrix, "backgroundsheet"
-    )
-
-    background = excel_to_dict("designinput.xlsx")["background"]
-    assert background["correlations"]["sheetnames"] == ["bgcorr"]
-    assert list(background["parameters"]) == ["PARAM_A", "PARAM_B"]
-
-
-def test_assert_no_merged_cells(tmpdir, monkeypatch):
-    """Test that assert_no_merged_cells detects merged cells"""
-    monkeypatch.chdir(tmpdir)
-
-    # Create Excel file with merged cells
+def test_assert_no_merged_cells(tmp_path):
+    input_path = tmp_path / "test_file.xlsx"
     test_data = pd.DataFrame({"A": [1, 2], "B": [3, 4]})
-    writer = pd.ExcelWriter("test_file.xlsx", engine="openpyxl")
-    test_data.to_excel(writer, sheet_name="sheet1", index=False)
-    writer.close()
+    test_data.to_excel(input_path, sheet_name="sheet1", index=False)
 
-    # Add merged cells
-    workbook = openpyxl.load_workbook("test_file.xlsx")
+    workbook = openpyxl.load_workbook(input_path)
     workbook["sheet1"].merge_cells("A1:B1")
-    workbook.save("test_file.xlsx")
+    workbook.save(input_path)
     workbook.close()
 
-    # Should raise exception
     with pytest.raises(Exception, match="Merged cells"):
-        _assert_no_merged_cells("test_file.xlsx")
+        _assert_no_merged_cells(input_path)
 
 
-def test_excel_to_dict_passes_seed_strategy(tmp_path, monkeypatch):
-    monkeypatch.chdir(tmp_path)
+def test_excel_to_dict_passes_seed_strategy(tmp_path):
     general = pd.DataFrame(
         data=[
             ["designtype", "onebyone"],
@@ -412,12 +350,10 @@ def test_excel_to_dict_passes_seed_strategy(tmp_path, monkeypatch):
     designinput = pd.DataFrame(
         data=[["sensname", "numreal", "type", "param_name"], ["rms_seed", "", "seed"]]
     )
-    with pd.ExcelWriter("designinput.xlsx", engine="openpyxl") as writer:
-        general.to_excel(writer, sheet_name="general_input", index=False, header=None)
-        designinput.to_excel(writer, sheet_name="designinput", index=False, header=None)
-        pd.DataFrame().to_excel(
-            writer, sheet_name="defaultvalues", index=False, header=None
-        )
-
-    dict_design = excel_to_dict(Path("designinput.xlsx"))
+    input_path = _write_config_workbook(
+        tmp_path / "designinput.xlsx",
+        general_input=general,
+        design_input=designinput,
+    )
+    dict_design = excel_to_dict(input_path)
     assert dict_design["seed_strategy"] == "independent"
