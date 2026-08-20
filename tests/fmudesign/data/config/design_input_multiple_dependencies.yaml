@@ -1,0 +1,85 @@
+version: 1
+general:
+  repeats: 1
+  rms_seeds: default
+  distribution_seed: 555
+sensitivities:
+- name: montecarlo1
+  type: distribution
+  realizations: 50
+  parameters:
+    TRIANG:
+      distribution: triang
+      values: [0.025, 0.035, 0.045]
+    DATO:
+      distribution: disc
+      values: ['2018-11-02, 2018-11-03, 2018-11-04', '0.3, 0.4, 0.3']
+      dependency: depend1
+    BETA:
+      distribution: beta
+      values: [5, 2, 0, 1]
+    NORM:
+      distribution: norm
+      values: [0.5, 0.2]
+      decimals: 2
+- name: montecarlo2
+  type: distribution
+  realizations: 50
+  parameters:
+    TRIANG:
+      distribution: triang
+      values: [0.025, 0.025, 0.045]
+    WELLS:
+      distribution: disc
+      values: ['0, 1, 2, 3, 4', '0.35, 0.25, 0.2, 0.15, 0.05']
+      dependency: depend2
+    NORM2:
+      distribution: norm
+      values: [-0.5, 0.2]
+      decimals: 2
+      dependency: depend3
+- name: contacts
+  type: scenario
+  cases: [shallow, deep]
+  parameters:
+    OWC1: [1700, 2700]
+    OWC2: [1800, 2800]
+    OWC3: [1900, 2900]
+- name: rms_seed
+  type: seed
+- name: defaultvalues
+  type: reference
+  realizations: 1
+defaults:
+  RMS_SEED: 1000
+  TRIANG: 0.035
+  DATO: '2018-11-03'
+  BETA: '0.7'
+  NORM: 0.5
+  WELLS: 1
+  NORM2: -0.5
+  OWC1: 1700
+  OWC2: 1800
+  OWC3: 1900
+  'DERIVED_PARAM1 ': 2
+  DERIVED_PARAM2: b
+  NORM3: -0.5
+dependencies:
+  depend1:
+    source: DATO
+    values: ['2018-11-02', '2018-11-03', '2018-11-04']
+    targets:
+      DERIVED_PARAM1: [1, 2, 3]
+      DERIVED_PARAM2: [a, b, c]
+  depend3:
+    source: NORM2
+    values: []
+    targets:
+      NORM3: []
+  depend2:
+    source: WELLS
+    values: [0, 1, 2, 3, 4]
+    targets:
+      DERIVED_PARAM1: [5, 6, 7, 8, 9]
+      DERIVED_PARAM2: [a, b, c, d, e]
+include_instructions: true

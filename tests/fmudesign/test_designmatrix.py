@@ -2,14 +2,11 @@
 
 import shutil
 import subprocess
-from pathlib import Path
 
 import pandas as pd
 import pytest
 
 from semeio.fmudesign import DesignMatrix
-
-TESTDATA = Path(__file__).parent / "data"
 
 
 def assert_valid_designmatrix(design_values):
@@ -44,8 +41,10 @@ def test_designmatrix():
 
 
 @pytest.mark.integration_test
-def test_endpoint_with_relative_input_and_custom_output_paths(tmp_path, monkeypatch):
-    source_design = TESTDATA / "config/design_input_onebyone.xlsx"
+def test_endpoint_with_relative_input_and_custom_output_paths(
+    tmp_path, monkeypatch, fmudesign_test_data
+):
+    source_design = fmudesign_test_data / "config/design_input_onebyone.xlsx"
     dependency = (
         pd.read_excel(source_design, header=None, engine="openpyxl")
         .set_index([0])[1]
@@ -78,12 +77,14 @@ def test_endpoint_with_relative_input_and_custom_output_paths(tmp_path, monkeypa
 
 
 @pytest.mark.integration_test
-def test_endpoint_resolves_external_seeds_file_relative_to_input(tmp_path, monkeypatch):
+def test_endpoint_resolves_external_seeds_file_relative_to_input(
+    tmp_path, monkeypatch, fmudesign_test_data
+):
     """'rms_seeds' can also point to an external file. Like 'background' above,
     it must be resolved relative to the input file, not the CWD: the seeds file
     is only copied into the nested case_dir, so a CWD-relative fallback would
     fail to find it."""
-    source_design = TESTDATA / "config/design_input_background_extseeds.xlsx"
+    source_design = fmudesign_test_data / "config/design_input_background_extseeds.xlsx"
 
     case_dir = tmp_path / "path" / "going" / "down"
     case_dir.mkdir(parents=True)

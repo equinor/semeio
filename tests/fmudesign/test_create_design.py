@@ -4,7 +4,6 @@ import json
 import math
 import shutil
 from datetime import datetime
-from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -17,8 +16,6 @@ from semeio.fmudesign import design_distributions as design_dist
 from semeio.fmudesign._excel_to_dict import _read_defaultvalues
 from semeio.fmudesign.create_design import MonteCarloSensitivity, _derive_rng
 from semeio.fmudesign.quality_report import print_corrmat
-
-TESTDATA = Path(__file__).parent / "data"
 
 
 @pytest.mark.integration_test
@@ -209,10 +206,10 @@ def test_distribution_statistics(tmp_path, correlations):
         assert np.sqrt(np.mean((obs_corr - corr_values) ** 2)) < 0.02
 
 
-def test_generate_onebyone(tmp_path):
+def test_generate_onebyone(tmp_path, fmudesign_test_data):
     """Test generation of onebyone design"""
 
-    inputfile = TESTDATA / "config/design_input_example1.xlsx"
+    inputfile = fmudesign_test_data / "config/design_input_example1.xlsx"
 
     input_dict = excel_to_dict(inputfile)
 
@@ -385,19 +382,21 @@ def _assert_design_snapshot(design, snapshot):
     )
 
 
-def test_generate_full_mc_snapshot(snapshot):
-    input_dict = excel_to_dict(TESTDATA / "config/design_input_mc_with_correls.xlsx")
+def test_generate_full_mc_snapshot(snapshot, fmudesign_test_data):
+    input_dict = excel_to_dict(
+        fmudesign_test_data / "config/design_input_mc_with_correls.xlsx"
+    )
     design = DesignMatrix()
     design.generate(input_dict)
 
     _assert_design_snapshot(design, snapshot)
 
 
-def test_generate_full_mc_snapshot_independent(snapshot):
+def test_generate_full_mc_snapshot_independent(snapshot, fmudesign_test_data):
     """Same config as test_generate_full_mc_snapshot, but with the opt-in
     'independent' seed strategy.
     """
-    inputfile = TESTDATA / "config/design_input_mc_with_correls.xlsx"
+    inputfile = fmudesign_test_data / "config/design_input_mc_with_correls.xlsx"
     input_dict = excel_to_dict(inputfile)
     input_dict["seed_strategy"] = "independent"
     design = DesignMatrix()
@@ -406,9 +405,9 @@ def test_generate_full_mc_snapshot_independent(snapshot):
     _assert_design_snapshot(design, snapshot)
 
 
-def test_generate_full_mc():
+def test_generate_full_mc(fmudesign_test_data):
     """Test generation of full monte carlo"""
-    inputfile = TESTDATA / "config/design_input_mc_with_correls.xlsx"
+    inputfile = fmudesign_test_data / "config/design_input_mc_with_correls.xlsx"
     input_dict = excel_to_dict(inputfile)
 
     design = DesignMatrix()
@@ -467,10 +466,10 @@ def test_generate_full_mc():
 
 
 @pytest.mark.integration_test
-def test_generate_background(tmp_path, monkeypatch):
-    inputfile = TESTDATA / "config/design_input_background.xlsx"
+def test_generate_background(tmp_path, monkeypatch, fmudesign_test_data):
+    inputfile = fmudesign_test_data / "config/design_input_background.xlsx"
     input_dict = excel_to_dict(inputfile)
-    source_file = TESTDATA / "config/doe1.xlsx"
+    source_file = fmudesign_test_data / "config/doe1.xlsx"
     shutil.copy2(source_file, tmp_path)
     monkeypatch.chdir(tmp_path)
 

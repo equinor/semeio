@@ -1,5 +1,6 @@
-Test data for `fmudesign`.
+Text test data for `fmudesign`.
 
-`config` contains representative input workbooks used by integration and
-regression tests, plus external background and seed workbooks referenced by
-those inputs.
+`config` contains domain-level YAML specifications for representative inputs:
+general settings, sensitivities, defaults, correlations, dependencies, and
+auxiliary tables. The shared renderer derives the Excel layout and creates
+workbooks in a temporary directory for integration and regression tests.

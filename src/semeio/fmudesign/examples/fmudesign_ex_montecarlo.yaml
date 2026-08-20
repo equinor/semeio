@@ -1,0 +1,99 @@
+version: 1
+general:
+  repeats: 5
+  rms_seeds: default
+  distribution_seed: 1234
+  correlation_iterations: 999
+sensitivities:
+- name: seed
+  type: seed
+- name: defaultvalues
+  type: reference
+  realizations: 1
+- name: montecarlo1
+  type: distribution
+  realizations: 200
+  parameters:
+    FAULT_POSITION:
+      distribution: discrete
+      values: ['-1,0,1', '30,40,30']
+    DC_MODEL:
+      distribution: discrete
+      values: ['pess,base,opt', '30,40,30']
+    OWC1:
+      distribution: uniform
+      values: [2640, 2660]
+      correlation: corr_owc
+    OWC2:
+      distribution: triangular
+      values: [2740, 2750, 2765]
+      correlation: corr_owc
+    OWC3:
+      distribution: pert
+      values: [2840, 2850, 2855]
+      correlation: corr_owc
+    MULTZ_ILE:
+      distribution: loguniform
+      values: [0.01, 0.1]
+    PARAM0:
+      distribution: lognorm
+      values: [3, 3, 10, 100]
+    PARAM1:
+      distribution: lognorm
+      values: [4.6, 0.8]
+    PARAM2:
+      distribution: normal
+      values: [200, 10]
+    PARAM3:
+      distribution: normal
+      values: [0.5, 0.3, 0, 1]
+    PARAM4:
+      distribution: constant
+      values: [10]
+- name: montecarlo2
+  type: distribution
+  realizations: 200
+  parameters:
+    FAULT_POSITION:
+      distribution: discrete
+      values: ['-1,0,1', '30,40,30']
+- name: montecarlo3
+  type: distribution
+  realizations: 200
+  parameters:
+    PARAM5:
+      distribution: normal_p10_p90
+      values: [-1, 1]
+    PARAM6:
+      distribution: uniform_p10_p90
+      values: [0.1, 0.9]
+    PARAM7:
+      distribution: triangular_p10_p90
+      values: [0.1, 0.5, 0.9]
+    PARAM8:
+      distribution: pert_p10_p90
+      values: [1, 3, 10]
+defaults:
+  RMS_SEED: 1234
+  FAULT_POSITION: 0
+  DC_MODEL: base
+  OWC1: 2650
+  OWC2: 2750
+  OWC3: 2850
+  MULTZ_ILE: 0.1
+  PARAM0: 1
+  PARAM1: 100
+  PARAM2: 200
+  PARAM3: 0.5
+  PARAM4: 10
+  PARAM5: 0
+  PARAM6: 1
+  PARAM7: 0.5
+  PARAM8: 3
+correlations:
+  corr_owc:
+    parameters: [OWC1, OWC2, OWC3]
+    matrix:
+    - [1]
+    - [0.7, 1]
+    - [0.7, 0.7, 1]

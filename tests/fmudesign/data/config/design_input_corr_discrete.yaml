@@ -1,0 +1,33 @@
+version: 1
+general:
+  repeats: 1
+  rms_seeds: default
+  distribution_seed: 1030
+sensitivities:
+- name: mc1
+  type: distribution
+  realizations: 50
+  parameters:
+    AFAC:
+      distribution: discrete
+      values: ['1,2,3', '3,4,3']
+      correlation: corr_abc
+    BFAC:
+      distribution: discrete
+      values: ['1,2,3', '3,4,3']
+      correlation: corr_abc
+    CFAC:
+      distribution: discrete
+      values: ['1,2,3', '3,4,3']
+      correlation: corr_abc
+defaults:
+  AFAC: 1
+  BFAC: 1
+  CFAC: 1
+correlations:
+  corr_abc:
+    parameters: [AFAC, BFAC, CFAC]
+    matrix:
+    - [1]
+    - [0.9, 1]
+    - [0.9, 0.9, 1]

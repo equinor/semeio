@@ -18,18 +18,18 @@ compatible. For more information, look at the code or execute
 import argparse
 import dataclasses
 import functools
-import shutil
 import sys
 import traceback
 import warnings
 from argparse import ArgumentParser, Namespace, _SubParsersAction
-from importlib.resources import as_file, files
+from importlib.resources import files
 from pathlib import Path
 
 from packaging.version import Version
 
 import semeio
 from semeio.fmudesign import DesignMatrix, excel_to_dict
+from semeio.fmudesign._workbook import render_workbook_resource
 
 
 @dataclasses.dataclass
@@ -278,7 +278,7 @@ def subcommand_init(args: Namespace, parser: ArgumentParser) -> None:
 
     # Verify that all examples in EXAMPLES_DIR exist on disk
     for example in EXAMPLES:
-        assert (EXAMPLES_DIR / example.filename).is_file()
+        assert (EXAMPLES_DIR / _workbook_spec_name(example.filename)).is_file()
 
     # No files were provided
     if not args.file:
@@ -295,17 +295,23 @@ def subcommand_init(args: Namespace, parser: ArgumentParser) -> None:
         print(f"Error on {filename!r}. Already exists.")
         sys.exit(1)
 
-    with as_file(EXAMPLES_DIR / filename) as source_path:
-        shutil.copy(source_path, filename)
-        print(f"Created file {filename!r}.")
-
+    created_files = render_workbook_resource(
+        EXAMPLES_DIR / _workbook_spec_name(filename),
+        filename,
+    )
     examples_by_filename = {example.filename: example for example in EXAMPLES}
-    for other_file in examples_by_filename[filename].other_files:
-        with as_file(EXAMPLES_DIR / other_file) as source_path:
-            shutil.copy(source_path, other_file)
-            print(f"  Created auxiliary file {other_file!r}.")
+    expected_files = [filename, *examples_by_filename[filename].other_files]
+    assert [path.name for path in created_files] == expected_files
+
+    print(f"Created file {filename!r}.")
+    for other_file in created_files[1:]:
+        print(f"  Created auxiliary file {other_file.name!r}.")
 
     sys.exit(0)
+
+
+def _workbook_spec_name(filename: str) -> str:
+    return str(Path(filename).with_suffix(".yaml"))
 
 
 def main() -> None:
