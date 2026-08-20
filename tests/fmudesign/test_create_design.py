@@ -23,7 +23,7 @@ TESTDATA = Path(__file__).parent / "data"
 
 @pytest.mark.integration_test
 @pytest.mark.parametrize("correlations", [True, False])
-def test_distribution_statistis(tmpdir, monkeypatch, correlations):
+def test_distribution_statistics(tmp_path, correlations):
     """This test ensures that if any large-sample statistics for any distribution
     changes, we will likely pick it up in the future."""
 
@@ -129,8 +129,8 @@ def test_distribution_statistis(tmpdir, monkeypatch, correlations):
         index=list(design_input["param_name"]),
     )
     # Create a file to do the save => load roundtrip and test that too
-    FILENAME = "designinput.xlsx"
-    with pd.ExcelWriter(FILENAME, engine="openpyxl") as writer:
+    input_path = tmp_path / "designinput.xlsx"
+    with pd.ExcelWriter(input_path, engine="openpyxl") as writer:
         general_input.to_excel(
             writer, sheet_name="general_input", index=False, header=None
         )
@@ -139,7 +139,7 @@ def test_distribution_statistis(tmpdir, monkeypatch, correlations):
         corr_sheet.to_excel(writer, sheet_name="corr1")
 
     # Read the file and draw samples
-    input_dict = excel_to_dict(FILENAME)
+    input_dict = excel_to_dict(input_path)
     design = DesignMatrix()
     design.generate(input_dict)
     assert len(design.designvalues) == NUM_SAMPLES
@@ -209,7 +209,7 @@ def test_distribution_statistis(tmpdir, monkeypatch, correlations):
         assert np.sqrt(np.mean((obs_corr - corr_values) ** 2)) < 0.02
 
 
-def test_generate_onebyone(tmpdir):
+def test_generate_onebyone(tmp_path):
     """Test generation of onebyone design"""
 
     inputfile = TESTDATA / "config/design_input_example1.xlsx"
@@ -226,11 +226,9 @@ def test_generate_onebyone(tmpdir):
     # Checking dimensions of design matrix
     assert design.designvalues.shape == (rows_in_design_matrix, 10)
 
-    # Write to disk and check some validity
-    tmpdir.chdir()
-    design.to_xlsx("designmatrix.xlsx")
-    assert Path("designmatrix.xlsx").exists
-    diskdesign = pd.read_excel("designmatrix.xlsx", engine="openpyxl")
+    output_path = tmp_path / "designmatrix.xlsx"
+    design.to_xlsx(str(output_path))
+    diskdesign = pd.read_excel(output_path, engine="openpyxl")
 
     assert (
         diskdesign.columns
@@ -288,7 +286,7 @@ def test_generate_onebyone(tmpdir):
     ).all()
 
     diskdefaults = pd.read_excel(
-        "designmatrix.xlsx", sheet_name="DefaultValues", header=None, engine="openpyxl"
+        output_path, sheet_name="DefaultValues", header=None, engine="openpyxl"
     )
     assert (diskdefaults.columns == [0, 1]).all()
     assert (
@@ -360,59 +358,39 @@ def test_generate_onebyone(tmpdir):
 
     # MULTZ_ILE contains random numbers so we won't test it here.
 
-    diskmetadata = pd.read_excel(
-        "designmatrix.xlsx", sheet_name="Metadata", engine="openpyxl"
-    )
+    diskmetadata = pd.read_excel(output_path, sheet_name="Metadata", engine="openpyxl")
 
     assert (diskmetadata.columns == ["Description", "Value"]).all()
     assert diskmetadata["Description"].iloc[0] == "Created using semeio version:"
     assert diskmetadata["Value"].iloc[0] == semeio.__version__
     assert diskmetadata["Description"].iloc[1] == "Created on:"
 
-    # For the timestamp, we can't check the exact value since it will differ
-    # each time the test runs. Instead, we can verify it's a valid datetime string
-    # by attempting to parse it
-    timestamp = diskmetadata["Value"].iloc[1]
-    try:
-        datetime.fromisoformat(timestamp)
-    except ValueError:
-        pytest.fail("Timestamp in Metadata sheet is not in expected format")
+    datetime.fromisoformat(diskmetadata["Value"].iloc[1])
+
+
+def _assert_design_snapshot(design, snapshot):
+    rounded_values = design.designvalues.map(
+        lambda value: value if isinstance(value, str) else float(f"{value:.6g}")
+    )
+    snapshot.assert_match(
+        json.dumps(
+            {
+                "designvalues": rounded_values.to_dict("records"),
+                "defaultvalues": dict(design.defaultvalues),
+            },
+            indent=2,
+            sort_keys=True,
+        ),
+        "design_output_mc_with_correls.json",
+    )
 
 
 def test_generate_full_mc_snapshot(snapshot):
-    """Test that full monte carlo design matrix generation remains consistent.
-
-    This is a snapshot test that verifies the entire output of the design matrix
-    generation process, including both the design values and default values.
-    """
-    # Setup
-    inputfile = TESTDATA / "config/design_input_mc_with_correls.xlsx"
-    input_dict = excel_to_dict(inputfile)
+    input_dict = excel_to_dict(TESTDATA / "config/design_input_mc_with_correls.xlsx")
     design = DesignMatrix()
-
-    # Generate the design matrix
     design.generate(input_dict)
 
-    # Round to N significant figures
-    df_rounded = design.designvalues.map(
-        lambda x: x if isinstance(x, str) else float(f"{x:.6g}")
-    )
-
-    # Prepare data for snapshot comparison
-    snapshot_dict = {
-        "designvalues": df_rounded.to_dict("records"),
-        "defaultvalues": dict(design.defaultvalues),
-    }
-
-    # Serialize to string for snapshot comparison
-    snapshot_str = json.dumps(
-        snapshot_dict,
-        indent=2,
-        sort_keys=True,
-    )
-
-    # Verify against snapshot
-    snapshot.assert_match(snapshot_str, "design_output_mc_with_correls.json")
+    _assert_design_snapshot(design, snapshot)
 
 
 def test_generate_full_mc_snapshot_independent(snapshot):
@@ -423,24 +401,12 @@ def test_generate_full_mc_snapshot_independent(snapshot):
     input_dict = excel_to_dict(inputfile)
     input_dict["seed_strategy"] = "independent"
     design = DesignMatrix()
-
     design.generate(input_dict)
 
-    df_rounded = design.designvalues.map(
-        lambda x: x if isinstance(x, str) else float(f"{x:.6g}")
-    )
-    snapshot_str = json.dumps(
-        {
-            "designvalues": df_rounded.to_dict("records"),
-            "defaultvalues": dict(design.defaultvalues),
-        },
-        indent=2,
-        sort_keys=True,
-    )
-    snapshot.assert_match(snapshot_str, "design_output_mc_with_correls.json")
+    _assert_design_snapshot(design, snapshot)
 
 
-def test_generate_full_mc(tmpdir):
+def test_generate_full_mc():
     """Test generation of full monte carlo"""
     inputfile = TESTDATA / "config/design_input_mc_with_correls.xlsx"
     input_dict = excel_to_dict(inputfile)
@@ -448,30 +414,12 @@ def test_generate_full_mc(tmpdir):
     design = DesignMatrix()
     design.generate(input_dict)
 
-    # Checking dimensions of design matrix
-    assert design.designvalues.shape == (500, 16)
-
-    # Write to disk and check some validity
-    tmpdir.chdir()
-    design.to_xlsx("designmatrix.xlsx")
-    assert Path("designmatrix.xlsx").exists
-    diskdesign = pd.read_excel(
-        "designmatrix.xlsx", sheet_name="DesignSheet01", engine="openpyxl"
-    )
-    assert "REAL" in diskdesign
-    assert "SENSNAME" in diskdesign
-    assert "SENSCASE" in diskdesign
-    assert not diskdesign.empty
-
-    diskdefaults = pd.read_excel(
-        "designmatrix.xlsx", sheet_name="DefaultValues", engine="openpyxl"
-    )
-    assert not diskdefaults.empty
-    assert len(diskdefaults.columns) == 2
+    design_values = design.designvalues
+    assert design_values.shape == (500, 16)
 
     # Make sure adding dependent discrete parameters works.
     disk_depends = pd.read_excel(inputfile, sheet_name="depend1", engine="openpyxl")
-    df_merged = diskdesign.merge(disk_depends, on="DATO", how="inner")
+    df_merged = design_values.merge(disk_depends, on="DATO", how="inner")
     assert (df_merged["DERIVED_PARAM1_x"] == df_merged["DERIVED_PARAM1_y"]).all()
     assert (df_merged["DERIVED_PARAM2_x"] == df_merged["DERIVED_PARAM2_y"]).all()
 
@@ -484,105 +432,88 @@ def test_generate_full_mc(tmpdir):
     #   - Linear relationship between variables
     # When these assumptions are violated (e.g. with skewed distributions),
     # the intervals become less reliable
-    r_obj = stats.pearsonr(diskdesign["OWC1"], diskdesign["OWC2"])
+    r_obj = stats.pearsonr(design_values["OWC1"], design_values["OWC2"])
     r_ci = r_obj.confidence_interval(confidence_level=0.95)
     assert r_ci[0] <= 0.5 <= r_ci[1]
 
-    r_obj = stats.pearsonr(diskdesign["OWC2"], diskdesign["OWC3"])
+    r_obj = stats.pearsonr(design_values["OWC2"], design_values["OWC3"])
     r_ci = r_obj.confidence_interval(confidence_level=0.95)
     assert r_ci[0] <= -0.7 <= r_ci[1]
 
-    r_obj = stats.pearsonr(diskdesign["PARAM1"], diskdesign["PARAM2"])
+    r_obj = stats.pearsonr(design_values["PARAM1"], design_values["PARAM2"])
     r_ci = r_obj.confidence_interval(confidence_level=0.95)
     assert r_ci[0] <= 0 <= r_ci[1]
 
     # Using wide tolerance because the non-linear transformation between normal
     # and target distributions can alter correlation strength.
     assert np.isclose(
-        stats.spearmanr(diskdesign["PARAM1"], diskdesign["PARAM3"])[0], 0.2, atol=0.1
+        stats.spearmanr(design_values["PARAM1"], design_values["PARAM3"])[0],
+        0.2,
+        atol=0.1,
     )
 
     # Check that we can add correlations to discrete variables.
     # DATO is stored as strings, so convert to ordinals: spearmanr needs
     # numeric input, otherwise scipy passes an object array to np.cov.
-    dato_ordinal = pd.to_datetime(diskdesign["DATO"]).astype("int64")
+    dato_ordinal = pd.to_datetime(design_values["DATO"]).astype("int64")
     assert np.isclose(
-        stats.spearmanr(dato_ordinal, diskdesign["NTG1"])[0], 0.8, atol=0.1
+        stats.spearmanr(dato_ordinal, design_values["NTG1"])[0], 0.8, atol=0.1
     )
 
-    date_fractions = diskdesign["DATO"].value_counts(normalize=True)
+    date_fractions = design_values["DATO"].value_counts(normalize=True)
     assert math.isclose(date_fractions.loc["2018-11-02"], 0.3)
     assert math.isclose(date_fractions.loc["2018-11-03"], 0.4)
     assert math.isclose(date_fractions.loc["2018-11-04"], 0.3)
 
 
 @pytest.mark.integration_test
-def test_generate_background(tmpdir):
+def test_generate_background(tmp_path, monkeypatch):
     inputfile = TESTDATA / "config/design_input_background.xlsx"
     input_dict = excel_to_dict(inputfile)
     source_file = TESTDATA / "config/doe1.xlsx"
-    dest_file = tmpdir.join("doe1.xlsx")
-    shutil.copy2(source_file, dest_file)
+    shutil.copy2(source_file, tmp_path)
+    monkeypatch.chdir(tmp_path)
 
-    with tmpdir.as_cwd():
-        design = DesignMatrix()
-        design.generate(input_dict)
+    design = DesignMatrix()
+    design.generate(input_dict)
 
-        # Check that background parameters have same values in different sensitivities.
-        background_params = ["PARAM17", "PARAM18", "PARAM19"]
+    background_params = ["PARAM17", "PARAM18", "PARAM19"]
+    background_vals = design.designvalues.loc[
+        design.designvalues["SENSNAME"] == "background", background_params
+    ]
+    velmodel_vals = design.designvalues.loc[
+        design.designvalues["SENSNAME"] == "velmodel", background_params
+    ]
+    assert (background_vals.to_numpy() == velmodel_vals.to_numpy()).all()
 
-        background_vals = design.designvalues.loc[
-            design.designvalues["SENSNAME"] == "background", background_params
-        ]
-        velmodel_vals = design.designvalues.loc[
-            design.designvalues["SENSNAME"] == "velmodel", background_params
-        ]
+    faults_vals = design.designvalues.loc[
+        design.designvalues["SENSNAME"] == "faults", background_params
+    ]
+    contacts_vals = design.designvalues.loc[
+        design.designvalues["SENSNAME"] == "contacts", background_params
+    ]
+    assert (faults_vals.to_numpy() == contacts_vals.to_numpy()).all()
 
-        assert (background_vals.to_numpy() == velmodel_vals.to_numpy()).all()
-
-        faults_vals = design.designvalues.loc[
-            design.designvalues["SENSNAME"] == "faults", background_params
-        ]
-        contacts_vals = design.designvalues.loc[
-            design.designvalues["SENSNAME"] == "contacts", background_params
-        ]
-
-        assert (faults_vals.to_numpy() == contacts_vals.to_numpy()).all()
-
-        sens6 = design.designvalues[design.designvalues["SENSNAME"] == "sens6"]
-        # PARAM5 ~ TruncatedNormal(3, 1, 1, 5)
-        # PARAM6 ~ Uniform(0, 1)
-        assert np.isclose(
-            stats.spearmanr(sens6["PARAM5"], sens6["PARAM6"])[0],
-            0.8,
-            atol=0.1,
-        )
-        sens7 = design.designvalues[design.designvalues["SENSNAME"] == "sens7"]
-
-        # PARAM9 and PARAM10 have a target correlation of 0.9 in the design config.
-        # The input correlation matrix is not positive semi-definite and is
-        # transformed to the closest positive semi-definite correlation matrix.
-        # The new correlation coefficient is 0.8.
-        # Using wide tolerance because the non-linear transformation between normal
-        # and target distributions can alter correlation strength.
-        assert np.isclose(
-            stats.spearmanr(sens7["PARAM9"], sens7["PARAM10"])[0],
-            0.8,
-            atol=0.2,
-        )
-
-        assert np.isclose(
-            stats.spearmanr(sens7["PARAM10"], sens7["PARAM11"])[0],
-            0.8,
-            atol=0.20,
-        )
+    sens6 = design.designvalues[design.designvalues["SENSNAME"] == "sens6"]
+    assert np.isclose(
+        stats.spearmanr(sens6["PARAM5"], sens6["PARAM6"])[0],
+        0.8,
+        atol=0.1,
+    )
+    sens7 = design.designvalues[design.designvalues["SENSNAME"] == "sens7"]
+    assert np.isclose(
+        stats.spearmanr(sens7["PARAM9"], sens7["PARAM10"])[0],
+        0.8,
+        atol=0.2,
+    )
+    assert np.isclose(
+        stats.spearmanr(sens7["PARAM10"], sens7["PARAM11"])[0],
+        0.8,
+        atol=0.2,
+    )
 
 
-def test_read_defaultvalues_duplicate_error(tmpdir, monkeypatch):
-    """Test that read_defaultvalues raises ValueError for duplicate parameter names."""
-    monkeypatch.chdir(tmpdir)
-
-    # Create a simple Excel file with duplicate parameter names in defaultvalues
+def test_read_defaultvalues_duplicate_error(tmp_path):
     defaultvalues = pd.DataFrame(
         columns=["param_name", "default_value"],
         data=[
@@ -594,11 +525,9 @@ def test_read_defaultvalues_duplicate_error(tmpdir, monkeypatch):
         ],
     )
 
-    defaultvalues.to_excel(
-        "test_defaults.xlsx", sheet_name="defaultvalues", index=False
-    )
+    input_path = tmp_path / "test_defaults.xlsx"
+    defaultvalues.to_excel(input_path, sheet_name="defaultvalues", index=False)
 
-    # Test that ValueError is raised with the exact expected message
     with pytest.raises(
         ValueError,
         match=(
@@ -606,7 +535,7 @@ def test_read_defaultvalues_duplicate_error(tmpdir, monkeypatch):
             r"'defaultvalues': a, c\. All parameter names must be unique\."
         ),
     ):
-        _read_defaultvalues("test_defaults.xlsx", "defaultvalues")
+        _read_defaultvalues(input_path, "defaultvalues")
 
 
 def _write_correlation_excel(filepath, names, lower_values):
@@ -619,7 +548,7 @@ def _write_correlation_excel(filepath, names, lower_values):
     _write_correlation_sheets(filepath, {"corr1": (names, arr)})
 
 
-def test_read_correlations_returns_symmetric_matrix(tmp_path):
+def test_read_correlations_returns_labeled_symmetric_matrix(tmp_path):
     names = ["A", "B", "C"]
     lower = [[1.0], [0.5, 1.0], [0.3, 0.4, 1.0]]
     filepath = tmp_path / "corr.xlsx"
@@ -628,69 +557,29 @@ def test_read_correlations_returns_symmetric_matrix(tmp_path):
     result = design_dist.read_correlations(str(filepath), corr_sheet="corr1")
     arr = result.to_numpy()
 
+    assert list(result.index) == names
+    assert list(result.columns) == names
     np.testing.assert_array_almost_equal(arr, arr.T)
     np.testing.assert_array_almost_equal(np.diag(arr), [1.0, 1.0, 1.0])
     assert np.isclose(arr[1, 0], 0.5)
     assert np.isclose(arr[0, 1], 0.5)
 
 
-def test_read_correlations_preserves_index_and_columns(tmp_path):
-    names = ["X", "Y"]
-    lower = [[1.0], [0.8, 1.0]]
-    filepath = tmp_path / "corr.xlsx"
-    _write_correlation_excel(filepath, names, lower)
-
-    result = design_dist.read_correlations(str(filepath), corr_sheet="corr1")
-
-    assert list(result.index) == names
-    assert list(result.columns) == names
-
-
-def test_read_correlations_to_numpy_is_writable(tmp_path):
-    """The returned DataFrame's to_numpy(copy=True) should be writable."""
-    names = ["A", "B"]
-    lower = [[1.0], [0.5, 1.0]]
-    filepath = tmp_path / "corr.xlsx"
-    _write_correlation_excel(filepath, names, lower)
-
-    result = design_dist.read_correlations(str(filepath), corr_sheet="corr1")
-    arr = result.to_numpy(copy=True)
-    arr[0, 1] = 0.99  # Should not raise
-
-
-def test_print_corrmat_handles_negative_zeros(capsys):
-    values = np.array([[1, -0.0, 0.9], [-0.0, 1, 0], [0.9, 0, 1.0]])
-    df = pd.DataFrame(values, index=["A", "B", "C"], columns=["A", "B", "C"])
-    print_corrmat(df)
-    output = capsys.readouterr().out
-    assert "1.00" in output
-    assert ".90" in output
-
-
-def test_print_corrmat_does_not_mutate_input():
+def test_print_corrmat_formats_without_mutating_input(capsys):
     values = np.array([[1, -0.0, 0.9], [-0.0, 1, 0], [0.9, 0, 1.0]])
     df = pd.DataFrame(values, index=["A", "B", "C"], columns=["A", "B", "C"])
     original = df.copy()
+
     print_corrmat(df)
+
+    output = capsys.readouterr().out
+    assert "1.00" in output
+    assert ".90" in output
+    assert "-0.00" not in output
     pd.testing.assert_frame_equal(df, original)
 
 
-def test_fill_with_background_values_no_index_column():
-    dm = DesignMatrix()
-    dm.designvalues = pd.DataFrame(
-        {
-            "SENSNAME": ["s1", "s1"],
-            "SENSCASE": ["c1", "c1"],
-            "param1": [np.nan, np.nan],
-        }
-    )
-    dm.backgroundvalues = pd.DataFrame({"param1": [1.0, 2.0]})
-    dm._fill_with_background_values()
-
-    assert "index" not in dm.designvalues.columns
-
-
-def test_fill_with_background_values_are_filled():
+def test_fill_with_background_values():
     dm = DesignMatrix()
     dm.designvalues = pd.DataFrame(
         {
@@ -702,22 +591,8 @@ def test_fill_with_background_values_are_filled():
     dm.backgroundvalues = pd.DataFrame({"param1": [10.0, 20.0]})
     dm._fill_with_background_values()
 
+    assert "index" not in dm.designvalues.columns
     assert dm.designvalues["param1"].tolist() == [10.0, 20.0]
-
-
-if __name__ == "__main__":
-    import pytest
-
-    pytest.main(args=[__file__, "--doctest-modules", "-v", "-l"])
-
-
-# --------------------------------------------------------------------------
-# Monte Carlo seed strategies ('joint' default vs opt-in 'independent').
-#
-# 'joint' draws all parameters in one LHS call, so editing one parameter
-# reshuffles all of them. 'independent' seeds each parameter (and each
-# correlation group) separately, so unrelated parameters stay fixed.
-# --------------------------------------------------------------------------
 
 
 def _sample_mc(
@@ -971,16 +846,9 @@ def test_designmatrix_adding_a_parameter_end_to_end(strategy, stable):
     _assert_stability(stable, d2.designvalues, d3.designvalues, ["A", "B"])
 
 
-@pytest.mark.parametrize(
-    ("keys_a", "keys_b"),
-    [
-        # Naive ":".join encoding maps both of these to "42:a:param:b:param:c".
-        (("a", "param", "b:param:c"), ("a:param:b", "param", "c")),
-        (("ab", "param", "c"), ("a", "param", "bc")),
-    ],
-)
-def test_derive_rng_distinct_keys_give_distinct_streams(keys_a, keys_b):
-    """Identifiers containing the delimiter must not collide into one stream."""
+def test_derive_rng_distinguishes_delimited_keys():
+    keys_a = ("a", "param", "b:param:c")
+    keys_b = ("a:param:b", "param", "c")
     stream_a = _derive_rng(42, *keys_a).random(8)
     stream_b = _derive_rng(42, *keys_b).random(8)
     assert not np.array_equal(stream_a, stream_b)

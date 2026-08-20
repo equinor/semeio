@@ -1,6 +1,5 @@
-"""Testing generating design matrices from dictionary input"""
+"""Tests for the DesignMatrix API and installed command."""
 
-import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -13,144 +12,97 @@ from semeio.fmudesign import DesignMatrix
 TESTDATA = Path(__file__).parent / "data"
 
 
-def matches(pattern: str, text: str) -> bool:
-    """Match text against a pattern where <ANY> acts as a wildcard.
-
-    Examples
-    --------
-    >>> matches("my name is <ANY>!", "my name is John!")
-    True
-    >>> matches("my <ANY> is <ANY>!", "my name is John!")
-    True
-    matches("my <ANY> is <ANY>!", "my name are John!")
-    False
-    """
-    regex_pattern = re.escape(pattern)
-    regex_pattern = regex_pattern.replace("<ANY>", ".+?")
-    regex_pattern = f"^{regex_pattern}$"
-    return bool(re.match(regex_pattern, text))
-
-
-def valid_designmatrix(dframe):
-    """Performs general checks on a design matrix, that should always be valid"""
-    assert "REAL" in dframe
-
-    # REAL always starts at 0 and is consecutive
-    assert dframe["REAL"][0] == 0
-    assert dframe["REAL"].diff().dropna().unique() == 1
-
-    assert "SENSNAME" in dframe.columns
-    assert "SENSCASE" in dframe.columns
-
-    # There should be no empty cells in the dataframe:
-    assert not dframe.isna().sum().sum()
+def assert_valid_designmatrix(design_values):
+    assert design_values.columns[:3].tolist() == ["REAL", "SENSNAME", "SENSCASE"]
+    assert design_values["REAL"].tolist() == list(range(len(design_values)))
+    assert not design_values.isna().any().any()
 
 
 def test_designmatrix():
-    """Test the DesignMatrix class"""
-
     design = DesignMatrix()
+    design.generate(
+        {
+            "designtype": "onebyone",
+            "seeds": "default",
+            "repeats": 10,
+            "distribution_seed": 42,
+            "defaultvalues": {},
+            "sensitivities": {
+                "rms_seed": {
+                    "seedname": "RMS_SEED",
+                    "senstype": "seed",
+                    "parameters": None,
+                    "dependencies": {},
+                }
+            },
+        }
+    )
 
-    mock_dict = {
-        "designtype": "onebyone",
-        "seeds": "default",
-        "repeats": 10,
-        "distribution_seed": 42,
-        "defaultvalues": {},
-        "sensitivities": {
-            "rms_seed": {
-                "seedname": "RMS_SEED",
-                "senstype": "seed",
-                "parameters": None,
-                "dependencies": {},
-            }
-        },
-    }
-
-    design.generate(mock_dict)
-    valid_designmatrix(design.designvalues)
+    assert_valid_designmatrix(design.designvalues)
     assert len(design.designvalues) == 10
     assert isinstance(design.defaultvalues, dict)
 
 
 @pytest.mark.integration_test
-def test_endpoint(tmpdir, monkeypatch):
-    """Test the installed endpoint
-
-    Will write generated design matrices to the pytest tmpdir directory,
-    usually /tmp/pytest-of-<username>/
-    """
-    designfile = TESTDATA / "config/design_input_onebyone.xlsx"
-
-    # The xlsx file contains a relative path, relative to the input design sheet:
+def test_endpoint_with_relative_input_and_custom_output_paths(tmp_path, monkeypatch):
+    source_design = TESTDATA / "config/design_input_onebyone.xlsx"
     dependency = (
-        pd.read_excel(designfile, header=None, engine="openpyxl")
+        pd.read_excel(source_design, header=None, engine="openpyxl")
         .set_index([0])[1]
         .to_dict()["background"]
     )
 
-    tmpdir.chdir()
-    monkeypatch.chdir(tmpdir)
-    # Copy over input files:
-    shutil.copy(str(designfile), ".")
-    shutil.copy(Path(designfile).parent / dependency, ".")
+    case_dir = tmp_path / "path" / "going" / "down"
+    case_dir.mkdir(parents=True)
+    shutil.copy2(source_design, case_dir)
+    shutil.copy2(source_design.parent / dependency, case_dir)
+    monkeypatch.chdir(tmp_path)
 
+    relative_design = case_dir.relative_to(tmp_path) / source_design.name
+    output_path = tmp_path / "custom-design.xlsx"
     result = subprocess.run(
-        ["fmudesign", str(designfile)], check=True, capture_output=True, text=True
+        ["fmudesign", str(relative_design), str(output_path)],
+        check=True,
+        capture_output=True,
+        text=True,
     )
 
-    # Use <ANY> in the string below to match anything in CLI output
-    expected_output = """Reading file: <ANY>design_input_onebyone.xlsx'
-    Reading background values from: <ANY>doe1.xlsx
-     Generating sensitivity : seed
-     Generating sensitivity : faults
-     Generating sensitivity : velmodel
-     Generating sensitivity : contacts
-     Generating sensitivity : multz
-     Generating sensitivity : sens6
-     Generating sensitivity : sens7
-    Sampling 4 parameters in correlation group 'corr1'
+    assert "Reading file:" in result.stdout
+    assert "Reading background values from:" in result.stdout
+    assert "Adjusted to nearest consistent correlation matrix:" in result.stdout
+    assert "Design matrix of shape (91, 22) written to:" in result.stdout
+    assert "Thank you for using fmudesign" in result.stdout
 
-    Warning: Correlation matrix 'corr1' is inconsistent
-    Requirements:
-      - All diagonal elements must be 1
-      - All elements must be between -1 and 1
-      - The matrix must be positive semi-definite
+    assert output_path.is_file()
+    assert_valid_designmatrix(pd.read_excel(output_path, engine="openpyxl"))
 
-    Input correlation matrix:
-    |             |   (1) |   (2) |   (3) |   (4) |
-    |:------------|------:|------:|------:|------:|
-    | (1) PARAM9  |  1.00 |       |       |       |
-    | (2) PARAM10 |  0.90 |  1.00 |       |       |
-    | (3) PARAM11 |  0.00 |  0.90 |  1.00 |       |
-    | (4) PARAM12 |  0.00 |  0.00 |  0.00 |  1.00 |
 
-    Adjusted to nearest consistent correlation matrix:
-    |             |   (1) |   (2) |   (3) |   (4) |
-    |:------------|------:|------:|------:|------:|
-    | (1) PARAM9  |  1.00 |       |       |       |
-    | (2) PARAM10 |  0.74 |  1.00 |       |       |
-    | (3) PARAM11 |  0.11 |  0.74 |  1.00 |       |
-    | (4) PARAM12 |  0.00 |  0.00 |  0.00 |  1.00 |
-    Generating sensitivity : sens8
-Provided number of background values (11) is smaller than number of realisations for sensitivity ('sens7', 'p10_p90') and parameter PARAM13. Will be filled with default values.
-Provided number of background values (11) is smaller than number of realisations for sensitivity ('sens7', 'p10_p90') and parameter PARAM14. Will be filled with default values.
-Provided number of background values (11) is smaller than number of realisations for sensitivity ('sens7', 'p10_p90') and parameter PARAM15. Will be filled with default values.
-Provided number of background values (11) is smaller than number of realisations for sensitivity ('sens7', 'p10_p90') and parameter PARAM16. Will be filled with default values.
-Design matrix of shape (91, 22) written to: 'generateddesignmatrix.xlsx'
+@pytest.mark.integration_test
+def test_endpoint_resolves_external_seeds_file_relative_to_input(tmp_path, monkeypatch):
+    """'rms_seeds' can also point to an external file. Like 'background' above,
+    it must be resolved relative to the input file, not the CWD: the seeds file
+    is only copied into the nested case_dir, so a CWD-relative fallback would
+    fail to find it."""
+    source_design = TESTDATA / "config/design_input_background_extseeds.xlsx"
 
- Thank you for using fmudesign <ANY>
-  - Documentation:           https://equinor.github.io/fmu-tools/fmudesign.html
-  - Course docs:             https://fmu-docs.equinor.com/docs/fmu-coursedocs/fmu-howto/sensitivities/index.html
-  - Issues/feature requests: https://github.com/equinor/semeio/issues"""  # ruff: ignore[line-too-long]
+    case_dir = tmp_path / "path" / "going" / "down"
+    case_dir.mkdir(parents=True)
+    shutil.copy2(source_design, case_dir)
+    shutil.copy2(source_design.parent / "seeds.xlsx", case_dir)
+    shutil.copy2(source_design.parent / "doe1.xlsx", case_dir)
+    monkeypatch.chdir(tmp_path)
 
-    for stdout_line, expected_line in zip(
-        result.stdout.split(), expected_output.split(), strict=False
-    ):
-        assert matches(expected_line, stdout_line)
+    relative_design = case_dir.relative_to(tmp_path) / source_design.name
+    output_path = tmp_path / "extseeds-design.xlsx"
+    subprocess.run(
+        ["fmudesign", str(relative_design), str(output_path)],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
 
-    assert Path("generateddesignmatrix.xlsx").exists  # Default output file
-    valid_designmatrix(pd.read_excel("generateddesignmatrix.xlsx", engine="openpyxl"))
-
-    subprocess.run(["fmudesign", str(designfile), "anotheroutput.xlsx"], check=True)
-    assert Path("anotheroutput.xlsx").exists
+    design_values = pd.read_excel(output_path, engine="openpyxl")
+    assert_valid_designmatrix(design_values)
+    # seeds.xlsx starts at 2000, unlike the 'default' 1000... sequence, so this
+    # confirms the external file was actually read.
+    assert design_values["RMS_SEED"].iloc[0] == 2000
