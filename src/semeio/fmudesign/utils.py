@@ -2,8 +2,11 @@
 Module for utility functions that do not belong elsewhere.
 """
 
+import math
+from pathlib import Path
 from typing import Any
 
+import numpy as np
 import pandas as pd
 
 
@@ -214,3 +217,74 @@ def map_dependencies(
                     print(f" {from_} => {to_}")
 
     return df
+
+
+def find_sheet(name: str, names: list[str]) -> str:
+    """Search for Excel sheets with a soft matching. Raises ValueError if zero
+    or more than one match is found.
+
+    Examples:
+    >>> find_sheet('general_input', ['generalinput', 'designinput', 'defaultinput'])
+    'generalinput'
+    >>> find_sheet('variable_input', ['generalinput', 'designinput', 'defaultinput'])
+    Traceback (most recent call last):
+      ...
+    ValueError: No match for variable_input: ['generalinput', 'designinput', 'defaultinput']
+    """  # ruff: ignore[line-too-long]
+
+    def sanitize(inputstring: str) -> str:
+        return inputstring.lower().strip().replace("_", "")
+
+    found = [name_i for name_i in names if sanitize(name) == sanitize(name_i)]
+    if len(found) > 1:
+        raise ValueError(f"More than one match for {name}: {found}")
+    if len(found) == 0:
+        raise ValueError(f"No match for {name}: {names}")
+    return found[0]
+
+
+def _has_value(value: Any) -> bool:  # ruff: ignore[any-type]
+    """Returns False only if the argument is np.nan"""
+    try:
+        return not np.isnan(value)
+    except TypeError:
+        return True
+
+
+def _is_int(teststring: str) -> bool:
+    """Test if string is a finite integer"""
+    try:
+        if not np.isnan(int(teststring)):
+            return math.isclose((float(teststring) % 1), 0, abs_tol=1e-14)
+        return False  # It was a "number", but it was NaN.
+    except ValueError:
+        return False
+
+
+def resolve_path(input_filename: str, reference: str | None) -> str | None:
+    """The path `input_filename` is an Excel sheet, and `reference` is a cell
+    value that *might* be a reference to another file. Resolve the path to
+    `reference` and return. If no such file exists, return `reference`.
+    """
+    # The reference is None, so just return it back
+    if reference is None:
+        return reference
+
+    # It's a string but not a reference to another file
+    if not str(reference).endswith(("xlsx", "csv")):
+        return reference
+
+    # If the reference is e.g. 'C:/Users/USER/files/doe1.xlsx'
+    reference_path = Path(reference)
+    if reference_path.is_absolute() and reference_path.exists():
+        return str(reference_path.resolve())
+
+    # If the reference is e.g. 'doe1.xlsx'
+    full_path = Path(input_filename).parent / reference_path
+    if full_path.exists():
+        return str(full_path.resolve())
+
+    if reference_path.exists():
+        return str(reference_path.resolve())
+
+    raise ValueError(f"Failed to resolve path for file: {reference}")
