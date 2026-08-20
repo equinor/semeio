@@ -3,21 +3,45 @@ These are converted to a dict-of-dicts representation, then they are used
 by the DesignMatrix class to generate design matrices.
 """
 
-import collections
 import contextlib
-import math
 from collections import Counter
 from collections.abc import Hashable, Sequence
 from pathlib import Path
 from typing import Any, cast
 
-import numpy as np
 import openpyxl
 import pandas as pd
 import yaml
 
-from semeio.fmudesign.design_distributions import read_correlations
-from semeio.fmudesign.utils import seeds_from_extern
+from semeio.fmudesign.read_background import read_background
+from semeio.fmudesign.read_correlations import parse_sensitivity_correlations
+from semeio.fmudesign.utils import (
+    _has_value,
+    find_sheet,
+    resolve_path,
+    seeds_from_extern,
+)
+
+
+def _read_general_input(
+    input_filename: str, general_input_sheet: str
+) -> dict[str, Any]:
+    general_input = (
+        pd.read_excel(
+            input_filename,
+            general_input_sheet,
+            header=None,
+            index_col=0,
+            engine="openpyxl",
+        )
+        .dropna(axis=0, how="all")
+        .dropna(axis=1, how="all")
+        .loc[:, 1]
+        .to_dict()
+    )
+    return {str(k): v for k, v in general_input.items()} | {
+        "input_filename": input_filename
+    }
 
 
 def excel_to_dict(
@@ -88,30 +112,6 @@ def inputdict_to_yaml(inputdict: dict[str, Any], filename: str) -> None:
         yaml.dump(inputdict, stream)
 
 
-def find_sheet(name: str, names: list[str]) -> str:
-    """Search for Excel sheets with a soft matching. Raises ValueError if zero
-    or more than one match is found.
-
-    Examples:
-    >>> find_sheet('general_input', ['generalinput', 'designinput', 'defaultinput'])
-    'generalinput'
-    >>> find_sheet('variable_input', ['generalinput', 'designinput', 'defaultinput'])
-    Traceback (most recent call last):
-      ...
-    ValueError: No match for variable_input: ['generalinput', 'designinput', 'defaultinput']
-    """  # ruff: ignore[line-too-long]
-
-    def sanitize(inputstring: str) -> str:
-        return inputstring.lower().strip().replace("_", "")
-
-    found = [name_i for name_i in names if sanitize(name) == sanitize(name_i)]
-    if len(found) > 1:
-        raise ValueError(f"More than one match for {name}: {found}")
-    if len(found) == 0:
-        raise ValueError(f"No match for {name}: {names}")
-    return found[0]
-
-
 def _check_designinput(dsgn_input: pd.DataFrame) -> None:
     """Checks for valid input in designinput sheet"""
     # Filter out rows where sensname has no value
@@ -148,35 +148,6 @@ def _check_for_mixed_sensitivities(sens_name: str, sens_group: pd.DataFrame) -> 
             "must be specified using the same type (seed, scenario, dist, ref, "
             "background, extern)"
         )
-
-
-def resolve_path(input_filename: str, reference: str | None) -> str | None:
-    """The path `input_filename` is an Excel sheet, and `reference` is a cell
-    value that *might* be a reference to another file. Resolve the path to
-    `reference` and return. If no such file exists, return `reference`.
-    """
-    # The reference is None, so just return it back
-    if reference is None:
-        return reference
-
-    # It's a string but not a reference to another file
-    if not str(reference).endswith(("xlsx", "csv")):
-        return reference
-
-    # If the reference is e.g. 'C:/Users/USER/files/doe1.xlsx'
-    reference_path = Path(reference)
-    if reference_path.is_absolute() and reference_path.exists():
-        return str(reference_path.resolve())
-
-    # If the reference is e.g. 'doe1.xlsx'
-    full_path = Path(input_filename).parent / reference_path
-    if full_path.exists():
-        return str(full_path.resolve())
-
-    if reference_path.exists():
-        return str(reference_path.resolve())
-
-    raise ValueError(f"Failed to resolve path for file: {reference}")
 
 
 def _excel_to_dict_onebyone(
@@ -282,7 +253,7 @@ def _excel_to_dict_onebyone(
     elif background.endswith(("csv", "xlsx")):
         output[key] = {"extern": resolve_path(input_filename, background)}
     else:
-        output[key] = _read_background(input_filename, background)
+        output[key] = read_background(input_filename, background)
 
     output["defaultvalues"] = _read_defaultvalues(input_filename, default_values_sheet)
 
@@ -343,7 +314,9 @@ def _excel_to_dict_onebyone(
             sensdict["parameters"] = _read_dist_sensitivity(group)
             sensdict["correlations"] = None
             if "corr_sheet" in group:
-                sensdict["correlations"] = _read_correlations(group, input_filename)
+                sensdict["correlations"] = parse_sensitivity_correlations(
+                    group, input_filename
+                )
 
         elif sens_type == "extern":
             sensdict["extern_file"] = resolve_path(
@@ -455,107 +428,6 @@ def _read_dependencies(
             "not contain the input parameter. "
         )
     return depend_dict
-
-
-def _read_background(inp_filename: str, bck_sheet: str) -> dict[str, Any]:
-    """Reads excel sheet with background parameters and distributions
-
-    Args:
-        inp_filename (str): name of Excel workbook
-        bck_sheet (str): name of sheet with background parameters
-
-    Returns:
-        dict with parameter names and distributions
-    """
-    backdict: dict[str, Any] = {}
-    paramdict: dict[str, Any] = {}
-    with pd.ExcelFile(inp_filename, engine="openpyxl") as workbook:
-        sheet_names = [str(name) for name in workbook.sheet_names]
-    try:
-        bck_sheet = find_sheet(bck_sheet, names=sheet_names)
-    except ValueError as err:
-        raise ValueError(
-            f"Sheet {bck_sheet!r} with background parameters, specified in the "
-            f"general input sheet, was not found in {inp_filename!r}.\n"
-            f"Sheets in workbook: {sheet_names}\n"
-            "Use 'None' as background in the general input sheet if no "
-            "background parameters are wanted."
-        ) from err
-    bck_input = (
-        pd.read_excel(inp_filename, bck_sheet, engine="openpyxl")
-        .dropna(axis=0, how="all")
-        .loc[:, lambda df: ~df.columns.astype(str).str.contains("^Unnamed")]
-    )
-
-    backdict["correlations"] = None
-    if "corr_sheet" in bck_input:
-        backdict["correlations"] = _read_correlations(
-            bck_input, inp_filename, group_description=f"background sheet {bck_sheet!r}"
-        )
-
-    if "dist_param1" not in bck_input.columns.to_numpy():
-        bck_input["dist_param1"] = float("NaN")
-    if "dist_param2" not in bck_input.columns.to_numpy():
-        bck_input["dist_param2"] = float("NaN")
-    if "dist_param3" not in bck_input.columns.to_numpy():
-        bck_input["dist_param3"] = float("NaN")
-    if "dist_param4" not in bck_input.columns.to_numpy():
-        bck_input["dist_param4"] = float("NaN")
-
-    for row in bck_input.itertuples():
-        if not _has_value(row.param_name):
-            raise ValueError(
-                "Background parameters specified "
-                "where one line has empty parameter "
-                "name "
-            )
-        if not _has_value(row.dist_param1):
-            raise ValueError(
-                f"Parameter {row.param_name} has been input "
-                "in background sheet but with empty "
-                "first distribution parameter "
-            )
-        if not _has_value(row.dist_param2) and _has_value(row.dist_param3):
-            raise ValueError(
-                f"Parameter {row.param_name} has been input in "
-                "background sheet with "
-                'value for "dist_param3" while '
-                '"dist_param2" is empty. This is not '
-                "allowed"
-            )
-        if not _has_value(row.dist_param3) and _has_value(row.dist_param4):
-            raise ValueError(
-                f"Parameter {row.param_name} has been input in "
-                "background sheet with "
-                'value for "dist_param4" while '
-                '"dist_param3" is empty. This is not '
-                "allowed"
-            )
-        distparams = [
-            item
-            for item in [
-                row.dist_param1,
-                row.dist_param2,
-                row.dist_param3,
-                row.dist_param4,
-            ]
-            if _has_value(item)
-        ]
-        if "corr_sheet" in bck_input:
-            corrsheet = None if not _has_value(row.corr_sheet) else row.corr_sheet
-        else:
-            corrsheet = None
-        paramdict[str(row.param_name)] = [str(row.dist_name), distparams, corrsheet]
-    backdict["parameters"] = paramdict
-
-    if "decimals" in bck_input:
-        decimals: dict[str, Any] = {}
-        for row in bck_input.itertuples():
-            if _has_value(row.decimals) and _is_int(row.decimals):  # type: ignore[arg-type]
-                decimals[row.param_name] = int(row.decimals)  # type: ignore[arg-type, index]
-        backdict["decimals"] = decimals
-
-    return backdict
 
 
 def _read_scenario_sensitivity(sensgroup: pd.DataFrame) -> dict[str, Any]:
@@ -702,77 +574,6 @@ def _read_dist_sensitivity(sensgroup: pd.DataFrame) -> dict[str, Any]:
         paramdict[str(row.param_name)] = [str(row.dist_name), distparams, corrsheet]
 
     return paramdict
-
-
-def _read_correlations(
-    sensgroup: pd.DataFrame, inputfile: str, group_description: str | None = None
-) -> dict[str, Any] | None:
-    """Parse correlation information from a sensitivity group.
-
-    Args:
-        sensgroup: rows describing the parameters, either a sensitivity group
-            from the designinput sheet or the background sheet.
-        inputfile: name of the Excel workbook holding the correlation sheets.
-        group_description: how to refer to `sensgroup` in error messages.
-            Defaults to the sensname of the group.
-    """
-
-    # No correlation sheet column exists
-    if "corr_sheet" not in sensgroup.columns:
-        return None
-
-    # The column exists, but it is all blank
-    if sensgroup["corr_sheet"].dropna().empty:
-        return None
-
-    if group_description is None:
-        group_description = f"sensitivity group {sensgroup['sensname'].iloc[0]!r}"
-
-    correlations: dict[str, Any] = {"inputfile": inputfile}
-
-    # Create a mapping 'corr_to_params' like:
-    # {'corr1': ['var_A', 'var_B', ...], ...}
-    corr_to_params = collections.defaultdict(list)
-    for _, row in sensgroup.iterrows():
-        if not _has_value(row["corr_sheet"]):
-            continue
-        corr_to_params[row["corr_sheet"]].append(row["param_name"])
-
-    # Open the correlation sheet and peek at it
-    # We want to verify that if variables ['A', 'B'] point to the corr sheet,
-    # then exactly those variables are also defined in the sheet
-    for corr_sheet, parameters in corr_to_params.items():
-        df_corr = read_correlations(excel_filename=inputfile, corr_sheet=corr_sheet)
-        if set(df_corr.columns) != set(parameters):
-            msg = f"Mismatch between parameters in {group_description} "
-            msg += f"pointing to\ncorrelation sheet {corr_sheet!r} and "
-            msg += "parameters specified in that correlation sheet.\n"
-            msg += f"Parameters in {group_description}: {sorted(set(parameters))}\n"
-            msg += f"Parameters in correlation sheet: {sorted(set(df_corr.columns))}\n"
-            msg += "These parameters must be specified one-to-one."
-            raise ValueError(msg)
-
-    correlations["sheetnames"] = list(set(corr_to_params.keys()))
-
-    return correlations
-
-
-def _has_value(value: Any) -> bool:  # ruff: ignore[any-type]
-    """Returns False only if the argument is np.nan"""
-    try:
-        return not np.isnan(value)
-    except TypeError:
-        return True
-
-
-def _is_int(teststring: str) -> bool:
-    """Test if string is a finite integer"""
-    try:
-        if not np.isnan(int(teststring)):
-            return math.isclose((float(teststring) % 1), 0, abs_tol=1e-14)
-        return False  # It was a "number", but it was NaN.
-    except ValueError:
-        return False
 
 
 def _raise_if_duplicates(container: Sequence[Hashable]) -> None:
