@@ -31,12 +31,14 @@ dependencies = [
     "numpy",
     "pandas>=2",
     "pydantic>=2.9",
+    "PyYAML",
     "pyscal>=0.4.0",
     "resdata",
     "scikit-learn",
     "scipy",
     "segyio",
     "xlrd",
+    "xlsxwriter>=3.2.3",
     "xtgeo>=2.15",
     "seaborn",
     "probabilit>=0.4.1",
@@ -89,7 +91,7 @@ version_file = "src/semeio/version.py"
 where = ["src"]
 
 [tool.setuptools.package-data]
-"semeio.fmudesign.examples" = ["*.xlsx", "*.yml", "*.yaml", "*.toml"]
+"semeio.fmudesign.examples" = ["*.yaml"]
 
 [tool.pytest.ini_options]
 addopts = "-ra --strict-markers"

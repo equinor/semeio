@@ -1,0 +1,49 @@
+version: 1
+general:
+  repeats: 1
+  rms_seeds: null
+  distribution_seed: 42
+sensitivities:
+- name: defaultvalues
+  type: reference
+  realizations: 1
+- name: faults
+  type: scenario
+  realizations: 1
+  cases: [east, west]
+  parameters:
+    FAULT_POSITION: [-1, 1]
+- name: velmodel
+  type: scenario
+  realizations: 1
+  cases: [alternative]
+  parameters:
+    VEL_MODEL: [2]
+- name: contacts
+  type: scenario
+  realizations: 1
+  cases: [shallow, deep]
+  parameters:
+    OWC1: [2600, 2700]
+    OWC2: [2700, 2800]
+    OWC3: [2800, 2900]
+- name: multz
+  type: distribution
+  realizations: 10
+  parameters:
+    MULTZ_ILE:
+      distribution: logunif
+      values: ['0.0001', 1]
+      decimals: 4
+defaults:
+  RMS_SEED: 1000
+  FAULT_POSITION: 0
+  VEL_MODEL: base
+  OWC1: 2650
+  OWC2: 2750
+  OWC3: 2850
+  MULTZ_ILE: 0.1
+  PARAM1: 0
+  PARAM2: '0.1'
+  PARAM3: 0
+  PARAM4: 0

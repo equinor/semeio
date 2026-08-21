@@ -1,0 +1,131 @@
+version: 1
+general:
+  repeats: 5
+  rms_seeds: null
+sensitivities:
+- name: background
+  type: background
+- name: faults
+  type: scenario
+  cases: [low, high]
+  parameters:
+    PARAM1: [-1, 1]
+- name: velmodel
+  type: scenario
+  cases: [alternative]
+  parameters:
+    DC_MODEL: [alternative]
+- name: contacts
+  type: scenario
+  cases: [shallow, deep]
+  parameters:
+    PARAM2: [-1, 1]
+    PARAM3: [-1, 1]
+    PARAM4: [-1, 1]
+- name: multz
+  type: distribution
+  realizations: 10
+  parameters:
+    MULTZ_ILE:
+      distribution: logunif
+      values: ['0.0001', 1]
+- name: sens6
+  type: distribution
+  realizations: 10
+  parameters:
+    PARAM5:
+      distribution: normal
+      values: [3, 1, 1, 5]
+    PARAM6:
+      distribution: uniform
+      values: [0, 1]
+    PARAM7:
+      distribution: triang
+      values: [1, 3, 5]
+    FAULT_SEAL:
+      distribution: discrete
+      values: ['2018-11-02, 2018-11-03, 2018-11-04', '0.3, 0.4, 0.3']
+- name: sens7
+  type: distribution
+  realizations: 30
+  parameters:
+    PARAM9:
+      distribution: lognormal
+      values: [0, 1]
+      decimals: 2
+      correlation: corr1
+    PARAM10:
+      distribution: uniform
+      values: [0, 1]
+      decimals: 3
+      correlation: corr1
+    PARAM11:
+      distribution: triang
+      values: [1, 1.5, 2]
+      correlation: corr1
+    PARAM12:
+      distribution: logunif
+      values: [1, 10]
+      correlation: corr1
+- name: sens8
+  type: external
+  realizations: 11
+  file: doe1.xlsx
+  parameters: [PARAM13, PARAM14, PARAM15, PARAM16]
+defaults:
+  DEFAULT1: 0
+  DEFAULT2: prediction
+  DEFAULT3: 0
+  PARAM1: 0
+  DC_MODEL: base
+  PARAM2: 0
+  PARAM3: 0
+  PARAM4: 0
+  MULTZ_ILE: '0.1'
+  PARAM5: 0
+  PARAM6: 0
+  PARAM7: 0
+  PARAM8: 0
+  PARAM9: 0
+  PARAM10: 0
+  PARAM11: 0
+  PARAM12: 0
+  PARAM13: 0
+  PARAM14: 0
+  PARAM15: 0
+  PARAM16: 0
+  PARAM17: 0
+  PARAM18: 0
+  PARAM19: 0
+  FAULT_SEAL: base
+background:
+  parameters:
+    PARAM17:
+      distribution: normal
+      values: [0, 1]
+      decimals: 2
+      correlation: background_corr
+    PARAM18:
+      distribution: uniform
+      values: [0, 1]
+      decimals: 2
+      correlation: background_corr
+    PARAM19:
+      distribution: triang
+      values: [1, 3, 5]
+      decimals: 2
+      correlation: background_corr
+correlations:
+  background_corr:
+    parameters: [PARAM17, PARAM18, PARAM19]
+    matrix:
+    - [1]
+    - [0.9, 1]
+    - [0, 0.9, 1]
+  corr1:
+    parameters: [PARAM9, PARAM10, PARAM11, PARAM12]
+    matrix:
+    - [1]
+    - [0.9, 1]
+    - [0, 0.9, 1]
+    - [0, 0, 0, 1]

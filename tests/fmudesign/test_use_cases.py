@@ -12,8 +12,10 @@ from semeio.fmudesign import DesignMatrix, excel_to_dict
 from semeio.fmudesign.fmudesignrunner import EXAMPLES
 
 EXAMPLE_FILES = [example.filename for example in EXAMPLES]
-TESTDATA = Path(__file__).parent / "data"
-TEST_FILES = sorted((TESTDATA / "config").glob("design_input*.xlsx"))
+TEST_FILES = sorted(
+    path.with_suffix(".xlsx").name
+    for path in (Path(__file__).parent / "data/config").glob("design_input*.yaml")
+)
 
 
 def _run_cli(*args):
@@ -133,9 +135,10 @@ def test_constant_distribution(tmp_path, gen_input_sheet):
 
 @pytest.mark.integration_test
 @pytest.mark.parametrize(
-    "designfile", TEST_FILES, ids=[path.stem for path in TEST_FILES]
+    "designfile", TEST_FILES, ids=[name.removesuffix(".xlsx") for name in TEST_FILES]
 )
-def test_all_input_files(tmp_path, monkeypatch, designfile):
+def test_all_input_files(tmp_path, monkeypatch, fmudesign_test_data, designfile):
+    designfile = fmudesign_test_data / "config" / designfile
     monkeypatch.chdir(tmp_path)
     for filename in designfile.parent.iterdir():
         if filename.is_file():
@@ -147,8 +150,8 @@ def test_all_input_files(tmp_path, monkeypatch, designfile):
 
 @pytest.mark.integration_test
 @pytest.mark.parametrize("verbosity", [1, 2])
-def test_cli_verbosity_levels(tmp_path, monkeypatch, verbosity):
-    designfile = TESTDATA / "config/design_input_background.xlsx"
+def test_cli_verbosity_levels(tmp_path, monkeypatch, fmudesign_test_data, verbosity):
+    designfile = fmudesign_test_data / "config/design_input_background.xlsx"
     monkeypatch.chdir(tmp_path)
     for filename in designfile.parent.iterdir():
         if filename.is_file():
