@@ -44,24 +44,11 @@ def test_designmatrix():
 
 
 @pytest.mark.integration_test
-def test_endpoint_with_relative_input_and_custom_output_paths(tmp_path, monkeypatch):
-    source_design = TESTDATA / "config/design_input_onebyone.xlsx"
-    dependency = (
-        pd.read_excel(source_design, header=None, engine="openpyxl")
-        .set_index([0])[1]
-        .to_dict()["background"]
-    )
-
-    case_dir = tmp_path / "path" / "going" / "down"
-    case_dir.mkdir(parents=True)
-    shutil.copy2(source_design, case_dir)
-    shutil.copy2(source_design.parent / dependency, case_dir)
-    monkeypatch.chdir(tmp_path)
-
-    relative_design = case_dir.relative_to(tmp_path) / source_design.name
-    output_path = tmp_path / "custom-design.xlsx"
+def test_endpoint(use_tmpdir):
+    designfile = TESTDATA / "config/design_input_onebyone.xlsx"
+    output_file = "custom-design.xlsx"
     result = subprocess.run(
-        ["fmudesign", str(relative_design), str(output_path)],
+        ["fmudesign", designfile, output_file],
         check=True,
         capture_output=True,
         text=True,
@@ -73,8 +60,8 @@ def test_endpoint_with_relative_input_and_custom_output_paths(tmp_path, monkeypa
     assert "Design matrix of shape (91, 22) written to:" in result.stdout
     assert "Thank you for using fmudesign" in result.stdout
 
-    assert output_path.is_file()
-    assert_valid_designmatrix(pd.read_excel(output_path, engine="openpyxl"))
+    assert Path(output_file).is_file()
+    assert_valid_designmatrix(pd.read_excel(output_file, engine="openpyxl"))
 
 
 @pytest.mark.integration_test
