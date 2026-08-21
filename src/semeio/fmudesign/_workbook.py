@@ -26,10 +26,11 @@ from xlsxwriter.worksheet import Worksheet
 
 type Scalar = StrictStr | StrictBool | StrictInt | StrictFloat
 type CellValue = Scalar | None
+type CellRow = dict[str, CellValue]
 type PositiveInt = Annotated[StrictInt, Field(gt=0)]
 
 _INVALID_SHEET_NAME = re.compile(r"[\[\]:*?/\\]")
-_DESIGN_COLUMNS: list[CellValue] = [
+_DESIGN_COLUMNS = (
     "sensname",
     "numreal",
     "type",
@@ -47,7 +48,17 @@ _DESIGN_COLUMNS: list[CellValue] = [
     "corr_sheet",
     "extern_file",
     "dependencies",
-]
+)
+_BACKGROUND_COLUMNS = (
+    "param_name",
+    "dist_name",
+    "dist_param1",
+    "dist_param2",
+    "dist_param3",
+    "dist_param4",
+    "decimals",
+    "corr_sheet",
+)
 _SENSITIVITY_COLORS = (
     "#FFF2CC",
     "#DDEBF7",
@@ -314,18 +325,19 @@ def render_workbook_resource(
 
 
 def _render_config_workbook(spec: WorkbookSpec, destination: Path) -> None:
-    with Workbook(destination) as workbook:
+    with _create_workbook(destination) as workbook:
         formats = _create_formats(workbook)
         _render_general(workbook, formats, spec)
         sensitivity_rows, sensitivity_groups = _design_rows(spec.sensitivities)
-        if _uses_dependencies(spec.sensitivities):
-            design_columns = _DESIGN_COLUMNS
-        else:
-            design_columns = _DESIGN_COLUMNS[:-1]
-            sensitivity_rows = [row[:-1] for row in sensitivity_rows]
+        uses_dependencies = _uses_dependencies(spec.sensitivities)
+        design_columns = [
+            column
+            for column in _DESIGN_COLUMNS
+            if column != "dependencies" or uses_dependencies
+        ]
         design_rows: list[list[CellValue]] = [
-            design_columns,
-            *sensitivity_rows,
+            list(design_columns),
+            *[_row_values(row, design_columns) for row in sensitivity_rows],
         ]
         design_formats = [
             formats["header"],
@@ -350,20 +362,14 @@ def _render_config_workbook(spec: WorkbookSpec, destination: Path) -> None:
             formats,
         )
         if isinstance(spec.background, BackgroundSpec):
-            background_rows: list[list[CellValue]] = [
-                [
-                    "param_name",
-                    "dist_name",
-                    "dist_param1",
-                    "dist_param2",
-                    "dist_param3",
-                    "dist_param4",
-                    "decimals",
-                    "corr_sheet",
-                ]
-            ]
+            background_rows: list[list[CellValue]] = [list(_BACKGROUND_COLUMNS)]
             for name, distribution in spec.background.parameters.items():
-                background_rows.append(_background_row(name, distribution))
+                background_rows.append(
+                    _row_values(
+                        _distribution_row(name, distribution),
+                        _BACKGROUND_COLUMNS,
+                    )
+                )
             _render_table(
                 workbook.add_worksheet("background"),
                 background_rows,
@@ -433,8 +439,8 @@ def _render_general(
 
 def _design_rows(
     sensitivities: list[Sensitivity],
-) -> tuple[list[list[CellValue]], list[int]]:
-    rows: list[list[CellValue]] = []
+) -> tuple[list[CellRow], list[int]]:
+    rows: list[CellRow] = []
     groups: list[int] = []
     for group, sensitivity in enumerate(sensitivities):
         first_group_row = len(rows)
@@ -446,33 +452,34 @@ def _design_rows(
                 constants.append((None, None))
             for index, (name, value) in enumerate(constants):
                 row = _sensitivity_row(sensitivity, index)
-                row[3] = name
+                row["param_name"] = name
                 if name is not None:
-                    row[8:10] = ["const", value]
+                    row["dist_name"] = "const"
+                    row["dist_param1"] = value
                 rows.append(row)
         elif isinstance(sensitivity, ScenarioSensitivity):
             for index, (name, values) in enumerate(sensitivity.parameters.items()):
                 row = _sensitivity_row(sensitivity, index)
-                row[3] = name
+                row["param_name"] = name
                 if index == 0:
-                    row[4] = sensitivity.cases[0]
+                    row["senscase1"] = sensitivity.cases[0]
                     if len(sensitivity.cases) == 2:
-                        row[6] = sensitivity.cases[1]
-                row[5] = values[0]
+                        row["senscase2"] = sensitivity.cases[1]
+                row["value1"] = values[0]
                 if len(values) == 2:
-                    row[7] = values[1]
+                    row["value2"] = values[1]
                 rows.append(row)
         elif isinstance(sensitivity, DistributionSensitivity):
             for index, (name, parameter) in enumerate(sensitivity.parameters.items()):
-                row = _distribution_row(name, parameter)
-                row[:3] = _sensitivity_row(sensitivity, index)[:3]
+                row = _sensitivity_row(sensitivity, index)
+                row.update(_distribution_row(name, parameter))
                 rows.append(row)
         elif isinstance(sensitivity, ExternalSensitivity):
             for index, name in enumerate(sensitivity.parameters):
                 row = _sensitivity_row(sensitivity, index)
-                row[3] = name
+                row["param_name"] = name
                 if index == 0:
-                    row[15] = sensitivity.file
+                    row["extern_file"] = sensitivity.file
                 rows.append(row)
         else:
             rows.append(_sensitivity_row(sensitivity, 0))
@@ -489,47 +496,47 @@ def _uses_dependencies(sensitivities: list[Sensitivity]) -> bool:
     )
 
 
-def _sensitivity_row(sensitivity: Sensitivity, index: int) -> list[CellValue]:
+def _sensitivity_row(sensitivity: Sensitivity, index: int) -> CellRow:
     type_name = {
         "distribution": "dist",
         "reference": "ref",
         "external": "extern",
     }.get(sensitivity.type, sensitivity.type)
-    return [
-        sensitivity.name if index == 0 else None,
-        sensitivity.realizations if index == 0 else None,
-        type_name if index == 0 else None,
-        *([None] * 14),
-    ]
+    return {
+        "sensname": sensitivity.name if index == 0 else None,
+        "numreal": sensitivity.realizations if index == 0 else None,
+        "type": type_name if index == 0 else None,
+    }
 
 
 def _distribution_row(
     name: str,
     parameter: DistributionParameter,
-) -> list[CellValue]:
-    row: list[CellValue] = [None] * len(_DESIGN_COLUMNS)
-    row[3] = name
-    row[8] = parameter.distribution
-    row[9 : 9 + len(parameter.values)] = parameter.values
-    row[13] = parameter.decimals
-    row[14] = parameter.correlation
-    row[16] = parameter.dependency
+) -> CellRow:
+    row: CellRow = {
+        "param_name": name,
+        "dist_name": parameter.distribution,
+        "decimals": parameter.decimals,
+        "corr_sheet": parameter.correlation,
+        "dependencies": parameter.dependency,
+    }
+    row.update(
+        {
+            f"dist_param{index}": value
+            for index, value in enumerate(parameter.values, start=1)
+        }
+    )
     return row
 
 
-def _background_row(name: str, parameter: DistributionParameter) -> list[CellValue]:
-    return [
-        name,
-        parameter.distribution,
-        *parameter.values,
-        *([None] * (4 - len(parameter.values))),
-        parameter.decimals,
-        parameter.correlation,
-    ]
+def _row_values(
+    row: Mapping[str, CellValue], columns: Sequence[str]
+) -> list[CellValue]:
+    return [row.get(column) for column in columns]
 
 
 def _render_table_workbook(spec: TableSpec, destination: Path) -> None:
-    with Workbook(destination) as workbook:
+    with _create_workbook(destination) as workbook:
         formats = _create_formats(workbook)
         rows: list[list[CellValue]] = spec.rows
         if spec.columns is not None:
@@ -584,6 +591,16 @@ def _render_instructions(worksheet: Worksheet, formats: Mapping[str, Format]) ->
             formats["title"] if row == 0 else formats["plain"],
         )
     worksheet.set_column(0, 0, 88)
+
+
+def _create_workbook(destination: Path) -> Workbook:
+    return Workbook(
+        destination,
+        {
+            "strings_to_formulas": False,
+            "strings_to_urls": False,
+        },
+    )
 
 
 def _create_formats(workbook: Workbook) -> dict[str, Format]:

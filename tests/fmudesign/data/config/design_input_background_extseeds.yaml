@@ -129,6 +129,7 @@ correlations:
     - [1]
     - [0.9, 1]
     - [0, 0.9, 1]
+# Provides doe1.xlsx for other configurations rendered into this directory.
 auxiliary_files:
   doe1.xlsx:
     columns: [PARAM13, PARAM14, PARAM15, PARAM16]

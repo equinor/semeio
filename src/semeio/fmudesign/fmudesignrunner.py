@@ -38,8 +38,6 @@ class Example:
 
     filename: str
     description: str
-    # Auxiliary files that the main file depend on (external params, seeds, etc.)
-    other_files: list[str] = dataclasses.field(default_factory=list)
 
 
 EXAMPLES = [
@@ -64,7 +62,6 @@ EXAMPLES = [
             "Sensitivities with group of (correlated) parameters "
             "sampled from distributions"
         ),
-        other_files=["ex2_doe1.xlsx"],
     ),
     Example(
         "ex3_velocities.xlsx",
@@ -73,7 +70,6 @@ EXAMPLES = [
     Example(
         "ex4_background_parameters.xlsx",
         description="Sensitivities with background parameters",
-        other_files=["ex4_doe1.xlsx"],
     ),
     Example(
         "ex5_single_reference.xlsx",
@@ -88,7 +84,6 @@ EXAMPLES = [
     Example(
         "ex7_background_no_seed.xlsx",
         description="Sensitivities with background but without RMS seed",
-        other_files=["ex7_doe1.xlsx"],
     ),
     Example("ex8_mc_with_correls.xlsx", description="Full Monte Carlo sensitivity"),
 ]
@@ -299,9 +294,6 @@ def subcommand_init(args: Namespace, parser: ArgumentParser) -> None:
         EXAMPLES_DIR / _workbook_spec_name(filename),
         filename,
     )
-    examples_by_filename = {example.filename: example for example in EXAMPLES}
-    expected_files = [filename, *examples_by_filename[filename].other_files]
-    assert [path.name for path in created_files] == expected_files
 
     print(f"Created file {filename!r}.")
     for other_file in created_files[1:]:
