@@ -306,22 +306,27 @@ def render_workbook(
     except ValidationError as error:
         raise ValueError(f"Invalid workbook specification: {error}") from error
 
-    destination = Path(destination)
-    _render_config_workbook(workbook_spec, destination)
-    created = [destination]
-    for filename, table in workbook_spec.auxiliary_files.items():
-        auxiliary_path = destination.parent / filename
-        if auxiliary_path.resolve() == destination.resolve():
-            raise ValueError("An auxiliary file cannot replace the main workbook")
+    output_paths = workbook_output_paths(workbook_spec, destination)
+    _render_config_workbook(workbook_spec, output_paths[0])
+    for auxiliary_path, table in zip(
+        output_paths[1:],
+        workbook_spec.auxiliary_files.values(),
+        strict=True,
+    ):
         _render_table_workbook(table, auxiliary_path)
-        created.append(auxiliary_path)
-    return created
+    return output_paths
 
 
-def render_workbook_resource(
-    resource: Traversable, destination: str | Path
-) -> list[Path]:
-    return render_workbook(load_workbook_spec(resource), destination)
+def workbook_output_paths(spec: WorkbookSpec, destination: str | Path) -> list[Path]:
+    destination = Path(destination)
+    auxiliary_paths = [
+        destination.parent / filename for filename in spec.auxiliary_files
+    ]
+    if any(path.resolve() == destination.resolve() for path in auxiliary_paths):
+        raise ValueError("An auxiliary file cannot replace the main workbook")
+    if len({path.resolve() for path in auxiliary_paths}) != len(auxiliary_paths):
+        raise ValueError("Auxiliary files must use unique output paths")
+    return [destination, *auxiliary_paths]
 
 
 def _render_config_workbook(spec: WorkbookSpec, destination: Path) -> None:

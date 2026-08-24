@@ -304,8 +304,12 @@ def test_render_workbook_preserves_formula_and_url_strings(tmp_path):
     ],
 )
 def test_render_workbook_rejects_invalid_specs(tmp_path, spec, match):
+    output_path = tmp_path / "invalid.xlsx"
+
     with pytest.raises(ValueError, match=match):
-        render_workbook(spec, tmp_path / "invalid.xlsx")
+        render_workbook(spec, output_path)
+
+    assert not output_path.exists()
 
 
 def test_fmudesign_resources_do_not_contain_excel_workbooks():

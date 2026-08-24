@@ -18,12 +18,12 @@ TEST_FILES = sorted(
 )
 
 
-def _run_cli(*args):
+def _run_cli(*args, check=True):
     env = os.environ.copy()
     env.setdefault("MPLBACKEND", "Agg")
     return subprocess.run(
         ["fmudesign", *map(str, args)],
-        check=True,
+        check=check,
         capture_output=True,
         text=True,
         env=env,
@@ -166,3 +166,18 @@ def test_all_example_files_cmd_init(tmp_path, monkeypatch, designfile):
     monkeypatch.chdir(tmp_path)
     _run_cli("init", designfile)
     _run_cli("run", designfile)
+
+
+@pytest.mark.integration_test
+def test_cmd_init_does_not_overwrite_auxiliary(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    auxiliary_path = tmp_path / "ex2_doe1.xlsx"
+    original_content = b"existing auxiliary"
+    auxiliary_path.write_bytes(original_content)
+
+    result = _run_cli("init", "ex2_correlations.xlsx", check=False)
+
+    assert result.returncode == 1
+    assert "Already exists" in result.stdout
+    assert not (tmp_path / "ex2_correlations.xlsx").exists()
+    assert auxiliary_path.read_bytes() == original_content

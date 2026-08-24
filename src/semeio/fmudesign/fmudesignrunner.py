@@ -29,7 +29,11 @@ from packaging.version import Version
 
 import semeio
 from semeio.fmudesign import DesignMatrix, excel_to_dict
-from semeio.fmudesign._workbook import render_workbook_resource
+from semeio.fmudesign._workbook import (
+    load_workbook_spec,
+    render_workbook,
+    workbook_output_paths,
+)
 
 
 @dataclasses.dataclass
@@ -286,14 +290,13 @@ def subcommand_init(args: Namespace, parser: ArgumentParser) -> None:
         print(f"Error on {filename!r}. Not found among: {valid_names}")
         sys.exit(1)
 
-    if Path(filename).exists():
-        print(f"Error on {filename!r}. Already exists.")
-        sys.exit(1)
+    spec = load_workbook_spec(EXAMPLES_DIR / _workbook_spec_name(filename))
+    for output_path in workbook_output_paths(spec, filename):
+        if output_path.exists():
+            print(f"Error on {str(output_path)!r}. Already exists.")
+            sys.exit(1)
 
-    created_files = render_workbook_resource(
-        EXAMPLES_DIR / _workbook_spec_name(filename),
-        filename,
-    )
+    created_files = render_workbook(spec, filename)
 
     print(f"Created file {filename!r}.")
     for other_file in created_files[1:]:
