@@ -1,6 +1,5 @@
 import math
 import re
-from collections import defaultdict
 from collections.abc import Mapping, Sequence
 from importlib.resources.abc import Traversable
 from pathlib import Path
@@ -228,14 +227,14 @@ class WorkbookSpec(SpecModel):
         if len(sensitivity_names) != len(set(sensitivity_names)):
             raise ValueError("Sensitivity names must be unique")
 
-        correlation_members: dict[str, list[str]] = defaultdict(list)
         for name, parameter in self._distribution_parameters():
-            if parameter.correlation is not None:
-                if parameter.correlation not in self.correlations:
-                    raise ValueError(
-                        f"Unknown correlation {parameter.correlation!r} for {name!r}"
-                    )
-                correlation_members[parameter.correlation].append(name)
+            if (
+                parameter.correlation is not None
+                and parameter.correlation not in self.correlations
+            ):
+                raise ValueError(
+                    f"Unknown correlation {parameter.correlation!r} for {name!r}"
+                )
             if parameter.dependency is not None:
                 dependency = self.dependencies.get(parameter.dependency)
                 if dependency is None:
@@ -247,12 +246,6 @@ class WorkbookSpec(SpecModel):
                         f"Dependency {parameter.dependency!r} must use {name!r} "
                         "as its source"
                     )
-
-        for name, members in correlation_members.items():
-            if set(members) != set(self.correlations[name].parameters):
-                raise ValueError(
-                    f"Correlation {name!r} parameters must match its references"
-                )
 
         dynamic_sheets = [
             *(["background"] if isinstance(self.background, BackgroundSpec) else []),
