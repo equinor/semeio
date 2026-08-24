@@ -27,6 +27,7 @@ from importlib.resources import as_file, files
 from pathlib import Path
 
 from packaging.version import Version
+from pydantic import ValidationError
 
 import semeio
 from semeio.fmudesign import DesignMatrix, excel_to_dict
@@ -312,6 +313,7 @@ def main() -> None:
     """semeio.fmudesign is a command line utility for generating design matrices
 
     Wrapper for the the semeio.fmudesign module"""
+
     warnings.filterwarnings("ignore", category=DeprecationWarning)
     warnings.filterwarnings("ignore", category=FutureWarning)
 
@@ -329,18 +331,27 @@ def main() -> None:
         parser.print_help()
         sys.exit(0)
 
+    err_guide_msg = (
+        "\n \n"
+        "fmudesign failed. Read the error message above and fix the input file.\n"
+        " - Documentation:           https://equinor.github.io/fmu-tools/fmudesign.html\n"
+        " - Course docs:             https://fmu-docs.equinor.com/docs/fmu-coursedocs/fmu-howto/sensitivities/index.html \n"  # ruff: ignore[line-too-long]
+        " - Issues/feature requests: https://github.com/equinor/semeio/issues\n"
+        "If you believe this error is a bug or are unable to fix it, create an issue or contact the scout team \n"  # ruff: ignore[line-too-long]
+    )
     try:
         args.func(args)
+    except ValidationError as e:
+        for err in e.errors(include_url=False):
+            print(
+                f"Validation error for '{err['loc'][0]}': "
+                f"{err['msg']}, was '{err['input']}'"
+            )
+        print(err_guide_msg)
+        sys.exit(1)
     except Exception:  # ruff: ignore[blind-except]
         traceback.print_exc()
-        print(
-            "\n \n",
-            "fmudesign failed. Read the error message above and fix the input file.\n",
-            " - Documentation:           https://equinor.github.io/fmu-tools/fmudesign.html\n",
-            " - Course docs:             https://fmu-docs.equinor.com/docs/fmu-coursedocs/fmu-howto/sensitivities/index.html \n",  # ruff: ignore[line-too-long]
-            " - Issues/feature requests: https://github.com/equinor/semeio/issues\n",
-            "If you believe this error is a bug or are unable to fix it, create an issue or contact the scout team \n",  # ruff: ignore[line-too-long]
-        )
+        print(err_guide_msg)
         sys.exit(1)  # Exit with a non-zero status code (required for smoke tests!)
 
     print(
