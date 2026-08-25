@@ -54,7 +54,7 @@ EXAMPLES = [
     ),
     Example(
         "fmudesign_ex_onebyone.xlsx",
-        description="The example file used in fmu-coursedocs. Extensively documented.",
+        description="One-by-one sensitivity example used in fmu-coursedocs.",
     ),
     Example(
         "ex1_onebyone_rms_repeat.xlsx",

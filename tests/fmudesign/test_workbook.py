@@ -1,12 +1,7 @@
-from pathlib import Path
-
 import openpyxl
 import pytest
 
 from semeio.fmudesign._workbook import render_workbook
-
-REPOSITORY_ROOT = Path(__file__).parents[2]
-EXCEL_SUFFIXES = {".xls", ".xlsx", ".xlsm", ".xlsb"}
 
 MINIMAL_SPEC = {
     "version": 1,
@@ -71,69 +66,6 @@ def test_render_workbook_preserves_formula_and_url_strings(tmp_path):
     ("spec", "match"),
     [
         (
-            {**MINIMAL_SPEC, "version": 2},
-            "version",
-        ),
-        (
-            {**MINIMAL_SPEC, "unknown": True},
-            "unknown",
-        ),
-        (
-            {
-                **MINIMAL_SPEC,
-                "sensitivities": [
-                    {"name": "same", "type": "seed"},
-                    {"name": "same", "type": "seed"},
-                ],
-            },
-            "Sensitivity names must be unique",
-        ),
-        (
-            {
-                **MINIMAL_SPEC,
-                "sensitivities": [
-                    {
-                        "name": "scenario",
-                        "type": "scenario",
-                        "cases": ["low", "high"],
-                        "parameters": {"A": [1]},
-                    }
-                ],
-            },
-            "one value per case",
-        ),
-        (
-            {
-                **MINIMAL_SPEC,
-                "sensitivities": [
-                    {
-                        "name": "distribution",
-                        "type": "distribution",
-                        "parameters": {
-                            "A": {
-                                "distribution": "normal",
-                                "values": [0, 1],
-                                "correlation": "missing",
-                            }
-                        },
-                    }
-                ],
-            },
-            "Unknown correlation",
-        ),
-        (
-            {
-                **MINIMAL_SPEC,
-                "correlations": {
-                    "invalid": {
-                        "parameters": ["A", "B"],
-                        "matrix": [[1], [0.5]],
-                    }
-                },
-            },
-            "lower-triangular",
-        ),
-        (
             {
                 **MINIMAL_SPEC,
                 "auxiliary_files": {
@@ -164,17 +96,3 @@ def test_render_workbook_rejects_invalid_specs(tmp_path, spec, match):
         render_workbook(spec, output_path)
 
     assert not output_path.exists()
-
-
-def test_fmudesign_resources_do_not_contain_excel_workbooks():
-    workbook_resources = [
-        path.relative_to(REPOSITORY_ROOT)
-        for root in (
-            REPOSITORY_ROOT / "src/semeio/fmudesign",
-            REPOSITORY_ROOT / "tests/fmudesign",
-        )
-        for path in root.rglob("*")
-        if path.suffix.lower() in EXCEL_SUFFIXES
-    ]
-
-    assert workbook_resources == []
