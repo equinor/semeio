@@ -207,7 +207,6 @@ class WorkbookSpec(SpecModel):
     correlations: dict[StrictStr, CorrelationSpec] = Field(default_factory=dict)
     dependencies: dict[StrictStr, DependencySpec] = Field(default_factory=dict)
     auxiliary_files: dict[StrictStr, TableSpec] = Field(default_factory=dict)
-    include_instructions: StrictBool = False
 
     @field_validator("auxiliary_files")
     @classmethod
@@ -251,7 +250,6 @@ class WorkbookSpec(SpecModel):
             *(["background"] if isinstance(self.background, BackgroundSpec) else []),
             *self.correlations,
             *self.dependencies,
-            *(["INFO"] if self.include_instructions else []),
         ]
         for name in dynamic_sheets:
             _validate_sheet_name(name)
@@ -397,8 +395,6 @@ def _render_config_workbook(spec: WorkbookSpec, destination: Path) -> None:
                     ]
                 )
             _render_table(workbook.add_worksheet(name), dependency_rows, formats)
-        if spec.include_instructions:
-            _render_instructions(workbook.add_worksheet("INFO"), formats)
 
 
 def _render_general(
@@ -573,24 +569,6 @@ def _render_table(
     worksheet.set_zoom(90)
 
 
-def _render_instructions(worksheet: Worksheet, formats: Mapping[str, Format]) -> None:
-    lines = [
-        "FMU-design example workbook",
-        "Sensitivity blocks are color-banded; rows within a block share a color.",
-        "Run: fmudesign run <input.xlsx> <output.xlsx>",
-        "See the FMU-design documentation for configuration options.",
-    ]
-    for row, line in enumerate(lines):
-        _write_cell(
-            worksheet,
-            row,
-            0,
-            line,
-            formats["title"] if row == 0 else formats["plain"],
-        )
-    worksheet.set_column(0, 0, 88)
-
-
 def _create_workbook(destination: Path) -> Workbook:
     return Workbook(
         destination,
@@ -619,10 +597,6 @@ def _create_formats(workbook: Workbook) -> dict[str, Format]:
             {"bold": True, "bg_color": "#D9EAF7", "border": 1}
         ),
         "input": workbook.add_format({"bg_color": "#FFF2CC", "border": 1}),
-        "title": workbook.add_format(
-            {"bold": True, "font_size": 16, "font_color": "#1F4E78"}
-        ),
-        "plain": workbook.add_format(),
     }
     formats.update(
         {
