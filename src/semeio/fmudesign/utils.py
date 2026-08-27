@@ -18,6 +18,9 @@ def parameters_from_extern(filename: str) -> pd.DataFrame:
     Args:
         filename (str): name of file
     """
+    if not Path(filename).is_file():
+        raise ValueError(f"External file '{filename}' does not exist.")
+
     if str(filename).endswith(".xlsx"):
         return (
             pd.read_excel(filename, engine="openpyxl")
@@ -261,30 +264,20 @@ def _is_int(teststring: str) -> bool:
         return False
 
 
-def resolve_path(input_filename: str, reference: str | None) -> str | None:
-    """The path `input_filename` is an Excel sheet, and `reference` is a cell
-    value that *might* be a reference to another file. Resolve the path to
-    `reference` and return. If no such file exists, return `reference`.
-    """
-    # The reference is None, so just return it back
-    if reference is None:
-        return reference
+def resolve_path(target: str | None, *, base_file: str | None = None) -> str | None:
+    """Try to resolve the path of potential file 'target' either as relative to
+    'base_file' or cwd.
+    If not, return target."""
+    if target is None:
+        return None
 
-    # It's a string but not a reference to another file
-    if not str(reference).endswith(("xlsx", "csv")):
-        return reference
+    if (
+        base_file is not None
+        and (relative_path := Path(base_file).parent / target).is_file()
+    ):
+        return str(relative_path.resolve())
 
-    # If the reference is e.g. 'C:/Users/USER/files/doe1.xlsx'
-    reference_path = Path(reference)
-    if reference_path.is_absolute() and reference_path.exists():
-        return str(reference_path.resolve())
+    if (path := Path(target)).is_file():
+        return str(path.resolve())
 
-    # If the reference is e.g. 'doe1.xlsx'
-    full_path = Path(input_filename).parent / reference_path
-    if full_path.exists():
-        return str(full_path.resolve())
-
-    if reference_path.exists():
-        return str(reference_path.resolve())
-
-    raise ValueError(f"Failed to resolve path for file: {reference}")
+    return target
