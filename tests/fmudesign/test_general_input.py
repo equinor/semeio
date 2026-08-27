@@ -233,7 +233,7 @@ def test_that_rms_seeds_non_existing_file_raises(use_tmpdir):
     general_input_dict = base_general_input_dict() | {
         "rms_seeds": seeds_file_name,
     }
-    with pytest.raises(ValueError, match=r"Failed to resolve path for file: seeds.csv"):
+    with pytest.raises(ValidationError, match=r"Path does not point to a file"):
         GeneralInput.from_dict(general_input_dict)
 
 
@@ -262,6 +262,15 @@ def test_that_invalid_rms_seeds_types_raises_validation_error(invalid_rms_seeds)
         f"|{BOOLEAN_ERROR}",
     ):
         GeneralInput.from_dict(general_input_dict)
+
+
+def test_that_rms_seeds_from_external_txt_file_is_resolved(use_tmpdir):
+    seeds_file_name = "seeds.txt"
+    Path(seeds_file_name).write_text("1\n2\n3", encoding="utf-8")
+    gi = GeneralInput.from_dict(
+        base_general_input_dict() | {"rms_seeds": seeds_file_name}
+    )
+    assert gi.rms_seeds == Path(seeds_file_name).resolve()
 
 
 def test_that_correlation_iterations_defaults_to_zero():

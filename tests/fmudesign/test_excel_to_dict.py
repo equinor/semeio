@@ -301,15 +301,20 @@ def test_background_sheet_name_is_matched_softly(tmp_path, background_name):
     assert background["correlations"]["sheetnames"] == ["bgcorr"]
 
 
-def test_background_file_that_does_not_exist(tmp_path):
+def test_background_file_that_does_not_exist(use_tmpdir):
     input_path = _write_background_workbook(
-        tmp_path / "designinput.xlsx",
+        "designinput.xlsx",
         BACKGROUND_WITH_CORR,
         None,
         "missing_background.csv",
     )
 
-    with pytest.raises(ValueError, match="Failed to resolve path"):
+    with pytest.raises(
+        ValueError,
+        match=r"Sheet 'missing_background.csv' with background parameters, "
+        "specified in the general input sheet, "
+        "was not found in 'designinput.xlsx'.",
+    ):
         excel_to_dict(input_path)
 
 

@@ -238,7 +238,7 @@ def _excel_to_dict_onebyone(
 
         elif sens_type == "extern":
             sensdict["extern_file"] = resolve_path(
-                input_filename, str(group["extern_file"].iloc[0])
+                str(group["extern_file"].iloc[0]), input_filename
             )
             sensdict["senstype"] = sens_type
             sensdict["parameters"] = list(group["param_name"])
