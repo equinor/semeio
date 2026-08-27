@@ -18,6 +18,9 @@ def parameters_from_extern(filename: str) -> pd.DataFrame:
     Args:
         filename (str): name of file
     """
+    if not Path(filename).is_file():
+        raise ValueError(f"External file '{filename}' does not exist.")
+
     if str(filename).endswith(".xlsx"):
         return (
             pd.read_excel(filename, engine="openpyxl")
