@@ -1,15 +1,11 @@
 """Tests for the DesignMatrix API and installed command."""
 
-import shutil
 import subprocess
-from pathlib import Path
 
 import pandas as pd
 import pytest
 
 from semeio.fmudesign import DesignMatrix
-
-TESTDATA = Path(__file__).parent / "data"
 
 
 def assert_valid_designmatrix(design_values):
@@ -45,19 +41,18 @@ def test_designmatrix():
 
 @pytest.mark.integration_test
 def test_endpoint_with_relative_input_and_custom_output_paths(tmp_path, monkeypatch):
-    source_design = TESTDATA / "config/design_input_onebyone.xlsx"
-    dependency = (
-        pd.read_excel(source_design, header=None, engine="openpyxl")
-        .set_index([0])[1]
-        .to_dict()["background"]
-    )
-
     case_dir = tmp_path / "path" / "going" / "down"
     case_dir.mkdir(parents=True)
-    shutil.copy2(source_design, case_dir)
-    shutil.copy2(source_design.parent / dependency, case_dir)
+    subprocess.run(
+        ["fmudesign", "init", "ex2_correlations.xlsx"],
+        cwd=case_dir,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
     monkeypatch.chdir(tmp_path)
 
+    source_design = case_dir / "ex2_correlations.xlsx"
     relative_design = case_dir.relative_to(tmp_path) / source_design.name
     output_path = tmp_path / "custom-design.xlsx"
     result = subprocess.run(
@@ -81,15 +76,39 @@ def test_endpoint_with_relative_input_and_custom_output_paths(tmp_path, monkeypa
 def test_endpoint_resolves_external_seeds_file_relative_to_input(tmp_path, monkeypatch):
     """'rms_seeds' can also point to an external file. Like 'background' above,
     it must be resolved relative to the input file, not the CWD: the seeds file
-    is only copied into the nested case_dir, so a CWD-relative fallback would
-    fail to find it."""
-    source_design = TESTDATA / "config/design_input_background_extseeds.xlsx"
-
+    only exists in the nested case_dir, so a CWD-relative fallback would fail
+    to find it."""
     case_dir = tmp_path / "path" / "going" / "down"
     case_dir.mkdir(parents=True)
-    shutil.copy2(source_design, case_dir)
-    shutil.copy2(source_design.parent / "seeds.xlsx", case_dir)
-    shutil.copy2(source_design.parent / "doe1.xlsx", case_dir)
+    source_design = case_dir / "design-input.xlsx"
+    with pd.ExcelWriter(source_design, engine="openpyxl") as writer:
+        pd.DataFrame(
+            [
+                ["designtype", "onebyone"],
+                ["repeats", 3],
+                ["rms_seeds", "seeds.xlsx"],
+                ["background", "None"],
+                ["distribution_seed", 42],
+            ]
+        ).to_excel(
+            writer,
+            sheet_name="general_input",
+            index=False,
+            header=False,
+        )
+        pd.DataFrame(
+            [["rms_seed", None, "seed", None]],
+            columns=["sensname", "numreal", "type", "param_name"],
+        ).to_excel(writer, sheet_name="designinput", index=False)
+        pd.DataFrame(
+            [["RMS_SEED", 1000]],
+            columns=["param_name", "default_value"],
+        ).to_excel(writer, sheet_name="defaultvalues", index=False)
+    pd.DataFrame([2000, 2001, 2002]).to_excel(
+        case_dir / "seeds.xlsx",
+        index=False,
+        header=False,
+    )
     monkeypatch.chdir(tmp_path)
 
     relative_design = case_dir.relative_to(tmp_path) / source_design.name

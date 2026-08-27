@@ -2,9 +2,7 @@
 
 import json
 import math
-import shutil
 from datetime import datetime
-from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -18,7 +16,11 @@ from semeio.fmudesign._excel_to_dict import _read_defaultvalues
 from semeio.fmudesign.create_design import MonteCarloSensitivity, _derive_rng
 from semeio.fmudesign.quality_report import print_corrmat
 
-TESTDATA = Path(__file__).parent / "data"
+from ._configurations import (
+    background_configuration,
+    full_mc_configuration,
+    onebyone_configuration,
+)
 
 
 @pytest.mark.integration_test
@@ -74,6 +76,9 @@ def test_distribution_statistics(tmp_path, correlations):
             gl("UNIFORM", "unif", -5, 0),
             # Triangular has params (low, mode, high)
             gl("TRIANG", "triang", -5, 0, 5),
+            # Beta has params (alpha, beta, low=0, high=1)
+            gl("BETA", "beta", 5, 2),
+            gl("SCALEDBETA", "beta", 5, 2, -2, 3),
             # Pert has has params (low, mode, high, scale=4)
             gl("DEFAULTPERT", "pert", -5, 0, 5),
             gl("SCALEPERT", "pert", -5, 0, 5, 1),
@@ -176,6 +181,16 @@ def test_distribution_statistics(tmp_path, correlations):
     assert np.isclose(df["TRIANG"].mean(), 0, atol=atol)
     assert np.isclose(df["TRIANG"].std(), 2.041241, atol=atol)
 
+    assert df["BETA"].min() >= 0
+    assert df["BETA"].max() <= 1
+    assert np.isclose(df["BETA"].mean(), 0.714286, atol=atol)
+    assert np.isclose(df["BETA"].std(), 0.159719, atol=atol)
+
+    assert df["SCALEDBETA"].min() >= -2
+    assert df["SCALEDBETA"].max() <= 3
+    assert np.isclose(df["SCALEDBETA"].mean(), 1.571429, atol=atol)
+    assert np.isclose(df["SCALEDBETA"].std(), 0.798596, atol=atol)
+
     assert df["DEFAULTPERT"].min() >= -5
     assert df["DEFAULTPERT"].max() <= 5
     assert np.isclose(df["DEFAULTPERT"].mean(), 0, atol=atol)
@@ -212,9 +227,7 @@ def test_distribution_statistics(tmp_path, correlations):
 def test_generate_onebyone(tmp_path):
     """Test generation of onebyone design"""
 
-    inputfile = TESTDATA / "config/design_input_example1.xlsx"
-
-    input_dict = excel_to_dict(inputfile)
+    input_dict = onebyone_configuration()
 
     # Note that repeats are set to 10 in general_input sheet.
     # So, there are 10 rows for each senscase of type seed and scenario.
@@ -385,20 +398,41 @@ def _assert_design_snapshot(design, snapshot):
     )
 
 
-def test_generate_full_mc_snapshot(snapshot):
-    input_dict = excel_to_dict(TESTDATA / "config/design_input_mc_with_correls.xlsx")
+def _full_mc_input(tmp_path):
+    correlation_path = tmp_path / "full-mc-correlations.xlsx"
+    _write_correlation_sheets(
+        correlation_path,
+        {
+            "corr1": (
+                ["PARAM1", "PARAM2", "PARAM3"],
+                [[1, 0, 0.2], [0, 1, 0], [0.2, 0, 1]],
+            ),
+            "corr2": (
+                ["OWC1", "OWC2", "OWC3"],
+                [[1, 0.5, -0.7], [0.5, 1, -0.7], [-0.7, -0.7, 1]],
+            ),
+            "corr3": (
+                ["DATO", "NTG1"],
+                [[1, 0.8], [0.8, 1]],
+            ),
+        },
+    )
+    return full_mc_configuration(correlation_path)
+
+
+def test_generate_full_mc_snapshot(snapshot, tmp_path):
+    input_dict = _full_mc_input(tmp_path)
     design = DesignMatrix()
     design.generate(input_dict)
 
     _assert_design_snapshot(design, snapshot)
 
 
-def test_generate_full_mc_snapshot_independent(snapshot):
+def test_generate_full_mc_snapshot_independent(snapshot, tmp_path):
     """Same config as test_generate_full_mc_snapshot, but with the opt-in
     'independent' seed strategy.
     """
-    inputfile = TESTDATA / "config/design_input_mc_with_correls.xlsx"
-    input_dict = excel_to_dict(inputfile)
+    input_dict = _full_mc_input(tmp_path)
     input_dict["seed_strategy"] = "independent"
     design = DesignMatrix()
     design.generate(input_dict)
@@ -406,10 +440,9 @@ def test_generate_full_mc_snapshot_independent(snapshot):
     _assert_design_snapshot(design, snapshot)
 
 
-def test_generate_full_mc():
+def test_generate_full_mc(tmp_path):
     """Test generation of full monte carlo"""
-    inputfile = TESTDATA / "config/design_input_mc_with_correls.xlsx"
-    input_dict = excel_to_dict(inputfile)
+    input_dict = _full_mc_input(tmp_path)
 
     design = DesignMatrix()
     design.generate(input_dict)
@@ -418,10 +451,22 @@ def test_generate_full_mc():
     assert design_values.shape == (500, 16)
 
     # Make sure adding dependent discrete parameters works.
-    disk_depends = pd.read_excel(inputfile, sheet_name="depend1", engine="openpyxl")
-    df_merged = design_values.merge(disk_depends, on="DATO", how="inner")
-    assert (df_merged["DERIVED_PARAM1_x"] == df_merged["DERIVED_PARAM1_y"]).all()
-    assert (df_merged["DERIVED_PARAM2_x"] == df_merged["DERIVED_PARAM2_y"]).all()
+    expected_derived_1 = {
+        "2018-11-02": 1,
+        "2018-11-03": 2,
+        "2018-11-04": 3,
+    }
+    expected_derived_2 = {
+        "2018-11-02": "a",
+        "2018-11-03": "b",
+        "2018-11-04": "c",
+    }
+    assert design_values["DERIVED_PARAM1"].tolist() == (
+        design_values["DATO"].map(expected_derived_1).tolist()
+    )
+    assert design_values["DERIVED_PARAM2"].tolist() == (
+        design_values["DATO"].map(expected_derived_2).tolist()
+    )
 
     # Check that variables are correlated using Pearson correlation
     # Using 95% confidence intervals for correlation coefficients.
@@ -467,12 +512,41 @@ def test_generate_full_mc():
 
 
 @pytest.mark.integration_test
-def test_generate_background(tmp_path, monkeypatch):
-    inputfile = TESTDATA / "config/design_input_background.xlsx"
-    input_dict = excel_to_dict(inputfile)
-    source_file = TESTDATA / "config/doe1.xlsx"
-    shutil.copy2(source_file, tmp_path)
-    monkeypatch.chdir(tmp_path)
+def test_generate_background(tmp_path):
+    correlation_path = tmp_path / "background-correlations.xlsx"
+    _write_correlation_sheets(
+        correlation_path,
+        {
+            "background_corr": (
+                ["PARAM17", "PARAM18", "PARAM19"],
+                [[1, 0.9, 0], [0.9, 1, 0.9], [0, 0.9, 1]],
+            ),
+            "corr0": (
+                ["PARAM5", "PARAM6"],
+                [[1, 0.8], [0.8, 1]],
+            ),
+            "corr1": (
+                ["PARAM9", "PARAM10", "PARAM11", "PARAM12"],
+                [
+                    [1, 0.9, 0, 0],
+                    [0.9, 1, 0.9, 0],
+                    [0, 0.9, 1, 0],
+                    [0, 0, 0, 1],
+                ],
+            ),
+        },
+    )
+    external_parameters = tmp_path / "external-parameters.csv"
+    pd.DataFrame(
+        {
+            "PARAM13": range(11),
+            "PARAM14": range(1, 12),
+            "PARAM15": range(2, 13),
+            "PARAM16": pd.date_range("2018-11-01", periods=11).strftime("%Y-%m-%d"),
+        }
+    ).to_csv(external_parameters, index=False)
+    input_dict = background_configuration(correlation_path, external_parameters)
+    input_dict["distribution_seed"] = 42
 
     design = DesignMatrix()
     design.generate(input_dict)
@@ -485,6 +559,20 @@ def test_generate_background(tmp_path, monkeypatch):
         design.designvalues["SENSNAME"] == "velmodel", background_params
     ]
     assert (background_vals.to_numpy() == velmodel_vals.to_numpy()).all()
+
+    # Background samples fill inactive parameters, but must not replace values
+    # explicitly sampled by a sensitivity using the same parameter names.
+    sens9_vals = design.designvalues.loc[
+        design.designvalues["SENSNAME"] == "sens9", background_params
+    ]
+    assert design.backgroundvalues is not None
+    sampled_background = design.backgroundvalues[background_params]
+    assert sens9_vals.shape == sampled_background.shape
+    for parameter in background_params:
+        assert not np.array_equal(
+            sens9_vals[parameter].to_numpy(),
+            sampled_background[parameter].to_numpy(),
+        ), f"sens9 values for {parameter} were replaced by background samples"
 
     faults_vals = design.designvalues.loc[
         design.designvalues["SENSNAME"] == "faults", background_params
