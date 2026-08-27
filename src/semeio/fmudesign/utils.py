@@ -265,8 +265,9 @@ def _is_int(teststring: str) -> bool:
 
 
 def resolve_path(target: str | None, *, base_file: str | None = None) -> str | None:
-    """Try to resolve the path of potential file 'target' as path either relative to
-    'base_file' or cwd."""
+    """Try to resolve the path of potential file 'target' either as relative to
+    'base_file' or cwd.
+    If not, return target."""
     if target is None:
         return None
 
