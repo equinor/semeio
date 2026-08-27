@@ -65,7 +65,7 @@ jobs:
         run: uv pip install "pandas${{ matrix.pandas-version }}"
 
       - name: "Run tests"
-        run: uv run --no-sync pytest tests -n logical --durations 5 --ert-integration
+        run: uv run --no-sync pytest tests -n logical --durations 0 --ert-integration -vv
 
       - name: "Run doctests on fmudesign"
         run: uv run --no-sync pytest ./src/semeio/fmudesign/ --doctest-modules -v
