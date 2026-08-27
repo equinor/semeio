@@ -10,6 +10,7 @@ from typing import Any, Literal, cast
 
 import openpyxl
 import pandas as pd
+import polars as pl
 import yaml
 
 from semeio.fmudesign.general_input import GeneralInput
@@ -25,21 +26,24 @@ from semeio.fmudesign.utils import (
 
 def _read_general_input(
     input_filename: str, general_input_sheet: str
-) -> dict[str, Any]:
-    general_input = (
-        pd.read_excel(
-            input_filename,
-            general_input_sheet,
-            header=None,
-            engine="openpyxl",
-        )
-        .dropna(axis=0, how="all")
-        .dropna(axis=1, how="all")
-        .set_index(0)
-        .loc[:, 1]
-        .to_dict()
+) -> dict[str, str | None]:
+    df = pl.read_excel(
+        input_filename,
+        sheet_name=general_input_sheet,
+        has_header=False,
+        read_options={"dtypes": "string"},
+        columns=[0, 1],
     )
-    return {str(k): v for k, v in general_input.items()}
+    df = df.with_columns(
+        pl.col(col).str.strip_chars().alias(col) for col in df.columns
+    ).with_columns(
+        pl.when(pl.col(df.columns[1]).str.to_lowercase().is_in(["none", "null"]))
+        .then(None)
+        .otherwise(pl.col(df.columns[1]))
+        .alias(df.columns[1])
+    )
+    df = df.filter(pl.any_horizontal(pl.all().is_not_null()))
+    return dict(df.rows())
 
 
 def excel_to_dict(

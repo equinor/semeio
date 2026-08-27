@@ -41,6 +41,8 @@ dependencies = [
     "seaborn",
     "probabilit>=0.4.1",
     "resfo-utilities>=0.1.1",
+    "polars",
+    "fastexcel",
 ]
 [dependency-groups]
 dev = [
@@ -61,7 +63,8 @@ dev = [
     'types-openpyxl',
     'types-seaborn',
     'types-setuptools',
-    'xlwt'
+    'xlwt',
+    'xlsxwriter'
 ]
 
 [project.urls]

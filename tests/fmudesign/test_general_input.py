@@ -1,17 +1,12 @@
 from pathlib import Path
-from types import NoneType
-from typing import Any
 
 import hypothesis.strategies as st
-import numpy as np
-import pandas as pd
 import pytest
 from hypothesis import assume, given
 from pydantic import TypeAdapter, ValidationError
 
-from semeio.fmudesign._excel_to_dict import GeneralInput
 from semeio.fmudesign.config_validation import SeedStrategy
-from semeio.fmudesign.general_input import parse_value
+from semeio.fmudesign.general_input import GeneralInput
 
 PYDANTIC_PATH_ERROR = "Path does not point to a file|Input is not a valid path"
 
@@ -19,58 +14,28 @@ PYDANTIC_PATH_ERROR = "Path does not point to a file|Input is not a valid path"
 def base_general_input_dict():
     return {
         "designtype": "onebyone",
-        "repeats": 10,
+        "repeats": "10",
         "distribution_seed": None,
         "rms_seeds": None,
-        "correlation_iterations": 1,
+        "correlation_iterations": "1",
         "seed_strategy": SeedStrategy.JOINT,
         "background": None,
     }
 
 
-ANY_TYPE = st.one_of(
-    st.integers(),
-    st.floats(allow_nan=False),
-    st.text(),
-    st.booleans(),
-    st.none(),
-    st.lists(st.integers(), min_size=1),
-    st.dictionaries(st.text(), st.integers() | st.text(), min_size=1),
-)
-
-
-_int_adapter = TypeAdapter(int)
-_float_adapter = TypeAdapter(float)
-
-
 def is_pydantic_numeric(x):
-    for adapter in (_int_adapter, _float_adapter):
+    for adapter in (TypeAdapter(int), TypeAdapter(float)):
         try:
-            adapter.validate_python(x)
+            adapter.validate_python(x.strip())
             return True
         except ValidationError:
             pass
     return False
 
 
-NON_NUMERIC = ANY_TYPE.filter(lambda x: not is_pydantic_numeric(x))
-
-
-BOOLEAN_ERROR = "cannot have boolean value"
-
-
-@pytest.mark.parametrize(
-    "nan_value",
-    [
-        float("nan"),
-        np.nan,
-        np.float64("nan"),
-        pd.NaT,
-        None,
-    ],
-)
-def test_that_parse_value_converts_nan_formats_to_none(nan_value):
-    assert parse_value(nan_value) is None
+TEXT_STRIPPED = st.text().map(str.strip)
+TEXT_STRIPPED_NOT_NUMERIC = TEXT_STRIPPED.filter(lambda x: not is_pydantic_numeric(x))
+TEXT_STRIPPED_OR_NONE = st.one_of(TEXT_STRIPPED_NOT_NUMERIC, st.none())
 
 
 @pytest.mark.parametrize(
@@ -97,20 +62,7 @@ def test_that_missing_optional_keys_does_not_raise_validation_error(optional_key
 def test_that_extra_key_raises_value_error():
     extra = {"extra_key": "foo"}
     with pytest.raises(ValidationError, match="Extra inputs are not permitted"):
-        GeneralInput(
-            designtype="onebyone",
-            repeats=1,
-            distribution_seed=42,
-            rms_seeds="default",
-            **extra,
-        )
-
-
-def test_that_whitespace_around_keys_is_stripped():
-    general_input_dict = base_general_input_dict()
-    general_input_dict[" repeats "] = general_input_dict.pop("repeats")
-    result = GeneralInput.from_dict(general_input_dict)
-    assert result.repeats == 10
+        GeneralInput.from_dict(base_general_input_dict() | extra)
 
 
 def test_that_designtype_onebyone_is_accepted():
@@ -118,36 +70,36 @@ def test_that_designtype_onebyone_is_accepted():
     assert result.designtype == "onebyone"
 
 
-@given(ANY_TYPE)
+@given(TEXT_STRIPPED)
 def test_that_other_design_types_than_onebyone_raises_validation_error(text):
     assume(text != "onebyone")
     general_input_dict = base_general_input_dict() | {"designtype": text}
-    with pytest.raises(ValueError, match=f"Input should be 'onebyone'|{BOOLEAN_ERROR}"):
+    with pytest.raises(ValueError, match="Input should be 'onebyone'"):
         GeneralInput.from_dict(general_input_dict)
 
 
 @given(st.integers(min_value=1, max_value=10000))
 def test_that_positive_int_repeats_is_accepted(positive_int):
-    general_input_dict = base_general_input_dict() | {"repeats": positive_int}
+    general_input_dict = base_general_input_dict() | {"repeats": str(positive_int)}
     result = GeneralInput.from_dict(general_input_dict)
     assert result.repeats == positive_int
 
 
 def test_that_zero_repeats_raises_validation_error():
-    general_input_dict = base_general_input_dict() | {"repeats": 0}
+    general_input_dict = base_general_input_dict() | {"repeats": "0"}
     with pytest.raises(ValidationError, match="repeats"):
         GeneralInput.from_dict(general_input_dict)
 
 
 def test_that_negative_repeats_raises_validation_error():
-    general_input_dict = base_general_input_dict() | {"repeats": -1}
+    general_input_dict = base_general_input_dict() | {"repeats": "-1"}
     with pytest.raises(ValidationError):
         GeneralInput.from_dict(general_input_dict)
 
 
-@given(NON_NUMERIC)
+@given(TEXT_STRIPPED_NOT_NUMERIC)
 def test_that_non_integer_repeats_raises_validation_error(non_int):
-    general_input_dict = base_general_input_dict() | {"repeats": non_int}
+    general_input_dict = base_general_input_dict() | {"repeats": str(non_int)}
     with pytest.raises(
         ValidationError,
         match=r"Input should be greater than 0|Input should be a valid integer",
@@ -155,19 +107,9 @@ def test_that_non_integer_repeats_raises_validation_error(non_int):
         GeneralInput.from_dict(general_input_dict)
 
 
-@pytest.mark.parametrize("bool_", [True, False])
-def test_that_true_false_are_rejected_for_repeats(bool_):
-    input_dict = base_general_input_dict() | {"repeats": bool_}
-    with pytest.raises(
-        ValueError,
-        match=BOOLEAN_ERROR,
-    ):
-        GeneralInput.from_dict(input_dict)
-
-
 @given(st.integers(min_value=0))
 def test_that_non_negative_distribution_seed_is_accepted(value):
-    general_input_dict = base_general_input_dict() | {"distribution_seed": value}
+    general_input_dict = base_general_input_dict() | {"distribution_seed": str(value)}
     result = GeneralInput.from_dict(general_input_dict)
     assert result.distribution_seed == value
 
@@ -180,12 +122,12 @@ def test_that_none_distribution_seed_is_accepted():
 
 @given(st.integers(max_value=-1))
 def test_that_negative_distribution_seed_raises_validation_error(value):
-    general_input_dict = base_general_input_dict() | {"distribution_seed": value}
+    general_input_dict = base_general_input_dict() | {"distribution_seed": str(value)}
     with pytest.raises(ValidationError):
         GeneralInput.from_dict(general_input_dict)
 
 
-@given(NON_NUMERIC.filter(lambda x: not isinstance(x, NoneType)))
+@given(TEXT_STRIPPED_NOT_NUMERIC)
 def test_that_invalid_distribution_seed_types_raises_validation_error(
     invalid_distribution_seed,
 ):
@@ -194,16 +136,6 @@ def test_that_invalid_distribution_seed_types_raises_validation_error(
     }
     with pytest.raises(ValidationError, match="Input should be a valid integer"):
         GeneralInput.from_dict(general_input_dict)
-
-
-@pytest.mark.parametrize("bool_", [True, False])
-def test_that_true_false_are_rejected_for_distribution_seed(bool_):
-    input_dict = base_general_input_dict() | {"distribution_seed": bool_}
-    with pytest.raises(
-        ValueError,
-        match=BOOLEAN_ERROR,
-    ):
-        GeneralInput.from_dict(input_dict)
 
 
 def test_that_rms_seeds_none_is_accepted():
@@ -251,15 +183,12 @@ def test_that_rms_seeds_from_extern_csv_file_in_subdirectory_is_accepted(use_tmp
     assert result.rms_seeds == (subdir / seeds_file_name).resolve()
 
 
-@given(ANY_TYPE.filter(lambda x: not isinstance(x, list | NoneType)))
+@given(TEXT_STRIPPED)
 def test_that_invalid_rms_seeds_types_raises_validation_error(invalid_rms_seeds):
     assume(invalid_rms_seeds != "default")
     general_input_dict = base_general_input_dict() | {"rms_seeds": invalid_rms_seeds}
     with pytest.raises(
-        ValueError,
-        match=f"Path does not point to a file"
-        f"|Input is not a valid path"
-        f"|{BOOLEAN_ERROR}",
+        ValueError, match=r"Path does not point to a file|Input is not a valid path"
     ):
         GeneralInput.from_dict(general_input_dict)
 
@@ -273,7 +202,13 @@ def test_that_rms_seeds_from_external_txt_file_is_resolved(use_tmpdir):
     assert gi.rms_seeds == Path(seeds_file_name).resolve()
 
 
-def test_that_correlation_iterations_defaults_to_zero():
+def test_that_none_correlation_iterations_defaults_to_zero():
+    general_input_dict = base_general_input_dict() | {"correlation_iterations": None}
+    result = GeneralInput.from_dict(general_input_dict)
+    assert result.correlation_iterations == 0
+
+
+def test_that_missing_correlation_iterations_defaults_to_zero():
     general_input_dict = base_general_input_dict()
     general_input_dict.pop("correlation_iterations")
     result = GeneralInput.from_dict(general_input_dict)
@@ -283,13 +218,13 @@ def test_that_correlation_iterations_defaults_to_zero():
 @given(st.integers(min_value=0))
 def test_that_non_negative_correlation_iterations_is_accepted(value):
     general_input_dict = base_general_input_dict() | {
-        "correlation_iterations": value,
+        "correlation_iterations": str(value),
     }
     result = GeneralInput.from_dict(general_input_dict)
     assert result.correlation_iterations == value
 
 
-@given(NON_NUMERIC.filter(lambda x: not isinstance(x, NoneType)))
+@given(TEXT_STRIPPED_NOT_NUMERIC)
 def test_that_invalid_correlation_iterations_raises_validation_error(
     invalid_correlation_iterations,
 ):
@@ -302,23 +237,19 @@ def test_that_invalid_correlation_iterations_raises_validation_error(
 
 def test_that_negative_correlation_iterations_raises_validation_error():
     general_input_dict = base_general_input_dict() | {
-        "correlation_iterations": -1,
+        "correlation_iterations": "-1",
     }
     with pytest.raises(ValidationError):
         GeneralInput.from_dict(general_input_dict)
 
 
-@pytest.mark.parametrize("bool_", [True, False])
-def test_that_true_false_are_rejected_for_correlation_iterations(bool_):
-    input_dict = base_general_input_dict() | {"correlation_iterations": bool_}
-    with pytest.raises(
-        ValueError,
-        match=BOOLEAN_ERROR,
-    ):
-        GeneralInput.from_dict(input_dict)
+def test_that_none_seed_strategy_defaults_to_joint():
+    general_input_dict = base_general_input_dict() | {"seed_strategy": None}
+    result = GeneralInput.from_dict(general_input_dict)
+    assert result.seed_strategy == SeedStrategy.JOINT
 
 
-def test_that_seed_strategy_defaults_to_joint():
+def test_that_missing_seed_strategy_defaults_to_joint():
     general_input_dict = base_general_input_dict()
     general_input_dict.pop("seed_strategy")
     result = GeneralInput.from_dict(general_input_dict)
@@ -339,17 +270,18 @@ def test_that_valid_seed_strategies_are_accepted(strategy):
     assert result.seed_strategy == strategy
 
 
-def _not_seed_strategy_or_none_str(x: Any):
-    return not isinstance(x, str) or x.lower() not in {*SeedStrategy, "none"}
+TEXT_OR_NONE_NOT_IN_SEED_STRATEGY = TEXT_STRIPPED_OR_NONE.filter(
+    lambda x: isinstance(x, str) and x not in SeedStrategy
+)
 
 
-@given(ANY_TYPE.filter(_not_seed_strategy_or_none_str).filter(lambda x: x is not None))
+@given(TEXT_OR_NONE_NOT_IN_SEED_STRATEGY)
 def test_that_invalid_seed_strategy_raises_validation_error(invalid_seed_strategy):
     general_input_dict = base_general_input_dict() | {
         "seed_strategy": invalid_seed_strategy
     }
     seed_strategy_error = "Input should be 'joint' or 'independent'"
-    with pytest.raises(ValueError, match=f"{BOOLEAN_ERROR}|{seed_strategy_error}"):
+    with pytest.raises(ValueError, match=seed_strategy_error):
         GeneralInput.from_dict(general_input_dict)
 
 
@@ -360,13 +292,6 @@ def test_that_seed_strategy_is_serialized_as_str():
 
 def test_that_background_none_is_accepted():
     general_input_dict = base_general_input_dict() | {"background": None}
-    result = GeneralInput.from_dict(general_input_dict)
-    assert result.background is None
-
-
-@pytest.mark.parametrize("value", ["None", "none", "NONE"])
-def test_that_background_none_like_strings_are_treated_as_none(value):
-    general_input_dict = base_general_input_dict() | {"background": value}
     result = GeneralInput.from_dict(general_input_dict)
     assert result.background is None
 

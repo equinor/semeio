@@ -1,8 +1,6 @@
-from collections.abc import Collection
 from pathlib import Path
-from typing import Any, Literal, Self
+from typing import Literal, Self
 
-import pandas as pd
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -15,15 +13,6 @@ from pydantic import (
 
 from semeio.fmudesign.config_validation import SeedStrategy
 from semeio.fmudesign.utils import resolve_path
-
-
-def parse_value(value: object) -> object:
-    if isinstance(value, str):
-        return value.strip()
-    # pd.isna(Collection) -> NDArray, which is ambiguous
-    if not isinstance(value, Collection) and pd.isna(value):  # type: ignore[call-overload]
-        return None
-    return value
 
 
 class GeneralInput(BaseModel):
@@ -40,26 +29,13 @@ class GeneralInput(BaseModel):
     model_config = ConfigDict(extra="forbid", use_enum_values=True)
 
     @classmethod
-    def from_dict(cls, inputdict: dict[str, Any], input_filename: str = "") -> Self:
-        general_input: dict[str, Any] = {
-            str(key).strip(): parse_value(value) for key, value in inputdict.items()
-        }
-
-        # Boolean values are interpreted as valid ints, and are not caught by
-        # pydantic's validation. It can be caught using strict=True, but that
-        # removes the flexibility of allowing numeric strings for numeric fields.
-        # No values should be boolean, so we check for all.
-        for key, value in general_input.items():
-            if isinstance(value, bool):
-                raise ValueError(
-                    f"key '{key}' cannot have boolean value, got '{value}'"
-                )
+    def from_dict(
+        cls, input_dict: dict[str, str | None], input_filename: str = ""
+    ) -> Self:
+        general_input: dict[str, str | Path | None] = dict(input_dict.items())
 
         for key in ["seed_strategy", "correlation_iterations"]:
-            val = general_input.get(key)
-            is_none = general_input.get(key) is None
-            is_none_str = isinstance(val, str) and val.lower() == "none"
-            if is_none or is_none_str:
+            if general_input.get(key) is None:
                 print(
                     f"'{key}' not set in general input sheet. "
                     f"Setting to default "
@@ -68,16 +44,12 @@ class GeneralInput(BaseModel):
                 general_input.pop(key, None)
 
         for key in ["rms_seeds", "background"]:
-            val = general_input.get(key)
-            if isinstance(val, str):
+            if isinstance((val := general_input.get(key)), str):
                 resolved = resolve_path(val, base_file=input_filename)
                 assert isinstance(resolved, str)
-                if Path(resolved).exists():
-                    general_input[key] = Path(resolved)
-                elif resolved.lower() == "none":
-                    general_input[key] = None
-                else:
-                    general_input[key] = resolved
+                general_input[key] = (
+                    Path(resolved) if Path(resolved).is_file() else resolved
+                )
 
         return cls(**general_input)
 

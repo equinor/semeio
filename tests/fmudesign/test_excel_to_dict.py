@@ -7,6 +7,7 @@ import numpy as np
 import openpyxl
 import pandas as pd
 import pytest
+import xlsxwriter
 
 from semeio.fmudesign import excel_to_dict, inputdict_to_yaml
 from semeio.fmudesign._excel_to_dict import (
@@ -373,12 +374,12 @@ def test_excel_to_dict_passes_seed_strategy(tmp_path):
 
 def _rows_to_xlsx_bytestream(rows: list[list[Any]]) -> BytesIO:
     excel_stream = BytesIO()
-    wb = openpyxl.Workbook()
-    ws = wb.active
-    ws.title = "general_input"
-    for row in rows:
-        ws.append(row)
-    wb.save(excel_stream)
+    wb = xlsxwriter.Workbook(excel_stream, {"in_memory": True})
+    ws = wb.add_worksheet("general_input")
+    for row_idx, row in enumerate(rows):
+        for col_idx, value in enumerate(row):
+            ws.write(row_idx, col_idx, value)
+    wb.close()
     return excel_stream
 
 
@@ -395,9 +396,9 @@ def test_that_columns_in_excel_is_reduced_to_first_two_in_read_general_input():
 
     assert result == {
         "designtype": "onebyone",
-        "repeats": 10,
+        "repeats": "10",
         "rms_seeds": "default",
-        "distribution_seed": np.nan,
+        "distribution_seed": None,
     }
 
 
@@ -420,30 +421,35 @@ def test_that_empty_rows_in_excel_is_filtered_out_in_read_general_input():
 
     assert result == {
         "designtype": "onebyone",
-        "repeats": 10,
+        "repeats": "10",
         "rms_seeds": "default",
-        "distribution_seed": np.nan,
+        "distribution_seed": None,
     }
 
 
-@pytest.mark.parametrize("none", [None, "None", "null", "NULL"])
-def test_that_null_rows_in_excel_is_filtered_out_in_read_general_input(none):
+@pytest.mark.parametrize(
+    "none_like", [None, "none", "None", "NONE", " None ", "null", "NULL", " null "]
+)
+def test_that_null_rows_in_excel_is_filtered_out_in_read_general_input(none_like):
+    """This tests that various none like values are interpreted as None and filtered
+    out when the keyword to the corresponding value is an empty cell."""
+    empty_cell = ""
+    rows = [["foo", "bar"], [empty_cell, none_like]]
+
+    xlsx_stream = _rows_to_xlsx_bytestream(rows)
+    result = _read_general_input(xlsx_stream, "general_input")
+
+    assert result == {"foo": "bar"}
+
+
+def test_that_null_keyword_in_excel_is_not_cast_to_none_type():
     rows = [
         ["designtype", "onebyone"],
-        [none, ""],
-        ["", none],
-        [none, none],
-        ["repeats", 10],
-        ["rms_seeds", "default"],
-        ["distribution_seed", none],
+        ["none", "none"],
     ]
 
     xlsx_stream = _rows_to_xlsx_bytestream(rows)
     result = _read_general_input(xlsx_stream, "general_input")
 
-    assert result == {
-        "designtype": "onebyone",
-        "repeats": 10,
-        "rms_seeds": "default",
-        "distribution_seed": np.nan,
-    }
+    assert "none" in result
+    assert result["none"] is None
