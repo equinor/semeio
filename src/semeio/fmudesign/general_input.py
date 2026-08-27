@@ -70,7 +70,7 @@ class GeneralInput(BaseModel):
         for key in ["rms_seeds", "background"]:
             val = general_input.get(key)
             if isinstance(val, str):
-                resolved = resolve_path(val, input_filename)
+                resolved = resolve_path(val, base_file=input_filename)
                 assert isinstance(resolved, str)
                 if Path(resolved).exists():
                     general_input[key] = Path(resolved)

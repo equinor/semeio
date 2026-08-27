@@ -27,5 +27,5 @@ def test_that_resolve_path_resolves_relative_path_to_base_file(use_tmpdir):
     relative_file = "seeds.txt"
     Path(folder + relative_file).touch()
 
-    resolved = resolve_path(relative_file, base_file)
+    resolved = resolve_path(relative_file, base_file=base_file)
     assert resolved == str((Path(folder) / relative_file).resolve())

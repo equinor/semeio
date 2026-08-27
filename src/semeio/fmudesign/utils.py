@@ -264,13 +264,16 @@ def _is_int(teststring: str) -> bool:
         return False
 
 
-def resolve_path(target: str | None, base_file: str = "") -> str | None:
+def resolve_path(target: str | None, *, base_file: str | None = None) -> str | None:
     """Try to resolve the path of potential file 'target' as path either relative to
     'base_file' or cwd."""
     if target is None:
         return None
 
-    if (relative_path := Path(base_file).parent / target).is_file():
+    if (
+        base_file is not None
+        and (relative_path := Path(base_file).parent / target).is_file()
+    ):
         return str(relative_path.resolve())
 
     if (path := Path(target)).is_file():
