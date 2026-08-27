@@ -1,7 +1,6 @@
 """Example use cases for semeio.fmudesign."""
 
 import os
-import shutil
 import subprocess
 from pathlib import Path
 
@@ -12,8 +11,6 @@ from semeio.fmudesign import DesignMatrix, excel_to_dict
 from semeio.fmudesign.fmudesignrunner import EXAMPLES
 
 EXAMPLE_FILES = [example.filename for example in EXAMPLES]
-TESTDATA = Path(__file__).parent / "data"
-TEST_FILES = sorted((TESTDATA / "config").glob("design_input*.xlsx"))
 
 
 def _run_cli(*args):
@@ -132,29 +129,58 @@ def test_constant_distribution(tmp_path, gen_input_sheet):
 
 
 @pytest.mark.integration_test
-@pytest.mark.parametrize(
-    "designfile", TEST_FILES, ids=[path.stem for path in TEST_FILES]
-)
-def test_all_input_files(tmp_path, monkeypatch, designfile):
+@pytest.mark.parametrize("verbosity", [1, 2])
+def test_cli_verbosity_levels(tmp_path, monkeypatch, verbosity):
     monkeypatch.chdir(tmp_path)
-    for filename in designfile.parent.iterdir():
-        if filename.is_file():
-            shutil.copy2(filename, tmp_path)
+    designfile = "ex4_background_parameters.xlsx"
+    _run_cli("init", designfile)
+    result = _run_cli("run", designfile, *(["--verbose"] * verbosity))
 
-    _run_cli(designfile.name)
     assert (tmp_path / "generateddesignmatrix.xlsx").is_file()
+    assert "CONTINUOUS PARAMETERS" in result.stdout
+    assert "CORRELATION_GROUP 'corr1'" in result.stdout
+    assert (tmp_path / "generateddesignmatrix/background/PARAM17.png").is_file()
+    sensitivity_plot = tmp_path / "generateddesignmatrix/sens7/PARAM9.png"
+    if verbosity == 2:
+        assert sensitivity_plot.is_file()
+    else:
+        assert not sensitivity_plot.exists()
 
 
 @pytest.mark.integration_test
-@pytest.mark.parametrize("verbosity", [1, 2])
-def test_cli_verbosity_levels(tmp_path, monkeypatch, verbosity):
-    designfile = TESTDATA / "config/design_input_background.xlsx"
+def test_advanced_example_excel_parsing(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
-    for filename in designfile.parent.iterdir():
-        if filename.is_file():
-            shutil.copy2(filename, tmp_path)
+    _run_cli("init", "ex2_correlations.xlsx")
+    _run_cli("init", "ex8_mc_with_correls.xlsx")
 
-    _run_cli(designfile.name, *(["--verbose"] * verbosity))
+    correlations = excel_to_dict("ex2_correlations.xlsx")
+    assert Path(correlations["background"]["extern"]).is_file()
+    assert Path(correlations["sensitivities"]["sens8"]["extern_file"]).is_file()
+    assert correlations["sensitivities"]["sens7"]["correlations"]["sheetnames"] == [
+        "corr1"
+    ]
+    assert correlations["sensitivities"]["contacts"]["cases"] == {
+        "shallow": {"PARAM2": -1, "PARAM3": -1, "PARAM4": -1},
+        "deep": {"PARAM2": 1.0, "PARAM3": 1.0, "PARAM4": 1.0},
+    }
+
+    monte_carlo = excel_to_dict("ex8_mc_with_correls.xlsx")["sensitivities"][
+        "montecarlo"
+    ]
+    assert set(monte_carlo["correlations"]["sheetnames"]) == {
+        "corr1",
+        "corr2",
+        "corr3",
+    }
+    assert monte_carlo["dependencies"] == {
+        "DATO": {
+            "from_values": ["2018-11-02", "2018-11-03", "2018-11-04"],
+            "to_params": {
+                "DERIVED_PARAM1": ["1", "2", "3"],
+                "DERIVED_PARAM2": ["a", "b", "c"],
+            },
+        }
+    }
 
 
 @pytest.mark.integration_test
@@ -163,3 +189,9 @@ def test_all_example_files_cmd_init(tmp_path, monkeypatch, designfile):
     monkeypatch.chdir(tmp_path)
     _run_cli("init", designfile)
     _run_cli("run", designfile)
+
+    design_values = pd.read_excel("generateddesignmatrix.xlsx", engine="openpyxl")
+    assert not design_values.empty
+    assert design_values.columns[:3].tolist() == ["REAL", "SENSNAME", "SENSCASE"]
+    assert design_values["REAL"].tolist() == list(range(len(design_values)))
+    assert not design_values.isna().any().any()
