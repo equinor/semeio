@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import Literal, Self
 
+import polars as pl
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -27,6 +28,37 @@ class GeneralInput(BaseModel):
     background: FilePath | str | None = None
 
     model_config = ConfigDict(extra="forbid", use_enum_values=True)
+
+    @staticmethod
+    def _read_general_input(
+        input_filename: str, general_input_sheet: str
+    ) -> dict[str, str | None]:
+        df = pl.read_excel(
+            input_filename,
+            sheet_name=general_input_sheet,
+            has_header=False,
+            read_options={"dtypes": "string"},
+            columns=[0, 1],
+        )
+        df = df.with_columns(
+            pl.col(col).str.strip_chars().alias(col) for col in df.columns
+        ).with_columns(
+            pl.when(pl.col(df.columns[1]).str.to_lowercase().is_in(["none", "null"]))
+            .then(None)
+            .otherwise(pl.col(df.columns[1]))
+            .alias(df.columns[1])
+        )
+        df = df.filter(pl.any_horizontal(pl.all().is_not_null()))
+        df = df.with_columns(pl.col(df.columns[0]).fill_null(""))
+        return dict(df.rows())
+
+    @classmethod
+    def from_xlsx(cls, input_filename: str, general_input_sheet: str) -> Self:
+        input_dict = cls._read_general_input(input_filename, general_input_sheet)
+        return cls.from_dict(
+            input_dict,
+            input_filename,
+        )
 
     @classmethod
     def from_dict(

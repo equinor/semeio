@@ -1,7 +1,11 @@
+import string
+from io import BytesIO
 from pathlib import Path
+from typing import Any
 
 import hypothesis.strategies as st
 import pytest
+import xlsxwriter
 from hypothesis import assume, given
 from pydantic import TypeAdapter, ValidationError
 
@@ -353,3 +357,150 @@ def test_that_background_path_is_serialized_as_string():
 def test_that_serialize_paths_doesnt_fail_given_none():
     gi = GeneralInput.from_dict(base_general_input_dict())
     assert gi.model_dump()["background"] is None
+
+
+def _rows_to_xlsx_bytestream(rows: list[list[Any]]) -> BytesIO:
+    excel_stream = BytesIO()
+    wb = xlsxwriter.Workbook(excel_stream, {"in_memory": True})
+    ws = wb.add_worksheet("general_input")
+    for row_idx, row in enumerate(rows):
+        for col_idx, value in enumerate(row):
+            ws.write(row_idx, col_idx, value)
+    wb.close()
+    return excel_stream
+
+
+def test_that_columns_in_excel_is_reduced_to_first_two_in_read_general_input():
+    rows = [
+        ["designtype", "onebyone", "third_column", "fourth_column"],
+        ["repeats", 10, "third_column", "fourth_column"],
+        ["rms_seeds", "default", "third_column", "fourth_column"],
+        ["distribution_seed", None, "third_column", "fourth_column"],
+    ]
+    xlsx_stream = _rows_to_xlsx_bytestream(rows)
+
+    result = GeneralInput._read_general_input(xlsx_stream, "general_input")
+
+    assert result == {
+        "designtype": "onebyone",
+        "repeats": "10",
+        "rms_seeds": "default",
+        "distribution_seed": None,
+    }
+
+
+def test_that_empty_rows_in_excel_is_filtered_out_in_read_general_input():
+    empty_row = ["", ""]
+    rows = [
+        empty_row,
+        ["designtype", "onebyone"],
+        empty_row,
+        ["repeats", 10],
+        empty_row,
+        ["rms_seeds", "default"],
+        empty_row,
+        ["distribution_seed", None],
+        empty_row,
+    ]
+
+    xlsx_stream = _rows_to_xlsx_bytestream(rows)
+    result = GeneralInput._read_general_input(xlsx_stream, "general_input")
+
+    assert result == {
+        "designtype": "onebyone",
+        "repeats": "10",
+        "rms_seeds": "default",
+        "distribution_seed": None,
+    }
+
+
+@pytest.mark.parametrize(
+    "none_like", [None, "none", "None", "NONE", " None ", "null", "NULL", " null "]
+)
+def test_that_none_rows_in_excel_is_filtered_out_in_read_general_input(none_like):
+    """This tests that various none like values are interpreted as None and filtered
+    out when the keyword to the corresponding value is an empty cell."""
+    empty_cell = ""
+    rows = [["foo", "bar"], [empty_cell, none_like]]
+
+    xlsx_stream = _rows_to_xlsx_bytestream(rows)
+    result = GeneralInput._read_general_input(xlsx_stream, "general_input")
+
+    assert result == {"foo": "bar"}
+
+
+@pytest.mark.parametrize("none_like", ["none", "None", "NONE", "null", "NULL"])
+def test_that_none_keyword_in_excel_is_not_cast_to_none_type(none_like):
+    rows = [
+        ["designtype", "onebyone"],
+        [none_like, "none"],
+    ]
+    xlsx_stream = _rows_to_xlsx_bytestream(rows)
+    result = GeneralInput._read_general_input(xlsx_stream, "general_input")
+    assert None not in result
+    assert none_like in result
+    assert result[none_like] is None
+
+
+def test_that_empty_keyword_cell_in_excel_is_cast_to_empty_string():
+    rows = [
+        ["designtype", "onebyone"],
+        ["", "foo"],
+    ]
+    xlsx_stream = _rows_to_xlsx_bytestream(rows)
+
+    result = GeneralInput._read_general_input(xlsx_stream, "general_input")
+    assert None not in result
+    assert "" in result
+    assert result[""] == "foo"
+
+
+@given(
+    st.integers(min_value=1, max_value=1_000_000),
+    st.integers(min_value=0, max_value=1_000_000),
+    st.text(min_size=1, max_size=15, alphabet=string.ascii_letters).filter(
+        lambda x: x.lower() not in {"none", "null"}
+    ),
+    st.integers(min_value=0, max_value=1_000_000),
+    st.sampled_from(SeedStrategy),
+)
+@pytest.mark.usefixtures("use_tmpdir")
+@pytest.mark.integration_test
+def test_that_from_xlsx_produce_general_input_with_excel_values(
+    repeats,
+    distribution_seed,
+    rms_seeds,
+    correlation_iterations,
+    seed_strategy,
+):
+    design_type = "onebyone"
+
+    if rms_seeds != "default":
+        Path(rms_seeds).touch()
+
+    rows = [
+        ["designtype", design_type],
+        ["repeats", repeats],
+        ["rms_seeds", rms_seeds],
+        ["distribution_seed", distribution_seed],
+        ["correlation_iterations", correlation_iterations],
+        ["seed_strategy", seed_strategy],
+    ]
+
+    xlsx_stream = _rows_to_xlsx_bytestream(rows)
+
+    design_file = "designinput.xlsx"
+    Path(design_file).write_bytes(xlsx_stream.getvalue())
+
+    gi = GeneralInput.from_xlsx(design_file, "general_input")
+
+    assert gi.designtype == design_type
+    assert gi.repeats == repeats
+    assert (
+        gi.rms_seeds == Path(rms_seeds).resolve()
+        if rms_seeds != "default"
+        else "default"
+    )
+    assert gi.distribution_seed == distribution_seed
+    assert gi.correlation_iterations == correlation_iterations
+    assert gi.seed_strategy == seed_strategy

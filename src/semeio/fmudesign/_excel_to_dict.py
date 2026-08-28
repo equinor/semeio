@@ -10,7 +10,6 @@ from typing import Any, Literal, cast
 
 import openpyxl
 import pandas as pd
-import polars as pl
 import yaml
 
 from semeio.fmudesign.general_input import GeneralInput
@@ -22,28 +21,6 @@ from semeio.fmudesign.utils import (
     resolve_path,
     seeds_from_extern,
 )
-
-
-def _read_general_input(
-    input_filename: str, general_input_sheet: str
-) -> dict[str, str | None]:
-    df = pl.read_excel(
-        input_filename,
-        sheet_name=general_input_sheet,
-        has_header=False,
-        read_options={"dtypes": "string"},
-        columns=[0, 1],
-    )
-    df = df.with_columns(
-        pl.col(col).str.strip_chars().alias(col) for col in df.columns
-    ).with_columns(
-        pl.when(pl.col(df.columns[1]).str.to_lowercase().is_in(["none", "null"]))
-        .then(None)
-        .otherwise(pl.col(df.columns[1]))
-        .alias(df.columns[1])
-    )
-    df = df.filter(pl.any_horizontal(pl.all().is_not_null()))
-    return dict(df.rows())
 
 
 def excel_to_dict(
@@ -75,9 +52,7 @@ def excel_to_dict(
     design_input_sheet = find_sheet(design_input_sheet, names=xlsx.sheetnames)
     default_values_sheet = find_sheet(default_values_sheet, names=xlsx.sheetnames)
 
-    general_input_dict = _read_general_input(input_filename, general_input_sheet)
-
-    general_input = GeneralInput.from_dict(general_input_dict, input_filename)
+    general_input = GeneralInput.from_xlsx(input_filename, general_input_sheet)
 
     return _excel_to_dict_onebyone(
         input_filename=input_filename,
