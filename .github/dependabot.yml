@@ -25,6 +25,9 @@ updates:
           - "*"
     cooldown:
       default-days: 7
+    ignore:
+      - dependency-name: "*"
+        versions: ["*rc*"]
 
   - package-ecosystem: "pre-commit"
     directory: "/"
