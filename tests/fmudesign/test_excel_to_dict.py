@@ -1,12 +1,19 @@
 """Testing excel_to_dict"""
 
+from io import BytesIO
+from typing import Any
+
 import numpy as np
 import openpyxl
 import pandas as pd
 import pytest
 
 from semeio.fmudesign import excel_to_dict, inputdict_to_yaml
-from semeio.fmudesign._excel_to_dict import _assert_no_merged_cells, _has_value
+from semeio.fmudesign._excel_to_dict import (
+    _assert_no_merged_cells,
+    _has_value,
+    _read_general_input,
+)
 
 MOCK_GENERAL_INPUT = pd.DataFrame(
     data=[
@@ -362,3 +369,81 @@ def test_excel_to_dict_passes_seed_strategy(tmp_path):
     )
     dict_design = excel_to_dict(input_path)
     assert dict_design["seed_strategy"] == "independent"
+
+
+def _rows_to_xlsx_bytestream(rows: list[list[Any]]) -> BytesIO:
+    excel_stream = BytesIO()
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "general_input"
+    for row in rows:
+        ws.append(row)
+    wb.save(excel_stream)
+    return excel_stream
+
+
+def test_that_columns_in_excel_is_reduced_to_first_two_in_read_general_input():
+    rows = [
+        ["designtype", "onebyone", "third_column", "fourth_column"],
+        ["repeats", 10, "third_column", "fourth_column"],
+        ["rms_seeds", "default", "third_column", "fourth_column"],
+        ["distribution_seed", None, "third_column", "fourth_column"],
+    ]
+    xlsx_stream = _rows_to_xlsx_bytestream(rows)
+
+    result = _read_general_input(xlsx_stream, "general_input")
+
+    assert result == {
+        "designtype": "onebyone",
+        "repeats": 10,
+        "rms_seeds": "default",
+        "distribution_seed": np.nan,
+    }
+
+
+def test_that_empty_rows_in_excel_is_filtered_out_in_read_general_input():
+    empty_row = ["", ""]
+    rows = [
+        empty_row,
+        ["designtype", "onebyone"],
+        empty_row,
+        ["repeats", 10],
+        empty_row,
+        ["rms_seeds", "default"],
+        empty_row,
+        ["distribution_seed", None],
+        empty_row,
+    ]
+
+    xlsx_stream = _rows_to_xlsx_bytestream(rows)
+    result = _read_general_input(xlsx_stream, "general_input")
+
+    assert result == {
+        "designtype": "onebyone",
+        "repeats": 10,
+        "rms_seeds": "default",
+        "distribution_seed": np.nan,
+    }
+
+
+@pytest.mark.parametrize("none", [None, "None", "null", "NULL"])
+def test_that_null_rows_in_excel_is_filtered_out_in_read_general_input(none):
+    rows = [
+        ["designtype", "onebyone"],
+        [none, ""],
+        ["", none],
+        [none, none],
+        ["repeats", 10],
+        ["rms_seeds", "default"],
+        ["distribution_seed", none],
+    ]
+
+    xlsx_stream = _rows_to_xlsx_bytestream(rows)
+    result = _read_general_input(xlsx_stream, "general_input")
+
+    assert result == {
+        "designtype": "onebyone",
+        "repeats": 10,
+        "rms_seeds": "default",
+        "distribution_seed": np.nan,
+    }
