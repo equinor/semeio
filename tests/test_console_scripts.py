@@ -30,5 +30,6 @@ def test_that_console_scripts_are_installed_and_their_help_command_returns_exit_
     for entrypoint in semeio_entry_points:
         func = entrypoint.load()
         monkeypatch.setattr("sys.argv", [entrypoint.name, "--help"])
-        with pytest.raises(SystemExit, match="0"):
+        with pytest.raises(SystemExit) as system_exit:
             func()
+        assert system_exit.value.code == 0
