@@ -23,25 +23,6 @@ from semeio.fmudesign.utils import (
 )
 
 
-def _read_general_input(
-    input_filename: str, general_input_sheet: str
-) -> dict[str, Any]:
-    general_input = (
-        pd.read_excel(
-            input_filename,
-            general_input_sheet,
-            header=None,
-            engine="openpyxl",
-        )
-        .dropna(axis=0, how="all")
-        .dropna(axis=1, how="all")
-        .set_index(0)
-        .loc[:, 1]
-        .to_dict()
-    )
-    return {str(k): v for k, v in general_input.items()}
-
-
 def excel_to_dict(
     input_filename: str,
     *,
@@ -71,9 +52,7 @@ def excel_to_dict(
     design_input_sheet = find_sheet(design_input_sheet, names=xlsx.sheetnames)
     default_values_sheet = find_sheet(default_values_sheet, names=xlsx.sheetnames)
 
-    general_input_dict = _read_general_input(input_filename, general_input_sheet)
-
-    general_input = GeneralInput.from_dict(general_input_dict, input_filename)
+    general_input = GeneralInput.from_xlsx(input_filename, general_input_sheet)
 
     return _excel_to_dict_onebyone(
         input_filename=input_filename,

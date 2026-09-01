@@ -6,7 +6,10 @@ import pandas as pd
 import pytest
 
 from semeio.fmudesign import excel_to_dict, inputdict_to_yaml
-from semeio.fmudesign._excel_to_dict import _assert_no_merged_cells, _has_value
+from semeio.fmudesign._excel_to_dict import (
+    _assert_no_merged_cells,
+    _has_value,
+)
 
 MOCK_GENERAL_INPUT = pd.DataFrame(
     data=[
