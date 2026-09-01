@@ -43,7 +43,11 @@ class GeneralInput(BaseModel):
         df = df.with_columns(
             pl.col(col).str.strip_chars().alias(col) for col in df.columns
         ).with_columns(
-            pl.when(pl.col(df.columns[1]).str.to_lowercase().is_in(["none", "null"]))
+            pl.when(
+                pl.col(df.columns[1])
+                .str.to_lowercase()
+                .is_in({"none", "null", "na", "nan"})
+            )
             .then(None)
             .otherwise(pl.col(df.columns[1]))
             .alias(df.columns[1])

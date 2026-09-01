@@ -415,7 +415,20 @@ def test_that_empty_rows_in_excel_is_filtered_out_in_read_general_input():
 
 
 @pytest.mark.parametrize(
-    "none_like", [None, "none", "None", "NONE", " None ", "null", "NULL", " null "]
+    "none_like",
+    [
+        None,
+        "none",
+        "None",
+        "NONE",
+        " None ",
+        "null",
+        "NULL",
+        " null ",
+        "na",
+        "NA",
+        "NaN",
+    ],
 )
 def test_that_none_rows_in_excel_is_filtered_out_in_read_general_input(none_like):
     """This tests that various none like values are interpreted as None and filtered
@@ -459,7 +472,7 @@ def test_that_empty_keyword_cell_in_excel_is_cast_to_empty_string():
     st.integers(min_value=1, max_value=1_000_000),
     st.integers(min_value=0, max_value=1_000_000),
     st.text(min_size=1, max_size=15, alphabet=string.ascii_letters).filter(
-        lambda x: x.lower() not in {"none", "null"}
+        lambda x: x.lower() not in {"none", "null", "na", "nan"}
     ),
     st.integers(min_value=0, max_value=1_000_000),
     st.sampled_from(SeedStrategy),
