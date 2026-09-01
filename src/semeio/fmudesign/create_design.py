@@ -411,11 +411,10 @@ class DesignMatrix:
         if self.backgroundvalues is None:
             raise ValueError("No background values available to write to Excel")
 
-        xlsxwriter = pd.ExcelWriter(filename, engine="openpyxl")
-        self.backgroundvalues.to_excel(
-            xlsxwriter, sheet_name=backgroundsheet, index=False, header=True
-        )
-        xlsxwriter.close()
+        with pd.ExcelWriter(filename, engine="openpyxl") as xlsxwriter:
+            self.backgroundvalues.to_excel(
+                xlsxwriter, sheet_name=backgroundsheet, index=False, header=True
+            )
         print(f"Backgroundvalues written to {filename}")
 
     def _add_sensitivity(

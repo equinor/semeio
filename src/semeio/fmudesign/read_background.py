@@ -42,14 +42,9 @@ def read_background(inp_filename: str, bck_sheet: str) -> dict[str, Any]:
             bck_input, inp_filename, group_description=f"background sheet {bck_sheet!r}"
         )
 
-    if "dist_param1" not in bck_input.columns.to_numpy():
-        bck_input["dist_param1"] = float("NaN")
-    if "dist_param2" not in bck_input.columns.to_numpy():
-        bck_input["dist_param2"] = float("NaN")
-    if "dist_param3" not in bck_input.columns.to_numpy():
-        bck_input["dist_param3"] = float("NaN")
-    if "dist_param4" not in bck_input.columns.to_numpy():
-        bck_input["dist_param4"] = float("NaN")
+    for col_name in ("dist_param1", "dist_param2", "dist_param3", "dist_param4"):
+        if col_name not in bck_input:
+            bck_input[col_name] = float("NaN")
 
     for row in bck_input.itertuples():
         if not _has_value(row.param_name):

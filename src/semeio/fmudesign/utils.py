@@ -239,10 +239,10 @@ def find_sheet(name: str, names: list[str]) -> str:
         return inputstring.lower().strip().replace("_", "")
 
     found = [name_i for name_i in names if sanitize(name) == sanitize(name_i)]
+    if not found:
+        raise ValueError(f"No match for {name}: {names}")
     if len(found) > 1:
         raise ValueError(f"More than one match for {name}: {found}")
-    if len(found) == 0:
-        raise ValueError(f"No match for {name}: {names}")
     return found[0]
 
 
