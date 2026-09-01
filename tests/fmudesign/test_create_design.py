@@ -683,6 +683,25 @@ def test_fill_with_background_values():
     assert dm.designvalues["param1"].tolist() == [10.0, 20.0]
 
 
+def test_set_decimals_propagates_zero_to_dependency():
+    design = DesignMatrix()
+    design.designvalues = pd.DataFrame({"SOURCE": [1.6], "TARGET": [1.6]})
+    config = {
+        "decimals": {"SOURCE": 0},
+        "sensitivities": {
+            "sens": {
+                "dependencies": {
+                    "SOURCE": {"to_params": {"TARGET": []}},
+                }
+            }
+        },
+    }
+
+    design._set_decimals(config)
+
+    assert design.designvalues["TARGET"].tolist() == [2.0]
+
+
 def _sample_mc(
     params,
     *,

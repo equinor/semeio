@@ -559,11 +559,9 @@ class DesignMatrix:
                 continue
             for from_param, from_dict in sensdict["dependencies"].items():
                 for to_param in from_dict["to_params"]:
-                    if not inputdict["decimals"].get(from_param, None):
+                    if from_param not in inputdict["decimals"]:
                         continue
-                    inputdict["decimals"][to_param] = inputdict["decimals"].get(
-                        from_param, ""
-                    )
+                    inputdict["decimals"][to_param] = inputdict["decimals"][from_param]
 
         # Round each column
         dict_decimals = inputdict["decimals"]
