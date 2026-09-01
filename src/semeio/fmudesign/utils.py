@@ -84,7 +84,7 @@ def printwarning(corr_group_name: str) -> None:
         f"ONLY ONE PARAMETER WAS SPECIFIED TO USE CORR_SHEET {corr_group_name}\n"
         "\n"
         "Note change in how correlated parameters are specified \n"
-        "from fmudeisgn version 1.0.1 in August 2019 :\n"
+        "from fmudesign version 1.0.1 in August 2019:\n"
         "Name of correlation sheet must be specified for each "
         "parameter in correlation matrix. \n"
         "This to enable use of several correlation sheets. "

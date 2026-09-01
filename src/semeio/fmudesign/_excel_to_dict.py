@@ -84,7 +84,7 @@ def _check_designinput(dsgn_input: pd.DataFrame) -> None:
         duplicate_name = valid_sensnames[duplicated_mask].iloc[0]
         raise ValueError(
             f"sensname '{duplicate_name}' was found on more than one row in "
-            "designinput sheet. Two sensitivities can not share the same sensname. "
+            "designinput sheet. Two sensitivities cannot share the same sensname. "
             "Please correct this and rerun"
         )
 

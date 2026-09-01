@@ -100,7 +100,7 @@ def test_duplicate_sensname_exception(tmp_path):
     )
 
     with pytest.raises(
-        ValueError, match="Two sensitivities can not share the same sensname"
+        ValueError, match="Two sensitivities cannot share the same sensname"
     ):
         excel_to_dict(input_path)
 
