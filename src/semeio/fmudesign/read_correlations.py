@@ -55,6 +55,6 @@ def parse_sensitivity_correlations(
             msg += "These parameters must be specified one-to-one."
             raise ValueError(msg)
 
-    correlations["sheetnames"] = list(set(corr_to_params.keys()))
+    correlations["sheetnames"] = list(corr_to_params)
 
     return correlations

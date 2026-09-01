@@ -167,11 +167,11 @@ def test_advanced_example_excel_parsing(tmp_path, monkeypatch):
     monte_carlo = excel_to_dict("ex8_mc_with_correls.xlsx")["sensitivities"][
         "montecarlo"
     ]
-    assert set(monte_carlo["correlations"]["sheetnames"]) == {
+    assert monte_carlo["correlations"]["sheetnames"] == [
         "corr1",
         "corr2",
         "corr3",
-    }
+    ]
     assert monte_carlo["dependencies"] == {
         "DATO": {
             "from_values": ["2018-11-02", "2018-11-03", "2018-11-04"],
