@@ -128,7 +128,7 @@ def to_probabilit(
                 "Length mismatch for discrete distribution, "
                 f"dist_param1 has length {len(values)}, "
                 f"but dist_param2 has length {len(probabilities)}. "
-                "dist_param1 and dist_param2 must have the same numer of "
+                "dist_param1 and dist_param2 must have the same number of "
                 "entries for discrete distributions."
             )
         distr = probabilit.Distribution("uniform")

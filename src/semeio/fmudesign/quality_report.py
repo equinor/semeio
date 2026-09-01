@@ -165,7 +165,7 @@ class QualityReporter:
         sns.histplot(data=series, stat="density", bins=bins, ax=ax)
         sns.kdeplot(series, ax=ax, color="blue", label="KDE")
 
-        # Create string to describe distiribution
+        # Create string to describe distribution
         var_string = (
             f"{var_description[0]}~("
             + ", ".join(
@@ -252,7 +252,7 @@ class QualityReporter:
         # Use seaborn barplot with normalized values
         sns.barplot(data=plot_data, x=var_name, y="proportion", ax=ax)
 
-        # Create string to describe distiribution
+        # Create string to describe distribution
         var_string = (
             f"{var_description[0]}~("
             + ", ".join(
@@ -443,7 +443,7 @@ class QualityReporter:
         output_dir: Path | None = None,
         show: bool,
     ) -> None:
-        """Plot correlation heapmap of group of variables.
+        """Plot correlation heatmap of group of variables.
 
         Args:
             corr_name: Name of the correlation group
@@ -571,7 +571,7 @@ def print_corrmat(df_corrmat: pd.DataFrame) -> None:
 
 
 if __name__ == "__main__":
-    # Testing an experimenting with this class is easier with an example,
+    # Testing and experimenting with this class is easier with an example,
     # rather than trying to formally test the design of output plots
     # using units tests and the like. Therefore an example is included.
 

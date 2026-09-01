@@ -1,7 +1,7 @@
 """
 This module is responsible for running the 'fmudesign' CLI tool.
 
-It contains argumenting parsing logic, some argument validation and high-level
+It contains argument parsing logic, some argument validation and high-level
 functions that delegate to lower-level functions for creating design matrices.
 
 There are two main sub-commands:
@@ -312,7 +312,7 @@ def subcommand_init(args: Namespace, parser: ArgumentParser) -> None:
 def main() -> None:
     """semeio.fmudesign is a command line utility for generating design matrices
 
-    Wrapper for the the semeio.fmudesign module"""
+    Wrapper for the semeio.fmudesign module"""
 
     warnings.filterwarnings("ignore", category=DeprecationWarning)
     warnings.filterwarnings("ignore", category=FutureWarning)

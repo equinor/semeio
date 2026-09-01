@@ -58,8 +58,8 @@ def _derive_rng(base_seed: int, *keys: str) -> np.random.Generator:
 
 
 class DesignMatrix:
-    """Class for design matrix in FMU. Can contain a onebyone design
-    or a full montecarlo design.
+    """Class for design matrix in FMU. Can contain a one-by-one design
+    or a full Monte Carlo design.
 
     Attributes:
         designvalues (pd.DataFrame): design matrix on standard fmu format
@@ -100,7 +100,7 @@ class DesignMatrix:
         self.base_seed: int
 
     def reset(self) -> None:
-        """Resets DesignMatrix to empty. Necessary iin case method generate
+        """Resets DesignMatrix to empty. Necessary in case method generate
         is used several times for same instance of DesignMatrix"""
         self.designvalues = pd.DataFrame()
         self.defaultvalues = {}
@@ -281,7 +281,7 @@ class DesignMatrix:
         designsheet: str = "DesignSheet01",
         defaultsheet: str = "DefaultValues",
     ) -> None:
-        """Writing design matrix to excel workfbook on standard fmu format
+        """Writing design matrix to an Excel workbook in standard FMU format
         to be used in FMU/ERT by DESIGN2PARAMS and DESIGN_KW
 
         Args:
@@ -330,12 +330,12 @@ class DesignMatrix:
 
     @staticmethod
     def create_rms_seeds(seeds: list | str | None, max_reals: int) -> list | None:
-        """Create RMS seems from 'seeds' argument.
+        """Create RMS seeds from the 'seeds' argument.
 
         Args:
             seeds: Seed configuration. Can be:
                 - None: returns None
-                - "default": Generates sequential seeds 1001, 1002, 1003, ...
+                - "default": Generates sequential seeds 1000, 1001, 1002, ...
                 - list of seeds, e.g. [1, 2, 3]
             max_reals: Maximum number of seed values to generate or load
 
@@ -540,7 +540,7 @@ class DesignMatrix:
         """Round to specified number of decimals.
 
         Args:
-            inputdict (dictionary): input diction that might have a sub-dict
+            inputdict (dictionary): input dictionary that might have a sub-dict
                                     with key "decimals". This sub-dict has
                                     (key, value)s are (param, decimals)
         """
@@ -716,7 +716,7 @@ class ScenarioSensitivity(Sensitivity):
     Each ScenarioSensitivity can contain 1-2 ScenarioSensitivityCases.
 
     The ScenarioSensitivity class is used for sensitivities where all
-    realizatons in a ScenarioSensitivityCase have identical values
+    realisations in a ScenarioSensitivityCase have identical values
     but one or more parameter has a different values from the other
     ScenarioSensitivityCase.
 
@@ -761,7 +761,7 @@ class ScenarioSensitivityCase(Sensitivity):
     two ScenarioSensitivityCases.
 
     The 1-2 cases are typically 'low' and 'high' cases for one or
-    a set of  parameters, where all realisatons in
+    a set of parameters, where all realisations in
     the case have identical values except the seed value
     and in special cases specified background values which may
     vary within the case.
