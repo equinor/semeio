@@ -146,79 +146,81 @@ class DesignMatrix:
         self.designvalues["SENSNAME"] = None
         self.designvalues["SENSCASE"] = None
 
-        for key in inputdict["sensitivities"]:
-            sens = inputdict["sensitivities"][key]
-
-            # Numer of realization (rows) to use for each sensitivity
-            size = sens["numreal"] if "numreal" in sens else inputdict["repeats"]
+        for key, sens in inputdict["sensitivities"].items():
+            # Number of realisations (rows) to use for each sensitivity
+            size = sens.get("numreal", inputdict["repeats"])
 
             print(f" Generating sensitivity : {key}")
 
-            if sens["senstype"] == "ref":
-                sensitivity = SingleRealisationReference(key, verbosity=self.verbosity)
-                sensitivity.generate(size=size)
-                sensitivity.map_dependencies(sens.get("dependencies", {}))
-                self._add_sensitivity(sensitivity)
-            elif sens["senstype"] == "background":
-                sensitivity = BackgroundSensitivity(key, verbosity=self.verbosity)
-                sensitivity.generate(size=size)
-                sensitivity.map_dependencies(sens.get("dependencies", {}))
-                self._add_sensitivity(sensitivity)
-            elif sens["senstype"] == "seed":
-                sensitivity = SeedSensitivity(key, verbosity=self.verbosity)
-                sensitivity.generate(
-                    size=size,
-                    seedname=sens["seedname"],
-                    seedvalues=self.seedvalues,
-                    parameters=sens["parameters"],
-                )
-                sensitivity.map_dependencies(sens.get("dependencies", {}))
-
-                self._add_sensitivity(sensitivity)
-            elif sens["senstype"] == "scenario":
-                sensitivity = ScenarioSensitivity(key, verbosity=self.verbosity)
-                for casekey in sens["cases"]:
-                    case = sens["cases"][casekey]
-                    temp_case = ScenarioSensitivityCase(casekey)
-                    temp_case.generate(
-                        size=size,
-                        parameters=case,
-                        seedvalues=self.seedvalues,
+            match sens["senstype"]:
+                case "ref":
+                    sensitivity = SingleRealisationReference(
+                        key, verbosity=self.verbosity
                     )
-                    sensitivity.add_case(temp_case)
+                    sensitivity.generate(size=size)
+                    sensitivity.map_dependencies(sens.get("dependencies", {}))
+                    self._add_sensitivity(sensitivity)
+                case "background":
+                    sensitivity = BackgroundSensitivity(key, verbosity=self.verbosity)
+                    sensitivity.generate(size=size)
+                    sensitivity.map_dependencies(sens.get("dependencies", {}))
+                    self._add_sensitivity(sensitivity)
+                case "seed":
+                    sensitivity = SeedSensitivity(key, verbosity=self.verbosity)
+                    sensitivity.generate(
+                        size=size,
+                        seedname=sens["seedname"],
+                        seedvalues=self.seedvalues,
+                        parameters=sens["parameters"],
+                    )
                     sensitivity.map_dependencies(sens.get("dependencies", {}))
 
-                self._add_sensitivity(sensitivity)
-            elif sens["senstype"] == "dist":
-                sensitivity = MonteCarloSensitivity(key, verbosity=self.verbosity)
-                sensitivity.generate(
-                    size=size,
-                    parameters=sens["parameters"],
-                    seedvalues=self.seedvalues,
-                    corrdict=sens["correlations"],
-                    rng=self.rng,
-                    correlation_iterations=inputdict.get("correlation_iterations", 0),
-                    seed_strategy=self.seed_strategy,
-                    base_seed=self.base_seed,
-                )
-                sensitivity.map_dependencies(sens.get("dependencies", {}))
+                    self._add_sensitivity(sensitivity)
+                case "scenario":
+                    sensitivity = ScenarioSensitivity(key, verbosity=self.verbosity)
+                    for casekey, case in sens["cases"].items():
+                        temp_case = ScenarioSensitivityCase(casekey)
+                        temp_case.generate(
+                            size=size,
+                            parameters=case,
+                            seedvalues=self.seedvalues,
+                        )
+                        sensitivity.add_case(temp_case)
+                        sensitivity.map_dependencies(sens.get("dependencies", {}))
 
-                self._add_sensitivity(sensitivity)
+                    self._add_sensitivity(sensitivity)
+                case "dist":
+                    sensitivity = MonteCarloSensitivity(key, verbosity=self.verbosity)
+                    sensitivity.generate(
+                        size=size,
+                        parameters=sens["parameters"],
+                        seedvalues=self.seedvalues,
+                        corrdict=sens["correlations"],
+                        rng=self.rng,
+                        correlation_iterations=inputdict.get(
+                            "correlation_iterations", 0
+                        ),
+                        seed_strategy=self.seed_strategy,
+                        base_seed=self.base_seed,
+                    )
+                    sensitivity.map_dependencies(sens.get("dependencies", {}))
 
-            elif sens["senstype"] == "extern":
-                sensitivity = ExternSensitivity(key, verbosity=self.verbosity)
-                sensitivity.generate(
-                    size=size,
-                    filename=sens["extern_file"],
-                    parameters=sens["parameters"],
-                    seedvalues=self.seedvalues,
-                )
-                sensitivity.map_dependencies(sens.get("dependencies", {}))
+                    self._add_sensitivity(sensitivity)
 
-                self._add_sensitivity(sensitivity)
+                case "extern":
+                    sensitivity = ExternSensitivity(key, verbosity=self.verbosity)
+                    sensitivity.generate(
+                        size=size,
+                        filename=sens["extern_file"],
+                        parameters=sens["parameters"],
+                        seedvalues=self.seedvalues,
+                    )
+                    sensitivity.map_dependencies(sens.get("dependencies", {}))
 
-            else:
-                raise ValueError(f"Unknown sensitivity type: {sens['senstype']!r}")
+                    self._add_sensitivity(sensitivity)
+
+                case unknown:
+                    raise ValueError(f"Unknown sensitivity type: {unknown!r}")
 
             # MonteCarloSensitivity is special - it can produce debugging outputs
             is_montecarlo = isinstance(sensitivity, MonteCarloSensitivity)
