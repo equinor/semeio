@@ -340,7 +340,7 @@ def test_assert_no_merged_cells(tmp_path):
     workbook.save(input_path)
     workbook.close()
 
-    with pytest.raises(Exception, match="Merged cells"):
+    with pytest.raises(ValueError, match="Merged cells"):
         _assert_no_merged_cells(input_path)
 
 

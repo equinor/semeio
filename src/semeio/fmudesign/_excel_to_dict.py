@@ -418,14 +418,9 @@ def _read_dist_sensitivity(sensgroup: pd.DataFrame) -> dict[str, Any]:
     """Reads parameters and distributions
     for monte carlo sensitivities
     """
-    if "dist_param1" not in sensgroup.columns.to_numpy():
-        sensgroup["dist_param1"] = float("NaN")
-    if "dist_param2" not in sensgroup.columns.to_numpy():
-        sensgroup["dist_param2"] = float("NaN")
-    if "dist_param3" not in sensgroup.columns.to_numpy():
-        sensgroup["dist_param3"] = float("NaN")
-    if "dist_param4" not in sensgroup.columns.to_numpy():
-        sensgroup["dist_param4"] = float("NaN")
+    for col_name in ("dist_param1", "dist_param2", "dist_param3", "dist_param4"):
+        if col_name not in sensgroup:
+            sensgroup[col_name] = float("NaN")
     paramdict: dict[str, Any] = {}
     for row in sensgroup.itertuples():
         if not _has_value(row.param_name):
@@ -488,7 +483,7 @@ def _assert_no_merged_cells(input_filename: str) -> None:
         worksheet = workbook[sheet_name]
         merged_ranges = list(worksheet.merged_cells.ranges)
         if merged_ranges:
-            raise Exception(
+            raise ValueError(
                 "Merged cells are not allowed. Found merged cell in "
                 f"{input_filename} at sheet '{sheet_name}'.\n"
                 f"Found {len(merged_ranges)} merged cell range(s): {merged_ranges}"
