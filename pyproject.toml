@@ -39,7 +39,6 @@ dependencies = [
     "xlrd",
     "xtgeo>=2.15",
     "seaborn",
-    "probabilit>=0.4.1",
     "resfo-utilities>=0.1.1",
     "polars",
     "fastexcel",
