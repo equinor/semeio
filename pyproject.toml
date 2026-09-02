@@ -37,7 +37,6 @@ dependencies = [
     "segyio",
     "xlrd",
     "xtgeo>=2.15",
-    "seaborn",
     "resfo-utilities>=0.1.1",
     "polars",
     "fastexcel",
