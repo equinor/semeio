@@ -3517,7 +3517,6 @@ name = "semeio"
 source = { editable = "." }
 dependencies = [
     { name = "ert" },
-    { name = "fastexcel" },
     { name = "fmu-ensemble" },
     { name = "numpy" },
     { name = "packaging" },
@@ -3559,7 +3558,6 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "ert", specifier = ">=23.0.0b1.dev0" },
-    { name = "fastexcel" },
     { name = "fmu-ensemble", specifier = ">1.6.5" },
     { name = "numpy" },
     { name = "packaging", specifier = ">=26.3" },
