@@ -57,10 +57,6 @@ dev = [
     'rust-just',
     'types-PyYAML',
     'types-openpyxl',
-    'types-seaborn',
-    'types-setuptools',
-    'xlwt',
-    'xlsxwriter'
 ]
 
 [project.urls]
