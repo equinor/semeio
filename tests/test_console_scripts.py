@@ -6,7 +6,6 @@ EXPECTED_ENTRYPOINTS = {
     "csv_export2",
     "overburden_timeshift",
     "design2params",
-    "fmudesign",
     "gendata_rft",
     "design_kw",
     "fm_pyscal",
