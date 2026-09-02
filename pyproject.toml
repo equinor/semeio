@@ -32,7 +32,6 @@ dependencies = [
     "pydantic>=2.9",
     "pyscal>=0.4.0",
     "resdata",
-    "scikit-learn",
     "scipy",
     "segyio",
     "xlrd",
