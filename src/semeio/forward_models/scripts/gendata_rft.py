@@ -48,7 +48,7 @@ of the following applies:
 * The zone mapping is invalid.
 
 For setting up the input to this forward model, the tool ``create_rft_ertobs``
-from semeio.fmudesign can be used, called from within RMS. See
+from fmu.tools.rms can be used, called from within RMS. See
 https://equinor.github.io/fmu-tools/create_rft_ertobs.html
 """
 

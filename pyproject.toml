@@ -25,7 +25,6 @@ classifiers = [
 ]
 dynamic = ["version"]
 dependencies = [
-    "cvxpy",
     "ert>=23.0.0b1.dev0",
     "fmu-ensemble>1.6.5",
     "numpy",
@@ -33,16 +32,12 @@ dependencies = [
     "pydantic>=2.9",
     "pyscal>=0.4.0",
     "resdata",
-    "scikit-learn",
     "scipy",
     "segyio",
     "xlrd",
     "xtgeo>=2.15",
-    "seaborn",
-    "probabilit>=0.4.1",
     "resfo-utilities>=0.1.1",
     "polars",
-    "fastexcel",
     "packaging>=26.3",
 ]
 [dependency-groups]
@@ -62,10 +57,6 @@ dev = [
     'rust-just',
     'types-PyYAML',
     'types-openpyxl',
-    'types-seaborn',
-    'types-setuptools',
-    'xlwt',
-    'xlsxwriter'
 ]
 
 [project.urls]
@@ -81,7 +72,6 @@ csv_export2 = "semeio.workflows.csv_export2.csv_export2:cli"
 design2params = "semeio.forward_models.scripts.design2params:main_entry_point"
 design_kw = "semeio.forward_models.scripts.design_kw:main_entry_point"
 fm_pyscal = "semeio.forward_models.scripts.fm_pyscal:main_entry_point"
-fmudesign = "semeio.fmudesign.fmudesignrunner:main"
 gendata_rft = "semeio.forward_models.scripts.gendata_rft:main_entry_point"
 overburden_timeshift = "semeio.forward_models.scripts.overburden_timeshift:main_entry_point"
 replace_string = "semeio.forward_models.scripts.replace_string:main_entry_point"
@@ -91,9 +81,6 @@ version_file = "src/semeio/version.py"
 
 [tool.setuptools.packages.find]
 where = ["src"]
-
-[tool.setuptools.package-data]
-"semeio.fmudesign.examples" = ["*.xlsx", "*.yml", "*.yaml", "*.toml"]
 
 [tool.pytest.ini_options]
 addopts = "-ra --strict-markers"
@@ -173,7 +160,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"!*/semeio/{fmudesign,forward_models}/**.py" = ["ANN"]
+"!*/semeio/{forward_models}/**.py" = ["ANN"]
 
 [tool.ruff.lint.pylint]
 max-args = 20
@@ -192,7 +179,6 @@ resdata = false
 resfo = false
 resfo-utilities = false
 segyio = false
-probabilit = false
 xtgeo = false
 oil-reservoir-synthesizer = false
 ropt-dakota = false
