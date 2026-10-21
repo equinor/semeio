@@ -588,7 +588,8 @@ GEN_DATA OP_1_RFT_SIM1 REPORT_STEPS:1 RESULT_FILE:RFT_OP_1_%d
     result = subprocess.run(
         [
             "ert",
-            "ensemble_smoother",
+            "es_mda",
+            "--single-update",
             "--disable-monitoring",
             "--target-ensemble",
             "default_%d",
@@ -722,7 +723,8 @@ def test_ert_setup_one_well_two_points_different_time_and_depth(tmpdir):
     result = subprocess.run(
         [
             "ert",
-            "ensemble_smoother",
+            "es_mda",
+            "--single-update",
             "--disable-monitoring",
             "--target-ensemble",
             "default_%d",
