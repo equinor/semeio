@@ -171,6 +171,7 @@ exclude-newer = "7 days"
 
 [tool.uv.exclude-newer-package]
 # Excluded as they are developed by Equinor
+certify = false # Needed until 2026-11-03
 ert = false
 fmu-ensemble = false
 graphite-maps = false
@@ -179,9 +180,11 @@ resdata = false
 resfo = false
 resfo-utilities = false
 segyio = false
+setuptools = false # Needed until 2026-11-03
 xtgeo = false
 oil-reservoir-synthesizer = false
 ropt-dakota = false
 ropt = false
+virtualenv = false # Needed until 2026-11-03
 # Exclude for security update
 urllib3 = false
