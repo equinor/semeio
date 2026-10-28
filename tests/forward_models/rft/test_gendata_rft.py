@@ -589,7 +589,7 @@ GEN_DATA OP_1_RFT_SIM1 REPORT_STEPS:1 RESULT_FILE:RFT_OP_1_%d
         [
             "ert",
             "es_mda",
-            "--single-update",
+            "--weights=1",
             "--disable-monitoring",
             "--target-ensemble",
             "default_%d",
@@ -724,7 +724,7 @@ def test_ert_setup_one_well_two_points_different_time_and_depth(tmpdir):
         [
             "ert",
             "es_mda",
-            "--single-update",
+            "--weights=1",
             "--disable-monitoring",
             "--target-ensemble",
             "default_%d",
