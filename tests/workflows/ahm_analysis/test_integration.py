@@ -193,7 +193,7 @@ def test_ahmanalysis_run_deactivated_obs(copy_snake_oil_case_storage, snapshot, 
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("use_tmpdir")
-def test_that_dataset_with_no_prior_will_fail(snake_oil_config, capsys):
+def test_that_dataset_with_no_prior_will_fail(snake_oil_config, caplog):
     with open_storage(snake_oil_config.ens_path, "w") as storage:
         ensemble = storage.create_experiment().create_ensemble(
             name="default", ensemble_size=10
@@ -214,7 +214,7 @@ def test_that_dataset_with_no_prior_will_fail(snake_oil_config, capsys):
             },
         )
 
-        assert "Empty prior ensemble" in capsys.readouterr().err
+        assert "Empty prior ensemble" in caplog.text
 
 
 @pytest.mark.integration_test
