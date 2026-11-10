@@ -141,6 +141,102 @@ For assisted history matching, add ``GEN_DATA`` statements to the ert config::
 
     GEN_DATA A-1 RESULT_FILE:gendata_rft/RFT_A-1_%d REPORT_STEPS:0
 
+**Migrating to RFT_OBSERVATION**
+
+ert can read RFT files directly using ``RFT_OBSERVATION`` in the observation
+configuration. This replaces ``GENDATA_RFT`` forward model, the RFT
+``GEN_DATA`` statements, the trajectory files, the well-and-time file and the
+corresponding ``GENERAL_OBSERVATION`` entries.
+
+The following shows how a setup observing pressure in well ``PROD`` is
+converted.
+
+*Before* ert config::
+
+    FORWARD_MODEL GENDATA_RFT( \\
+        <PATH_TO_TRAJECTORY_FILES>=<CONFIG_PATH>/resources/trajectories, \\
+        <WELL_AND_TIME_FILE>=<CONFIG_PATH>/resources/well_date_rft.txt, \\
+        <ZONEMAP>=<CONFIG_PATH>/resources/layer_zone_table.txt \\
+    )
+    GEN_DATA PROD_RFT RESULT_FILE:RFT_PROD_%d REPORT_STEPS:1
+    OBS_CONFIG obs.txt
+
+*Before* ``obs.txt``::
+
+    GENERAL_OBSERVATION PROD_PRESSURE
+    {
+        DATA = PROD_RFT;
+        OBS_FILE = prod_pressure.txt;
+        RESTART = 1;
+    };
+
+*Before* ``well_date_rft.txt``::
+
+    -- well date       report_step
+    PROD 2015-01-01 1
+
+*Before* ``trajectories/PROD.txt``::
+
+    -- utmx utmy depth_MD depth_TVD zone
+    9500.0 9500.0 8335.0 8335.0 Zone1
+    9500.0 9500.0 8360.0 8360.0 Zone1
+    9500.0 9500.0 8400.0 8400.0 Zone1
+
+*Before* ``prod_pressure.txt``::
+
+    4380.123 100.0
+    4390.123 100.0
+    4395.5   100.0
+
+*After*, ert config::
+
+    ZONEMAP <CONFIG_PATH>/resources/layer_zone_table.txt
+    OBS_CONFIG obs.txt
+
+*After* ``obs.txt``::
+
+    RFT_OBSERVATION PROD_PRESSURE_1 {
+        WELL=PROD;
+        DATE=2015-01-01;
+        PROPERTY=PRESSURE;
+        VALUE=4380.123;
+        ERROR=100.0;
+        EAST=9500.0;
+        NORTH=9500.0;
+        TVD=8335.0;
+        ZONE=Zone1;
+    };
+
+Repeat the block for each point (``TVD`` 8360.0 and 8400.0 with values
+4390.123 and 4395.5), or use one CSV file with all observations::
+
+    RFT_OBSERVATION PROD_PRESSURE {
+        CSV=<CONFIG_PATH>/resources/prod_pressure.csv;
+    };
+
+where ``prod_pressure.csv`` contains::
+
+    "WELL_NAME", "DATE", "ZONE", "PRESSURE", "ERROR", "TVD", "NORTH", "EAST"
+    "PROD", "2015-01-01", "Zone1", 4380.123, 100.0, 8335.0, 9500.0, 9500.0
+    "PROD", "2015-01-01", "Zone1", 4390.123, 100.0, 8360.0, 9500.0, 9500.0
+    "PROD", "2015-01-01", "Zone1", 4395.5, 100.0, 8400.0, 9500.0, 9500.0
+
+The ``layer_zone_table.txt`` file is unchanged. For other properties, use
+``PROPERTY=SWAT`` (and a ``SWAT`` column in the CSV), etc.
+
+The CSV can be created with the ``create_rft_ertobs`` job from fmu.tools.rms
+(run inside RMS), which writes ``rft_ertobs.csv`` to its ``exportdir``. The
+``.txt``, ``.obs`` and well-date files it also writes are only needed for
+``GENDATA_RFT``. See https://equinor.github.io/fmu-tools/create_rft_ertobs.html
+
+For visualization, the ``EXPORT_RFT`` workflow job in ert replaces the CSV from
+``GENDATA_RFT`` combined with ``merge_rft_ertobs``.
+
+Differences to be aware of: there are no ``-1`` padded values and no report
+steps, and observations that cannot be matched to an RFT value are deactivated.
+Observations whose location is outside the declared zone are deactivated with
+a warning. See the ert documentation for ``RFT_OBSERVATION`` and ``ZONEMAP``.
+
 """,
             description=gendata_rft_description,
         )
