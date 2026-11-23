@@ -141,12 +141,15 @@ def csv_export_parser():
 
 
 @plugin(name="semeio")
-def legacy_ertscript_workflow(config):
-    workflow = config.add_workflow(CsvExport2Job, "CSV_EXPORT2")
-    workflow.parser = csv_export_parser
-    workflow.description = DESCRIPTION
-    workflow.examples = EXAMPLES
-    workflow.category = "export"
+def ertscript_workflow(config):
+    config.add_workflow(
+        CsvExport2Job,
+        "CSV_EXPORT2",
+        description=DESCRIPTION,
+        examples=EXAMPLES,
+        parser=csv_export_parser,
+        category="export",
+    )
 
 
 def cli():
