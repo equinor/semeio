@@ -116,13 +116,15 @@ def _complete_parameters_file(
     merged = merged.drop(columns=["order_param", "order_real", "order_default"])
     # add new column with a combined parameters / data
     # from the realization in design matrix
-    merged["parameters_realization"] = merged["parameters"].combine_first(
-        merged["realization"]
+    # (where/notna is used instead of combine_first, which triggers a pandas 2
+    # FutureWarning about concatenation with empty entries)
+    merged["parameters_realization"] = merged["parameters"].where(
+        merged["parameters"].notna(), merged["realization"]
     )
 
     # add new column with a total combined of parameters_realization and defaults
-    merged["combined"] = merged["parameters_realization"].combine_first(
-        merged["defaults"]
+    merged["combined"] = merged["parameters_realization"].where(
+        merged["parameters_realization"].notna(), merged["defaults"]
     )
 
     # keys in the design matrix not present in parameters

@@ -2,6 +2,7 @@ import filecmp
 import logging
 import os
 import shutil
+import warnings
 from pathlib import Path
 
 import pandas as pd
@@ -619,3 +620,216 @@ def write_design_xlsx(
             pd.DataFrame().to_excel(
                 writer, sheet_name=defaultssheetname, index=False, header=None
             )
+
+
+# Expected values were produced by the implementation using combine_first
+# with pandas 2.2, and must stay identical across pandas versions.
+@pytest.mark.parametrize(
+    (
+        "design",
+        "defaults",
+        "parameters_txt",
+        "realization",
+        "expected_parameters",
+        "expected_designparameters",
+        "expected_designmatrix",
+    ),
+    [
+        pytest.param(
+            [
+                {"REAL": 0, "A": 1, "B": "x", "C": 0.5},
+                {"REAL": 1, "A": 2, "B": "y", "C": 1.5},
+            ],
+            None,
+            None,
+            0,
+            "A 1\nB x\nC 0.5\n",
+            "A 1\nB x\nC 0.5\n",
+            "REAL A B C\n0 1 x 0.5\n1 2 y 1.5\n",
+            id="design_only_real0",
+        ),
+        pytest.param(
+            [
+                {"REAL": 0, "A": 1, "B": "x", "C": 0.5},
+                {"REAL": 1, "A": 2, "B": "y", "C": 1.5},
+            ],
+            None,
+            None,
+            1,
+            "A 2\nB y\nC 1.5\n",
+            "A 2\nB y\nC 1.5\n",
+            "REAL A B C\n0 1 x 0.5\n1 2 y 1.5\n",
+            id="design_only_real1",
+        ),
+        pytest.param(
+            [{"REAL": 0, "A": 1, "B": 2}, {"REAL": 1, "A": 3, "B": 4}],
+            None,
+            "",
+            1,
+            "A 3\nB 4\n",
+            "A 3\nB 4\n",
+            "REAL A B\n0 1 2\n1 3 4\n",
+            id="empty_parameters_file",
+        ),
+        pytest.param(
+            [{"REAL": 0, "A": 1, "B": 2, "C": 3}],
+            None,
+            "A 1\nB 2\n",
+            0,
+            "A 1\nB 2\nC 3\n",
+            "C 3\n",
+            "REAL A B C\n0 1 2 3\n",
+            id="parameters_overlap_without_conflict",
+        ),
+        pytest.param(
+            [{"REAL": 0, "A": 10, "B": 20, "C": 30, "D": "text"}],
+            None,
+            "B 2\nA 1\nZ 99\n",
+            0,
+            "B 2\nA 1\nZ 99\nC 30\nD text\n",
+            "C 30\nD text\n",
+            "REAL A B C D\n0 10 20 30 text\n",
+            id="parameters_conflict_and_new_keys",
+        ),
+        pytest.param(
+            [{"REAL": 0, "C": 3, "B": 2, "A": 1}],
+            None,
+            "A 5\nB 6\nC 7\n",
+            0,
+            "A 5\nB 6\nC 7\n",
+            "",
+            "REAL C B A\n0 3 2 1\n",
+            id="design_columns_in_reverse_order_of_parameters",
+        ),
+        pytest.param(
+            [{"REAL": 0, "A": 1, "B": 2}],
+            None,
+            "A foo\nB 2.50\nC bar\n",
+            0,
+            "A foo\nB 2.50\nC bar\n",
+            "",
+            "REAL A B\n0 1 2\n",
+            id="parameters_with_string_values",
+        ),
+        pytest.param(
+            [{"REAL": 0, "A": 1, "B": 2}],
+            None,
+            "A 1\nB 3\nC 4\n",
+            0,
+            "A 1\nB 3\nC 4\n",
+            "",
+            "REAL A B\n0 1 2\n",
+            id="empty_defaults_with_parameters",
+        ),
+        pytest.param(
+            [{"REAL": 0, "A": 1}, {"REAL": 1, "A": 2}],
+            [["D1", 100], ["D2", "abc"]],
+            None,
+            0,
+            "A 1\nD1 100\nD2 abc\n",
+            "A 1\nD1 100\nD2 abc\n",
+            "REAL A\n0 1\n1 2\n",
+            id="defaults_for_keys_missing_in_design_real0",
+        ),
+        pytest.param(
+            [{"REAL": 0, "A": 1}, {"REAL": 1, "A": 2}],
+            [["D1", 100], ["D2", "abc"]],
+            None,
+            1,
+            "A 2\nD1 100\nD2 abc\n",
+            "A 2\nD1 100\nD2 abc\n",
+            "REAL A\n0 1\n1 2\n",
+            id="defaults_for_keys_missing_in_design_real1",
+        ),
+        pytest.param(
+            [{"REAL": 0, "A": 1, "B": 2}],
+            [["A", 111], ["B", 222], ["C", 333]],
+            None,
+            0,
+            "A 1\nB 2\nC 333\n",
+            "A 1\nB 2\nC 333\n",
+            "REAL A B\n0 1 2\n",
+            id="defaults_overlapping_design",
+        ),
+        pytest.param(
+            [{"REAL": 0, "A": 1}],
+            [["A", 111], ["P", 222], ["Q", 333]],
+            "P 5\n",
+            0,
+            "P 5\nA 1\nQ 333\n",
+            "A 1\nQ 333\n",
+            "REAL A\n0 1\n",
+            id="defaults_overlapping_parameters",
+        ),
+        pytest.param(
+            [{"REAL": 0, "A": 1, "B": 2, "C": 3}],
+            [["A", 9], ["B", 8], ["D", 7], ["E", 6], ["F", 5]],
+            "F 0\nB 4\nG 1\n",
+            0,
+            "F 0\nB 4\nG 1\nA 1\nC 3\nD 7\nE 6\n",
+            "A 1\nC 3\nD 7\nE 6\n",
+            "REAL A B C\n0 1 2 3\n",
+            id="defaults_parameters_and_design_all_mixed",
+        ),
+        pytest.param(
+            [{"REAL": 0, "A": 1}],
+            [["Z", 1], ["Y", 2], ["X", 3]],
+            "X 0\nY 0\n",
+            0,
+            "X 0\nY 0\nA 1\nZ 1\n",
+            "A 1\nZ 1\n",
+            "REAL A\n0 1\n",
+            id="defaults_order_differs_from_parameters_order",
+        ),
+        pytest.param(
+            [{"REAL": 0}],
+            [["A", 1]],
+            "B 2\n",
+            0,
+            "B 2\nA 1\n",
+            "A 1\n",
+            "REAL\n0\n",
+            id="design_without_parameter_columns",
+        ),
+        pytest.param(
+            [{"REAL": 0, "A": 1.0, "B": 0.1234567891234, "C": 1e-7, "D": 100}],
+            [["E", 1.0], ["F", 0.30000000000000004]],
+            "A 1\n",
+            0,
+            "A 1\nB 0.1234567891234\nC 1e-07\nD 100\nE 1\nF 0.3\n",
+            "B 0.1234567891234\nC 1e-07\nD 100\nE 1\nF 0.3\n",
+            "REAL A B C D\n0 1 0.1234567891234 1e-07 100\n",
+            id="fractional_and_integer_like_values",
+        ),
+    ],
+)
+def test_that_design2params_output_is_unchanged_across_pandas_versions(
+    design,
+    defaults,
+    parameters_txt,
+    realization,
+    expected_parameters,
+    expected_designparameters,
+    expected_designmatrix,
+    tmp_path,
+    monkeypatch,
+):
+    monkeypatch.chdir(tmp_path)
+    write_design_xlsx(
+        "design_matrix.xlsx",
+        designdf=pd.DataFrame(design),
+        defaultsdf=None if defaults is None else pd.DataFrame(defaults),
+    )
+    if parameters_txt is not None:
+        Path("parameters.txt").write_text(parameters_txt, encoding="utf-8")
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", FutureWarning)
+        design2params.run(realization, "design_matrix.xlsx")
+
+    assert Path("parameters.txt").read_text(encoding="utf-8") == expected_parameters
+    assert (
+        Path("designparameters.txt").read_text(encoding="utf-8")
+        == expected_designparameters
+    )
+    assert Path("designmatrix.txt").read_text(encoding="utf-8") == expected_designmatrix
