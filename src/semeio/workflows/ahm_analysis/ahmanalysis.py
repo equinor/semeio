@@ -459,8 +459,11 @@ def raise_if_empty(dataframes, messages):
 
 
 @ert.plugin(name="semeio")
-def legacy_ertscript_workflow(config):
-    workflow = config.add_workflow(AhmAnalysisJob, "AHM_ANALYSIS")
-    workflow.description = DESCRIPTION
-    workflow.examples = EXAMPLES
-    workflow.category = "Analysis"
+def ertscript_workflow(config):
+    config.add_workflow(
+        AhmAnalysisJob,
+        "AHM_ANALYSIS",
+        description=DESCRIPTION,
+        examples=EXAMPLES,
+        category="Analysis",
+    )
