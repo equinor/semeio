@@ -2,18 +2,13 @@ import fileinput
 import os
 import shutil
 import subprocess
-from importlib.metadata import version
 from pathlib import Path
 
 import pytest
 from hypothesis import HealthCheck, settings
-from packaging.version import Version
 from resdata import ResDataType
 from resdata.grid import GridGenerator
 from resdata.resfile import ResdataKW
-
-if Version(version("resdata")).major < 7:
-    import cwrap
 
 from tests import legacy_test_data
 
@@ -125,11 +120,7 @@ def fixture_grid_prop():
     def wrapper(prop_name, value, grid_size, fname):
         prop = ResdataKW(prop_name, grid_size, ResDataType.RD_FLOAT)
         prop.assign(value)
-        if Version(version("resdata")).major < 7:
-            with cwrap.open(fname, "w") as file:
-                prop.write_grdecl(file)
-        else:
-            with Path(fname).open(mode="w", encoding="utf-8") as file:
-                prop.write_grdecl(file)
+        with Path(fname).open(mode="w", encoding="utf-8") as file:
+            prop.write_grdecl(file)
 
     return wrapper
