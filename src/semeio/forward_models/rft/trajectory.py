@@ -124,8 +124,9 @@ class TrajectoryPoint:
                 if isinstance(rftcell, ResdataRFTCell):
                     self.swat = rftcell.swat
                     self.sgas = rftcell.sgas
-                    if self.sgas is not None and self.sgas > -1:
-                        # ResdataRFTCell will return -1 as an invalid value.
+                    if self.swat is None:
+                        self.soil = None
+                    elif self.sgas is not None and self.sgas > -1:
                         self.soil = 1 - self.swat - self.sgas
                     else:
                         # Two-phase Eclipse runs

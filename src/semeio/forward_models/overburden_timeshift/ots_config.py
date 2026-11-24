@@ -182,7 +182,7 @@ class OTSConfig(BaseModel):
     @model_validator(mode="after")
     def check_date_in_rst(self) -> Self:
         errors = []
-        rst_dates = {d.date() for d in ResdataFile(f"{self.eclbase}.UNRST").dates}
+        rst_dates = {d.date() for d in ResdataFile(f"{self.eclbase}.UNRST").dates or []}
 
         for field in self.vintages.model_fields_set:
             vintage = getattr(self.vintages, field)
