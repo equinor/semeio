@@ -31,14 +31,13 @@ dependencies = [
     "pandas>=2",
     "pydantic>=2.9",
     "pyscal>=0.4.0",
-    "resdata",
+    "resdata>=7",
     "scipy",
     "segyio",
     "xlrd",
     "xtgeo>=2.15",
     "resfo-utilities>=0.1.1",
     "polars",
-    "packaging>=26.3",
 ]
 [dependency-groups]
 dev = [
